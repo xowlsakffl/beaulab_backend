@@ -2,7 +2,7 @@
 
 namespace App\Modules\Admin\Http\Controllers\Settings;
 
-use App\Modules\User\Http\Controllers\Controller;
+use App\Modules\Admin\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
@@ -16,7 +16,7 @@ class PasswordController extends Controller
      */
     public function edit(): Response
     {
-        return Inertia::render('settings/password');
+        return Inertia::render('admin/settings/password');
     }
 
     /**

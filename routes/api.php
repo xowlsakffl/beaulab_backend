@@ -4,6 +4,5 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
+// 앱 사용자 API
 
-
-require __DIR__.'/settings.php';

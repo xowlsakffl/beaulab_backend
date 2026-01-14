@@ -2,11 +2,11 @@
 
 namespace App\Modules\Admin\Actions\Fortify;
 
-use App\Modules\User\Models\User;
+use App\Modules\Admin\Models\Admin;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
 
-class ResetUserPassword implements ResetsUserPasswords
+class ResetAdminPassword implements ResetsUserPasswords
 {
     use PasswordValidationRules;
 
@@ -15,7 +15,7 @@ class ResetUserPassword implements ResetsUserPasswords
      *
      * @param  array<string, string>  $input
      */
-    public function reset(User $user, array $input): void
+    public function reset(Admin $user, array $input): void
     {
         Validator::make($input, [
             'password' => $this->passwordRules(),

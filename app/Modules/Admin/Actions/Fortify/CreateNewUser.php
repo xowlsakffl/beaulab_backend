@@ -2,12 +2,12 @@
 
 namespace App\Modules\Admin\Actions\Fortify;
 
-use App\Modules\User\Models\User;
+use App\Modules\Admin\Models\Admin;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
-class CreateNewUser implements CreatesNewUsers
+class CreateNewAdmin implements CreatesNewUsers
 {
     use PasswordValidationRules;
 

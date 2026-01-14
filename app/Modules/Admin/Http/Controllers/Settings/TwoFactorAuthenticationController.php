@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\User\Http\Controllers\Settings;
+namespace App\Modules\Admin\Http\Controllers\Settings;
 
-use App\Modules\User\Http\Controllers\Controller;
-use App\Modules\User\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use App\Modules\Admin\Http\Controllers\Controller;
+use App\Modules\Admin\Http\Requests\Settings\TwoFactorAuthenticationRequest;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;

@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Middleware\RequestId;
-use App\Modules\User\Http\Middleware\HandleAppearance;
-use App\Modules\User\Http\Middleware\HandleInertiaRequests;
+use App\Modules\Admin\Http\Middleware\HandleAppearance;
+use App\Modules\Admin\Http\Middleware\HandleInertiaRequests;
 use App\Shared\Exceptions\CustomException;
 use App\Shared\Exceptions\ErrorCode;
 use App\Shared\Http\ApiResponse;
@@ -66,8 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
          * - /admin/api/* 만 관리자 API
          * - /admin/* 페이지(Inertia)는 제외
          */
-        $isAdminApiRequest = fn (Request $request) =>
-        $request->is('admin/api/*');
+        $isAdminApiRequest = fn (Request $request) => $request->is('admin/api/*');
 
         /**
          * JSON 렌더링 기준

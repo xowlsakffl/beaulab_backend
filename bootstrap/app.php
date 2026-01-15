@@ -69,12 +69,24 @@ return Application::configure(basePath: dirname(__DIR__))
         $isAdminApiRequest = fn (Request $request) => $request->is('admin/api/*');
 
         /**
+         * "JSON 에러 포맷(ApiResponse)으로 강제할 요청" 기준
+         * - 앱 API: /api/*
+         * - 관리자 API: /admin/api/*
+         * - 또는 expectsJson() (React fetch/axios가 Accept: application/json 보내는 경우)
+         */
+        $isJsonApiRequest = function (Request $request): bool {
+            return $request->is('api/*')
+                || $request->is('admin/api/*')
+                || $request->expectsJson();
+        };
+
+        /**
          * JSON 렌더링 기준
          * - 앱 API: /api/*
          * - 관리자 API: /admin/api/*
          * - 그 외는 Accept 헤더 기준 (Inertia 안전)
          */
-        $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e) {
+        $exceptions->shouldRenderJsonWhen(function (Request $request, \Throwable $e) {
             if ($request->is('api/*') || $request->is('admin/api/*')) {
                 return true;
             }
@@ -94,7 +106,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Validation (422)
-        $exceptions->render(function (ValidationException $e, Request $request) use ($isAdminApiRequest) {
+        $exceptions->render(function (ValidationException $e, Request $request) use ($isAdminApiRequest, $isJsonApiRequest) {
+            if (! $isJsonApiRequest($request)) {
+                return null; // Inertia 페이지는 기본 동작(redirect back + errors)
+            }
+
             $traceId = $request->attributes->get('traceId');
             $isAdmin = $isAdminApiRequest($request);
 
@@ -110,7 +126,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Authentication / Authorization (401 / 403)
-        $exceptions->render(function (AuthenticationException $e, Request $request) use ($isAdminApiRequest) {
+        $exceptions->render(function (AuthenticationException $e, Request $request) use ($isAdminApiRequest, $isJsonApiRequest) {
+            if (! $isJsonApiRequest($request)) {
+                return null; // 페이지 접근은 redirect 로그인 흐름 유지
+            }
+
             $traceId = $request->attributes->get('traceId');
             $isAdmin = $isAdminApiRequest($request);
 
@@ -125,7 +145,11 @@ return Application::configure(basePath: dirname(__DIR__))
             );
         });
 
-        $exceptions->render(function (AuthorizationException $e, Request $request) use ($isAdminApiRequest) {
+        $exceptions->render(function (AuthorizationException $e, Request $request) use ($isAdminApiRequest, $isJsonApiRequest) {
+            if (! $isJsonApiRequest($request)) {
+                return null;
+            }
+
             $traceId = $request->attributes->get('traceId');
             $isAdmin = $isAdminApiRequest($request);
 
@@ -141,7 +165,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Model Not Found (404)
-        $exceptions->render(function (ModelNotFoundException $e, Request $request) use ($isAdminApiRequest) {
+        $exceptions->render(function (ModelNotFoundException $e, Request $request) use ($isAdminApiRequest, $isJsonApiRequest) {
+            if (! $isJsonApiRequest($request)) {
+                return null;
+            }
+
             $traceId = $request->attributes->get('traceId');
             $isAdmin = $isAdminApiRequest($request);
 
@@ -157,7 +185,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Business Exception (Custom)
-        $exceptions->render(function (CustomException $e, Request $request) use ($isAdminApiRequest) {
+        $exceptions->render(function (CustomException $e, Request $request) use ($isAdminApiRequest, $isJsonApiRequest) {
+            if (! $isJsonApiRequest($request)) {
+                return null;
+            }
+
             $traceId = $request->attributes->get('traceId');
             $isAdmin = $isAdminApiRequest($request);
 
@@ -177,7 +209,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Database Error
-        $exceptions->render(function (QueryException $e, Request $request) use ($isAdminApiRequest) {
+        $exceptions->render(function (QueryException $e, Request $request) use ($isAdminApiRequest, $isJsonApiRequest) {
+            if (! $isJsonApiRequest($request)) {
+                return null;
+            }
+
             $traceId = $request->attributes->get('traceId');
             $isAdmin = $isAdminApiRequest($request);
 
@@ -201,7 +237,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // HTTP Exception (abort, 404, 419, etc)
-        $exceptions->render(function (HttpExceptionInterface $e, Request $request) use ($isAdminApiRequest) {
+        $exceptions->render(function (HttpExceptionInterface $e, Request $request) use ($isAdminApiRequest, $isJsonApiRequest) {
+            if (! $isJsonApiRequest($request)) {
+                return null;
+            }
+
             $traceId = $request->attributes->get('traceId');
             $status  = $e->getStatusCode();
             $isAdmin = $isAdminApiRequest($request);
@@ -226,7 +266,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Fallback (500)
-        $exceptions->render(function (Throwable $e, Request $request) use ($isAdminApiRequest) {
+        $exceptions->render(function (\Throwable $e, Request $request) use ($isAdminApiRequest, $isJsonApiRequest) {
+            if (! $isJsonApiRequest($request)) {
+                return null; // Inertia 페이지는 기본 500 처리 유지
+            }
+
             $traceId = $request->attributes->get('traceId');
             $isAdmin = $isAdminApiRequest($request);
 

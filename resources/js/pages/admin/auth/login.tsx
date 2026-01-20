@@ -23,10 +23,7 @@ export default function Login({
     //canRegister,
 }: LoginProps) {
     return (
-        <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
-        >
+        <AuthLayout title="로그인" description="test">
             <Head title="Log in" />
 
             <Form
@@ -38,30 +35,34 @@ export default function Login({
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="nickname">아이디</Label>
                                 <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
+                                    id="nickname"
+                                    type="text"
+                                    name="nickname"
                                     autoFocus
                                     tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
+                                    autoComplete="nickname"
+                                    placeholder="아이디를 입력하세요."
+                                    className={
+                                        errors.nickname
+                                            ? 'border-red-500 focus-visible:ring-red-500'
+                                            : ''
+                                    }
                                 />
-                                <InputError message={errors.email} />
+                                <InputError message={errors.nickname} />
                             </div>
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">비밀번호</Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            비밀번호 찾기
                                         </TextLink>
                                     )}
                                 </div>
@@ -69,10 +70,14 @@ export default function Login({
                                     id="password"
                                     type="password"
                                     name="password"
-                                    required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder="비밀번호를 입력하세요."
+                                    className={
+                                        errors.password
+                                            ? 'border-red-500 focus-visible:ring-red-500'
+                                            : ''
+                                    }
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -83,7 +88,9 @@ export default function Login({
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember">
+                                    로그인 상태 유지
+                                </Label>
                             </div>
 
                             <Button
@@ -94,7 +101,7 @@ export default function Login({
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                로그인
                             </Button>
                         </div>
 

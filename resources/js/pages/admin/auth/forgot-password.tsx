@@ -14,8 +14,8 @@ import AuthLayout from '@/layouts/admin/auth-layout';
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
         <AuthLayout
-            title="Forgot password"
-            description="Enter your email to receive a password reset link"
+            title="비밀번호 재설정"
+            description="비밀번호 재설정 링크를 받으려면 이메일 주소를 입력하세요."
         >
             <Head title="Forgot password" />
 
@@ -30,7 +30,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">이메일</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -52,7 +52,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     {processing && (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     )}
-                                    Email password reset link
+                                    재설정 링크 보내기
                                 </Button>
                             </div>
                         </>
@@ -60,8 +60,8 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </Form>
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
-                    <span>Or, return to</span>
-                    <TextLink href={login()}>log in</TextLink>
+                    <span>또는, </span>
+                    <TextLink href={login()}>로그인으로 돌아가기</TextLink>
                 </div>
             </div>
         </AuthLayout>

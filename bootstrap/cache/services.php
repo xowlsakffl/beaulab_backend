@@ -32,12 +32,14 @@
     28 => 'Laravel\\Roster\\RosterServiceProvider',
     29 => 'Laravel\\Sail\\SailServiceProvider',
     30 => 'Laravel\\Sanctum\\SanctumServiceProvider',
-    31 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    32 => 'Laravel\\Wayfinder\\WayfinderServiceProvider',
-    33 => 'Carbon\\Laravel\\ServiceProvider',
-    34 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    35 => 'App\\Modules\\Admin\\Providers\\AppServiceProvider',
-    36 => 'App\\Modules\\Admin\\Providers\\FortifyServiceProvider',
+    31 => 'Laravel\\Socialite\\SocialiteServiceProvider',
+    32 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    33 => 'Laravel\\Wayfinder\\WayfinderServiceProvider',
+    34 => 'Carbon\\Laravel\\ServiceProvider',
+    35 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    36 => 'Spatie\\Permission\\PermissionServiceProvider',
+    37 => 'App\\Modules\\Admin\\Providers\\AppServiceProvider',
+    38 => 'App\\Modules\\Admin\\Providers\\FortifyServiceProvider',
   ),
   'eager' => 
   array (
@@ -61,8 +63,9 @@
     17 => 'Laravel\\Wayfinder\\WayfinderServiceProvider',
     18 => 'Carbon\\Laravel\\ServiceProvider',
     19 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    20 => 'App\\Modules\\Admin\\Providers\\AppServiceProvider',
-    21 => 'App\\Modules\\Admin\\Providers\\FortifyServiceProvider',
+    20 => 'Spatie\\Permission\\PermissionServiceProvider',
+    21 => 'App\\Modules\\Admin\\Providers\\AppServiceProvider',
+    22 => 'App\\Modules\\Admin\\Providers\\FortifyServiceProvider',
   ),
   'deferred' => 
   array (
@@ -222,6 +225,7 @@
     'Illuminate\\Contracts\\Validation\\UncompromisedVerifier' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Laravel\\Sail\\Console\\InstallCommand' => 'Laravel\\Sail\\SailServiceProvider',
     'Laravel\\Sail\\Console\\PublishCommand' => 'Laravel\\Sail\\SailServiceProvider',
+    'Laravel\\Socialite\\Contracts\\Factory' => 'Laravel\\Socialite\\SocialiteServiceProvider',
     'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
@@ -266,6 +270,9 @@
     array (
     ),
     'Laravel\\Sail\\SailServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Socialite\\SocialiteServiceProvider' => 
     array (
     ),
     'Laravel\\Tinker\\TinkerServiceProvider' => 

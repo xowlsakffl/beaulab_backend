@@ -21,6 +21,5 @@ Route::middleware(['auth:admin'])->group(function () {
 
     Route::get('settings/appearance', AppearanceController::class)->name('appearance.edit');
 
-    Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
-        ->name('two-factor.show');
+    Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
 });

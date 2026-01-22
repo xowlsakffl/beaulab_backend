@@ -1,112 +1,100 @@
-import { login } from '@/routes';
-//import { store } from '@/routes/register';
-import { Form, Head } from '@inertiajs/react';
-
 import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/admin/auth-layout';
+import { home } from '@/routes';
+import { Form, Head, Link } from '@inertiajs/react';
+import { LoaderCircle } from 'lucide-react';
+import { ChevronLeftIcon } from '@/icons';
 
 export default function Register() {
     return (
-        <AuthLayout
-            title="Create an account"
-            description="Enter your details below to create your account"
-        >
-            <Head title="Register" />
+        <AuthLayout>
+            <Head title="입점 신청" />
+
+            <Link
+                href={home()}
+                className="mb-6 inline-flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >
+                <ChevronLeftIcon className="size-5" />
+                홈으로 돌아가기
+            </Link>
+
+            <div className="mb-5 sm:mb-8">
+                <h1 className="mb-2 text-title-sm font-semibold text-gray-800 sm:text-title-md dark:text-white/90">
+                    입점 신청
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    신청 후 검토/승인되면 관리자 권한을 부여해드려요.
+                </p>
+            </div>
+
             <Form
-                {...store.form()}
-                resetOnSuccess={['password', 'password_confirmation']}
-                disableWhileProcessing
-                className="flex flex-col gap-6"
+                // TODO: 입점신청 전용 store로 교체 필요
+                // {...store.form()}
+                method="post"
+                action="#"
+                className="space-y-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="name"
-                                    name="name"
-                                    placeholder="Full name"
-                                />
-                                <InputError
-                                    message={errors.name}
-                                    className="mt-2"
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="email"
-                                    name="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError message={errors.email} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    required
-                                    tabIndex={3}
-                                    autoComplete="new-password"
-                                    name="password"
-                                    placeholder="Password"
-                                />
-                                <InputError message={errors.password} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    Confirm password
-                                </Label>
-                                <Input
-                                    id="password_confirmation"
-                                    type="password"
-                                    required
-                                    tabIndex={4}
-                                    autoComplete="new-password"
-                                    name="password_confirmation"
-                                    placeholder="Confirm password"
-                                />
-                                <InputError
-                                    message={errors.password_confirmation}
-                                />
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full"
-                                tabIndex={5}
-                                data-test="register-user-button"
-                            >
-                                {processing && <Spinner />}
-                                Create account
-                            </Button>
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                업체명 <span className="text-error-500">*</span>
+                            </label>
+                            <input
+                                name="company_name"
+                                type="text"
+                                autoFocus
+                                placeholder="업체명을 입력하세요."
+                                className={[
+                                    'h-11 w-full rounded-lg border bg-white px-4 text-sm text-gray-900 transition outline-none',
+                                    'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10',
+                                    'dark:border-gray-800 dark:bg-gray-950 dark:text-white/90 dark:focus:ring-brand-500/20',
+                                    errors.company_name
+                                        ? 'border-error-500 focus:border-error-500 focus:ring-error-500/10 dark:focus:ring-error-500/20'
+                                        : '',
+                                ].join(' ')}
+                            />
+                            <InputError
+                                // @ts-expect-error - depends on backend validation bag
+                                message={errors.company_name}
+                                className="mt-2"
+                            />
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                Log in
-                            </TextLink>
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                이메일 <span className="text-error-500">*</span>
+                            </label>
+                            <input
+                                name="email"
+                                type="email"
+                                placeholder="email@example.com"
+                                className={[
+                                    'h-11 w-full rounded-lg border bg-white px-4 text-sm text-gray-900 transition outline-none',
+                                    'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10',
+                                    'dark:border-gray-800 dark:bg-gray-950 dark:text-white/90 dark:focus:ring-brand-500/20',
+                                    errors.email
+                                        ? 'border-error-500 focus:border-error-500 focus:ring-error-500/10 dark:focus:ring-error-500/20'
+                                        : '',
+                                ].join(' ')}
+                            />
+                            <InputError
+                                message={errors.email}
+                                className="mt-2"
+                            />
                         </div>
+
+                        <button
+                            type="submit"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+                            disabled={processing}
+                            data-test="vendor-apply-button"
+                        >
+                            {processing && (
+                                <LoaderCircle className="h-4 w-4 animate-spin" />
+                            )}
+                            신청하기
+                        </button>
                     </>
                 )}
             </Form>

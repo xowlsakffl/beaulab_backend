@@ -8,9 +8,9 @@ export default function AuthLayout({
 }) {
     return (
         <TailAdminAuthPageLayout {...props}>
-            <div className="flex w-full items-center justify-center px-6 py-10 sm:px-10 lg:w-1/2">
+            <div className="flex w-full items-center justify-center px-4 py-6 sm:px-8 sm:py-10 lg:w-1/2">
                 <div className="w-full max-w-md">
-                    <div className="bg-white p-6 sm:p-8 dark:bg-gray-900">
+                    <div className="bg-white sm:p-8 dark:bg-gray-900">
                         {children}
                     </div>
                 </div>

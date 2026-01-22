@@ -42,7 +42,7 @@ export default function Login({
                                 로그인
                             </h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                이메일과 비밀번호를 입력해 뷰랩 관리자에
+                                뷰랩 관리자에
                                 로그인하세요!
                             </p>
                         </div>

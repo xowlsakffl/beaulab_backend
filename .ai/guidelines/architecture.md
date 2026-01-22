@@ -82,3 +82,5 @@
 - Inertia 페이지(`/admin/*`)는 기본 흐름(redirect + errors)을 깨지 않도록 JSON 에러를 강제하지 않음
 
 자세한 내용은 [에러/예외 처리](./error-handling.md)를 참고합니다.
+
+작성자 안민성

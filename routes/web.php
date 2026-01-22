@@ -11,6 +11,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // dashboard / settings (Inertia 페이지들)
         require __DIR__.'/settings.php';
+
+        Route::get('/ui-preview', function () {
+            return Inertia::render('admin/ui-preview');
+        })->name('admin.ui-preview');
     });
 });
 

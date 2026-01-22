@@ -16,3 +16,20 @@
 - 앱 사용자 API는 `/api/*`로 분리한다.
 - API(`/api/*`, `/admin/api/*`)는 공통 `ApiResponse` 포맷으로 에러를 통일한다.
 - Inertia 페이지(`/admin/*`)는 redirect + errors 등 기본 흐름을 깨지 않도록 JSON 에러를 강제하지 않는다.
+
+## 설치된 주요 패키지 (Backend)
+
+- Queue / Monitoring
+    - `laravel/horizon` : Redis 큐 모니터링/관리 대시보드
+    - `predis/predis` : Redis 클라이언트(큐/캐시 등에서 사용)
+
+- Debug / Observability
+    - `laravel/telescope` : 요청/쿼리/잡/예외 등 디버깅/관측 도구 (운영에서는 접근 제어 필요)
+
+- Audit / Logging
+    - `spatie/laravel-activitylog` : 관리자/사용자 행위 로그(누가/무엇을/어떻게 변경했는지) 기록
+
+- Query / Filtering
+    - `spatie/laravel-query-builder` : 목록 API의 필터/정렬/검색 규칙을 일관되게 구현
+
+작성자 안민성

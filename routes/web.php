@@ -4,9 +4,13 @@ use App\Modules\Admin\Http\Controllers\Pages\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('/', function () {
+    return Inertia::render('home');
+})->name('home');
+
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('auth:admin')->group(function () {
-        // 대시보드(홈)
+        // 대시보드
         Route::get('', DashboardController::class)->name('dashboard');
 
         // dashboard / settings (Inertia 페이지들)
@@ -17,4 +21,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
         })->name('admin.ui-preview');
     });
 });
+
 

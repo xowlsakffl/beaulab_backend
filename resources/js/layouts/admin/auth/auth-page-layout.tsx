@@ -1,9 +1,9 @@
-import GridShape from '@/components/common/GridShape';
-import ThemeTogglerTwo from '@/components/common/ThemeTogglerTwo';
+import GridShape from '@/components/common/grid-shape';
+import ThemeTogglerTwo from '@/components/common/theme-toggler-two';
 import { login } from '@/routes';
 import { Link } from '@inertiajs/react';
 
-export default function TailAdminAuthPageLayout({
+export default function AuthPageLayout({
     children,
 }: {
     children: React.ReactNode;
@@ -23,7 +23,7 @@ export default function TailAdminAuthPageLayout({
                                 <img
                                     width={231}
                                     height={48}
-                                    src="/images/logo/auth-logo.svg"
+                                    src="#"
                                     alt="Logo"
                                 />
                             </Link>

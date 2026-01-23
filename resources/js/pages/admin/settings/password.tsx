@@ -5,6 +5,7 @@ import SettingsLayout from '@/layouts/admin/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { useRef } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
@@ -20,12 +21,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Password() {
+function PasswordPage() {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title="Password settings" />
 
             <h1 className="sr-only">Password Settings</h1>
@@ -143,6 +144,12 @@ export default function Password() {
                     </Form>
                 </div>
             </SettingsLayout>
-        </AppLayout>
+        </>
     );
 }
+
+PasswordPage.layout = (page: ReactNode) => (
+    <AppLayout breadcrumbs={breadcrumbs}>{page}</AppLayout>
+);
+
+export default PasswordPage;

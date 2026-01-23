@@ -1,8 +1,8 @@
 import ProfileController from '@/actions/App/Modules/Admin/Http/Controllers/Settings/ProfileController';
-//import { send } from '@/routes/verification';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
@@ -21,7 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Profile({
+function ProfilePage({
     mustVerifyEmail,
     status,
 }: {
@@ -31,7 +31,7 @@ export default function Profile({
     const { auth } = usePage<SharedData>().props;
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title="Profile settings" />
 
             <h1 className="sr-only">Profile Settings</h1>
@@ -45,9 +45,7 @@ export default function Profile({
 
                     <Form
                         {...ProfileController.update.form()}
-                        options={{
-                            preserveScroll: true,
-                        }}
+                        options={{ preserveScroll: true }}
                         className="space-y-6"
                     >
                         {({ processing, recentlySuccessful, errors }) => (
@@ -94,7 +92,7 @@ export default function Profile({
                                 {mustVerifyEmail &&
                                     auth.user.email_verified_at === null && (
                                         <div>
-                                            <p className="-mt-4 text-sm text-muted-foreground">
+                                            <p className="text-muted-foreground -mt-4 text-sm">
                                                 Your email address is
                                                 unverified.{' '}
                                                 <Link
@@ -145,6 +143,12 @@ export default function Profile({
 
                 <DeleteUser />
             </SettingsLayout>
-        </AppLayout>
+        </>
     );
 }
+
+ProfilePage.layout = (page: ReactNode) => (
+    <AppLayout breadcrumbs={breadcrumbs}>{page}</AppLayout>
+);
+
+export default ProfilePage;

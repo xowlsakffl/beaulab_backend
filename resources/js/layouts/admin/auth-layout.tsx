@@ -1,4 +1,4 @@
-import TailAdminAuthPageLayout from '@/layouts/admin/auth/TailAdminAuthPageLayout';
+import AuthPageLayout from '@/layouts/admin/auth/auth-page-layout';
 
 export default function AuthLayout({
     children,
@@ -7,7 +7,7 @@ export default function AuthLayout({
     children: React.ReactNode;
 }) {
     return (
-        <TailAdminAuthPageLayout {...props}>
+        <AuthPageLayout {...props}>
             <div className="flex w-full items-center justify-center px-4 py-6 sm:px-8 sm:py-10 lg:w-1/2">
                 <div className="w-full max-w-md">
                     <div className="bg-white sm:p-8 dark:bg-gray-900">
@@ -15,6 +15,6 @@ export default function AuthLayout({
                     </div>
                 </div>
             </div>
-        </TailAdminAuthPageLayout>
+        </AuthPageLayout>
     );
 }

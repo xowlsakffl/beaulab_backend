@@ -1,8 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
-layer(base);
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap');
 
 @import 'tailwindcss';
-
 @import 'tw-animate-css';
 
 @source '../views';
@@ -12,7 +10,9 @@ layer(base);
 
 @theme {
     --font-*: initial;
-    --font-outfit: Outfit, sans-serif;
+    --font-notosans: 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 
     --breakpoint-*: initial;
     --breakpoint-2xsm: 375px;
@@ -46,7 +46,7 @@ layer(base);
     --color-white: #ffffff;
     --color-black: #101828;
 
-    --color-brand-25: #fff1f6;
+    /*--color-brand-25: #fff1f6;
     --color-brand-50: #ffe4ee;
     --color-brand-100: #ffd0e1;
     --color-brand-200: #ffadc8;
@@ -57,7 +57,19 @@ layer(base);
     --color-brand-700: #bf2f63;
     --color-brand-800: #9b2752;
     --color-brand-900: #7f2246;
-    --color-brand-950: #4a0f25;
+    --color-brand-950: #4a0f25;*/
+    --color-brand-25: #f2f7ff;
+    --color-brand-50: #ecf3ff;
+    --color-brand-100: #dde9ff;
+    --color-brand-200: #c2d6ff;
+    --color-brand-300: #9cb9ff;
+    --color-brand-400: #7592ff;
+    --color-brand-500: #465fff;
+    --color-brand-600: #3641f5;
+    --color-brand-700: #2a31d8;
+    --color-brand-800: #252dae;
+    --color-brand-900: #262e89;
+    --color-brand-950: #161950;
 
     --color-primary-25: #f2f7ff;
     --color-primary-50: #ecf3ff;
@@ -204,7 +216,7 @@ layer(base);
         cursor: pointer;
     }
     body {
-        @apply relative font-normal font-outfit z-1 bg-gray-50;
+        font-family: var(--font-notosans), sans-serif;
     }
 }
 

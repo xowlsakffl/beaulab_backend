@@ -9,6 +9,7 @@ import SettingsLayout from '@/layouts/admin/settings/layout';
 import { disable, enable, show } from '@/routes/two-factor';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { ShieldBan, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 
@@ -24,7 +25,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function TwoFactor({
+function TwoFactorPage({
     requiresConfirmation = false,
     twoFactorEnabled = false,
 }: TwoFactorProps) {
@@ -41,7 +42,7 @@ export default function TwoFactor({
     const [showSetupModal, setShowSetupModal] = useState<boolean>(false);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title="Two-Factor Authentication" />
 
             <h1 className="sr-only">Two-Factor Authentication Settings</h1>
@@ -135,6 +136,12 @@ export default function TwoFactor({
                     />
                 </div>
             </SettingsLayout>
-        </AppLayout>
+        </>
     );
 }
+
+TwoFactorPage.layout = (page: ReactNode) => (
+    <AppLayout breadcrumbs={breadcrumbs}>{page}</AppLayout>
+);
+
+export default TwoFactorPage;

@@ -1,4 +1,4 @@
-import AppearanceToggleDropdown from '@/components/appearance-dropdown';
+import AppearanceToggle from '@/components/appearance-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -71,7 +71,7 @@ export default function AppHeaderBar() {
                                 href={dashboard()}
                                 className="inline-flex items-center gap-2"
                             >
-                                <span className="bg-brand-500 inline-flex h-10 w-10 items-center justify-center rounded-lg text-white">
+                                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500 text-white">
                                     <AppLogoIcon className="h-5 w-5 text-white" />
                                 </span>
                                 <span className="font-semibold text-gray-900 dark:text-white/90">
@@ -90,18 +90,18 @@ export default function AppHeaderBar() {
             {/* Search */}
             <div className="flex flex-1 items-center">
                 <div className="relative w-full max-w-xl">
-                    <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    <Search className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-gray-400" />
                     <input
                         ref={inputRef}
                         type="text"
                         placeholder="Search or type command..."
                         className={cn(
-                            'shadow-theme-xs h-11 w-full rounded-lg border bg-transparent py-2.5 pl-12 pr-16 text-sm text-gray-800 outline-none placeholder:text-gray-400',
-                            'focus:border-brand-300 focus:ring-brand-500/10 border-gray-200 focus:ring-4',
-                            'dark:focus:border-brand-800 dark:focus:ring-brand-500/20 dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30',
+                            'h-11 w-full rounded-lg border bg-transparent py-2.5 pr-16 pl-12 text-sm text-gray-800 shadow-theme-xs outline-none placeholder:text-gray-400',
+                            'border-gray-200 focus:border-brand-300 focus:ring-4 focus:ring-brand-500/10',
+                            'dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 dark:focus:ring-brand-500/20',
                         )}
                     />
-                    <div className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-500 sm:inline-flex dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
+                    <div className="pointer-events-none absolute top-1/2 right-2.5 hidden -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-500 sm:inline-flex dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
                         <span>⌘</span>
                         <span>K</span>
                     </div>
@@ -109,13 +109,13 @@ export default function AppHeaderBar() {
             </div>
 
             {/* Right actions */}
-            <div className="flex items-center gap-2">
-                <AppearanceToggleDropdown />
+            <div className="flex items-center gap-4">
+                <AppearanceToggle />
 
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-md"
+                    className="h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-white/5"
                 >
                     <Bell className="h-5 w-5" />
                     <span className="sr-only">Notifications</span>
@@ -127,7 +127,7 @@ export default function AppHeaderBar() {
                             variant="ghost"
                             className="h-10 w-10 rounded-full p-1"
                         >
-                            <Avatar className="size-8 overflow-hidden rounded-full">
+                            <Avatar className="size-10 overflow-hidden rounded-full">
                                 <AvatarImage
                                     src={auth.user.avatar}
                                     alt={auth.user.name}
@@ -138,7 +138,10 @@ export default function AppHeaderBar() {
                             </Avatar>
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end">
+                    <DropdownMenuContent
+                        className="dark:bg-gray-900 w-46 bg-white mt-2"
+                        align="end"
+                    >
                         <UserMenuContent user={auth.user} />
                     </DropdownMenuContent>
                 </DropdownMenu>

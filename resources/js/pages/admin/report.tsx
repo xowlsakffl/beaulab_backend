@@ -5,7 +5,11 @@ import { dashboard } from '@/routes/admin';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: '홈',
+        href: dashboard().url,
+    },
+    {
+        title: '메뉴1',
         href: dashboard().url,
     },
 ];
@@ -15,11 +19,11 @@ function ReportPage() {
             <div className="space-y-6 px-8">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white/90">
-                        Reports
+                        예시페이지
                     </h1>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        예시 페이지입니다. 데이터/차트/테이블을
-                    </p>
+                    {/*<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">*/}
+                    {/*    예시 페이지입니다.*/}
+                    {/*</p>*/}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
@@ -45,7 +49,7 @@ function ReportPage() {
 
                 <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        여기에 차트 컴포넌트 넣기
+
                     </div>
                     <div className="mt-4 h-64 rounded-lg bg-gray-50 dark:bg-gray-950" />
                 </div>

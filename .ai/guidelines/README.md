@@ -8,6 +8,7 @@
 
 - [아키텍처 & 흐름](./architecture.md)
 - [에러/예외 처리](./error-handling.md)
+- [권한/메뉴 설계 (Admin / App User)](./authorization.md)
 
 ## 빠른 요약 (핵심 규칙)
 
@@ -19,25 +20,17 @@
 
 ## 설치된 주요 패키지 (Backend)
 
-이 프로젝트는 아래 패키지들을 사용합니다.
+- Queue / Monitoring
+    - `laravel/horizon` : Redis 큐 모니터링/관리 대시보드
+    - `predis/predis` : Redis 클라이언트(큐/캐시 등에서 사용)
 
-- `laravel/horizon`
-    - Redis 큐 모니터링/관리용 대시보드
-    - 운영 환경에서는 접근 Gate 설정 필수
+- Debug / Observability
+    - `laravel/telescope` : 요청/쿼리/잡/예외 등 디버깅/관측 도구 (운영에서는 접근 제어 필요)
 
-- `predis/predis`
-    - Redis 연결(큐/캐시 등) 용도
+- Audit / Logging
+    - `spatie/laravel-activitylog` : 관리자/사용자 행위 로그(누가/무엇을/어떻게 변경했는지) 기록
 
-- `laravel/telescope`
-    - 요청/쿼리/예외/잡 등 관측/디버깅
-    - 운영 환경에서는 민감정보 마스킹 및 Gate 설정 필수
-
-- `spatie/laravel-activitylog`
-    - 관리자/사용자 액션 기록(감사 로그)
-    - “누가(causer) / 무엇(subject) / 변경사항(properties)” 기준을 정해서 일관되게 사용
-
-- `spatie/laravel-query-builder`
-    - Admin API(/admin/api/*) 및 App API(/api/*)에서 목록 조회의 필터/정렬/검색을 표준화
-
+- Query / Filtering
+    - `spatie/laravel-query-builder` : 목록 API의 필터/정렬/검색 규칙을 일관되게 구현
 
 작성자 안민성

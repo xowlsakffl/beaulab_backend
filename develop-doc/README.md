@@ -8,6 +8,7 @@
 
 - [아키텍처 & 흐름](./architecture.md)
 - [에러/예외 처리](./error-handling.md)
+- [권한/메뉴 설계 (Admin / App User)](./authorization.md)
 
 ## 빠른 요약 (핵심 규칙)
 

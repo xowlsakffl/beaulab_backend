@@ -14,7 +14,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronRight, X, Menu } from 'lucide-react';
+import SidebarOverlay from '@/components/sidebar-overlay';
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -169,34 +170,42 @@ function Sidebar({
     )
   }
 
-  if (isMobile) {
-    return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetHeader className="sr-only">
-          <SheetTitle>Sidebar</SheetTitle>
-          <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-        </SheetHeader>
-        <SheetContent
-          data-sidebar="sidebar"
-          data-slot="sidebar"
-          data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
-        >
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
-    )
-  }
+    if (isMobile) {
+        return (
+            <>
+                <SidebarOverlay
+                    open={openMobile}
+                    onClose={() => setOpenMobile(false)}
+                    offsetTopClassName="top-28"
+                />
+                <Sheet open={openMobile} onOpenChange={setOpenMobile} modal={false} {...props}>
+                    <SheetHeader className="sr-only">
+                        <SheetTitle>Sidebar</SheetTitle>
+                        <SheetDescription>Displays the mobile sidebar.</SheetDescription>
+                    </SheetHeader>
+                    <SheetContent
+                        data-sidebar="sidebar"
+                        data-slot="sidebar"
+                        data-mobile="true"
+                        offsetTopClassName="top-28"
+                        className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+                        style={
+                            {
+                                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+                            } as React.CSSProperties
+                        }
+                        side={side}
+                    >
+                        <div className="flex h-full w-full flex-col">{children}</div>
+                    </SheetContent>
+                </Sheet>
+            </>
+        )
+    }
 
     return (
         <div
-            className="group peer text-sidebar-foreground hidden md:block"
+            className="group peer text-sidebar-foreground"
             data-state={state}
             data-collapsible={state === "collapsed" ? collapsible : ""}
             data-variant={variant}
@@ -254,9 +263,10 @@ function SidebarTrigger({
                             onClick,
                             ...props
                         }: React.ComponentProps<typeof Button>) {
-    const { toggleSidebar, isMobile, state } = useSidebar()
+    const { toggleSidebar, isMobile, state, openMobile } = useSidebar()
 
     const isCollapsed = !isMobile && state === "collapsed"
+    const isMobileOpen = isMobile && openMobile
 
     return (
         <Button
@@ -269,11 +279,17 @@ function SidebarTrigger({
                 "h-10 w-10 rounded-lg transition-colors",
                 "focus-visible:ring-4 focus-visible:ring-brand-500/20",
 
+                // active (mobile open) -> 파랗게
+                isMobileOpen &&
+                "border border-brand-500 bg-brand-500 text-white hover:bg-brand-600 dark:border-brand-500 dark:bg-brand-500 dark:text-white",
+
                 // expanded (default)
+                !isMobileOpen &&
                 !isCollapsed &&
                 "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-white/5",
 
-                // collapsed (toggle style)
+                // collapsed (desktop collapsed)
+                !isMobileOpen &&
                 isCollapsed &&
                 "border border-brand-500 bg-brand-500 text-white hover:bg-brand-600 dark:border-brand-500 dark:bg-brand-500 dark:text-white",
 
@@ -285,10 +301,16 @@ function SidebarTrigger({
             }}
             {...props}
         >
-            {isMobile || state === "collapsed" ? (
+            {isMobile ? (
+                openMobile ? (
+                    <X className="h-5 w-5" />
+                ) : (
+                    <Menu className="h-5 w-5" />
+                )
+            ) : state === "collapsed" ? (
                 <ChevronRight className="h-5 w-5" />
             ) : (
-                <ChevronLeft className="h-5 w-5" />
+                <Menu className="h-5 w-5" />
             )}
             <span className="sr-only">Toggle Sidebar</span>
         </Button>

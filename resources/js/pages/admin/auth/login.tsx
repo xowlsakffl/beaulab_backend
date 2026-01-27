@@ -8,6 +8,7 @@ import { Form, Head, Link } from '@inertiajs/react';
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 import { ChevronLeftIcon } from '../../../icons';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface LoginProps {
     status?: string;
@@ -42,10 +43,18 @@ export default function Login({
                                 로그인
                             </h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                뷰랩 관리자에
-                                로그인하세요!
+                                뷰랩 관리자에 로그인하세요!
                             </p>
                         </div>
+
+                        {status && (
+                            <Alert className="mb-4">
+                                <AlertTitle>안내</AlertTitle>
+                                <AlertDescription className="text-green-600">
+                                    {status}
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
                         <Form
                             {...store.form()}
@@ -180,12 +189,6 @@ export default function Login({
                                 </>
                             )}
                         </Form>
-
-                        {status && (
-                            <div className="mt-5 text-center text-sm font-medium text-green-600">
-                                {status}
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

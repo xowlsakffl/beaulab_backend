@@ -6,6 +6,7 @@ import { login } from '@/routes';
 import { email } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
@@ -30,9 +31,12 @@ export default function ForgotPassword({ status }: { status?: string }) {
             </div>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
+                <Alert className="mb-4">
+                    <AlertTitle>안내</AlertTitle>
+                    <AlertDescription className="text-green-600">
+                        {status}
+                    </AlertDescription>
+                </Alert>
             )}
 
             <Form {...email.form()} className="space-y-6">

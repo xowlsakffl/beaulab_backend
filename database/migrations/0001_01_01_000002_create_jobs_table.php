@@ -12,37 +12,43 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('jobs', function (Blueprint $table) {
-            $table->id();
-            $table->string('queue')->index();
-            $table->longText('payload');
-            $table->unsignedTinyInteger('attempts');
-            $table->unsignedInteger('reserved_at')->nullable();
-            $table->unsignedInteger('available_at');
-            $table->unsignedInteger('created_at');
+            $table->id()->comment('큐 작업 ID');
+            $table->string('queue')->index()->comment('큐 이름');
+            $table->longText('payload')->comment('직렬화된 작업 데이터');
+            $table->unsignedTinyInteger('attempts')->comment('실행 시도 횟수');
+            $table->unsignedInteger('reserved_at')->nullable()->comment('작업 예약 시각');
+            $table->unsignedInteger('available_at')->comment('작업 실행 가능 시각');
+            $table->unsignedInteger('created_at')->comment('작업 생성 시각');
         });
+
+        DB::statement("ALTER TABLE jobs COMMENT = '[시스템]Laravel 큐 대기 작업'");
 
         Schema::create('job_batches', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('name');
-            $table->integer('total_jobs');
-            $table->integer('pending_jobs');
-            $table->integer('failed_jobs');
-            $table->longText('failed_job_ids');
-            $table->mediumText('options')->nullable();
-            $table->integer('cancelled_at')->nullable();
-            $table->integer('created_at');
-            $table->integer('finished_at')->nullable();
+            $table->string('id')->primary()->comment('배치 작업 ID');
+            $table->string('name')->comment('배치 작업 이름');
+            $table->integer('total_jobs')->comment('전체 작업 수');
+            $table->integer('pending_jobs')->comment('대기 중인 작업 수');
+            $table->integer('failed_jobs')->comment('실패한 작업 수');
+            $table->longText('failed_job_ids')->comment('실패한 작업 ID 목록');
+            $table->mediumText('options')->nullable()->comment('배치 옵션');
+            $table->integer('cancelled_at')->nullable()->comment('배치 취소 시각');
+            $table->integer('created_at')->comment('배치 생성 시각');
+            $table->integer('finished_at')->nullable()->comment('배치 완료 시각');
         });
 
+        DB::statement("ALTER TABLE job_batches COMMENT = '[시스템]Laravel 배치 큐 작업 관리'");
+
         Schema::create('failed_jobs', function (Blueprint $table) {
-            $table->id();
-            $table->string('uuid')->unique();
-            $table->text('connection');
-            $table->text('queue');
-            $table->longText('payload');
-            $table->longText('exception');
-            $table->timestamp('failed_at')->useCurrent();
+            $table->id()->comment('실패 작업 ID');
+            $table->string('uuid')->unique()->comment('실패 작업 UUID');
+            $table->text('connection')->comment('큐 커넥션 정보');
+            $table->text('queue')->comment('큐 이름');
+            $table->longText('payload')->comment('작업 데이터');
+            $table->longText('exception')->comment('예외 메시지');
+            $table->timestamp('failed_at')->useCurrent()->comment('실패 시각');
         });
+
+        DB::statement("ALTER TABLE failed_jobs COMMENT = '[시스템]실패한 큐 작업 로그'");
     }
 
     /**

@@ -5,7 +5,7 @@ import { home } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/react';
-import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 import { ChevronLeftIcon } from '../../../icons';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -48,11 +48,9 @@ export default function Login({
                         </div>
 
                         {status && (
-                            <Alert className="mb-4">
-                                <AlertTitle>안내</AlertTitle>
-                                <AlertDescription className="text-green-600">
-                                    {status}
-                                </AlertDescription>
+                            <Alert variant="success">
+                                <CheckCircle2 />
+                                <AlertTitle>{status}</AlertTitle>
                             </Alert>
                         )}
 

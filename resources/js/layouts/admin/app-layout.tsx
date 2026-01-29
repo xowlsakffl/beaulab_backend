@@ -22,7 +22,7 @@ export default function AppLayout({
 
                 <AppContent
                     variant="sidebar"
-                    className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+                    className="bg-gray-50 dark:bg-gray-950 min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
                 >
                     <div className="bg-gray-50 px-4 py-4 lg:p-8 dark:bg-gray-950">
                         {children}

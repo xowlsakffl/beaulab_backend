@@ -5,7 +5,7 @@ import AuthLayout from '@/layouts/admin/auth-layout';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { CheckCircle2, LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function ForgotPassword({ status }: { status?: string }) {
@@ -31,11 +31,9 @@ export default function ForgotPassword({ status }: { status?: string }) {
             </div>
 
             {status && (
-                <Alert className="mb-4">
-                    <AlertTitle>안내</AlertTitle>
-                    <AlertDescription className="text-green-600">
-                        {status}
-                    </AlertDescription>
+                <Alert variant="success">
+                    <CheckCircle2 />
+                    <AlertTitle>{status}</AlertTitle>
                 </Alert>
             )}
 

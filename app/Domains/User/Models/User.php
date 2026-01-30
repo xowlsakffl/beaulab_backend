@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\User\Models;
+namespace App\Domains\User\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\QueuedResetPasswordNotification;

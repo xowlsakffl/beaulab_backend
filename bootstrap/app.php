@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Middleware\RequestId;
 use App\Modules\Admin\Http\Middleware\HandleAppearance;
 use App\Modules\Admin\Http\Middleware\HandleInertiaRequests;
 use App\Shared\Exceptions\CustomException;
 use App\Shared\Exceptions\ErrorCode;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Middleware\RequestId;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -13,8 +13,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 

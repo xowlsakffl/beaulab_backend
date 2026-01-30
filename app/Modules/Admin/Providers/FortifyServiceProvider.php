@@ -2,8 +2,7 @@
 
 namespace App\Modules\Admin\Providers;
 
-use App\Modules\Admin\Actions\Fortify\CreateNewAdmin;
-use App\Modules\Admin\Actions\Fortify\ResetAdminPassword;
+use App\Modules\Admin\Fortify\ResetAdminPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;

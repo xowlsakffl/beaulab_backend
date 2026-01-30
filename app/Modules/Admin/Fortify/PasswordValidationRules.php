@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Admin\Actions\Fortify;
+namespace App\Modules\Admin\Fortify;
 
 use Illuminate\Validation\Rules\Password;
 

@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id()->comment('관리자 고유 ID');
 
             $table->string('name')->comment('관리자 실명');
-            $table->string('nickname')->unique()->comment('관리자 닉네임(표시용)');
-            $table->string('email')->unique()->comment('관리자 로그인 이메일');
+            $table->string('nickname')->unique()->comment('관리자 로그인 아이디');
+            $table->string('email')->unique()->comment('관리자 이메일');
 
             $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
             $table->string('password')->comment('암호화된 비밀번호');

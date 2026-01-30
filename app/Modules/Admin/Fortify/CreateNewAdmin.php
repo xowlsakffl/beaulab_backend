@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Admin\Actions\Fortify;
+namespace App\Modules\Admin\Fortify;
 
-use App\Modules\Admin\Models\Admin;
+use App\Domains\Admin\Models\Admin;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;

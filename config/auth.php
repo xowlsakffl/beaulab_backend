@@ -66,12 +66,12 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_USER_MODEL', \App\Modules\User\Models\User::class),
+            'model' => env('AUTH_USER_MODEL', \App\Domains\User\Models\User::class),
         ],
 
         'admins' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_ADMIN_MODEL', \App\Modules\Admin\Models\Admin::class),
+            'model' => env('AUTH_ADMIN_MODEL', \App\Domains\Admin\Models\Admin::class),
         ]
 
         // 'users' => [

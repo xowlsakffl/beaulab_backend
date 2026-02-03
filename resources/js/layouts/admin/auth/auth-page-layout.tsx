@@ -1,5 +1,5 @@
-import GridShape from '@/components/common/grid-shape';
-import ThemeTogglerTwo from '@/components/common/theme-toggler-two';
+import GridShape from '@/components/grid-shape';
+import ThemeTogglerTwo from '@/components/theme-toggler-two';
 import { login } from '@/routes';
 import { Link } from '@inertiajs/react';
 

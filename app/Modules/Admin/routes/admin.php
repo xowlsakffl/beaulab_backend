@@ -24,6 +24,11 @@ Route::prefix('admin/api')
             ->middleware('permission:beaulab.hospital.update')
             ->name('hospitals.apiUpdateHospitalForStaff');
 
+        // 병원 삭제 (뷰랩 직원 전용 - 특정 병원 삭제)
+        Route::delete('/hospitals/{hospital}', [HospitalController::class, 'apiDeleteHospitalForStaff'])
+            ->middleware('permission:beaulab.hospital.delete')
+            ->name('hospitals.apiDeleteHospitalForStaff');
+
         // 내 병원 데이터 (병원 회원 전용)
         Route::get('/hospital', [HospitalController::class, 'apiGetMyHospitalForHospital'])
             ->middleware('permission:hospital.profile.show')

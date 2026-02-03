@@ -6,6 +6,7 @@ namespace App\Modules\Admin\Http\Controllers\Hospital;
 
 use App\Common\Http\ApiResponse;
 use App\Domains\Hospital\Actions\Admin\HospitalCreateForStaffAction;
+use App\Domains\Hospital\Actions\Admin\HospitalDeleteForStaffAction;
 use App\Domains\Hospital\Actions\Admin\HospitalListForStaffAction;
 use App\Domains\Hospital\Actions\Admin\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Actions\Admin\UpdateHospital;
@@ -90,6 +91,19 @@ final class HospitalController extends Controller
         $result = $action->execute($hospital, $request->filters());
 
         return ApiResponse::success($result['hospital']);
+    }
+
+    /**
+     * DELETE /admin/api/hospitals/{hospital}
+     * (Beaulab) 뷰랩 직원 전용 병원 삭제
+     */
+    public function apiDeleteHospitalForStaff(
+        Hospital $hospital,
+        HospitalDeleteForStaffAction $action,
+    ) {
+        $action->execute($hospital);
+
+        return ApiResponse::success();
     }
 
     /**

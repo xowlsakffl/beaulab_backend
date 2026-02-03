@@ -31,7 +31,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // 병원 수정 (직원 전용)
         Route::get('/hospitals/{hospital}/edit', [HospitalController::class, 'updateHospitalForStaff'])
-            ->middleware('permission:beaulab.hospital.update')
+            ->middleware('permission:beaulab.hospital.delete')
             ->name('hospitals.updateHospitalForStaff');
 
         /**

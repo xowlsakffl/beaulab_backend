@@ -1,11 +1,11 @@
 <?php
 
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
+use App\Common\Http\ApiResponse;
+use App\Common\Http\Middleware\RequestId;
 use App\Modules\Admin\Http\Middleware\HandleAppearance;
 use App\Modules\Admin\Http\Middleware\HandleInertiaRequests;
-use App\Shared\Exceptions\CustomException;
-use App\Shared\Exceptions\ErrorCode;
-use App\Shared\Http\ApiResponse;
-use App\Shared\Middleware\RequestId;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -20,12 +20,12 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',   // 관리자 React(Inertia) 페이지
-        api: __DIR__.'/../routes/api.php',   // 앱 사용자 API
+        web: __DIR__.'/../app/Modules/Admin/routes/web.php',   // 관리자 React(Inertia) 페이지
+        api: __DIR__.'/../app/Modules/User/routes/api.php',   // 앱 사용자 API
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
-            require base_path('routes/admin.php'); // 관리자 API (/admin/api/*)
+            require base_path('app/Modules/Admin/routes/admin.php'); // 관리자 API (/admin/api/*)
         }
     )
 
@@ -35,6 +35,13 @@ return Application::configure(basePath: dirname(__DIR__))
     |--------------------------------------------------------------------------
     */
     ->withMiddleware(function (Middleware $middleware): void {
+
+        // spatie permission
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        ]);
 
         // 쿠키 암호화 예외
         $middleware->encryptCookies(except: [

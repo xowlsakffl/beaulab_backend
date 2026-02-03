@@ -8,7 +8,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): Response
+    public function indexDashboard(): Response
     {
         return Inertia::render('admin/dashboard');
     }

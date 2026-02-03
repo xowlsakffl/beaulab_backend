@@ -32,13 +32,6 @@
 - **기능 접근 제어 = Permission**
 - **데이터 범위 제어 = Scope + Policy/쿼리 스코핑**
 - 메뉴는 role로 분기하지 않고 **required permissions로 분기**한다.
-
----
-
-## 3. Spatie Permission 적용 범위(확정)
-
-- Spatie Role/Permission은 **`admin`(세션)** 영역에만 적용한다.
-- `user`(Sanctum) 영역은 별도 권한 체계로 유지한다.
 - Scope는 Spatie로 해결하지 않고 도메인 규칙으로 고정해 Policy/쿼리에서 강제한다.
 
 ---
@@ -49,19 +42,32 @@
 - `guest` (비로그인)
 - `user` (앱 사용자; Sanctum 토큰)
 - `admin` (관리자; 세션)
-    - 내부직원(Staff)
+    - 내부직원(beaulab)
+      - 최고관리자
+      - 관리자
+      - 직원
+      - 개발자
     - 병원회원(Hospital)
+      - 병원 최고관리자(계정 소유주)
+      - 병원 매니저급
+      - 병원 직원
     - 뷰티회원(Beauty)
+      - 뷰티 최고관리자(계정 소유주)
+      - 뷰티 매니저급
+      - 뷰티 직원
     - 대행사계정(Agency)
+      - 대행사 최고관리자(계정 소유주)
+      - 대행사 매니저급
+      - 대행사 직원
 
 > 이 문서의 권한/메뉴는 주로 `admin` 영역(`/admin/*`, `/admin/api/*`)을 대상으로 한다.
 
 ### 4.2 Admin Role (Spatie Role 목록)
 Role 네이밍(권장):
-- 내부직원: `staff.super_admin`, `staff.ops`, `staff.dev`
-- 병원회원: `hospital.manager`, `hospital.staff`
-- 뷰티회원: `beauty.manager`, `beauty.staff`
-- 대행사: `agency`
+- 내부직원: `beaulab.super_admin`, `beaulab.admin`, `beaulab.staff`, `beaulab.dev`
+- 병원회원: `hospital.owner`, `hospital.manager`, `hospital.staff`
+- 뷰티회원: `beauty.owner`, `beauty.manager`, `beauty.staff`
+- 대행사: `agency.owner`, `agency.staff`
 
 ---
 
@@ -88,113 +94,150 @@ Role 네이밍(권장):
 
 ---
 
-## 7. Permission(Ability) 네이밍 규칙(확정)
+## 7. Permission(Ability) 네이밍 규칙 (확정)
 
 형식:
-- `{domain}.{action}`
+- `{domain}.{resource}.{action}` 또는 `{domain}.{resource}.{verb}`
 
-Action 후보(우선 사용):
-- `read`, `create`, `update`, `delete`, `export`, `manage`
-
----
-
-## 8. Permission(Ability) 표 (Spatie Permission 목록)
-
-### 8.1 공통(Admin 공통)
-| Permission | 설명 |
-|---|---|
-| `admin.access` | 관리자 영역 접근 |
-| `dashboard.read` | 대시보드 조회 |
-| `profile.read` | 내 프로필 조회 |
-| `profile.update` | 내 프로필 수정 |
-
-### 8.2 병원/뷰티 “소속 정보” 관리
-| Permission | 설명 |
-|---|---|
-| `hospital.read` | 병원 정보 조회 |
-| `hospital.update` | 병원 정보 수정 |
-| `hospital.member.manage` | 병원 회원(직원) 관리 |
-| `beauty.read` | 뷰티(beauty) 정보 조회 |
-| `beauty.update` | 뷰티(beauty) 정보 수정 |
-| `beauty.member.manage` | 뷰티 회원(직원) 관리 |
+규칙:
+- Permission은 **Admin Guard 전용**이다. (`guard = admin`)
+- Permission은 **기능(Ability)** 만 표현한다.
+- 데이터 범위(Scope)는 Role / Policy / Query 레벨에서 제어한다.
+- 새로운 도메인이 추가되면 `AdminPermissions`에만 정의를 추가한다.
 
 ---
 
-## 9. Role 표 (Spatie Role 목록) + 기본 Scope
+## 8. Permission(Ability) 표
+(Spatie Permission 목록 – `AdminPermissions.php` 기준)
+
+### 8.1 공통(Common)
+
+| Permission | 설명 |
+|---|---|
+| `common.access` | 관리자 영역 접근 |
+| `common.dashboard.show` | 대시보드 조회 |
+| `common.profile.show` | 내 프로필 조회 |
+| `common.profile.update` | 내 프로필 수정 |
+
+---
+
+### 8.2 Beaulab 내부직원 전용
+
+#### 병원 관리
+
+| Permission | 설명 |
+|---|---|
+| `beaulab.hospital.list` | 병원 목록 조회 |
+| `beaulab.hospital.show` | 병원 상세 조회 |
+| `beaulab.hospital.create` | 병원 생성 |
+| `beaulab.hospital.update` | 병원 수정 |
+
+#### 뷰티 관리
+
+| Permission | 설명 |
+|---|---|
+| `beaulab.beauty.list` | 뷰티 목록 조회 |
+| `beaulab.beauty.show` | 뷰티 상세 조회 |
+| `beaulab.beauty.create` | 뷰티 생성 |
+| `beaulab.beauty.update` | 뷰티 수정 |
+
+#### 대행사 관리
+
+| Permission | 설명 |
+|---|---|
+| `beaulab.agency.list` | 대행사 목록 조회 |
+| `beaulab.agency.show` | 대행사 상세 조회 |
+| `beaulab.agency.create` | 대행사 생성 |
+| `beaulab.agency.update` | 대행사 수정 |
+
+---
+
+### 8.3 병원(Hospital)
+
+| Permission | 설명 |
+|---|---|
+| `hospital.profile.show` | 병원 프로필 조회 |
+| `hospital.profile.update` | 병원 프로필 수정 |
+| `hospital.members.manage` | 병원 멤버(직원) 관리 |
+
+---
+
+### 8.4 뷰티(Beauty)
+
+| Permission | 설명 |
+|---|---|
+| `beauty.profile.show` | 뷰티 프로필 조회 |
+| `beauty.profile.update` | 뷰티 프로필 수정 |
+| `beauty.members.manage` | 뷰티 멤버(직원) 관리 |
+
+---
+
+### 8.5 대행사(Agency)
+
+| Permission | 설명 |
+|---|---|
+| `agency.profile.show` | 대행사 프로필 조회 |
+| `agency.profile.update` | 대행사 프로필 수정 |
+| `agency.members.manage` | 대행사 멤버(직원) 관리 |
+
+---
+
+## 9. Role 표
+(Spatie Role 목록 – `AdminRoles.php` 기준)
+
+### 9.1 내부직원(Beaulab)
 
 | Role | 설명 | 기본 Scope |
 |---|---|---|
-| `staff.super_admin` | 내부직원 최고관리자 | `ALL` |
-| `staff.ops` | 내부직원 관리직원(운영/CS/어드민) | `ALL` |
-| `staff.dev` | 내부직원 개발자 | `ALL` |
-| `hospital.manager` | 병원 지점장 | `OWN_HOSPITAL` |
-| `hospital.staff` | 병원 직원 | `OWN_HOSPITAL` |
-| `beauty.manager` | 뷰티 지점장 | `OWN_BEAUTY` |
-| `beauty.staff` | 뷰티 직원 | `OWN_BEAUTY` |
-| `agency` | 대행사계정 | `ASSIGNED_ACCOUNTS` |
+| `beaulab.super_admin` | 내부직원 최고관리자 | `ALL` |
+| `beaulab.admin` | 내부직원 관리자 | `ALL` |
+| `beaulab.staff` | 내부직원 일반직원 | `ALL` |
+| `beaulab.dev` | 내부직원 개발자 | `ALL` |
 
 ---
 
-## 10. Role × Permission 매핑표 (기본 템플릿)
+### 9.2 병원(Hospital)
 
-표기:
-- ✅ 기본 부여
-- ◻️ 필요 시 부여(기본 OFF)
-- ❌ 부여하지 않음
+| Role | 설명 | 기본 Scope |
+|---|---|---|
+| `hospital.owner` | 병원 최고관리자 | `OWN_HOSPITAL` |
+| `hospital.manager` | 병원 매니저 | `OWN_HOSPITAL` |
+| `hospital.staff` | 병원 직원 | `OWN_HOSPITAL` |
 
-### 10.1 내부직원(Staff)
-| Permission | `staff.super_admin` | `staff.ops` | `staff.dev` |
-|---|---:|---:|---:|
-| `admin.access` | ✅ | ✅ | ✅ |
-| `dashboard.read` | ✅ | ✅ | ◻️ |
-| `profile.read` | ✅ | ✅ | ✅ |
-| `profile.update` | ✅ | ✅ | ✅ |
-| `hospital.read` | ✅ | ✅ | ◻️ |
-| `hospital.update` | ✅ | ◻️ | ❌ |
-| `hospital.member.manage` | ✅ | ◻️ | ❌ |
-| `beauty.read` | ✅ | ✅ | ◻️ |
-| `beauty.update` | ✅ | ◻️ | ❌ |
-| `beauty.member.manage` | ✅ | ◻️ | ❌ |
+---
 
-### 10.2 병원회원(Hospital)
-| Permission | `hospital.manager` | `hospital.staff` |
-|---|---:|---:|
-| `admin.access` | ✅ | ✅ |
-| `dashboard.read` | ✅ | ✅ |
-| `profile.read` | ✅ | ✅ |
-| `profile.update` | ✅ | ✅ |
-| `hospital.read` | ✅ | ✅ |
-| `hospital.update` | ✅ | ◻️ |
-| `hospital.member.manage` | ✅ | ❌ |
+### 9.3 뷰티(Beauty)
 
+| Role | 설명 | 기본 Scope |
+|---|---|---|
+| `beauty.owner` | 뷰티 최고관리자 | `OWN_BEAUTY` |
+| `beauty.manager` | 뷰티 매니저 | `OWN_BEAUTY` |
+| `beauty.staff` | 뷰티 직원 | `OWN_BEAUTY` |
 
-### 10.3 뷰티회원(Beauty)
-| Permission | `beauty.manager` | `beauty.staff` |
-|---|---:|---:|
-| `admin.access` | ✅ | ✅ |
-| `dashboard.read` | ✅ | ✅ |
-| `profile.read` | ✅ | ✅ |
-| `profile.update` | ✅ | ✅ |
-| `beauty.read` | ✅ | ✅ |
-| `beauty.update` | ✅ | ◻️ |
-| `beauty.member.manage` | ✅ | ❌ |
+---
 
-### 10.4 대행사(Agency)
-| Permission | `agency` |
-|---|---:|
-| `admin.access` | ✅ |
-| `dashboard.read` | ✅ |
-| `profile.read` | ✅ |
-| `profile.update` | ✅ |
-| `lead.read` | ✅ |
-| `lead.update` | ✅ |
-| `lead.export` | ◻️ |
-| `report.read` | ✅ |
-| `report.export` | ◻️ |
-| `hospital.read` | ◻️ |
-| `hospital.update` | ❌ |
-| `hospital.member.manage` | ❌ |
+### 9.4 대행사(Agency)
 
+| Role | 설명 | 기본 Scope |
+|---|---|---|
+| `agency.owner` | 대행사 계정 소유주 | `ASSIGNED_ACCOUNTS` |
+| `agency.staff` | 대행사 직원 | `ASSIGNED_ACCOUNTS` |
+
+---
+
+## 10. Role × Permission 매핑 (개념 템플릿)
+
+> 실제 부여 기준은 `AdminAuthorizationSeeder.php`를 따른다.
+
+원칙:
+- `beaulab.super_admin` : 모든 Permission
+- `beaulab.admin` : Beaulab + 공통 Permission
+- `beaulab.staff` : 조회 중심 Permission
+- `beaulab.dev` : 기본 접근 + 디버깅 목적
+
+- `hospital.*` Role : `hospital.*` Permission만
+- `beauty.*` Role : `beauty.*` Permission만
+- `agency.*` Role : `agency.*` Permission만
 ---
 
 ## 11. Admin 영역 권한 체크 규칙(구현 원칙)

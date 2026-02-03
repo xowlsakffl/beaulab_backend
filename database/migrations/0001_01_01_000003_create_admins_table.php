@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('two_factor_recovery_codes')->nullable()->comment('2차 인증 복구 코드');
             $table->timestamp('two_factor_confirmed_at')->nullable()->comment('2차 인증 활성화 시각');
 
-            $table->string('status')->default('active')->comment('계정 상태(active, suspended, blocked)');
+            $table->string('status')->default('ACTIVE')->comment('계정 상태(ACTIVE, SUSPENDED, BLOCKED)');
             $table->timestamp('last_login_at')->nullable()->comment('마지막 로그인 시각');
 
             $table->rememberToken()->comment('자동 로그인 토큰');

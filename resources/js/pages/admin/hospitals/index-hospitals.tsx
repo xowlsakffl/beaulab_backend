@@ -1,15 +1,15 @@
 import AppLayout from '@/layouts/admin/app-layout';
-import type { ReactNode } from 'react';
-import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes/admin';
+import type { BreadcrumbItem } from '@/types';
+import type { ReactNode } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: '병원 목록',
         href: dashboard().url,
     },
 ];
-function CalendarPage() {
+function IndexHospitals() {
     return (
         <>
             <div className="space-y-6 px-8">
@@ -33,8 +33,8 @@ function CalendarPage() {
     );
 }
 
-CalendarPage.layout = (page: ReactNode) => (
+IndexHospitals.layout = (page: ReactNode) => (
     <AppLayout breadcrumbs={breadcrumbs}>{page}</AppLayout>
 );
 
-export default CalendarPage;
+export default IndexHospitals;

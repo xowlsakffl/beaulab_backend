@@ -18,12 +18,12 @@ return new class extends Migration
                 ->comment('관리자 ID');
 
             // internal / hospital / beauty / agency
-            $table->string('type', 20)->comment('소속 타입(internal, hospital, beauty, agency)');
+            $table->string('type', 20)->comment('소속 타입(beaulab, hospital, beauty, agency)');
 
             // internal = 0 (내부 직원)
             $table->unsignedBigInteger('target_id')
                 ->default(0)
-                ->comment('소속 대상 ID (internal=0, hospital_id/beauty_id/agency_id)');
+                ->comment('소속 대상 ID (beaulab=0, hospital_id/beauty_id/agency_id)');
 
             // 소속 내 역할
             $table->string('role', 30)
@@ -31,7 +31,7 @@ return new class extends Migration
                 ->comment('소속 내 역할(owner, manager, staff 등)');
 
             $table->boolean('is_primary')
-                ->default(false)
+                ->default(true)
                 ->comment('기본 소속 여부');
 
             $table->timestamps();

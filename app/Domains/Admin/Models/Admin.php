@@ -2,22 +2,41 @@
 
 namespace App\Domains\Admin\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Notifications\QueuedResetPasswordNotification;
+use App\Common\Notifications\QueuedResetPasswordNotification;
+use Database\Factories\AdminFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
 
-class Admin extends Authenticatable
+final class Admin extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, LogsActivity;
+    use HasRoles, HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes, LogsActivity;
+
+    protected string $guard_name = 'admin';
 
     /**
-     * The attributes that are mass assignable.
+     * 계정 상태 상수 (migration comment: active, suspended, blocked)
+     */
+    public const STATUS_ACTIVE = 'ACTIVE';
+    public const STATUS_SUSPENDED = 'SUSPENDED';
+    public const STATUS_BLOCKED = 'BLOCKED';
+
+    /**
+     * 기본값 (DB default가 있어도 도메인 기본값은 명시 권장)
+     */
+    protected $attributes = [
+        'status' => self::STATUS_ACTIVE,
+    ];
+
+    /**
+     * Mass assignable
      *
      * @var list<string>
      */
@@ -26,10 +45,17 @@ class Admin extends Authenticatable
         'nickname',
         'email',
         'password',
+        'status',
+        'email_verified_at',
+        'last_login_at',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
+        'active_membership_id',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Hidden for serialization
      *
      * @var list<string>
      */
@@ -41,7 +67,7 @@ class Admin extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Casts
      *
      * @return array<string, string>
      */
@@ -51,7 +77,15 @@ class Admin extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'active_membership_id' => 'int',
         ];
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return AdminFactory::new();
     }
 
     /**
@@ -65,8 +99,49 @@ class Admin extends Authenticatable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'email', 'status']) // 기록할 필드만
-            ->logOnlyDirty()                       // 바뀐 값만
-            ->dontSubmitEmptyLogs();               // 변경 없으면 로그 안 남김
+            ->logOnly(['status'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    /**
+     * 한 아이디 = 한 소속(멤버십 1개) 고정
+     */
+    public function activeMembership(): BelongsTo
+    {
+        return $this->belongsTo(AdminMembership::class, 'active_membership_id');
+    }
+
+    public function membership(): ?AdminMembership
+    {
+        return $this->activeMembership;
+    }
+
+    public function membershipTargetId(): ?int
+    {
+        return $this->activeMembership?->target_id;
+    }
+
+    public function membershipRole(): ?string
+    {
+        return $this->activeMembership?->role;
+    }
+
+    /**
+     * 상태 헬퍼
+     */
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->status === self::STATUS_SUSPENDED;
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->status === self::STATUS_BLOCKED;
     }
 }

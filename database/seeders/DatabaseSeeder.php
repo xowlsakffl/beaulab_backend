@@ -13,11 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin::factory(10)->create();
-
-        /*Admin::factory()->create([
-            'name' => 'Test Admin',
-            'email' => 'test@example.com',
-        ]);*/
+        $this->call([
+            AdminAuthorizationSeeder::class, // 권한 정의
+            AdminSeeder::class, // 최고관리자
+            HospitalSeeder::class, // 병원 테스트
+        ]);
     }
 }

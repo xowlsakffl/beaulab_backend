@@ -24,6 +24,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->middleware('permission:beaulab.hospital.list')
             ->name('hospitals.indexPageForStaff');
 
+        // 병원 생성 (직원 전용)
+        Route::get('/hospitals/create', [HospitalController::class, 'createHospitalForStaff'])
+            ->middleware('permission:beaulab.hospital.create')
+            ->name('hospitals.createHospitalForStaff');
+
+        // 병원 수정 (직원 전용)
+        Route::get('/hospitals/{hospital}/edit', [HospitalController::class, 'updateHospitalForStaff'])
+            ->middleware('permission:beaulab.hospital.update')
+            ->name('hospitals.updateHospitalForStaff');
+
         /**
          * 내 병원 관리
          */

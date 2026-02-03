@@ -8,6 +8,8 @@ class ApiResponse
 {
     public static function success(mixed $data = null, mixed $meta = null, ?string $traceId = null, int $status = 200): JsonResponse
     {
+        $traceId ??= request()?->attributes?->get('traceId');
+
         return response()->json([
             'success' => true,
             'data' => $data,
@@ -18,6 +20,8 @@ class ApiResponse
 
     public static function error(string $code, string $message, mixed $details = null, ?string $traceId = null, int $status = 400): JsonResponse
     {
+        $traceId ??= request()?->attributes?->get('traceId');
+
         $payload = [
             'success' => false,
             'error' => [

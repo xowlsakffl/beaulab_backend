@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('hospitals', function (Blueprint $table) {
             $table->id()->comment('병원 고유 ID');
 
-            $table->string('name')->comment('병원명');
+            $table->string('name')->unique()->comment('병원명');
 
             $table->text('description')->nullable()->comment('병원 소개');
 

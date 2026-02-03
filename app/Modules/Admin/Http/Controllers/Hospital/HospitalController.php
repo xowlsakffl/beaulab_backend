@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Modules\Admin\Http\Controllers\Hospital;
 
 use App\Common\Http\ApiResponse;
+use App\Domains\Hospital\Actions\Admin\HospitalCreateForStaffAction;
 use App\Domains\Hospital\Actions\Admin\HospitalListForStaffAction;
+use App\Domains\Hospital\Actions\Admin\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Actions\Admin\UpdateHospital;
 use App\Domains\Hospital\Dto\Admin\HospitalUpsert;
 use App\Domains\Hospital\Models\Hospital;
 use App\Modules\Admin\Http\Controllers\Controller;
+use App\Modules\Admin\Http\Requests\Hospital\HospitalCreateForStaffRequest;
 use App\Modules\Admin\Http\Requests\Hospital\HospitalListForStaffRequest;
+use App\Modules\Admin\Http\Requests\Hospital\HospitalUpdateForStaffRequest;
 use App\Modules\Admin\Http\Requests\Hospital\UpdateHospitalRequest;
 use Auth;
 use Illuminate\Http\Request;
@@ -30,6 +34,26 @@ final class HospitalController extends Controller
     }
 
     /**
+     * GET /admin/hospitals/create
+     * Inertia 페이지 렌더
+     * (Beaulab)뷰랩 전용 병원 생성 페이지
+     */
+    public function createHospitalForStaff(): InertiaResponse
+    {
+        return Inertia::render('admin/hospitals/create-hospital');
+    }
+
+    /**
+     * GET /admin/hospitals/create
+     * Inertia 페이지 렌더
+     * (Beaulab)뷰랩 전용 병원 생성 페이지
+     */
+    public function updateHospitalForStaff(): InertiaResponse
+    {
+        return Inertia::render('admin/hospitals/update-hospital');
+    }
+
+    /**
      * GET /admin/api/hospitals
      * (Beaulab)뷰랩 전용 병원 리스트 api
      */
@@ -38,25 +62,34 @@ final class HospitalController extends Controller
         HospitalListForStaffAction $action,
     ) {
         $data = $action->execute($request->filters());
-        return ApiResponse::success($data);
+        return ApiResponse::success($data['items'], $data['meta']);
     }
 
     /**
-     * GET /admin/api/hospitals
-     * (Beaulab)뷰랩 전용 병원 수정 api
+     * POST /admin/api/hospitals/create
+     * (Beaulab)뷰랩 전용 병원 생성 api
      */
-    public function apiUpdateHospitalForStaff(UpdateHospitalRequest $request, Hospital $hospital, UpdateHospital $action)
-    {
-        $this->authorize('update', $hospital);
+    public function apiCreateHospitalForStaff(
+        HospitalCreateForStaffRequest $request,
+        HospitalCreateForStaffAction $action,
+    ) {
+        $result = $action->execute($request->filters());
 
-        // FormRequest에서 validate 끝낸 값만 DTO로 변환
-        $dto = HospitalUpsert::fromArray($request->validated());
+        return ApiResponse::success($result['hospital']);
+    }
 
-        $updated = $action->handle($hospital, $dto);
+    /**
+     * PUT|PATCH /admin/api/hospitals/{hospital}
+     * (Beaulab) 뷰랩 직원 전용 병원 수정 API
+     */
+    public function apiUpdateHospitalForStaff(
+        Hospital $hospital,
+        HospitalUpdateForStaffRequest $request,
+        HospitalUpdateForStaffAction $action,
+    ) {
+        $result = $action->execute($hospital, $request->filters());
 
-        return ApiResponse::success([
-            'hospital' => $updated,
-        ]);
+        return ApiResponse::success($result['hospital']);
     }
 
     /**

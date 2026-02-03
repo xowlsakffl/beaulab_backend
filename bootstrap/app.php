@@ -25,7 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
-            require base_path('app/Modules/Admin/routes/admin.php'); // 관리자 API (/admin/api/*)
+            \Illuminate\Support\Facades\Route::middleware('web')
+                ->group(base_path('app/Modules/Admin/routes/admin.php')); // 관리자 API (/admin/api/*)
         }
     )
 
@@ -49,9 +50,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'sidebar_state',
         ]);
 
+        $middleware->prepend(RequestId::class);
         // traceId: web + api 모두 적용 (Inertia 페이지도 예외 추적)
-        $middleware->appendToGroup('api', [RequestId::class]);
-        $middleware->appendToGroup('web', [RequestId::class]);
+        // $middleware->appendToGroup('api', [RequestId::class]);
+        // $middleware->appendToGroup('web', [RequestId::class]);
 
         // Inertia(web) 전용 미들웨어
         $middleware->web(append: [
@@ -257,6 +259,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 401 => ErrorCode::UNAUTHORIZED->value,
                 403 => ErrorCode::FORBIDDEN->value,
                 404 => ErrorCode::NOT_FOUND->value,
+                405 => ErrorCode::METHOD_NOT_ALLOWED->value,
+                419 => ErrorCode::TOKEN_ERROR->value,
                 422 => ErrorCode::INVALID_REQUEST->value,
                 default => ErrorCode::INTERNAL_ERROR->value,
             };
@@ -265,6 +269,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 401 => $isAdmin ? ErrorCode::UNAUTHORIZED->messageAdmin() : ErrorCode::UNAUTHORIZED->messageApp(),
                 403 => $isAdmin ? ErrorCode::FORBIDDEN->messageAdmin() : ErrorCode::FORBIDDEN->messageApp(),
                 404 => $isAdmin ? ErrorCode::NOT_FOUND->messageAdmin() : ErrorCode::NOT_FOUND->messageApp(),
+                405 => $isAdmin ? ErrorCode::METHOD_NOT_ALLOWED->messageAdmin() : ErrorCode::METHOD_NOT_ALLOWED->messageApp(),
+                419 => $isAdmin ? ErrorCode::TOKEN_ERROR->messageAdmin() : ErrorCode::TOKEN_ERROR->messageApp(),
                 422 => $isAdmin ? ErrorCode::INVALID_REQUEST->messageAdmin() : ErrorCode::INVALID_REQUEST->messageApp(),
                 default => $isAdmin ? 'HTTP 오류가 발생했습니다.' : '요청을 처리할 수 없습니다.',
             };

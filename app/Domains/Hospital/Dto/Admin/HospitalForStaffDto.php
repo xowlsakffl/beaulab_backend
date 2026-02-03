@@ -4,7 +4,7 @@ namespace App\Domains\Hospital\Dto\Admin;
 
 use App\Domains\Hospital\Models\Hospital;
 
-final readonly class HospitalListForStaffDto
+final readonly class HospitalForStaffDto
 {
     public function __construct(
         public int $id,

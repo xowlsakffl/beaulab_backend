@@ -6,13 +6,18 @@ use Illuminate\Support\Facades\Route;
 // Admin JSON API (/admin/api/*)
 Route::prefix('admin/api')
     ->name('admin.api.')
-    ->middleware(['api', 'auth:admin'])
+    ->middleware(['web', 'auth:admin'])
     ->group(function () {
 
         // 병원 전체 목록 데이터 (뷰랩 직원 전용)
         Route::get('/hospitals', [HospitalController::class, 'apiGetHospitalListForStaff'])
             ->middleware('permission:beaulab.hospital.list')
             ->name('hospitals.apiGetHospitalList');
+
+        // 병원 생성 (뷰랩 직원 전용)
+        Route::post('/hospitals', [HospitalController::class, 'apiCreateHospitalForStaff'])
+            ->middleware('permission:beaulab.hospital.create')
+            ->name('hospitals.apiCreateHospitalForStaff');
 
         // 병원 수정 (뷰랩 직원 전용 - 특정 병원 수정)
         Route::match(['put', 'patch'], '/hospitals/{hospital}', [HospitalController::class, 'apiUpdateHospitalForStaff'])

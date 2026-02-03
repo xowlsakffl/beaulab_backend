@@ -9,9 +9,8 @@ final class HospitalListForStaffRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $admin = $this->user('admin');
-
-        return $admin?->can('beaulab.hospital.list') ?? false;
+        // 이미 라우트에서 검사함
+        return true;
     }
 
     public function rules(): array

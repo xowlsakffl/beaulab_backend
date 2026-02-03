@@ -2,8 +2,9 @@
 
 namespace App\Domains\Hospital\Actions\Admin;
 
-use App\Domains\Hospital\Dto\Admin\HospitalListForStaffDto;
+use App\Domains\Hospital\Dto\Admin\HospitalForStaffDto;
 use App\Domains\Hospital\Queries\Admin\HospitalListForStaffQuery;
+use Illuminate\Support\Facades\Log;
 
 final class HospitalListForStaffAction
 {
@@ -23,12 +24,16 @@ final class HospitalListForStaffAction
      */
     public function execute(array $filters): array
     {
+        Log::info('병원 목록 조회 실행', [
+            'filters' => $filters,
+        ]);
+
         // 1) Query 호출
         $paginator = $this->query->paginate($filters);
 
         // 2) items()를 DTO로 변환 (응답 필드 통제)
         $items = collect($paginator->items())
-            ->map(fn ($hospital) => HospitalListForStaffDto::fromModel($hospital)->toArray())
+            ->map(fn ($hospital) => HospitalForStaffDto::fromModel($hospital)->toArray())
             ->values()
             ->all();
 

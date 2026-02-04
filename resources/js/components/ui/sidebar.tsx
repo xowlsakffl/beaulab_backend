@@ -515,7 +515,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-    "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:shrink-0",
+    "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:shrink-0",
     {
         variants: {
             variant: {
@@ -538,23 +538,17 @@ const sidebarMenuButtonVariants = cva(
 )
 
 function SidebarMenuButton({
-                               asChild = false,
-                               isActive = false,
-                               variant = "default",
-                               size = "default",
-                               tooltip,
-                               className,
-                               ...props
-                           }: React.ComponentProps<"button"> & {
+   asChild = false,
+   isActive = false,
+   variant = "default",
+   size = "default",
+   className,
+   ...props
+}: React.ComponentProps<"button"> & {
     asChild?: boolean
     isActive?: boolean
-    tooltip?: string | React.ComponentProps<any>
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
     const Comp = asChild ? Slot : "button"
-
-    // tooltip은 받더라도 무시(완전 비활성화)
-    void tooltip
-
     return (
         <Comp
             data-slot="sidebar-menu-button"
@@ -660,65 +654,68 @@ function SidebarMenuSkeleton({
 }
 
 function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
-  return (
-    <ul
-      data-slot="sidebar-menu-sub"
-      data-sidebar="menu-sub"
-      className={cn(
-        "border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5",
-        "group-data-[collapsible=icon]:hidden",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-function SidebarMenuSubItem({
-  className,
-  ...props
-}: React.ComponentProps<"li">) {
-  return (
-    <li
-      data-slot="sidebar-menu-sub-item"
-      data-sidebar="menu-sub-item"
-      className={cn("group/menu-sub-item relative", className)}
-      {...props}
-    />
-  )
-}
-
-function SidebarMenuSubButton({
-                                  asChild = false,
-                                  size = "md",
-                                  isActive = false,
-                                  className,
-                                  ...props
-                              }: React.ComponentProps<"a"> & {
-    asChild?: boolean
-    size?: "sm" | "md"
-    isActive?: boolean
-}) {
-    const Comp = asChild ? Slot : "a"
-
     return (
-        <Comp
-            data-slot="sidebar-menu-sub-button"
-            data-sidebar="menu-sub-button"
-            data-size={size}
-            data-active={isActive}
+        <ul
+            data-slot="sidebar-menu-sub"
+            data-sidebar="menu-sub"
             className={cn(
-                "text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground [&>svg]:text-sidebar-accent-foreground flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 outline-hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:shrink-0",
-                "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
-                size === "sm" && "text-xs",
-                size === "md" && "text-sm",
+                "mt-1 flex flex-col gap-1 px-0 py-0",
                 "group-data-[collapsible=icon]:hidden",
                 className
             )}
             {...props}
         />
-    )
+    );
 }
+
+function SidebarMenuSubItem({
+    className,
+    ...props
+}: React.ComponentProps<"li">) {
+    return (
+        <li
+            data-slot="sidebar-menu-sub-item"
+            data-sidebar="menu-sub-item"
+            className={cn("group/menu-sub-item relative", className)}
+            {...props}
+        />
+    );
+}
+
+function SidebarMenuSubButton({
+  asChild = false,
+  isActive = false,
+  className,
+  ...props
+}: React.ComponentProps<"a"> & {
+    asChild?: boolean;
+    isActive?: boolean;
+}) {
+    const Comp = asChild ? Slot : "a";
+
+    return (
+        <Comp
+            data-slot="sidebar-menu-sub-button"
+            data-sidebar="menu-sub-button"
+            data-active={isActive}
+            className={cn(
+                "max-w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium",
+                "outline-hidden ring-sidebar-ring focus-visible:ring-2",
+
+                "text-gray-800 hover:bg-gray-50 hover:text-gray-900",
+                "dark:text-gray-200 dark:hover:bg-white/5 dark:hover:text-white",
+
+                "data-[active=true]:bg-brand-50 data-[active=true]:text-brand-600",
+                "dark:data-[active=true]:bg-white/5 dark:data-[active=true]:text-brand-400",
+
+                className
+            )}
+            {...props}
+        />
+    );
+}
+
+
 export {
   Sidebar,
   SidebarContent,

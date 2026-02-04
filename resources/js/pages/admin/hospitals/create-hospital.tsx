@@ -7,6 +7,7 @@ import hospitals from '@/routes/admin/hospitals';
 const breadcrumbs: BreadcrumbItem[] = [
     { title: '홈', href: dashboard().url },
     { title: '병원 관리', href: hospitals.indexHospitalPageForStaff().url },
+    { title: '병원 목록', href: hospitals.createHospitalForStaff().url },
 ];
 function createHospital() {
     return (

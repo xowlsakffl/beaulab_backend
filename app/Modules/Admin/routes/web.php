@@ -22,7 +22,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // 병원 전체 목록 (직원 전용)
         Route::get('/hospitals', [HospitalController::class, 'indexHospitalPageForStaff'])
             ->middleware('permission:beaulab.hospital.list')
-            ->name('hospitals.indexPageForStaff');
+            ->name('hospitals.indexHospitalPageForStaff');
 
         // 병원 생성 (직원 전용)
         Route::get('/hospitals/create', [HospitalController::class, 'createHospitalForStaff'])

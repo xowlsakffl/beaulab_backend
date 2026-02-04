@@ -13,7 +13,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     return (
         <header
             data-admin-header
-            className="sticky top-0 z-[70] w-full border-b border-gray-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-gray-800 dark:bg-gray-900/80"
+            className="sticky top-0 z-[70] w-full border-b border-gray-200 bg-white  dark:border-gray-800 dark:bg-gray-900/80"
         >
             <AppHeaderBar
                 mobileActionsOpen={mobileActionsOpen}

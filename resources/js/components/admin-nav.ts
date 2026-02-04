@@ -7,7 +7,7 @@ export const adminNavItems: NavItem[] = [
     { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
     {
         title: '병원 관리',
-        href: hospitals.indexPageForStaff(),
+        href: hospitals.indexHospitalPageForStaff().url,
         icon: BarChart3,
     },
 ];

@@ -2,12 +2,11 @@ import AppLayout from '@/layouts/admin/app-layout';
 import { dashboard } from '@/routes/admin';
 import type { BreadcrumbItem } from '@/types';
 import type { ReactNode } from 'react';
+import hospitals from '@/routes/admin/hospitals';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: '병원 생성',
-        href: dashboard().url,
-    },
+    { title: '홈', href: dashboard().url },
+    { title: '병원 관리', href: hospitals.indexHospitalPageForStaff().url },
 ];
 function createHospital() {
     return (

@@ -9,14 +9,11 @@ use App\Domains\Hospital\Actions\Admin\HospitalCreateForStaffAction;
 use App\Domains\Hospital\Actions\Admin\HospitalDeleteForStaffAction;
 use App\Domains\Hospital\Actions\Admin\HospitalListForStaffAction;
 use App\Domains\Hospital\Actions\Admin\HospitalUpdateForStaffAction;
-use App\Domains\Hospital\Actions\Admin\UpdateHospital;
-use App\Domains\Hospital\Dto\Admin\HospitalUpsert;
 use App\Domains\Hospital\Models\Hospital;
 use App\Modules\Admin\Http\Controllers\Controller;
 use App\Modules\Admin\Http\Requests\Hospital\HospitalCreateForStaffRequest;
 use App\Modules\Admin\Http\Requests\Hospital\HospitalListForStaffRequest;
 use App\Modules\Admin\Http\Requests\Hospital\HospitalUpdateForStaffRequest;
-use App\Modules\Admin\Http\Requests\Hospital\UpdateHospitalRequest;
 use Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,12 +23,20 @@ final class HospitalController extends Controller
 {
     /**
      * GET /admin/hospitals
-     * Inertia 페이지 렌더 (데이터는 /admin/api/hospitals 에서 로드)
+     * Inertia 페이지 렌더
      * (Beaulab)뷰랩 전용 병원 리스트 페이지
      */
-    public function indexHospitalPageForStaff(): InertiaResponse
+    public function indexHospitalPageForStaff(
+        HospitalListForStaffRequest $request,
+        HospitalListForStaffAction $action,
+    ): InertiaResponse
     {
-        return Inertia::render('admin/hospitals/index-hospitals');
+        $data = $action->execute($request->filters());
+        return Inertia::render('admin/hospitals/index-hospitals', [
+            'items'   => $data['items'],
+            'meta'    => $data['meta'],
+            'filters' => $request->all(['q', 'status', 'allow_status', 'sort', 'direction', 'per_page']),
+        ]);
     }
 
     /**
@@ -54,17 +59,6 @@ final class HospitalController extends Controller
         return Inertia::render('admin/hospitals/update-hospital');
     }
 
-    /**
-     * GET /admin/api/hospitals
-     * (Beaulab)뷰랩 전용 병원 리스트 api
-     */
-    public function apiGetHospitalListForStaff(
-        HospitalListForStaffRequest $request,
-        HospitalListForStaffAction $action,
-    ) {
-        $data = $action->execute($request->filters());
-        return ApiResponse::success($data['items'], $data['meta']);
-    }
 
     /**
      * POST /admin/api/hospitals/create

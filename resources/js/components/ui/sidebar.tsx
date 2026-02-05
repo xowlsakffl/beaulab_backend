@@ -259,10 +259,10 @@ function Sidebar({
 }
 
 function SidebarTrigger({
-                            className,
-                            onClick,
-                            ...props
-                        }: React.ComponentProps<typeof Button>) {
+    className,
+    onClick,
+    ...props
+}: React.ComponentProps<typeof Button>) {
     const { toggleSidebar, isMobile, state, openMobile } = useSidebar()
 
     const isCollapsed = !isMobile && state === "collapsed"
@@ -660,7 +660,11 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
             data-sidebar="menu-sub"
             className={cn(
                 "mt-1 flex flex-col gap-1 px-0 py-0",
+
                 "group-data-[collapsible=icon]:hidden",
+
+                "group-data-[collapsible=icon]:group-hover:flex",
+
                 className
             )}
             {...props}

@@ -8,7 +8,10 @@ import { Form, Head, Link } from '@inertiajs/react';
 import { CheckCircle2, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 import { ChevronLeftIcon } from '../../../icons';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface LoginProps {
     status?: string;
@@ -62,28 +65,23 @@ export default function Login({
                             {({ processing, errors }) => (
                                 <>
                                     <div>
-                                        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            아이디{' '}
+                                        <Label className="mb-1.5 block text-sm">
+                                            <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+                                                아이디{' '}
+                                            </span>
                                             <span className="text-error-500">
                                                 *
                                             </span>
-                                        </label>
+                                        </Label>
 
-                                        <input
+                                        <Input
                                             name="nickname"
                                             type="text"
                                             autoFocus
                                             tabIndex={1}
                                             autoComplete="nickname"
                                             placeholder="아이디를 입력하세요."
-                                            className={[
-                                                'h-11 w-full rounded-lg border bg-white px-4 text-sm text-gray-900 transition outline-none',
-                                                'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10',
-                                                'dark:border-gray-800 dark:bg-gray-950 dark:text-white/90 dark:focus:ring-brand-500/20',
-                                                errors.nickname
-                                                    ? 'border-error-500 focus:border-error-500 focus:ring-error-500/10 dark:focus:ring-error-500/20'
-                                                    : '',
-                                            ].join(' ')}
+                                            error={!!errors.nickname}
                                         />
 
                                         <InputError
@@ -93,32 +91,31 @@ export default function Login({
                                     </div>
 
                                     <div>
-                                        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            비밀번호{' '}
+                                        <Label className="mb-1.5 block text-sm">
+                                            <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+                                                비밀번호{' '}
+                                            </span>
                                             <span className="text-error-500">
                                                 *
                                             </span>
-                                        </label>
+                                        </Label>
 
                                         <div className="relative">
-                                            <input
+                                            <Input
                                                 name="password"
                                                 type={
                                                     showPassword
                                                         ? 'text'
                                                         : 'password'
                                                 }
-                                                tabIndex={2}
                                                 autoComplete="current-password"
                                                 placeholder="비밀번호를 입력하세요."
-                                                className={[
-                                                    'h-11 w-full rounded-lg border bg-white px-4 pr-11 text-sm text-gray-900 transition outline-none',
-                                                    'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10',
-                                                    'dark:border-gray-800 dark:bg-gray-950 dark:text-white/90 dark:focus:ring-brand-500/20',
-                                                    errors.password
-                                                        ? 'border-error-500 focus:border-error-500 focus:ring-error-500/10 dark:focus:ring-error-500/20'
-                                                        : '',
-                                                ].join(' ')}
+                                                error={!!errors.password}
+                                                className="pr-11"
+                                                inputMode="latin"
+                                                lang="en"
+                                                autoCapitalize="none"
+                                                autoCorrect="off"
                                             />
 
                                             <button
@@ -148,41 +145,41 @@ export default function Login({
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <label className="flex items-center gap-3">
+                                        <Label htmlFor="remember">
                                             <Checkbox
                                                 id="remember"
                                                 name="remember"
                                                 tabIndex={3}
                                             />
-                                            <span className="block text-theme-sm font-normal text-gray-700 dark:text-gray-400">
+                                            <span className="text-theme-sm font-normal text-gray-700 dark:text-gray-400">
                                                 로그인 유지
                                             </span>
-                                        </label>
+                                        </Label>
 
                                         {canResetPassword && (
-                                            <Link
-                                                href={request()}
-                                                className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                                                tabIndex={5}
-                                            >
-                                                비밀번호를 잊으셨나요?
+                                            <Link href={request()} tabIndex={5}>
+                                                <span className="text-theme-sm font-normal text-brand-500 hover:text-brand-600 dark:text-brand-400">
+                                                    비밀번호를 잊으셨나요?
+                                                </span>
                                             </Link>
                                         )}
                                     </div>
 
                                     <div>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+                                            variant="brand"
+                                            size="auth"
+                                            className="w-full"
                                             tabIndex={4}
                                             disabled={processing}
                                             data-test="login-button"
                                         >
-                                            {processing && (
+                                            {processing ? (
                                                 <LoaderCircle className="h-4 w-4 animate-spin" />
-                                            )}
+                                            ) : null}
                                             로그인
-                                        </button>
+                                        </Button>
                                     </div>
                                 </>
                             )}

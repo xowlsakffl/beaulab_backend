@@ -31,6 +31,32 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
         [urlIsActive],
     );
 
+    const activeKey = React.useMemo(() => {
+        const found = items.find((item) => {
+            const hasChildren = !!(item as any).children?.length;
+            const selfActive = item.href ? urlIsActive(item.href) : false;
+            const childActive = hasChildren
+                ? isChildActive((item as any).children)
+                : false;
+            return selfActive || childActive;
+        });
+
+        return found?.title ?? null;
+    }, [items, urlIsActive, isChildActive]);
+
+    React.useEffect(() => {
+        if (!activeKey) return;
+
+        setOpenMap((prev) => {
+            // 사용자가 이미 열고/닫은 상태면 존중 (닫기 가능해야 하니까)
+            if (Object.prototype.hasOwnProperty.call(prev, activeKey))
+                return prev;
+
+            // active 섹션은 기본으로 열어줌
+            return { ...prev, [activeKey]: true };
+        });
+    }, [activeKey]);
+
     return (
         <SidebarGroup className="px-3">
             <SidebarGroupLabel className="px-2 text-xs tracking-wide text-gray-400">
@@ -47,9 +73,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     const active = selfActive || childActive;
 
                     // open은 active랑 분리
-                    const isOpen = hasChildren
-                        ? (openMap[key] ?? active)
-                        : false;
+                    const isOpen = hasChildren ? Boolean(openMap[key]) : false;
 
                     return (
                         <SidebarMenuItem key={key}>
@@ -84,7 +108,9 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                         />
                                     ) : null}
 
-                                    <span className="flex-1">{item.title}</span>
+                                    <span className="flex-1 truncate">
+                                        {item.title}
+                                    </span>
 
                                     <ChevronDown
                                         className={cn(
@@ -132,7 +158,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             {hasChildren ? (
                                 <div
                                     className={cn(
-                                        'grid transition-[grid-template-rows] duration-200 ease-out',
+                                        'truncate grid transition-[grid-template-rows] duration-200 ease-out',
                                         isOpen
                                             ? 'grid-rows-[1fr]'
                                             : 'grid-rows-[0fr]',

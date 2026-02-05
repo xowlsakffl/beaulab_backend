@@ -55,7 +55,6 @@ export default function Register() {
                                 ].join(' ')}
                             />
                             <InputError
-                                // @ts-expect-error - depends on backend validation bag
                                 message={errors.company_name}
                                 className="mt-2"
                             />

@@ -5,6 +5,9 @@ import InputError from '@/components/input-error';
 import AuthLayout from '@/layouts/admin/auth-layout';
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface ResetPasswordProps {
     token: string;
@@ -37,20 +40,18 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                 {({ processing, errors }) => (
                     <>
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                이메일
-                            </label>
+                            <Label className="mb-1.5 block text-sm">
+                                <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+                                    이메일
+                                </span>
+                            </Label>
 
-                            <input
+                            <Input
                                 name="email"
                                 type="email"
                                 value={email}
                                 readOnly
-                                className={[
-                                    'h-11 w-full rounded-lg border bg-gray-50 px-4 text-sm text-gray-900 outline-none',
-                                    'border-gray-200',
-                                    'dark:border-gray-800 dark:bg-gray-900 dark:text-white/90',
-                                ].join(' ')}
+                                className="bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-400"
                             />
 
                             <InputError
@@ -60,26 +61,26 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         </div>
 
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                새 비밀번호{' '}
+                            <Label className="mb-1.5 block text-sm">
+                                <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+                                    새 비밀번호{' '}
+                                </span>
                                 <span className="text-error-500">*</span>
-                            </label>
+                            </Label>
 
                             <div className="relative">
-                                <input
+                                <Input
                                     name="password"
                                     type={showPassword ? 'text' : 'password'}
                                     autoComplete="new-password"
                                     autoFocus
                                     placeholder="새 비밀번호를 입력하세요."
-                                    className={[
-                                        'h-11 w-full rounded-lg border bg-white px-4 pr-11 text-sm text-gray-900 transition outline-none',
-                                        'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10',
-                                        'dark:border-gray-800 dark:bg-gray-950 dark:text-white/90 dark:focus:ring-brand-500/20',
-                                        errors.password
-                                            ? 'border-error-500 focus:border-error-500 focus:ring-error-500/10 dark:focus:ring-error-500/20'
-                                            : '',
-                                    ].join(' ')}
+                                    error={!!errors.password}
+                                    className="pr-11"
+                                    inputMode="latin"
+                                    lang="en"
+                                    autoCapitalize="none"
+                                    autoCorrect="off"
                                 />
 
                                 <button
@@ -107,13 +108,15 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         </div>
 
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                비밀번호 확인{' '}
+                            <Label className="mb-1.5 block text-sm">
+                                <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+                                    비밀번호 확인{' '}
+                                </span>
                                 <span className="text-error-500">*</span>
-                            </label>
+                            </Label>
 
                             <div className="relative">
-                                <input
+                                <Input
                                     name="password_confirmation"
                                     type={
                                         showPasswordConfirm
@@ -121,15 +124,14 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                             : 'password'
                                     }
                                     autoComplete="new-password"
+                                    autoFocus
                                     placeholder="비밀번호를 다시 입력하세요."
-                                    className={[
-                                        'h-11 w-full rounded-lg border bg-white px-4 pr-11 text-sm text-gray-900 transition outline-none',
-                                        'border-gray-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10',
-                                        'dark:border-gray-800 dark:bg-gray-950 dark:text-white/90 dark:focus:ring-brand-500/20',
-                                        errors.password_confirmation
-                                            ? 'border-error-500 focus:border-error-500 focus:ring-error-500/10 dark:focus:ring-error-500/20'
-                                            : '',
-                                    ].join(' ')}
+                                    error={!!errors.password}
+                                    className="pr-11"
+                                    inputMode="latin"
+                                    lang="en"
+                                    autoCapitalize="none"
+                                    autoCorrect="off"
                                 />
 
                                 <button
@@ -158,9 +160,12 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             />
                         </div>
 
-                        <button
+                        <Button
                             type="submit"
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+                            variant="brand"
+                            size="auth"
+                            className="w-full"
+                            tabIndex={4}
                             disabled={processing}
                             data-test="reset-password-button"
                         >
@@ -168,7 +173,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 <LoaderCircle className="h-4 w-4 animate-spin" />
                             )}
                             비밀번호 재설정
-                        </button>
+                        </Button>
                     </>
                 )}
             </Form>

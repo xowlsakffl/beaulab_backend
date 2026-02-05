@@ -17,14 +17,14 @@ export default function AppLayout({
         <AppShell variant="sidebar">
             <AppSidebar />
 
-            <div className="flex min-h-svh flex-1 flex-col">
+            <div className="flex min-h-svh min-w-0 flex-1 flex-col">
                 <AppHeader breadcrumbs={breadcrumbs} />
 
                 <AppContent
                     variant="sidebar"
-                    className="bg-gray-50 dark:bg-gray-950 min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+                    className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-950"
                 >
-                    <div className="bg-gray-50 px-4 py-4 lg:p-8 dark:bg-gray-950">
+                    <div className="bg-gray-50 p-3 lg:p-6 dark:bg-gray-950">
                         {children}
                     </div>
                 </AppContent>

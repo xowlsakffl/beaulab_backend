@@ -2,8 +2,8 @@ import AppLayout from '@/layouts/admin/app-layout';
 import { dashboard } from '@/routes/admin';
 import hospitals from '@/routes/admin/hospitals';
 import type { BreadcrumbItem } from '@/types';
-import type { ReactNode } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useMemo } from 'react';
+import { Download, Filter, Plus } from 'lucide-react';
 
 import DataTable, {
     type DataTableColumn,
@@ -11,12 +11,21 @@ import DataTable, {
 } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Link } from '@inertiajs/react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Link, usePage } from '@inertiajs/react';
 
+import FilterBar, { type FilterField } from '@/components/filter-bar';
+import { useInertiaQueryState } from '@/hooks/use-inertia-query-state';
+import { useLocalStorageState } from '@/hooks/use-local-storage-state';
+import { cn } from '@/lib/utils';
+
+/* =====================
+ * Types
+ * ===================== */
 type AllowStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 type Status = 'ACTIVE' | 'SUSPENDED' | 'WITHDRAWN';
 
-type HospitalRow = {
+interface HospitalRow {
     id: number;
     name: string;
     address: string | null;
@@ -24,211 +33,185 @@ type HospitalRow = {
     view_count: number;
     allow_status: AllowStatus;
     status: Status;
-    created_at: string;
-    updated_at: string;
+}
+
+export type HospitalFilters = {
+    q: string | null;
+    status: Status | null;
+    allow_status: AllowStatus | null;
+
+    sort: string | null;
+    direction: 'asc' | 'desc' | null;
+
+    page: number;
+    per_page: number;
 };
 
-type ApiResponse<T> = {
-    success: boolean;
-    data: T;
-    meta?: DataTableMeta;
-    traceId?: string | null;
-    error?: { code: string; message: string };
-};
+interface PageProps {
+    items: HospitalRow[];
+    meta: DataTableMeta | null;
+    filters: Partial<HospitalFilters>;
+}
 
+/* =====================
+ * Constants
+ * ===================== */
 const breadcrumbs: BreadcrumbItem[] = [
     { title: '홈', href: dashboard().url },
     { title: '병원 관리', href: hospitals.indexHospitalPageForStaff().url },
     { title: '병원 목록', href: hospitals.indexHospitalPageForStaff().url },
 ];
 
-const statusLabel: Record<Status, string> = {
-    ACTIVE: '정상',
-    SUSPENDED: '정지',
-    WITHDRAWN: '탈퇴',
+const statusLabel: Record<
+    Status,
+    { label: string; color: 'success' | 'warning' | 'error' }
+> = {
+    ACTIVE: { label: '정상', color: 'success' },
+    SUSPENDED: { label: '정지', color: 'warning' },
+    WITHDRAWN: { label: '탈퇴', color: 'error' },
 };
 
-const allowLabel: Record<AllowStatus, string> = {
-    PENDING: '검수신청',
-    APPROVED: '검수완료',
-    REJECTED: '검수반려',
+const allowLabel: Record<
+    AllowStatus,
+    { label: string; color: 'success' | 'warning' | 'error' }
+> = {
+    PENDING: { label: '검수신청', color: 'warning' },
+    APPROVED: { label: '검수완료', color: 'success' },
+    REJECTED: { label: '검수반려', color: 'error' },
 };
 
+const DEFAULT_FILTERS: HospitalFilters = {
+    q: null,
+    status: null,
+    allow_status: null,
+    sort: null,
+    direction: null,
+    page: 1,
+    per_page: 15,
+};
+
+function parseStatus(v: string | null): Status | null {
+    if (v === 'ACTIVE' || v === 'SUSPENDED' || v === 'WITHDRAWN') return v;
+    return null;
+}
+function parseAllowStatus(v: string | null): AllowStatus | null {
+    if (v === 'PENDING' || v === 'APPROVED' || v === 'REJECTED') return v;
+    return null;
+}
+function parseDirection(v: string | null): 'asc' | 'desc' | null {
+    if (v === 'asc' || v === 'desc') return v;
+    return null;
+}
+function parseNumber(v: string | null, fallback: number): number {
+    if (!v) return fallback;
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+/* =====================
+ * Component
+ * ===================== */
 function IndexHospitals() {
-    const [items, setItems] = useState<HospitalRow[]>([]);
-    const [meta, setMeta] = useState<DataTableMeta | null>(null);
+    const [filterCollapsed, setFilterCollapsed] = useLocalStorageState<boolean>(
+        'admin.hospitals.filterCollapsed',
+        false,
+    );
+    const { items, meta, filters: serverFilters } = usePage<PageProps>().props;
 
-    // 최초 로딩만 skeleton, 이후엔 refreshing으로만
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [errMsg, setErrMsg] = useState<string | null>(null);
-
-    const [page, setPage] = useState(1);
-    const [perPage] = useState(15);
-
-    const abortRef = useRef<AbortController | null>(null);
-    const firstLoadRef = useRef(true);
-
-    // queryString 먼저 만들어야 cacheKey가 안전
-    const queryString = useMemo(() => {
-        const p = new URLSearchParams();
-        p.set('page', String(page));
-        p.set('per_page', String(perPage));
-        p.set('sort', 'id');
-        p.set('direction', 'desc');
-        return p.toString();
-    }, [page, perPage]);
-
-    const cacheKey = useMemo(() => `hospitals:list:${queryString}`, [queryString]);
-
-    // (5) 존재하지 않는 페이지 방지: clamp
-    function goPage(nextPage: number) {
-        const last = meta?.last_page ?? 1;
-        const clamped = Math.min(Math.max(1, nextPage), last);
-        setPage(clamped);
-    }
-
-    async function load(mode: 'initial' | 'refresh' = 'initial') {
-        abortRef.current?.abort();
-        const ac = new AbortController();
-        abortRef.current = ac;
-
-        if (mode === 'initial') setLoading(true);
-        else setRefreshing(true);
-
-        setErrMsg(null);
-
-        try {
-            const res = await fetch(`/admin/api/hospitals?${queryString}`, {
-                headers: { Accept: 'application/json' },
-                credentials: 'include',
-                signal: ac.signal,
-            });
-
-            const json = (await res.json()) as ApiResponse<HospitalRow[]>;
-            if (!res.ok || !json.success) {
-                throw new Error(json?.error?.message || `HTTP ${res.status}`);
+    const query = useInertiaQueryState<HospitalFilters>({
+        url: hospitals.indexHospitalPageForStaff().url,
+        only: ['items', 'meta', 'filters'],
+        parse: (params) => ({
+            q: params.get('q'),
+            status: parseStatus(params.get('status')),
+            allow_status: parseAllowStatus(params.get('allow_status')),
+            sort: params.get('sort'),
+            direction: parseDirection(params.get('direction')),
+            page: parseNumber(params.get('page'), DEFAULT_FILTERS.page),
+            per_page: parseNumber(
+                params.get('per_page'),
+                DEFAULT_FILTERS.per_page,
+            ),
+        }),
+        serialize: (f) => ({
+            q: f.q,
+            status: f.status,
+            allow_status: f.allow_status,
+            sort: f.sort,
+            direction: f.direction,
+            page: f.page,
+            per_page: f.per_page,
+        }),
+        clean: (q) => {
+            const out: Record<string, any> = {};
+            for (const [k, v] of Object.entries(q)) {
+                if (v === null || v === undefined) continue;
+                if (typeof v === 'string' && v.trim() === '') continue;
+                if (k === 'page' && Number(v) === DEFAULT_FILTERS.page)
+                    continue;
+                if (k === 'per_page' && Number(v) === DEFAULT_FILTERS.per_page)
+                    continue;
+                out[k] = v;
             }
+            return out;
+        },
+    });
 
-            setItems(json.data ?? []);
-            setMeta(json.meta ?? null);
+    const refreshing = query.refreshing;
 
-            // (1) 메뉴 토글/이동으로 리마운트되어도 유지되게 캐시 저장
-            sessionStorage.setItem(
-                cacheKey,
-                JSON.stringify({ items: json.data ?? [], meta: json.meta ?? null }),
-            );
-        } catch (e: any) {
-            if (e?.name === 'AbortError') return;
-            setErrMsg(e?.message ?? '목록을 불러오지 못했습니다.');
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    }
-
-    useEffect(() => {
-        // (1) 캐시 먼저 복원 → 있으면 “F5/명시적 새로고침” 전엔 서버 안 침
-        const cached = sessionStorage.getItem(cacheKey);
-        if (cached) {
-            const parsed = JSON.parse(cached);
-            setItems(parsed.items ?? []);
-            setMeta(parsed.meta ?? null);
-            setLoading(false);
-            firstLoadRef.current = false;
-            return;
-        }
-
-        // 최초 1회만 hard loading, 이후는 soft refresh (테이블 안 비움)
-        load(firstLoadRef.current ? 'initial' : 'refresh');
-        firstLoadRef.current = false;
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cacheKey]);
-
-    // unmount 시 abort
-    useEffect(() => {
-        return () => abortRef.current?.abort();
-    }, []);
-
-    function openEdit(row: HospitalRow) {
-        console.log('openEdit', row.id);
-    }
-
-    async function onDelete(id: number) {
-        const ok = confirm('정말 삭제할까요? (soft delete)');
-        if (!ok) return;
-
-        try {
-            const res = await fetch(`/admin/api/hospitals/${id}`, {
-                method: 'DELETE',
-                headers: { Accept: 'application/json' },
-                credentials: 'include',
-            });
-
-            const json = (await res.json()) as ApiResponse<null>;
-            if (!res.ok || !json.success) {
-                throw new Error(json?.error?.message || `HTTP ${res.status}`);
-            }
-
-            setItems((prev) => prev.filter((x) => x.id !== id));
-            setMeta((m) => (m ? { ...m, total: Math.max(0, m.total - 1) } : m));
-
-            // 캐시도 같이 갱신 (현재 페이지 캐시)
-            sessionStorage.setItem(
-                cacheKey,
-                JSON.stringify({
-                    items: items.filter((x) => x.id !== id),
-                    meta: meta ? { ...meta, total: Math.max(0, meta.total - 1) } : null,
-                }),
-            );
-        } catch (e: any) {
-            alert(e?.message ?? '삭제에 실패했습니다.');
-        }
-    }
+    const filters: HospitalFilters = useMemo(() => {
+        return {
+            ...DEFAULT_FILTERS,
+            ...serverFilters,
+            page:
+                serverFilters?.page ??
+                meta?.current_page ??
+                DEFAULT_FILTERS.page,
+            per_page:
+                serverFilters?.per_page ??
+                meta?.per_page ??
+                DEFAULT_FILTERS.per_page,
+        };
+    }, [serverFilters, meta?.current_page, meta?.per_page]);
 
     const columns = useMemo<DataTableColumn<HospitalRow>[]>(() => {
         return [
             {
                 key: 'id',
-                header: 'ID',
-                render: (h) => <span className="font-medium">{h.id}</span>,
+                header: '#',
+                render: (h) => (
+                    <span className="font-mono text-xs">{h.id}</span>
+                ),
             },
             {
                 key: 'name',
                 header: '병원명',
                 render: (h) => (
-                    <div>
-                        <div className="font-medium">{h.name}</div>
-                        <div className="text-muted-foreground text-xs">
-                            {h.address ?? '-'}
-                        </div>
+                    <div className="flex flex-col">
+                        <span className="font-semibold">{h.name}</span>
+                        <span className="text-muted-foreground text-xs">
+                            {h.address || '-'}
+                        </span>
                     </div>
                 ),
             },
-            { key: 'tel', header: '연락처', render: (h) => h.tel ?? '-' },
+            { key: 'tel', header: '연락처', render: (h) => h.tel || '-' },
             {
-                key: 'view',
+                key: 'view_count',
                 header: '조회수',
                 render: (h) => h.view_count.toLocaleString(),
             },
             {
-                key: 'allow',
+                key: 'allow_status',
                 header: '검수',
                 render: (h) => (
                     <Badge
                         variant="light"
-                        color={
-                            h.allow_status === 'APPROVED'
-                                ? 'success'
-                                : h.allow_status === 'PENDING'
-                                  ? 'warning'
-                                  : 'error'
-                        }
+                        color={allowLabel[h.allow_status].color}
                         size="sm"
                     >
                         <span className="text-xs">
-                            {allowLabel[h.allow_status]}
+                            {allowLabel[h.allow_status].label}
                         </span>
                     </Badge>
                 ),
@@ -239,64 +222,158 @@ function IndexHospitals() {
                 render: (h) => (
                     <Badge
                         variant="light"
-                        color={
-                            h.status === 'ACTIVE'
-                                ? 'success'
-                                : h.status === 'SUSPENDED'
-                                  ? 'warning'
-                                  : 'error'
-                        }
+                        color={statusLabel[h.status].color}
                         size="sm"
                     >
-                        <span className="text-xs">{statusLabel[h.status]}</span>
+                        <span className="text-xs">
+                            {statusLabel[h.status].label}
+                        </span>
                     </Badge>
-                ),
-            },
-            {
-                key: 'action',
-                header: 'Action',
-                render: (h) => (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(h.id);
-                        }}
-                    >
-                        삭제
-                    </Button>
                 ),
             },
         ];
     }, []);
 
+    const fields = useMemo<FilterField<HospitalFilters>[]>(() => {
+        return [
+            {
+                type: 'text',
+                key: 'q',
+                placeholder: '병원명/주소 검색',
+                debounceMs: 300,
+                normalize: (v) => v,
+                className: 'w-full lg:w-72',
+            },
+            {
+                type: 'select',
+                key: 'status',
+                label: '상태',
+                placeholder: '전체',
+                nullValue: null,
+                options: [
+                    { label: '정상', value: 'ACTIVE' },
+                    { label: '정지', value: 'SUSPENDED' },
+                    { label: '탈퇴', value: 'WITHDRAWN' },
+                ],
+                className: 'w-full lg:w-44',
+            },
+            {
+                type: 'select',
+                key: 'allow_status',
+                label: '검수',
+                placeholder: '전체',
+                nullValue: null,
+                options: [
+                    { label: '검수신청', value: 'PENDING' },
+                    { label: '검수완료', value: 'APPROVED' },
+                    { label: '검수반려', value: 'REJECTED' },
+                ],
+                className: 'w-full lg:w-44',
+            },
+        ];
+    }, []);
+
     return (
-        <div className="px-3">
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-6 text-sm dark:border-white/[0.05] dark:bg-white/[0.03]">
-                <DataTable
-                    title=""
-                    description={meta ? `총 ${meta.total}개` : undefined}
-                    rightActions={
-                        <Button className="bg-brand-500 text-white hover:bg-brand-600">
-                            <Link href={hospitals.createHospitalForStaff().url}>
-                                병원 등록
-                            </Link>
-                        </Button>
-                    }
-                    columns={columns}
-                    rows={items}
-                    getRowKey={(h) => h.id}
-                    loading={loading}
-                    error={errMsg}
-                    meta={meta}
-                    onGoPage={(p) => goPage(p)}
-                    onRefresh={() => load('refresh')}
-                    refreshing={refreshing}
-                    onRowClick={(row) => openEdit(row)}
-                />
+        <>
+            {/* 상단 오른쪽 액션 */}
+            <div className="flex justify-end gap-2 pb-4">
+                <Button
+                    type="button"
+                    variant={filterCollapsed ? 'default' : 'outline'}
+                    className={cn(
+                        // 공통
+                        'text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200',
+
+                        // 토글 상태
+                        filterCollapsed &&
+                            'bg-brand-500 text-white hover:bg-brand-600 dark:bg-brand-500',
+                    )}
+                    onClick={() => setFilterCollapsed((v) => !v)}
+                >
+                    <Filter />
+                    필터
+                </Button>
+
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                >
+                    <Download />
+                    다운로드
+                </Button>
+
+                <Button
+                    className="bg-brand-500 text-white hover:bg-brand-600"
+                    asChild
+                    disabled={refreshing}
+                >
+                    <Link href={hospitals.createHospitalForStaff().url}>
+                        <Plus />
+                        신규 병원 등록
+                    </Link>
+                </Button>
             </div>
-        </div>
+
+            <Card className="border-none shadow-sm">
+                <CardContent className="px-6">
+                    <div
+                        className={[
+                            'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out',
+                            filterCollapsed
+                                ? 'mb-0 grid-rows-[0fr] opacity-0'
+                                : 'mb-4 grid-rows-[1fr] opacity-100',
+                        ].join(' ')}
+                    >
+                        <div className="overflow-hidden">
+                            <FilterBar
+                                value={filters}
+                                fields={fields}
+                                disabled={false}
+                                onChange={(next: Partial<HospitalFilters>) =>
+                                    query.update(next, { resetPage: true })
+                                }
+                                onReset={() =>
+                                    query.update(
+                                        {
+                                            q: null,
+                                            status: null,
+                                            allow_status: null,
+                                            sort: null,
+                                            direction: null,
+                                            page: 1,
+                                            per_page: DEFAULT_FILTERS.per_page,
+                                        },
+                                        { resetPage: true },
+                                    )
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <DataTable
+                        description={
+                            meta
+                                ? `전체 ${meta.total.toLocaleString()}개`
+                                : '목록을 불러오는 중입니다.'
+                        }
+                        columns={columns}
+                        rows={items ?? []}
+                        getRowKey={(h) => h.id}
+                        meta={meta}
+                        refreshing={refreshing}
+                        paginationWindow={9}
+                        onGoPage={(page) => query.update({ page })}
+                        onRefresh={() => query.reload()}
+                        onRowClick={(h) =>
+                            query.visit(
+                                hospitals.editHospitalForStaff(h.id).url,
+                            )
+                        }
+                    />
+                </CardContent>
+            </Card>
+        </>
     );
 }
 

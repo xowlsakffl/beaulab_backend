@@ -12,11 +12,8 @@
 
 ## 빠른 요약 (핵심 규칙)
 
-- 관리자 화면은 **Inertia(React) 페이지 렌더링**으로 구성한다. (`/admin/*`)
-- 관리자 화면에서 **테이블/필터/모달 CRUD는 관리자 API(`/admin/api/*`)를 호출**한다.
-- 앱 사용자 API는 `/api/*`로 분리한다.
-- API(`/api/*`, `/admin/api/*`)는 공통 `ApiResponse` 포맷으로 에러를 통일한다.
-- Inertia 페이지(`/admin/*`)는 redirect + errors 등 기본 흐름을 깨지 않도록 JSON 에러를 강제하지 않는다.
+- 관리자 화면은 **Inertia(React) 렌더링**으로 구성한다. (`/admin/*`)
+- 앱 사용자 API는 `/api/*`로 분리하고 `ApiResponse` 포맷으로 에러를 통일한다.
 
 ## 설치된 주요 패키지 (Backend)
 

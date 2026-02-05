@@ -2,7 +2,7 @@
 
 namespace App\Common\Exceptions;
 
-enum ErrorCode: string
+enum ApiErrorCode: string
 {
     // Common
     case INTERNAL_ERROR = 'INTERNAL_ERROR';
@@ -32,7 +32,6 @@ enum ErrorCode: string
 
     public function messageApp(): string
     {
-        // 앱(End-user)용: 안전하고 짧게
         return match ($this) {
             self::INVALID_REQUEST => '요청 값이 올바르지 않습니다.',
             self::UNAUTHORIZED => '인증이 필요합니다.',
@@ -43,21 +42,6 @@ enum ErrorCode: string
             self::DB_ERROR => '서버 오류가 발생했습니다.',
             self::USER_NOT_FOUND => '사용자를 찾을 수 없습니다.',
             default => '서버 오류가 발생했습니다.',
-        };
-    }
-
-    public function messageAdmin(): string
-    {
-        return match ($this) {
-            self::INVALID_REQUEST => '요청 값 검증에 실패했습니다.',
-            self::UNAUTHORIZED => '로그인이 필요합니다.',
-            self::FORBIDDEN => '접근 권한이 없습니다.',
-            self::NOT_FOUND => '리소스를 찾을 수 없습니다.',
-            self::METHOD_NOT_ALLOWED => '허용되지 않는 HTTP 메서드입니다.',
-            self::TOKEN_ERROR => '토큰이 유효하지 않습니다',
-            self::DB_ERROR => 'DB 오류가 발생했습니다.',
-            self::USER_NOT_FOUND => '사용자를 찾을 수 없습니다.',
-            default => '예기치 못한 서버 오류가 발생했습니다.',
         };
     }
 }

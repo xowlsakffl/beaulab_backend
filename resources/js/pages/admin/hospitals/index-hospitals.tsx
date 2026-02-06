@@ -3,7 +3,7 @@ import { dashboard } from '@/routes/admin';
 import hospitals from '@/routes/admin/hospitals';
 import type { BreadcrumbItem } from '@/types';
 import { type ReactNode, useMemo } from 'react';
-import { Download, Filter, Plus } from 'lucide-react';
+import { CheckCircle2, Download, Filter, Plus } from 'lucide-react';
 
 import DataTable, {
     type DataTableColumn,
@@ -18,6 +18,7 @@ import FilterBar, { type FilterField } from '@/components/filter-bar';
 import { useInertiaQueryState } from '@/hooks/use-inertia-query-state';
 import { useLocalStorageState } from '@/hooks/use-local-storage-state';
 import { cn } from '@/lib/utils';
+import FlashAlert from '@/components/ui/flash-alert';
 
 /* =====================
  * Types
@@ -239,6 +240,7 @@ function IndexHospitals() {
             {
                 type: 'text',
                 key: 'q',
+                label: '검색',
                 placeholder: '병원명/주소 검색',
                 debounceMs: 300,
                 normalize: (v) => v,
@@ -275,48 +277,52 @@ function IndexHospitals() {
 
     return (
         <>
-            {/* 상단 오른쪽 액션 */}
-            <div className="flex justify-end gap-2 pb-4">
-                <Button
-                    type="button"
-                    variant={filterCollapsed ? 'default' : 'outline'}
-                    className={cn(
-                        // 공통
-                        'text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200',
+            <div className="flex flex-col gap-3 pb-4 lg:flex-row lg:items-start lg:justify-between">
+                {/* 왼쪽: FlashAlert */}
+                <div className="min-w-0 flex-1">
+                    <FlashAlert />
+                </div>
 
-                        // 토글 상태
-                        filterCollapsed &&
-                            'bg-brand-500 text-white hover:bg-brand-600 dark:bg-brand-500',
-                    )}
-                    onClick={() => setFilterCollapsed((v) => !v)}
-                >
-                    <Filter />
-                    필터
-                </Button>
+                {/* 오른쪽: 액션 버튼 */}
+                <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                    <Button
+                        type="button"
+                        variant={filterCollapsed ? 'default' : 'outline'}
+                        className={cn(
+                            'text-gray-700 hover:bg-gray-50 lg:py-6 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200',
+                            filterCollapsed &&
+                                'bg-brand-500 text-white hover:bg-brand-600 dark:bg-brand-500',
+                        )}
+                        onClick={() => setFilterCollapsed((v) => !v)}
+                    >
+                        <Filter />
+                        필터
+                    </Button>
 
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                >
-                    <Download />
-                    다운로드
-                </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="text-gray-700 hover:bg-gray-50 lg:py-6 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                    >
+                        <Download />
+                        다운로드
+                    </Button>
 
-                <Button
-                    className="bg-brand-500 text-white hover:bg-brand-600"
-                    asChild
-                    disabled={refreshing}
-                >
-                    <Link href={hospitals.createHospitalForStaff().url}>
-                        <Plus />
-                        신규 병원 등록
-                    </Link>
-                </Button>
+                    <Button
+                        className="bg-brand-500 text-white hover:bg-brand-600 lg:py-6"
+                        asChild
+                        disabled={refreshing}
+                    >
+                        <Link href={hospitals.createHospitalForStaff().url}>
+                            <Plus />
+                            신규 병원 등록
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             <Card className="border-none shadow-sm">
-                <CardContent className="px-6">
+                <CardContent className="px-2 lg:px-6">
                     <div
                         className={[
                             'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out',

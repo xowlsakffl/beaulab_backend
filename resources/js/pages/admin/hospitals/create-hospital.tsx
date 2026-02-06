@@ -1,16 +1,17 @@
-import AppLayout from '@/layouts/admin/app-layout';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AppLayout from '@/layouts/admin/app-layout';
+import { openKakaoAddressSearch } from '@/lib/kakao-address';
 import { dashboard } from '@/routes/admin';
 import hospitals from '@/routes/admin/hospitals';
 import type { BreadcrumbItem } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { LoaderCircle, MapPin } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { openKakaoAddressSearch } from '@/lib/kakao-address';
+import { Textarea } from '@/components/ui/textarea';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: '홈', href: dashboard().url },
@@ -28,64 +29,89 @@ type Form = {
     address: string;
     address_detail: string;
 
-    latitude: string;   // 서버 filter가 string으로 캐스팅하니 문자열로 관리 추천
+    latitude: string; // 서버 filter가 string으로 캐스팅하니 문자열로 관리
     longitude: string;
 
     tel: string;
     email: string;
 
-    //activate_now:boolean;
+    // activate_now: boolean;
 };
 
-
 function CreateHospital() {
-    const { data, setData, post, processing, errors, clearErrors } = useForm<Form>({
-        name: '',
+    const { data, setData, post, processing, errors, clearErrors } =
+        useForm<Form>({
+            name: '',
 
-        description: '',
-        consulting_hours: '',
-        direction: '',
+            description: '',
+            consulting_hours: '',
+            direction: '',
 
-        address: '',
-        address_detail: '',
+            address: '',
+            address_detail: '',
 
-        latitude: '',
-        longitude: '',
+            latitude: '',
+            longitude: '',
 
-        tel: '',
-        email: '',
+            tel: '',
+            email: '',
 
-        //activate_now: false,
+            // activate_now: false,
+        });
+
+    // 공통 onChange (필드별로 에러가 있으면 그 필드만 제거)
+    const bindInput = <K extends keyof Form>(key: K) => ({
+        name: String(key),
+        value: data[key] as any,
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+            setData(key, e.currentTarget.value as any);
+            if ((errors as any)[key]) clearErrors(key as any);
+        },
     });
+
+    const focusFirstError = (errs: Record<string, string>) => {
+        const firstKey = Object.keys(errs)[0];
+        if (!firstKey) return;
+
+        // name 속성으로 찾기
+        const el = document.querySelector(
+            `[name="${CSS.escape(firstKey)}"]`,
+        ) as HTMLElement | null;
+
+        el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+        el?.focus?.();
+    };
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        clearErrors();
 
-        post('/admin/api/hospitals', {
-            preserveScroll: true,
+        post(hospitals.storeHospitalForStaff().url, {
+            onError: (errs) => focusFirstError(errs),
         });
     }
 
     const onClickAddressSearch = async () => {
         try {
             const r = await openKakaoAddressSearch();
+
             setData('address', r.address);
             setData('latitude', r.latitude);
             setData('longitude', r.longitude);
+
+            // 주소 관련 에러는 즉시 제거
+            clearErrors(['address', 'latitude', 'longitude'] as any);
         } catch (e: any) {
-            // 취소/실패 처리
             alert(e?.message ?? '주소 검색에 실패했습니다.');
         }
     };
 
     return (
         <Card className="mx-auto w-full max-w-md">
-            <CardContent className="p-4 lg:p-6">
+            <CardContent className="px-2 lg:px-6">
                 <form onSubmit={submit} className="space-y-4">
                     {/* 병원명 (required) */}
                     <div className="space-y-2">
-                        <Label className="block">
+                        <Label className="block" htmlFor="name">
                             <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
                                 병원명
                             </span>{' '}
@@ -93,14 +119,11 @@ function CreateHospital() {
                         </Label>
 
                         <Input
-                            name="name"
-                            value={data.name}
-                            onChange={(e) =>
-                                setData('name', e.currentTarget.value)
-                            }
+                            id="name"
                             placeholder="병원명을 입력하세요."
                             autoComplete="organization"
                             error={!!errors.name}
+                            {...bindInput('name')}
                         />
 
                         {errors.name ? (
@@ -110,23 +133,20 @@ function CreateHospital() {
                         ) : null}
                     </div>
 
-                    {/* 연락처 (nullable) */}
+                    {/* 대표 번호 (nullable) */}
                     <div className="space-y-2">
-                        <Label className="block">
+                        <Label className="block" htmlFor="tel">
                             <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
-                                연락처
+                                대표 번호
                             </span>
                         </Label>
 
                         <Input
-                            name="tel"
-                            value={data.tel}
-                            onChange={(e) =>
-                                setData('tel', e.currentTarget.value)
-                            }
+                            id="tel"
                             placeholder="예) 02-1234-5678"
                             autoComplete="tel"
                             error={!!errors.tel}
+                            {...bindInput('tel')}
                         />
 
                         {errors.tel ? (
@@ -136,24 +156,21 @@ function CreateHospital() {
                         ) : null}
                     </div>
 
-                    {/* 이메일 (nullable) */}
+                    {/* 대표 이메일 (nullable) */}
                     <div className="space-y-2">
-                        <Label className="block">
+                        <Label className="block" htmlFor="email">
                             <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
-                                이메일
+                                대표 이메일
                             </span>
                         </Label>
 
                         <Input
-                            name="email"
+                            id="email"
                             type="email"
-                            value={data.email}
-                            onChange={(e) =>
-                                setData('email', e.currentTarget.value)
-                            }
                             placeholder="예) hello@beaulab.co"
                             autoComplete="email"
                             error={!!errors.email}
+                            {...bindInput('email')}
                         />
 
                         {errors.email ? (
@@ -165,7 +182,7 @@ function CreateHospital() {
 
                     {/* 주소 */}
                     <div className="space-y-2">
-                        <Label className="block">
+                        <Label className="block" htmlFor="address">
                             <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
                                 주소
                             </span>
@@ -175,18 +192,17 @@ function CreateHospital() {
                             <Input
                                 name="address"
                                 value={data.address}
-                                onChange={(e) =>
-                                    setData('address', e.currentTarget.value)
-                                }
-                                placeholder="주소를 검색하거나 입력하세요."
-                                autoComplete="street-address"
+                                readOnly
+                                onClick={onClickAddressSearch}
+                                placeholder="주소 검색 버튼을 눌러 선택하세요."
+                                autoComplete="off"
                                 error={!!errors.address}
-                                className="flex-1"
+                                className="flex-1 cursor-pointer"
                             />
 
                             <Button
                                 type="button"
-                                variant="outline"
+                                variant="brand"
                                 className="shrink-0 py-5"
                                 onClick={onClickAddressSearch}
                             >
@@ -202,14 +218,11 @@ function CreateHospital() {
                         ) : null}
 
                         <Input
-                            name="address_detail"
-                            value={data.address_detail}
-                            onChange={(e) =>
-                                setData('address_detail', e.currentTarget.value)
-                            }
+                            id="address_detail"
                             placeholder="상세 주소 (예: 3층, 301호)"
                             autoComplete="address-line2"
                             error={!!errors.address_detail}
+                            {...bindInput('address_detail')}
                         />
 
                         {errors.address_detail ? (
@@ -219,15 +232,15 @@ function CreateHospital() {
                         ) : null}
                     </div>
 
-                    {/* 소개/텍스트(현재는 Input으로 처리 — 나중에 Textarea 컴포넌트로 빼도 됨) */}
+                    {/* 병원 소개 */}
                     <div className="space-y-2">
-                        <Label className="block">
+                        <Label className="block" htmlFor="description">
                             <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
                                 병원 소개
                             </span>
                         </Label>
 
-                        <Input
+                        <Textarea
                             name="description"
                             value={data.description}
                             onChange={(e) =>
@@ -244,14 +257,15 @@ function CreateHospital() {
                         ) : null}
                     </div>
 
+                    {/* 운영 시간 */}
                     <div className="space-y-2">
-                        <Label className="block">
+                        <Label className="block" htmlFor="consulting_hours">
                             <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
                                 운영 시간
                             </span>
                         </Label>
 
-                        <Input
+                        <Textarea
                             name="consulting_hours"
                             value={data.consulting_hours}
                             onChange={(e) =>
@@ -271,14 +285,15 @@ function CreateHospital() {
                         ) : null}
                     </div>
 
+                    {/* 오시는 길 */}
                     <div className="space-y-2">
-                        <Label className="block">
+                        <Label className="block" htmlFor="direction">
                             <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-400">
                                 오시는 길
                             </span>
                         </Label>
 
-                        <Input
+                        <Textarea
                             name="direction"
                             value={data.direction}
                             onChange={(e) =>
@@ -299,10 +314,8 @@ function CreateHospital() {
                     <div className="pt-1">
                         <Label className="flex items-center gap-3">
                             <Checkbox
-                            /*checked={data.activate_now}
-                                onCheckedChange={(v) =>
-                                    setData('activate_now', Boolean(v))
-                                }*/
+                            // checked={data.activate_now}
+                            // onCheckedChange={(v) => setData('activate_now', Boolean(v))}
                             />
                             <span className="text-theme-sm font-normal text-gray-700 dark:text-gray-400">
                                 등록 후 바로 활성화

@@ -99,10 +99,10 @@ export default function FilterBar<TFilters extends Record<string, unknown>>({
                     {onReset ? (
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             disabled={disabled || !dirty}
                             onClick={onReset}
-                            className="text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-white/5"
+                            className="py-6 text-brand-500    dark:text-gray-200 "
                         >
                             필터 초기화
                         </Button>
@@ -182,7 +182,7 @@ function TextFieldInput<TFilters extends Record<string, unknown>>({
     );
 
     /**
-     * ✅ 서버값 동기화 규칙
+     * 서버값 동기화 규칙
      * - 입력 중이면(draft !== committed) 절대 덮지 않음
      * - 입력 안 하고 있을 때만 동기화
      */

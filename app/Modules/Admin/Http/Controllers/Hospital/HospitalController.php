@@ -64,13 +64,17 @@ final class HospitalController extends Controller
      * POST /admin/api/hospitals/create
      * (Beaulab)뷰랩 전용 병원 생성 api
      */
-    public function apiCreateHospitalForStaff(
+    public function storeHospitalForStaff(
         HospitalCreateForStaffRequest $request,
         HospitalCreateForStaffAction $action,
     ) {
         $result = $action->execute($request->filters());
 
-        return ApiResponse::success($result['hospital']);
+        return to_route('admin.hospitals.indexHospitalPageForStaff')
+            ->with('flash', [
+                'type' => 'success',
+                'message' => '병원이 등록되었습니다.',
+            ]);
     }
 
     /**

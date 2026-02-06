@@ -44,6 +44,17 @@ final class HospitalCreateForStaffRequest extends FormRequest
         ];
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => '병원명',
+            'address' => '주소',
+            'address_detail' => '상세 주소',
+            'tel' => '대표 번호',
+            'email' => '대표 이메일',
+        ];
+    }
+
 
     public function filters(): array
     {

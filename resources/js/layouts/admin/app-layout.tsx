@@ -4,6 +4,7 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { type BreadcrumbItem } from '@/types';
 import { type PropsWithChildren } from 'react';
+import FlashToast from '@/components/ui/flash-alert';
 
 interface AppLayoutProps extends PropsWithChildren {
     breadcrumbs?: BreadcrumbItem[];
@@ -13,8 +14,10 @@ export default function AppLayout({
     children,
     breadcrumbs = [],
 }: AppLayoutProps) {
+
     return (
         <AppShell variant="sidebar">
+
             <AppSidebar />
 
             <div className="flex min-h-svh min-w-0 flex-1 flex-col">

@@ -39,17 +39,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->middleware('permission:beaulab.hospital.show')
             ->name('hospitals.showHospitalForStaff');
 
-        // 병원 생성 (뷰랩 직원 전용)
+        // 병원 생성 (직원 전용)
         Route::post('/hospitals', [HospitalController::class, 'storeHospitalForStaff'])
             ->middleware('permission:beaulab.hospital.create')
             ->name('hospitals.storeHospitalForStaff');
 
-        // 병원 수정 (뷰랩 직원 전용 - 특정 병원 수정)
+        // 병원 수정 (직원 전용 - 특정 병원 수정)
         Route::match(['put', 'patch'], '/hospitals/{hospital}', [HospitalController::class, 'updateHospitalForStaff'])
             ->middleware('permission:beaulab.hospital.update')
             ->name('hospitals.updateHospitalForStaff');
 
-        // 병원 삭제 (뷰랩 직원 전용 - 특정 병원 삭제)
+        // 병원 삭제 (직원 전용 - 특정 병원 삭제)
         Route::delete('/hospitals/{hospital}', [HospitalController::class, 'deleteHospitalForStaff'])
             ->middleware('permission:beaulab.hospital.delete')
             ->name('hospitals.deleteHospitalForStaff');

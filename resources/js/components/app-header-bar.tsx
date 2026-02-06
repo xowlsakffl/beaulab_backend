@@ -33,7 +33,7 @@ export default function AppHeaderBar({
     }, []);
 
     return (
-        <div className="flex h-16 w-full items-center px-4 md:px-4">
+        <div className="flex h-16 w-full items-center px-4 md:px-4 dark:bg-gray-900">
             {/* 모바일 */}
             <div className="flex w-full items-center lg:hidden">
                 <div className="flex w-1/3 items-center">

@@ -74,16 +74,16 @@ export interface BadgeProps
 }
 
 function Badge({
-                   className,
-                   variant,
-                   size,
-                   color,
-                   startIcon,
-                   endIcon,
-                   asChild = false,
-                   children,
-                   ...props
-               }: BadgeProps) {
+   className,
+   variant,
+   size,
+   color,
+   startIcon,
+   endIcon,
+   asChild = false,
+   children,
+   ...props
+}: BadgeProps) {
     const Comp = asChild ? Slot : "span";
 
     return (

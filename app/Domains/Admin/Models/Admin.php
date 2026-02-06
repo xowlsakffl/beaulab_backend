@@ -106,6 +106,12 @@ final class Admin extends Authenticatable
 
     /**
      * 한 아이디 = 한 소속(멤버십 1개) 고정
+     * 현재 보고 있는 병원
+     * 접근 가능한 데이터 범위
+     * 메뉴 노출
+     * 사용 예
+     * $membership = $admin->activeMembership;
+     * $hospital   = $membership?->hospital;
      */
     public function activeMembership(): BelongsTo
     {
@@ -117,11 +123,13 @@ final class Admin extends Authenticatable
         return $this->activeMembership;
     }
 
+    // 소속 아이디 가져오기
     public function membershipTargetId(): ?int
     {
         return $this->activeMembership?->target_id;
     }
 
+    // 소속 권한 가져오기
     public function membershipRole(): ?string
     {
         return $this->activeMembership?->role;

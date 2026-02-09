@@ -53,7 +53,7 @@ const mediaCollections = [
     { key: 'logo', label: '로고', multiple: false, maxFiles: 1 },
     {
         key: 'gallery',
-        label: '갤러리 이미지',
+        label: '대표/내부 이미지',
         multiple: true,
         maxFiles: 12,
         showRepresentativeBadge: true,

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Common\Models;
+namespace App\Domains\Common\Models\Media;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -86,7 +86,7 @@ final class Media extends Model
     }
 
     /**
-     * 갤러리 이미지 같은 경우 정렬 순서 적용
+     * 내부 이미지 같은 경우 정렬 순서 적용
      * Media::for($hospital)->collection('gallery')->ordered()->get();
      */
     public function scopeOrdered(Builder $query): Builder

@@ -41,6 +41,11 @@ final class HospitalCreateForStaffRequest extends FormRequest
             // 연락처
             'tel' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
+
+            // 파일
+            'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],// 5MB
+            'gallery' => ['nullable', 'array', 'max:12'],
+            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'], // 8MB
         ];
     }
 
@@ -52,6 +57,9 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'address_detail' => '상세 주소',
             'tel' => '대표 번호',
             'email' => '대표 이메일',
+            'logo' => '로고',
+            'gallery' => '대표/내부 이미지',
+            'gallery.*' => '대표/내부 이미지',
         ];
     }
 
@@ -85,6 +93,8 @@ final class HospitalCreateForStaffRequest extends FormRequest
         if (!empty($data['email'])) {
             $data['email'] = mb_strtolower($data['email']);
         }
+
+        unset($data['logo'], $data['gallery']);
 
         return $data;
     }

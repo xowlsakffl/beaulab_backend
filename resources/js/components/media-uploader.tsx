@@ -438,7 +438,7 @@ export default function EntityMediaUploader({
             return;
         }
 
-        // 갤러리: append + maxFiles 제한
+        // 대표/내부 이미지: append + maxFiles 제한
         const merged = [...current, ...incoming];
         const limited = typeof c.maxFiles === 'number' ? merged.slice(0, c.maxFiles) : merged;
         setFiles(c.key, limited);

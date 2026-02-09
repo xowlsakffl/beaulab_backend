@@ -27,7 +27,7 @@ return new class extends Migration
             $table->unsignedInteger('width')->nullable()->comment('이미지 가로(px)');
             $table->unsignedInteger('height')->nullable()->comment('이미지 세로(px)');
 
-            $table->unsignedSmallInteger('sort_order')->default(0)->comment('정렬 순서(갤러리 이미지용)');
+            $table->unsignedSmallInteger('sort_order')->default(0)->comment('정렬 순서(내부 이미지용)');
             $table->boolean('is_primary')->default(false)->comment('대표 이미지 여부');
 
             $table->json('metadata')->nullable()->comment('추가 메타데이터(리사이즈, alt, crop 정보 등)');

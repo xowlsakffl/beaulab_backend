@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
+        'guard' => env('AUTH_GUARD', 'user'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
@@ -36,14 +36,26 @@ return [
     */
 
     'guards' => [
-        'web' => [
+        /*
+         * 'web' => [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'admin' => [
-            'driver' => 'session',
-            'provider' => 'admins',
-        ]
+        */
+        'staff' => [
+            'driver' => 'sanctum',
+            'provider' => 'staff',
+        ],
+
+        'partner' => [
+            'driver' => 'sanctum',
+            'provider' => 'partners',
+        ],
+
+        'user' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
     ],
 
     /*
@@ -66,13 +78,18 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_USER_MODEL', \App\Domains\User\Models\User::class),
+            'model' => env('AUTH_USER_MODEL', \App\Domains\User\Models\AccountUser::class),
         ],
 
-        'admins' => [
+        'partners' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_ADMIN_MODEL', \App\Domains\Admin\Models\Admin::class),
-        ]
+            'model' => env('AUTH_PARTNER_MODEL', \App\Domains\Partner\Models\AccountPartner::class),
+        ],
+
+        'staff' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_STAFF_MODEL', \App\Domains\Staff\Models\AccountStaff::class),
+        ],
 
         // 'users' => [
         //     'driver' => 'database',
@@ -106,8 +123,14 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
-        'admins' => [
-            'provider' => 'admins',
+        'partners' => [
+            'provider' => 'partners',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'staff' => [
+            'provider' => 'staff',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,

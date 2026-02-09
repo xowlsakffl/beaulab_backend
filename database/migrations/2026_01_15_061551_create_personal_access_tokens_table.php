@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id()->comment('개인 액세스 토큰 ID');
 
-            // 토큰 소유자 (users, 기타 tokenable 모델)
+            // 토큰 소유자 (users, staffs, partners)
             $table->morphs('tokenable');
             // tokenable_type, tokenable_id 생성
 

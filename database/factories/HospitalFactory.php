@@ -2,9 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Domains\Admin\Models\Admin;
-use App\Domains\Admin\Models\AdminMembership;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Partner\Models\AccountPartner;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -55,27 +54,19 @@ final class HospitalFactory extends Factory
 
             $seedKey = str_pad((string) $hospital->id, 4, '0', STR_PAD_LEFT);
 
-            $rawPassword = (string) env('SEED_ADMIN_PASSWORD', '');
+            $rawPassword = (string) env('SEED_STAFF_PASSWORD', '');
 
-            $admin = Admin::factory()->create([
+            $partner = AccountPartner::factory()->create([
                 'email'    => "hospital{$seedKey}@owner.test",
                 'nickname' => "hospital_owner_{$seedKey}",
                 'name'     => "병원 소유주 {$seedKey}",
-                'status'   => Admin::STATUS_ACTIVE,
+                'partner_type' => AccountPartner::PARTNER_HOSPITAL,
+                'hospital_id' => $hospital->id,
+                'status'   => AccountPartner::STATUS_ACTIVE,
                 'password' => $rawPassword,
             ]);
 
-            $membership = AdminMembership::factory()
-                ->hospital($hospital->id, role: 'hospital.owner')
-                ->create([
-                    'admin_id' => $admin->id,
-                ]);
-
-            $admin->forceFill([
-                'active_membership_id' => $membership->id,
-            ])->save();
-
-            $admin->syncRoles([
+            $partner->syncRoles([
                 'hospital.owner',
             ]);
         });

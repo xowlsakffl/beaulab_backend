@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -14,9 +12,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            AdminAuthorizationSeeder::class, // 권한 정의
-            AdminSeeder::class, // 최고관리자
+            AuthorizationSeeder::class, // 권한 정의
+            AccountStaffSeeder::class, // 뷰랩 내부 직원
             HospitalSeeder::class, // 병원 테스트
+            BeautySeeder::class, // 뷰티 테스트
         ]);
     }
 }

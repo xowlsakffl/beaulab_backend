@@ -1,23 +1,9 @@
 <?php return array (
-  'inertiajs/inertia-laravel' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Inertia\\ServiceProvider',
-    ),
-  ),
   'laravel/boost' => 
   array (
     'providers' => 
     array (
       0 => 'Laravel\\Boost\\BoostServiceProvider',
-    ),
-  ),
-  'laravel/fortify' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Fortify\\FortifyServiceProvider',
     ),
   ),
   'laravel/horizon' => 

@@ -2,6 +2,15 @@
 
 return [
 
+    'default_guard_name' => 'user',
+
+    'guards' => [
+        'user',
+        'partner',
+        'staff',
+    ],
+
+
     'models' => [
 
         /*

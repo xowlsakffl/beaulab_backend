@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domains\Hospital\Models;
 
+use App\Domains\Partner\Models\AccountPartner;
 use Database\Factories\HospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Hospital extends Model
@@ -53,6 +55,11 @@ final class Hospital extends Model
     protected static function newFactory(): Factory
     {
         return HospitalFactory::new();
+    }
+
+    public function partners(): HasMany
+    {
+        return $this->hasMany(AccountPartner::class, 'hospital_id');
     }
 
     public function isApproved(): bool

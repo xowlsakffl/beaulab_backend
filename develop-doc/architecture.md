@@ -1,98 +1,101 @@
 # Architecture (구조 / 흐름)
 
 이 문서는 Beaulab 프로젝트의 **전체 구조와 요청 흐름**을 설명합니다.  
-본 프로젝트는 **Laravel + Inertia 기반 SPA 관리자 구조**를 전제로 하며,  
-관리자(Admin) / 앱 사용자(User) / 도메인(Domain)을 **명확히 분리**하는 것을 목표로 합니다.
+본 프로젝트는 **Laravel API 서버 + 외부 프론트엔드(웹/모바일)** 구조를 전제로 하며,  
+Actor(Staff / Partner / User)와 Domain(비즈니스 규칙)을 **명확히 분리**하는 것을 목표로 합니다.
 
 ---
 
 ## 1. 큰 그림
 
-본 프로젝트는 아래 **2가지 요청 영역**으로 구성됩니다.
+본 프로젝트는 아래 **3가지 Actor 기반 API 영역**으로 구성됩니다.
 
 | 구분 | 목적 | URL Prefix | 응답 |
 |---|---|---|---|
-| 관리자 영역 (Inertia SPA) | 관리자 화면 렌더링 + CRUD + 테이블 + 폼 | `/admin/*` | Inertia(Response / Redirect / Errors) |
-| 앱 사용자 API | 모바일/외부 클라이언트 통신 | `/api/*` | JSON |
+| Staff API | 내부 직원용 관리 기능 | `/api/v1/staff/*` | JSON |
+| Partner API | 병원/뷰티/대행사 파트너 관리 | `/api/v1/partner/*` | JSON |
+| User API | 일반 사용자 서비스 | `/api/v1/user/*` | JSON |
 
 ### 핵심 원칙
-- **관리자 영역은 전면 Inertia 기반 SPA로 동작**한다.
-- 페이지 렌더, 리스트 조회, 필터, 페이지네이션, 생성/수정/삭제를 모두  
-  **Inertia 요청 → Inertia 응답** 흐름으로 처리한다.
-- 관리자 영역에서는 **JSON API(`/admin/api/*`)를 사용하지 않는다.**
-- 앱 사용자 API만 `/api/*` 경로에서 **stateless JSON API**로 제공한다.
+- Laravel은 **API 서버 역할만 담당**한다.
+- 모든 클라이언트(UI)는 외부 프론트엔드에서 처리한다.
+- 서버는 **상태를 가지지 않는(stateless) JSON API**만 제공한다.
+- 모든 API 응답은 **공통 ApiResponse 규칙**을 따른다.
 
 ---
 
 ## 2. 백엔드 디렉토리 구조
 
-- `app/Modules/Admin/*`
-    - 관리자 영역(세션 기반 인증, 관리자 전용 화면/요청)
+- `app/Modules/Staff/*`
+    - 내부 직원(Staff) API 진입점
+- `app/Modules/Partner/*`
+    - 파트너(병원/뷰티/대행사) API 진입점
 - `app/Modules/User/*`
-    - 앱 사용자 영역(토큰 기반 API, 앱 사용자 전용 요청)
+    - 일반 사용자 API 진입점
 - `app/Domains/*`
     - **업무 도메인(비즈니스 로직)**
     - 예: `Hospital`, `Review`, `Beauty`, `Reservation` 등
-    - 도메인 안에는 모델/유스케이스/정책/쿼리 등 **규칙과 상태**가 위치한다
+    - 모델 / 액션 / 정책 / 쿼리 등 **규칙과 상태의 중심**
 - `app/Common/*`
-    - 공통: `ApiResponse`, `ErrorCode`, `CustomException`, 공통 유틸/예외 등
-- `app/Modules/Admin/routes/`
-    - `web.php` : 관리자 Inertia 라우트(`/admin/*`)
-- `app/Modules/User/routes/`
-    - `api.php` : 앱 사용자 API 라우트(`/api/*`)
+    - 전역 공통 요소
+    - ApiResponse, ErrorCode, Authorization, Middleware, Exception 처리 등
+- `app/Modules/*/routes/api.php`
+    - Actor별 API 라우트 정의
 
 ---
 
-
 ### 역할 요약
-- `Modules/Admin`
-    - 관리자 영역 **HTTP 진입점**
-    - Inertia 페이지 렌더 및 액션 처리
-    - 세션 기반 인증
-- `Modules/User`
-    - 앱 사용자 API 진입점
-    - 토큰 기반 인증
+- `Modules/*`
+    - HTTP/API 진입점
+    - 인증/인가 적용
+    - 요청 → Domain Action 연결
 - `Domains`
     - **비즈니스 규칙의 중심**
     - 모델 / 유스케이스 / 정책 / 쿼리
 - `Common`
-    - 공통 유틸, 예외, API 응답 포맷 등
+    - 공통 규칙
+    - 응답 포맷, 예외 처리, 권한 정의, 미들웨어
 
 ---
 
 ## 3. 핵심 설계 원칙 (중요)
 
-### 3.1 “모델은 무조건 도메인(Domains)”
+### 3.1 “모델은 무조건 Domain”
 - 모든 Eloquent Model은 `app/Domains/{Domain}/Models` 아래에 위치한다.
-- `Modules/Admin`, `Modules/User`에는 모델을 두지 않는다.
+- `Modules/Staff`, `Modules/Partner`, `Modules/User`에는 모델을 두지 않는다.
 
-> Admin/User는 “누가 호출하느냐(Actor)”의 차이이고,  
-> Hospital/Review 같은 “무엇을 다루느냐(도메인)”가 비즈니스 규칙의 주인공이다.
+> Staff / Partner / User는 “누가 호출하느냐(Actor)”의 차이이고,  
+> Hospital / Review 같은 “무엇을 다루느냐(Domain)”가 비즈니스 규칙의 주인공이다.
 
 ---
 
 ### 3.2 컨트롤러는 얇게, 비즈니스 로직은 Domain Action으로
 컨트롤러는 아래 역할만 담당한다.
-- FormRequest를 통한 validation / authorize
+- Request validation
+- 인증 / 인가 통과 여부
 - Domain Action 호출
-- Inertia 응답 또는 redirect 처리
+- ApiResponse 반환
 
 컨트롤러에서 **금지**
 - 복잡한 쿼리 작성
-- 트랜잭션/상태 머신 로직
-- 권한 if 분기 (Policy/FormRequest로 이동)
+- 트랜잭션/상태 변경 로직
+- 권한 분기 if 문
 
 ---
 
-### 3.3 Admin / User 차이는 Action과 DTO로 분리
-관리자와 앱 사용자는 같은 도메인을 다루더라도 보통 다음이 다르다.
-- 기본 조회 조건
+### 3.3 Actor 차이는 Action / DTO로 분리
+같은 도메인을 다루더라도 Actor에 따라 다음이 달라질 수 있다.
+- 조회 조건
 - 허용 필터/정렬
-- 노출 가능한 필드
+- 노출 필드
 
-따라서 도메인 내부에서 다음을 분리한다.
-- `Actions/Admin/*` / `Actions/User/*`
-- `Dto/Admin/*` / `Dto/User/*`
+따라서 Domain 내부에서 다음을 분리한다.
+- `Actions/Staff/*`
+- `Actions/Partner/*`
+- `Actions/User/*`
+- `Dto/Staff/*`
+- `Dto/Partner/*`
+- `Dto/User/*`
 
 ---
 
@@ -105,101 +108,73 @@ Action 간 중복이 발생하면 아래 레이어로 흡수한다.
 
 ## 4. 메소드 / 클래스 명명 규칙
 
-### 4.1 Controller 메소드 (HTTP 진입점)
+### 4.1 Controller 메소드 (API 진입점)
 
-#### Inertia 페이지 + 액션 통합
 패턴:
-
-
-예:
-- pageHospitalIndexForStaff() (GET /admin/hospitals)
-- pageHospitalCreateForStaff() (GET /admin/hospitals/create)
-페이지는 “데이터 로드”를 하지 않고, 렌더만. 데이터는 별도 API에서 로드.
-
-#### 1-2. Admin API (JSON)
-
-패턴: api{Verb}{Noun}For{Role}
+- 동사 + 명사 형태
+- HTTP 메서드로 역할을 구분
 
 예:
-- apiGetHospitalListForStaff() (GET /admin/api/hospitals)
-- apiCreateHospitalForStaff() (POST /admin/api/hospitals)
-- apiUpdateHospitalForStaff() (PUT /admin/api/hospitals/{id})
-- apiDeleteHospitalForStaff() (DELETE /admin/api/hospitals/{id})
+- indexHospitals()
+- showHospital()
+- storeHospital()
+- updateHospital()
+- deleteHospital()
+
+Actor 구분은 **URL prefix와 미들웨어**로 처리하며,  
+메소드 이름에 Actor를 포함하지 않는다.
 
 ---
 
-## 4. 도메인 디렉토리 템플릿(예: Hospital)
+## 5. 도메인 디렉토리 템플릿 (예: Hospital)
 
 권장 기본 형태:
 
 - `app/Domains/Hospital/Models/Hospital.php`
-- `app/Domains/Hospital/Actions/Admin/ListHospitals.php`
-- `app/Domains/Hospital/Actions/User/ListHospitals.php`
+- `app/Domains/Hospital/Actions/Staff/ListHospitals.php`
+- `app/Domains/Hospital/Actions/Partner/UpdateHospitalProfile.php`
+- `app/Domains/Hospital/Actions/User/ViewHospital.php`
 - `app/Domains/Hospital/Queries/HospitalQuery.php`
-- `app/Domains/Hospital/Dto/Admin/HospitalListItem.php`
-- `app/Domains/Hospital/Dto/User/HospitalListItem.php`
--  `app/Domains/Hospital/Policies/HospitalPolicy.php`
+- `app/Domains/Hospital/Dto/Staff/HospitalItem.php`
+- `app/Domains/Hospital/Dto/User/HospitalItem.php`
+- `app/Domains/Hospital/Policies/HospitalPolicy.php`
 
 ---
 
+## 6. 인증 (Authentication)
+
+### 공통 원칙
+- 인증 방식: **Sanctum 토큰 기반**
+- API는 stateless
+
+### Actor별
+- Staff / Partner / User 모두 동일한 토큰 인증 방식
+- Actor 구분은
+    - 토큰 발급 시 actor 정보 포함
+    - `actor:*` 미들웨어로 검증
 
 ---
 
-## 6. 프론트 구조 (Inertia + React)
+## 7. 응답 / 예외 처리 기준
 
-### 6.1 Inertia 페이지 경로 규칙
-- `Inertia::render('{name}')` 기준으로 페이지 파일을 로드한다.
+### 7.1 응답 타입
+- 모든 API는 **ApiResponse 포맷**으로 응답한다.
 
-예:
-- 서버: `Inertia::render('admin/hospitals/index')`
-- 프론트: `resources/js/pages/admin/hospitals/index.tsx`
-
----
-
-### 6.2 관리자 레이아웃 구성
-- 메인 레이아웃: `resources/js/layouts/admin/app-layout.tsx`
-- 인증 레이아웃: `resources/js/layouts/admin/auth-layout.tsx`
-- 설정 레이아웃: `resources/js/layouts/admin/settings/layout.tsx`
-
----
-
-## 7. 인증 (Authentication)
-
-### 7.1 관리자
-- Guard: `admin` (session)
-- 로그인: `/admin/login` (Fortify)
-- 보호 영역: `/admin/*` + `auth:admin`
-- 모든 요청은 **Inertia 기반 세션 흐름**을 따른다.
-
-### 7.2 앱 사용자
-- Guard: `sanctum` (token)
-- 보호 API: `/api/*` + `auth:sanctum`
-- 토큰 저장: `personal_access_tokens` 테이블
-
----
-
-## 8. 응답 / 예외 처리 기준
-
-### 8.1 응답 타입
-- `/admin/*`
-    - Inertia Response / Redirect / Validation Errors
-- `/api/*`
-    - JSON (`ApiResponse` 포맷)
-
-### 8.2 예외 처리 원칙
-- 관리자 영역은 **Laravel + Inertia 기본 흐름을 절대 깨지 않는다.**
-- JSON 에러 포맷은 `/api/*`에서만 강제한다.
+### 7.2 예외 처리 원칙
+- 예외 처리는 `bootstrap/app.php`에서 단일 기준으로 처리한다.
+- ErrorCode → HTTP Status → ApiResponse 매핑을 고정한다.
 
 자세한 내용은 `error-handling.md`를 참고한다.
 
 ---
 
-## 9. 실수 방지 체크리스트
+## 8. 실수 방지 체크리스트
 
 - [ ] 새로운 모델을 `Domains/*/Models`에 만들었는가?
-- [ ] 컨트롤러가 비대해지지 않았는가?
-- [ ] Admin/User 로직이 Action/DTO로 분리되어 있는가?
-- [ ] 관리자 영역에서 JSON API를 만들고 있지 않은가?
+- [ ] 컨트롤러에 비즈니스 로직이 들어가 있지 않은가?
+- [ ] Actor 차이가 Action / DTO로 분리되어 있는가?
+- [ ] API 응답이 ApiResponse 규칙을 따르는가?
+- [ ] 권한 정의를 Common Authorization 기준으로 사용하고 있는가?
 
 ---
 

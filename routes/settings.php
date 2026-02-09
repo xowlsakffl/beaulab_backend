@@ -1,7 +1,7 @@
 <?php
 
-use App\Common\Http\Controllers\ProfileController;
 use App\Common\Http\Controllers\settings\PasswordController;
+use App\Common\Http\Controllers\settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->group(function () {

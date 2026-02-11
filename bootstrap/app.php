@@ -1,5 +1,6 @@
 <?php
 
+use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Middleware\RequestId;
 use App\Common\Http\Responses\ApiResponse;
@@ -12,6 +13,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\Http\Middleware\CheckAbilities;
+use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Spatie\Permission\Exceptions\UnauthorizedException as SpatieUnauthorized;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -41,6 +44,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+
+            'abilities' => CheckAbilities::class,
+            'ability' => CheckForAnyAbility::class,
         ]);
     })
 
@@ -72,6 +78,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 예외 → ApiResponse 매핑
         $exceptions->render(function (Throwable $e, Request $request) {
+            if ($e instanceof CustomException) {
+                return ApiResponse::errorCode(
+                    $e->errorCode,
+                    message: $e->getMessage() !== '' ? $e->getMessage() : null,
+                    details: $e->details
+                );
+            }
 
             // 422 Validation
             if ($e instanceof ValidationException) {

@@ -3,6 +3,7 @@
 namespace App\Domains\Hospital\Dto\Staff;
 
 use App\Domains\Hospital\Models\Beauty;
+use App\Domains\Hospital\Models\Hospital;
 
 final readonly class HospitalForStaffDto
 {
@@ -18,7 +19,7 @@ final readonly class HospitalForStaffDto
         public string $updatedAt,
     ) {}
 
-    public static function fromModel(Beauty $hospital): self
+    public static function fromModel(Hospital $hospital): self
     {
         return new self(
             id: $hospital->id,

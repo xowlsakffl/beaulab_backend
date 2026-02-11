@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Modules\Staff\Http\Controllers\Auth;
+
+use App\Common\Http\Responses\ApiResponse;
+use App\Domains\Staff\Actions\Auth\LoginForStaffAction;
+use App\Domains\Staff\Actions\Auth\LogoutForStaffAction;
+use App\Domains\Staff\Actions\Auth\UpdatePasswordForStaffAction;
+use App\Domains\Staff\Actions\Auth\UpdateProfileForStaffAction;
+use App\Domains\Staff\Dto\Auth\ProfileForStaffDto;
+use App\Modules\Staff\Http\Requests\Auth\LoginForStaffRequest;
+use App\Modules\Staff\Http\Requests\Auth\UpdatePasswordForStaffRequest;
+use App\Modules\Staff\Http\Requests\Auth\UpdateProfileForStaffRequest;
+use Illuminate\Http\Request;
+
+final class AuthForStaffController
+{
+    public function login(
+        LoginForStaffRequest $request,
+        LoginForStaffAction $action
+    ) {
+        $filters = $request->filters();
+
+        $payload = $action->execute($filters);
+
+        return ApiResponse::success($payload);
+    }
+
+    public function logout(
+        Request $request,
+        LogoutForStaffAction $action
+    ) {
+        $payload = $action->execute($request->user());
+
+        return ApiResponse::success($payload);
+    }
+
+    public function getMyProfile(Request $request)
+    {
+        $staff = $request->user();
+
+        return ApiResponse::success(ProfileForStaffDto::fromModel($staff)->toArray());
+    }
+
+    public function updateMyProfile(
+        UpdateProfileForStaffRequest $request,
+        UpdateProfileForStaffAction  $action
+    ) {
+
+        $staff = $request->user();
+
+        return ApiResponse::success($action->execute($staff, $request->filters()));
+    }
+
+    public function updateMyPassword(
+        UpdatePasswordForStaffRequest $request,
+        UpdatePasswordForStaffAction $action
+    ) {
+
+        $staff = $request->user();
+
+        return ApiResponse::success($action->execute($staff, $request->filters()));
+    }
+}

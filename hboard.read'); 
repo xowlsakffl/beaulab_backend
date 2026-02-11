@@ -1,0 +1,19 @@
+[90m= [39m[34;4mApp\Domains\Admin\Models\Admin[39;24m {#6517
+    [34mid[39m: [35m1[39m,
+    [34mname[39m: "[32m관리자[39m",
+    [34mnickname[39m: "[32madmin[39m",
+    [34memail[39m: "[32mms1114@kakao.com[39m",
+    [34memail_verified_at[39m: "[32m2026-02-03 01:25:09[39m",
+    #[33mpassword[39m: "[32m$2y$12$Rm5zpamEt3NVdYjvr.bDj.RajWbrDRQpR51MruICVQLgObtiiU51a[39m",
+    #[33mtwo_factor_secret[39m: [36mnull[39m,
+    #[33mtwo_factor_recovery_codes[39m: [36mnull[39m,
+    [34mtwo_factor_confirmed_at[39m: [36mnull[39m,
+    [34mstatus[39m: "[32mACTIVE[39m",
+    [34mlast_login_at[39m: "[32m2026-02-03 01:25:43[39m",
+    [34mactive_membership_id[39m: [35m1[39m,
+    #[33mremember_token[39m: [36mnull[39m,
+    [34mcreated_at[39m: "[32m2026-02-03 01:25:09[39m",
+    [34mupdated_at[39m: "[32m2026-02-03 01:25:43[39m",
+    [34mdeleted_at[39m: [36mnull[39m,
+  }
+

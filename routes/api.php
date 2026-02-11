@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api/v1')->group(function () {
+Route::prefix('v1')->group(function () {
 
     Route::prefix('staff')
         ->name('staff.')
@@ -15,7 +15,4 @@ Route::prefix('api/v1')->group(function () {
     Route::prefix('user')
         ->name('user.')
         ->group(base_path('app/Modules/User/routes/api_user.php'));
-
-    // 설정
-    require __DIR__ . '/settings.php';
 });

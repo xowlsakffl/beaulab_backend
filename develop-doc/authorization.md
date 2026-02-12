@@ -74,7 +74,6 @@ UI는 외부 프론트엔드(Web / Mobile)에서 처리합니다.
 - `partner`
     - 병원(Hospital)
     - 뷰티(Beauty)
-    - 대행사(Agency)
 - `staff` (Beaulab 내부 직원)
 
 > 이 문서의 권한/메뉴 규칙은 **Staff / Partner API**를 중심으로 한다.
@@ -107,14 +106,6 @@ Role 이름은 **소속(prefix) + 역할**로 정의한다.
 
 ---
 
-## 5. 도메인 정의: “고객(Lead)” 범위 (확정)
-
-- 고객(Lead)은 **예약/상담을 통해 유입된 사용자**만을 의미한다.
-- 병원/뷰티가 임의로 등록한 자체 고객 DB는 포함하지 않는다.
-- 추후 확장 시 별도 도메인으로 정의한다.
-
----
-
 ## 6. Scope 표 (데이터 범위) (확정)
 
 Scope는 **도메인 규칙으로 고정**하며 Policy/Query에서 강제한다.
@@ -129,7 +120,7 @@ Scope는 **도메인 규칙으로 고정**하며 Policy/Query에서 강제한다
 
 ---
 
-## 7. Permission(Ability) 네이밍 규칙 (확정)
+## 7. Permission(Ability) 네이밍 규칙
 
 형식:
 - `{domain}.{resource}.{action}`
@@ -159,28 +150,29 @@ Scope는 **도메인 규칙으로 고정**하며 Policy/Query에서 강제한다
 ### 8.2 Beaulab 내부직원(Staff)
 
 #### 병원 관리
-- `beaulab.hospital.list`
 - `beaulab.hospital.show`
 - `beaulab.hospital.create`
 - `beaulab.hospital.update`
+- `beaulab.hospital.delete`
 
 #### 뷰티 관리
-- `beaulab.beauty.list`
 - `beaulab.beauty.show`
 - `beaulab.beauty.create`
 - `beaulab.beauty.update`
+- `beaulab.beauty.delete`
 
 #### 대행사 관리
-- `beaulab.agency.list`
 - `beaulab.agency.show`
 - `beaulab.agency.create`
 - `beaulab.agency.update`
+- `beaulab.agency.delete`
 
 ---
 
 ### 8.3 병원(Hospital)
 - `hospital.profile.show`
 - `hospital.profile.update`
+- `hospital.profile.delete`
 - `hospital.members.manage`
 
 ---
@@ -188,6 +180,7 @@ Scope는 **도메인 규칙으로 고정**하며 Policy/Query에서 강제한다
 ### 8.4 뷰티(Beauty)
 - `beauty.profile.show`
 - `beauty.profile.update`
+- `beauty.profile.delete`
 - `beauty.members.manage`
 
 ---
@@ -195,6 +188,7 @@ Scope는 **도메인 규칙으로 고정**하며 Policy/Query에서 강제한다
 ### 8.5 대행사(Agency)
 - `agency.profile.show`
 - `agency.profile.update`
+- `agency.profile.delete`
 - `agency.members.manage`
 
 ---
@@ -245,6 +239,10 @@ Scope는 **도메인 규칙으로 고정**하며 Policy/Query에서 강제한다
 ## 10. Role × Permission 매핑 원칙
 
 > 실제 부여 기준은 `AccessRoles` 및 Seeder를 단일 기준으로 한다.
+> 권한 정의대로 부여하는 시더가 정의돼있음
+``` text
+php artisan db:seed AuthorizationSeeder
+```
 
 원칙:
 - `beaulab.super_admin` : 모든 Permission

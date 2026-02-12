@@ -89,20 +89,21 @@
 
 본 프로젝트는 예외를 아래 규칙으로 ErrorCode 및 HTTP Status에 매핑한다.
 
-| 예외 | HTTP | ErrorCode | 비고 |
-|---|---:|---|---|
-| `ValidationException` | 422 | `INVALID_REQUEST` | details에 validation errors 포함 |
-| `AuthenticationException` | 401 | `UNAUTHORIZED` | 인증 필요 |
-| `AuthorizationException` | 403 | `FORBIDDEN` | 권한 없음 |
-| `Spatie UnauthorizedException` | 403 | `FORBIDDEN` | 권한 없음 |
-| `ModelNotFoundException` | 404 | `NOT_FOUND` | 리소스 없음 |
-| `MethodNotAllowedHttpException` | 405 | `METHOD_NOT_ALLOWED` | 허용되지 않은 메서드 |
-| Rate Limit (429) | 429 | `RATE_LIMITED` | 요청 과다 |
-| 토큰 오류 | 419 | `TOKEN_ERROR` | 토큰 무효 |
-| `QueryException` | 500 | `DB_ERROR` | 운영환경 상세 노출 금지 |
-| 기타 `Throwable` | 500 | `INTERNAL_ERROR` | 알 수 없는 서버 오류 |
+| 예외                              | HTTP | ErrorCode | 비고                            |
+|---------------------------------|-----:|--|-------------------------------|
+| `ValidationException`           |  422 | `INVALID_REQUEST` | details에 validation errors 포함 |
+| `AuthenticationException`       |  401 | `UNAUTHORIZED` | 인증 필요                         |
+| `AuthorizationException`        |  403 | `FORBIDDEN` | 권한 없음                         |
+| `Spatie UnauthorizedException`  |  403 | `FORBIDDEN` | 권한 없음                         |
+| `ModelNotFoundException`        |  404 | `NOT_FOUND` | 리소스 없음                        |
+| `MethodNotAllowedHttpException` |  405 | `METHOD_NOT_ALLOWED` | 허용되지 않은 메서드                   |
+| Rate Limit (429)                |  429 | `RATE_LIMITED` | 요청 과다                         |
+| 토큰 오류                           |  419 | `TOKEN_ERROR` | 토큰 무효                         |
+| `QueryException`                |  500 | `DB_ERROR` | 운영환경 상세 노출 금지                 |
+| `CustomException`               |    - |  | 커스텀 제어                        |
+| 기타 `Throwable`                  |  500 | `INTERNAL_ERROR` | 알 수 없는 서버 오류                  |
 
-> 비즈니스 규칙 위반은 **Custom Domain Exception**을 정의하고  
+> 비즈니스 규칙 위반은 **CustomException**을 정의하고  
 > 해당 Exception이 직접 ErrorCode를 반환하도록 한다.
 
 ---

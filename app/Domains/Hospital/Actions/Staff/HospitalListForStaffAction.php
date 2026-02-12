@@ -3,7 +3,9 @@
 namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDto;
+use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalListForStaffQuery;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 final class HospitalListForStaffAction
@@ -24,20 +26,19 @@ final class HospitalListForStaffAction
      */
     public function execute(array $filters): array
     {
+        Gate::authorize('viewAny', Hospital::class);
+
         Log::info('병원 목록 조회 실행', [
             'filters' => $filters,
         ]);
 
-        // 1) Query 호출
         $paginator = $this->query->paginate($filters);
 
-        // 2) items()를 DTO로 변환 (응답 필드 통제)
         $items = collect($paginator->items())
             ->map(fn ($hospital) => HospitalForStaffDto::fromModel($hospital)->toArray())
             ->values()
             ->all();
 
-        // 3) meta 구성 (프론트 페이지네이션에 필요)
         return [
             'items' => $items,
             'meta' => [

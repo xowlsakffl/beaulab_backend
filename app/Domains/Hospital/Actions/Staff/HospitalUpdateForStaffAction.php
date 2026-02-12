@@ -6,6 +6,7 @@ use App\Domains\Hospital\Dto\Staff\HospitalForStaffDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 final class HospitalUpdateForStaffAction
@@ -19,6 +20,8 @@ final class HospitalUpdateForStaffAction
      */
     public function execute(Hospital $hospital, array $payload): array
     {
+        Gate::authorize('update', $hospital);
+
         Log::info('병원 정보 수정 실행', [
             'hospital_id' => $hospital->id,
         ]);

@@ -100,22 +100,16 @@ final class AccessRoles
                 self::BEAULAB_STAFF => self::unique([
                     ...$staffCommon,
                     // 조회 중심
-                    'beaulab.hospital.list',
                     'beaulab.hospital.show',
-                    'beaulab.beauty.list',
                     'beaulab.beauty.show',
-                    'beaulab.agency.list',
                     'beaulab.agency.show',
                 ]),
 
                 // 개발(현재는 staff 동일)
                 self::BEAULAB_DEV => self::unique([
                     ...$staffCommon,
-                    'beaulab.hospital.list',
                     'beaulab.hospital.show',
-                    'beaulab.beauty.list',
                     'beaulab.beauty.show',
-                    'beaulab.agency.list',
                     'beaulab.agency.show',
                 ]),
             ],
@@ -130,7 +124,9 @@ final class AccessRoles
                 ]),
                 self::HOSPITAL_MANAGER => self::unique([
                     ...$partnerCommon,
-                    ...$hospital,
+                    'hospital.profile.show',
+                    'hospital.profile.update',
+                    'hospital.members.manage',
                 ]),
                 self::HOSPITAL_STAFF => self::unique([
                     ...$partnerCommon,
@@ -143,7 +139,9 @@ final class AccessRoles
                 ]),
                 self::BEAUTY_MANAGER => self::unique([
                     ...$partnerCommon,
-                    ...$beauty,
+                    'beauty.profile.show',
+                    'beauty.profile.update',
+                    'beauty.members.manage',
                 ]),
                 self::BEAUTY_STAFF => self::unique([
                     ...$partnerCommon,
@@ -188,22 +186,6 @@ final class AccessRoles
         }
 
         return $merged;
-    }
-
-    /**
-     * Seeder에서 role 생성/동기화할 때 쓰는 role name 목록 (전체)
-     *
-     * @return list<string>
-     */
-    public static function allRoleNames(): array
-    {
-        $all = [];
-
-        foreach (self::roleNamesByGuard() as $roles) {
-            $all = array_merge($all, $roles);
-        }
-
-        return self::unique($all);
     }
 
     /**

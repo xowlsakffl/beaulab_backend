@@ -75,22 +75,22 @@ final class AccessPermissions
     {
         return [
             // 병원
-            'beaulab.hospital.list',
             'beaulab.hospital.show',
             'beaulab.hospital.create',
             'beaulab.hospital.update',
+            'beaulab.hospital.delete',
 
             // 뷰티
-            'beaulab.beauty.list',
             'beaulab.beauty.show',
             'beaulab.beauty.create',
             'beaulab.beauty.update',
+            'beaulab.beauty.delete',
 
             // 대행사
-            'beaulab.agency.list',
             'beaulab.agency.show',
             'beaulab.agency.create',
             'beaulab.agency.update',
+            'beaulab.agency.delete',
         ];
     }
 
@@ -102,6 +102,7 @@ final class AccessPermissions
         return [
             'hospital.profile.show',
             'hospital.profile.update',
+            'hospital.profile.delete',
             'hospital.members.manage',
         ];
     }
@@ -114,6 +115,7 @@ final class AccessPermissions
         return [
             'beauty.profile.show',
             'beauty.profile.update',
+            'beauty.profile.delete',
             'beauty.members.manage',
         ];
     }
@@ -126,6 +128,7 @@ final class AccessPermissions
         return [
             'agency.profile.show',
             'agency.profile.update',
+            'agency.profile.delete',
             'agency.members.manage',
         ];
     }

@@ -65,8 +65,8 @@ final class HospitalForStaffController extends Controller
         Hospital $hospital,
         HospitalDeleteForStaffAction $action,
     ) {
-        $action->execute($hospital);
+        $result = $action->execute($hospital);
 
-        return ApiResponse::success();
+        return ApiResponse::success($result);
     }
 }

@@ -16,7 +16,7 @@ final class LoginForStaffAction
 
     /**
      * @param array{nickname:string, password:string} $filters
-     * @return array{token:string, actor:string, staff: array}
+     * @return array{token:string, actor:string, staff: array, roles: list<string>, permissions: list<string>}
      */
     public function execute(array $filters): array
     {
@@ -32,6 +32,8 @@ final class LoginForStaffAction
             'token' => $result['token'],
             'actor' => 'staff',
             'staff' => AuthForStaffDto::fromModel($result['staff'])->toArray(),
+            'roles' => $result['roles'],
+            'permissions' => $result['permissions'],
         ];
     }
 }

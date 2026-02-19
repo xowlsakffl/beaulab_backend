@@ -11,7 +11,7 @@ final class LoginForStaffQuery
 {
     /**
      * @param array{nickname:string,password:string} $data
-     * @return array{token:string, staff: AccountStaff}
+     * @return array{token:string, staff: AccountStaff, roles: list<string>, permissions: list<string>}
      */
     public function login(array $data): array
     {
@@ -53,6 +53,8 @@ final class LoginForStaffQuery
         return [
             'token' => $token,
             'staff' => $staff,
+            'roles' => $staff->getRoleNames()->values()->all(),
+            'permissions' => $staff->getAllPermissions()->pluck('name')->values()->all(),
         ];
     }
 }

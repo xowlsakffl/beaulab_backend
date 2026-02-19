@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Controllers\Auth;
 
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\Staff\Actions\Auth\GetMyProfileForStaffAction;
 use App\Domains\Staff\Actions\Auth\LoginForStaffAction;
 use App\Domains\Staff\Actions\Auth\LogoutForStaffAction;
 use App\Domains\Staff\Actions\Auth\UpdatePasswordForStaffAction;
@@ -35,11 +36,14 @@ final class AuthForStaffController
         return ApiResponse::success($payload);
     }
 
-    public function getMyProfile(Request $request)
-    {
+    public function getMyProfile(
+        Request $request,
+        GetMyProfileForStaffAction $action
+    ) {
         $staff = $request->user();
+        $payload = $action->execute($staff);
 
-        return ApiResponse::success(ProfileForStaffDto::fromModel($staff)->toArray());
+        return ApiResponse::success($payload);
     }
 
     public function updateMyProfile(

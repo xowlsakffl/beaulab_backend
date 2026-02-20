@@ -13,6 +13,8 @@ final class HospitalListForStaffQuery
     public function paginate(array $filters): LengthAwarePaginator
     {
         $q         = $filters['q'] ?? null;
+        $startDate = $filters['start_date'] ?? null;
+        $endDate   = $filters['end_date'] ?? null;
         $status    = $filters['status'] ?? null;
         $allow     = $filters['allow_status'] ?? null;
         $sort      = $filters['sort'] ?? 'id';
@@ -39,6 +41,16 @@ final class HospitalListForStaffQuery
                     ->orWhere('address', 'like', "%{$q}%")
                     ->orWhere('tel', 'like', "%{$q}%");
             });
+        }
+
+        // 등록일(created_at) 기간 필터
+        if ($startDate && $endDate) {
+            $builder->whereDate('created_at', '>=', $startDate)
+                ->whereDate('created_at', '<=', $endDate);
+        } elseif ($startDate) {
+            $builder->whereDate('created_at', '>=', $startDate);
+        } elseif ($endDate) {
+            $builder->whereDate('created_at', '<=', $endDate);
         }
 
         // 필터(status, allow_status)

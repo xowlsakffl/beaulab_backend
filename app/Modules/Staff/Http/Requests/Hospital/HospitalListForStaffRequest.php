@@ -26,6 +26,8 @@ final class HospitalListForStaffRequest extends FormRequest
     {
         return [
             'q'            => ['nullable', 'string', 'max:100'],
+            'start_date'   => ['nullable', 'date_format:Y-m-d'],
+            'end_date'     => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
 
             'status'       => ['nullable', 'array'],
             'status.*'     => ['in:ACTIVE,SUSPENDED,WITHDRAWN'],
@@ -46,6 +48,8 @@ final class HospitalListForStaffRequest extends FormRequest
 
         return [
             'q'            => $validate['q'] ?? null,
+            'start_date'   => $validate['start_date'] ?? null,
+            'end_date'     => $validate['end_date'] ?? null,
             'status'       => $validate['status'] ?? null,
             'allow_status' => $validate['allow_status'] ?? null,
 

@@ -42,12 +42,12 @@ final class HospitalListForStaffQuery
         }
 
         // 필터(status, allow_status)
-        if ($status) {
-            $builder->where('status', $status);
+        if (is_array($status) && $status !== []) {
+            $builder->whereIn('status', $status);
         }
 
-        if ($allow) {
-            $builder->where('allow_status', $allow);
+        if (is_array($allow) && $allow !== []) {
+            $builder->whereIn('allow_status', $allow);
         }
 
         // 정렬

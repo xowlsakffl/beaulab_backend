@@ -7,6 +7,15 @@ use Illuminate\Foundation\Http\FormRequest;
 
 final class HospitalListForStaffRequest extends FormRequest
 {
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'status' => $this->normalizeToArray($this->input('status')),
+            'allow_status' => $this->normalizeToArray($this->input('allow_status')),
+        ]);
+    }
+
     public function authorize(): bool
     {
         // 이미 라우트에서 검사함
@@ -18,8 +27,10 @@ final class HospitalListForStaffRequest extends FormRequest
         return [
             'q'            => ['nullable', 'string', 'max:100'],
 
-            'status'       => ['nullable', 'in:ACTIVE,SUSPENDED,WITHDRAWN'],
-            'allow_status' => ['nullable', 'in:PENDING,APPROVED,REJECTED'],
+            'status'       => ['nullable', 'array'],
+            'status.*'     => ['in:ACTIVE,SUSPENDED,WITHDRAWN'],
+            'allow_status' => ['nullable', 'array'],
+            'allow_status.*' => ['in:PENDING,APPROVED,REJECTED'],
 
             'sort'         => ['nullable', 'in:id,name,view_count,allow_status,status,created_at,updated_at'],
             'direction'    => ['nullable', 'in:asc,desc'],
@@ -43,5 +54,30 @@ final class HospitalListForStaffRequest extends FormRequest
 
             'per_page'     => (int)($validate['per_page'] ?? 15),
         ];
+    }
+
+    /**
+     * @return array<int, string>|null
+     */
+    private function normalizeToArray(mixed $value): ?array
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        if (!is_array($value)) {
+            return null;
+        }
+
+        $normalized = array_values(array_filter(array_map(
+            static fn ($item) => is_string($item) ? trim($item) : null,
+            $value,
+        )));
+
+        return $normalized === [] ? null : $normalized;
     }
 }

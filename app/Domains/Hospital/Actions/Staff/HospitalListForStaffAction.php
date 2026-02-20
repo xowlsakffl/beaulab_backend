@@ -17,8 +17,8 @@ final class HospitalListForStaffAction
     /**
      * @param array{
      *   q?: string|null,
-     *   status?: string|null,
-     *   allow_status?: string|null,
+     *   status?: array<int, string>|null,
+     *    allow_status?: array<int, string>|null,
      *   sort?: string,
      *   direction?: 'asc'|'desc',
      *   per_page?: int

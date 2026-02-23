@@ -23,6 +23,27 @@ final class MediaAttachAction
         return $this->storeOne($owner, $file, 'logo', "{$dirPrefix}/{$owner->getKey()}/logo", true, 0);
     }
 
+    public function attachThumbnail(Model $owner, ?UploadedFile $file, string $dirPrefix): ?Media
+    {
+        if (!$file) return null;
+
+        $this->query->clearPrimary($owner, 'thumbnail');
+
+        return $this->storeOne($owner, $file, 'thumbnail', "{$dirPrefix}/{$owner->getKey()}/thumbnail", true, 0);
+    }
+
+    public function attachCertificate(Model $owner, UploadedFile $file, string $dirPrefix): Media
+    {
+        return $this->storeOne(
+            $owner,
+            $file,
+            'business_registration_certificate',
+            "{$dirPrefix}/{$owner->getKey()}/business-registration",
+            true,
+            0,
+        );
+    }
+
     /**
      * @param array<int, UploadedFile> $files
      * @return array<int, Media>

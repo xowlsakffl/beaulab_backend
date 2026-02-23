@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Hospital\Models;
 
-use App\Domains\Common\Models\BusinessRegistration;
+use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Partner\Models\AccountPartner;
 use Database\Factories\HospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;

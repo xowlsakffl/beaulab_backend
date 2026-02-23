@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Common\Authorization\AccessPermissions;
+use App\Common\Authorization\AccessRoles;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Partner\Models\AccountPartner;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -67,7 +69,12 @@ final class HospitalFactory extends Factory
             ]);
 
             $partner->syncRoles([
-                'hospital.owner',
+                AccessRoles::HOSPITAL_OWNER,
+            ]);
+
+            $partner->syncPermissions([
+                ...AccessPermissions::common(),
+                ...AccessPermissions::hospital(),
             ]);
         });
     }

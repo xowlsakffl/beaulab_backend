@@ -30,6 +30,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     Route::get('hospitals', [HospitalForStaffController::class, 'getHospitalsForStaff'])
         ->name('hospitals.getHospitalsForStaff');
 
+    // 병원 단건 조회
+    Route::get('hospitals/{hospital}', [HospitalForStaffController::class, 'getHospitalForStaff'])
+        ->name('hospitals.getHospitalForStaff');
+
     // 병원 생성
     Route::post('hospitals', [HospitalForStaffController::class, 'storeHospitalForStaff'])
         ->name('hospitals.storeHospitalForStaff');

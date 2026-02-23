@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Common\Authorization\AccessPermissions;
+use App\Common\Authorization\AccessRoles;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Partner\Models\AccountPartner;
@@ -68,7 +70,12 @@ final class BeautyFactory extends Factory
             ]);
 
             $partner->syncRoles([
-                'beauty.owner',
+                AccessRoles::BEAUTY_OWNER,
+            ]);
+
+            $partner->syncPermissions([
+                ...AccessPermissions::common(),
+                ...AccessPermissions::beauty(),
             ]);
         });
     }

@@ -1,11 +1,11 @@
 <?php
 
 
-namespace App\Modules\Staff\Http\Requests\Hospital;
+namespace App\Modules\Staff\Http\Requests\Beauty;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class HospitalCreateForStaffRequest extends FormRequest
+final class BeautyCreateForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -38,7 +38,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'unique:hospitals,name',
+                'unique:beauties,name',
             ],
 
             // 소개/텍스트
@@ -81,7 +81,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => '병원명',
+            'name' => '뷰티 업체명',
             'address' => '주소',
             'address_detail' => '상세 주소',
             'tel' => '대표 번호',

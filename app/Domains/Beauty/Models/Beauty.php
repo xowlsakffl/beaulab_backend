@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Beauty\Models;
 
+use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Partner\Models\AccountPartner;
 use Database\Factories\BeautyFactory;
 use Database\Factories\HospitalFactory;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Beauty extends Model
@@ -62,6 +64,13 @@ final class Beauty extends Model
     {
         return $this->hasMany(AccountPartner::class, 'beauty_id');
     }
+
+    public function businessRegistration(): HasOne
+    {
+        return $this->hasOne(BusinessRegistration::class, 'owner_id')
+            ->where('owner_type', 'hospital');
+    }
+
     public function isApproved(): bool
     {
         return $this->allow_status === self::ALLOW_APPROVED;

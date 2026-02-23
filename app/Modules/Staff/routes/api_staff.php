@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use Illuminate\Support\Facades\Route;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
@@ -26,6 +27,9 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     Route::get('/dashboard', [DashboardForStaffController::class, 'getDashboardForStaff'])
         ->name('dashboard');
 
+    /**
+     * 병원 관리
+     **/
     // 병원 목록
     Route::get('hospitals', [HospitalForStaffController::class, 'getHospitalsForStaff'])
         ->name('hospitals.getHospitalsForStaff');
@@ -45,4 +49,28 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     // 병원 삭제
     Route::delete('hospitals/{hospital}', [HospitalForStaffController::class, 'deleteHospitalForStaff'])
         ->name('hospitals.deleteHospitalForStaff');
+
+    /**
+     * 뷰티 관리
+     **/
+    // 뷰티 목록
+    Route::get('beauties', [BeautyForStaffController::class, 'getBeautiesForStaff'])
+        ->name('beauties.getBeautiesForStaff');
+
+    // 뷰티 단건 조회
+    Route::get('beauties/{beauty}', [BeautyForStaffController::class, 'getBeautyForStaff'])
+        ->name('hospitals.getBeautyForStaff');
+
+    // 뷰티 생성
+    Route::post('hospitals', [BeautyForStaffController::class, 'storeBeautyForStaff'])
+        ->name('hospitals.storeBeautyForStaff');
+
+    // 뷰티 수정
+    Route::match(['post', 'put', 'patch'], 'hospitals/{hospital}', [BeautyForStaffController::class, 'updateBeautyForStaff'])
+        ->name('hospitals.updateBeautyForStaff');
+
+    // 뷰티 삭제
+    Route::delete('hospitals/{hospital}', [BeautyForStaffController::class, 'deleteBeautyForStaff'])
+        ->name('hospitals.deleteBeautyForStaff');
+
 });

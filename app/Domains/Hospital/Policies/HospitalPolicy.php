@@ -3,7 +3,9 @@
 namespace App\Domains\Hospital\Policies;
 
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Hospital\Policies\Partner\HospitalForPartnerPolicy;
 use App\Domains\Hospital\Policies\Staff\HospitalForStaffPolicy;
+use App\Domains\Hospital\Policies\User\HospitalForUserPolicy;
 use App\Domains\Staff\Models\AccountStaff;
 use App\Domains\Partner\Models\AccountPartner;
 use App\Domains\User\Models\AccountUser;

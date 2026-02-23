@@ -12,6 +12,11 @@ final class HospitalForUserPolicy
         return $actor->can('beaulab.hospital.list');
     }
 
+    public function view(AccountStaff $actor, Hospital $hospital): bool
+    {
+        return $actor->can('beaulab.hospital.show');
+    }
+
     public function create(AccountStaff $actor): bool
     {
         return $actor->can('beaulab.hospital.create');

@@ -3,7 +3,7 @@
 namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Common\Actions\Media\MediaAttachAction;
-use App\Domains\Common\Models\Media;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalUpdateForStaffQuery;
@@ -47,7 +47,6 @@ final class HospitalUpdateForStaffAction
 
     private function replaceMedia(Hospital $hospital, array $payload): void
     {
-        dd(isset($payload['logo']));
         if (isset($payload['logo']) && $payload['logo'] instanceof UploadedFile) {
             $this->deleteCollectionMedia($hospital, 'logo');
             $this->mediaAttachAction->attachLogo($hospital, $payload['logo'], 'hospital');

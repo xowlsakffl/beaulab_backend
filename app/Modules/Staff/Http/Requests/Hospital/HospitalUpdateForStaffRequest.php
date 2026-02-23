@@ -2,10 +2,53 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
+use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class HospitalUpdateForStaffRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $data = $this->all();
+
+        $nullableKeys = [
+            'description',
+            'consulting_hours',
+            'direction',
+            'address',
+            'address_detail',
+            'latitude',
+            'longitude',
+            'tel',
+            'email',
+            'business_number',
+            'company_name',
+            'ceo_name',
+            'business_type',
+            'business_item',
+            'business_address',
+            'business_address_detail',
+        ];
+
+        foreach ($nullableKeys as $key) {
+            if (array_key_exists($key, $data) && $data[$key] === '') {
+                $data[$key] = null;
+            }
+        }
+
+        if (isset($data['email']) && is_string($data['email'])) {
+            $data['email'] = mb_strtolower($data['email']);
+        }
+
+        if (isset($data['business_number']) && is_string($data['business_number'])) {
+            $normalizedBusinessNumber = preg_replace('/\D+/', '', $data['business_number']);
+            $data['business_number'] = $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $data['business_number'];
+        }
+
+        $this->replace($data);
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -29,45 +72,31 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
             'tel' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
+            'business_number' => [
+                'nullable',
+                'string',
+                'max:20',
+                Rule::unique('business_registrations', 'business_number')->ignore($this->businessRegistrationId()),
+            ],
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'ceo_name' => ['nullable', 'string', 'max:100'],
+            'business_type' => ['nullable', 'string', 'max:100'],
+            'business_item' => ['nullable', 'string', 'max:100'],
+            'business_registration_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'business_address' => ['nullable', 'string', 'max:255'],
+            'business_address_detail' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'gallery' => ['nullable', 'array', 'min:1', 'max:12'],
+            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ];
     }
 
-    /**
-     * 업데이트 payload 정리
-     * - "" => null 정규화
-     * - 좌표 numeric → string 캐스팅
-     * - email 소문자 정규화
-     */
-    public function filters(): array
+    private function businessRegistrationId(): ?int
     {
-        $data = $this->validated();
-
-        $nullableKeys = [
-            'description', 'address', 'address_detail', 'latitude', 'longitude',
-            'tel', 'email', 'consulting_hours', 'direction',
-        ];
-
-        foreach ($nullableKeys as $key) {
-            if (!array_key_exists($key, $data)) {
-                continue;
-            }
-            if ($data[$key] === '') {
-                $data[$key] = null;
-            }
+        $hospital = $this->route('hospital');
+        if (! $hospital instanceof Hospital) {
+            return null;
         }
-
-        if (array_key_exists('latitude', $data)) {
-            $data['latitude'] = $data['latitude'] !== null ? (string) $data['latitude'] : null;
-        }
-
-        if (array_key_exists('longitude', $data)) {
-            $data['longitude'] = $data['longitude'] !== null ? (string) $data['longitude'] : null;
-        }
-
-        if (!empty($data['email'])) {
-            $data['email'] = mb_strtolower($data['email']);
-        }
-
-        return $data;
+        return $hospital->businessRegistration()->value('id');
     }
 }

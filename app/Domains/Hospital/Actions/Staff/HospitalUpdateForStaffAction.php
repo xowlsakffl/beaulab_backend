@@ -2,17 +2,22 @@
 
 namespace App\Domains\Hospital\Actions\Staff;
 
-use App\Domains\Hospital\Dto\Staff\HospitalForStaffDto;
+use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Models\Media;
+use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalUpdateForStaffQuery;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 final class HospitalUpdateForStaffAction
 {
     public function __construct(
         private readonly HospitalUpdateForStaffQuery $query,
+        private readonly MediaAttachAction $mediaAttachAction,
     ) {}
 
     /**
@@ -27,11 +32,94 @@ final class HospitalUpdateForStaffAction
         ]);
 
         $updated = DB::transaction(function () use ($hospital, $payload) {
-            return $this->query->update($hospital, $payload);
+            $updatedHospital = $this->query->update($hospital, $payload);
+
+            $this->replaceMedia($updatedHospital, $payload);
+            $this->updateBusinessRegistration($updatedHospital, $payload);
+
+            return $updatedHospital->fresh();
         });
 
         return [
-            'hospital' => HospitalForStaffDto::fromModel($updated)->toArray(),
+            'hospital' => HospitalForStaffDetailDto::fromModel($updated->load('businessRegistration.certificateMedia'))->toArray(),
         ];
+    }
+
+    private function replaceMedia(Hospital $hospital, array $payload): void
+    {
+        dd(isset($payload['logo']));
+        if (isset($payload['logo']) && $payload['logo'] instanceof UploadedFile) {
+            $this->deleteCollectionMedia($hospital, 'logo');
+            $this->mediaAttachAction->attachLogo($hospital, $payload['logo'], 'hospital');
+        }
+
+        if (isset($payload['gallery']) && is_array($payload['gallery'])) {
+            $galleryFiles = array_values(array_filter(
+                $payload['gallery'],
+                static fn ($file): bool => $file instanceof UploadedFile,
+            ));
+
+            if ($galleryFiles !== []) {
+                $this->deleteCollectionMedia($hospital, 'gallery');
+                $this->mediaAttachAction->attachGallery($hospital, $galleryFiles, 'hospital');
+            }
+        }
+    }
+
+    private function updateBusinessRegistration(Hospital $hospital, array $payload): void
+    {
+        $businessRegistration = $hospital->businessRegistration()->first();
+        if (! $businessRegistration) {
+            return;
+        }
+
+        $updates = [];
+        foreach ([
+                     'business_number',
+                     'company_name',
+                     'ceo_name',
+                     'business_type',
+                     'business_item',
+                     'business_address',
+                     'business_address_detail',
+                 ] as $field) {
+            if (array_key_exists($field, $payload)) {
+                $updates[$field] = $payload[$field];
+            }
+        }
+
+        if ($updates !== []) {
+            $businessRegistration->update($updates);
+        }
+
+        if (isset($payload['business_registration_file']) && $payload['business_registration_file'] instanceof UploadedFile) {
+            $existingCertificate = $businessRegistration->certificateMedia()->first();
+            if ($existingCertificate) {
+                Storage::disk($existingCertificate->disk)->delete($existingCertificate->path);
+                $existingCertificate->delete();
+            }
+
+            $newCertificate = $this->mediaAttachAction->attachCertificate(
+                $hospital,
+                $payload['business_registration_file'],
+                'hospital',
+            );
+
+            $businessRegistration->update([
+                'certificate_media_id' => $newCertificate->id,
+            ]);
+        }
+    }
+
+    private function deleteCollectionMedia(Hospital $hospital, string $collection): void
+    {
+        Media::query()
+            ->for($hospital)
+            ->collection($collection)
+            ->get()
+            ->each(function (Media $media): void {
+                Storage::disk($media->disk)->delete($media->path);
+                $media->delete();
+            });
     }
 }

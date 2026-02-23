@@ -16,7 +16,7 @@ final readonly class HospitalForStaffDetailDto
         $logo = Media::query()
             ->for($hospital)
             ->collection('logo')
-            ->primary()
+            ->latest('id')
             ->first();
 
         $gallery = Media::query()

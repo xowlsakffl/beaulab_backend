@@ -2,7 +2,6 @@
 
 namespace App\Domains\Hospital\Dto\Staff;
 
-use App\Domains\Hospital\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
 
 final readonly class HospitalForStaffDto

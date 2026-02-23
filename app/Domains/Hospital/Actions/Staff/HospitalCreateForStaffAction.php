@@ -4,7 +4,7 @@ namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Common\Actions\BusinessRegistration\BusinessRegistrationCreateForStaffAction;
 use App\Domains\Common\Actions\Media\MediaAttachAction;
-use App\Domains\Hospital\Dto\Staff\HospitalForStaffDto;
+use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;
 use App\Domains\Partner\Actions\HospitalOwnerCreateForStaffAction;
@@ -48,7 +48,7 @@ final class HospitalCreateForStaffAction
         });
 
         return [
-            'hospital' => HospitalForStaffDto::fromModel($hospital)->toArray(),
+            'hospital' => HospitalForStaffDetailDto::fromModel($hospital->load('businessRegistration.certificateMedia'))->toArray(),
         ];
     }
 }

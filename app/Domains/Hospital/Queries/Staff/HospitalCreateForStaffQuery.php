@@ -32,7 +32,7 @@ final class HospitalCreateForStaffQuery
             // 생성 시 정책 기본값
             'view_count'       => 0,
             'allow_status'     => 'PENDING',
-            'status'           => 'ACTIVE',
+            'status'           => 'SUSPENDED',
         ]);
     }
 }

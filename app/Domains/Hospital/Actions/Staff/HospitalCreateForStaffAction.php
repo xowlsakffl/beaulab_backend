@@ -42,7 +42,6 @@ final class HospitalCreateForStaffAction
             $this->mediaAttachAction->attachGallery($hospital, $filters['gallery'], 'hospital');
 
             $this->businessRegistrationCreateAction->execute($hospital, $filters);
-            $this->hospitalOwnerCreateAction->execute($hospital, $filters);
 
             return $hospital->fresh();
         });

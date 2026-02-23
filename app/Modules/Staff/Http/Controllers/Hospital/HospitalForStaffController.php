@@ -58,7 +58,7 @@ final class HospitalForStaffController extends Controller
     }
 
     /**
-     * PUT|PATCH /api/v1/staff/hospitals/{hospital}
+     * PATCH /api/v1/staff/hospitals/{hospital}
      * (Beaulab) Staff 전용 병원 수정
      */
     public function updateHospitalForStaff(

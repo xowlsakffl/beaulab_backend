@@ -39,7 +39,7 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospitals.storeHospitalForStaff');
 
     // 병원 수정
-    Route::match(['put', 'patch'], 'hospitals/{hospital}', [HospitalForStaffController::class, 'updateHospitalForStaff'])
+    Route::match(['post', 'put', 'patch'], 'hospitals/{hospital}', [HospitalForStaffController::class, 'updateHospitalForStaff'])
         ->name('hospitals.updateHospitalForStaff');
 
     // 병원 삭제

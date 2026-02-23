@@ -16,6 +16,11 @@ final class HospitalPolicy
         return $this->delegate($actor)->viewAny($actor);
     }
 
+    public function view(mixed $actor, Hospital $hospital): bool
+    {
+        return $this->delegate($actor)->view($actor, $hospital);
+    }
+
     public function create(mixed $actor): bool
     {
         return $this->delegate($actor)->create($actor);
@@ -39,6 +44,7 @@ final class HospitalPolicy
             $actor instanceof AccountUser    => app(HospitalForUserPolicy::class),
             default => new class {
                 public function viewAny(mixed $actor): bool { return false; }
+                public function view(mixed $actor, Hospital $hospital): bool { return false; }
                 public function create(mixed $actor): bool { return false; }
                 public function update(mixed $actor, Hospital $hospital): bool { return false; }
                 public function delete(mixed $actor, Hospital $hospital): bool { return false; }

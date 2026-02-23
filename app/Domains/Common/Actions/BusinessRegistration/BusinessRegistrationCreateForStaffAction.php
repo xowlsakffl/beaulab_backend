@@ -3,7 +3,7 @@
 namespace App\Domains\Common\Actions\BusinessRegistration;
 
 use App\Domains\Common\Actions\Media\MediaAttachAction;
-use App\Domains\Common\Models\BusinessRegistration;
+use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Common\Queries\BusinessRegistration\BusinessRegistrationCreateForStaffQuery;
 use App\Domains\Hospital\Models\Hospital;
 
@@ -16,9 +16,9 @@ final class BusinessRegistrationCreateForStaffAction
 
     public function execute(Hospital $hospital, array $payload): BusinessRegistration
     {
-        $certificateMedia = $this->mediaAttachAction->attachCertificate(
+        $businessRegistrationMedia = $this->mediaAttachAction->attachCertificate(
             $hospital,
-            $payload['business_registration_certificate'],
+            $payload['business_registration_file'],
             'hospital'
         );
 
@@ -30,7 +30,7 @@ final class BusinessRegistrationCreateForStaffAction
             'ceo_name' => $payload['ceo_name'],
             'business_type' => $payload['business_type'],
             'business_item' => $payload['business_item'],
-            'certificate_media_id' => $certificateMedia->id,
+            'certificate_media_id' => $businessRegistrationMedia->id,
             'status' => 'ACTIVE',
         ]);
     }

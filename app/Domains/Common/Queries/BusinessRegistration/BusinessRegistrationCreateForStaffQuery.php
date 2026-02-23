@@ -2,7 +2,7 @@
 
 namespace App\Domains\Common\Queries\BusinessRegistration;
 
-use App\Domains\Common\Models\BusinessRegistration;
+use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 
 final class BusinessRegistrationCreateForStaffQuery
 {

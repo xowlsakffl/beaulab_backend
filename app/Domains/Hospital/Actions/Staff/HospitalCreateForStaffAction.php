@@ -39,8 +39,7 @@ final class HospitalCreateForStaffAction
             ]);
 
             $this->mediaAttachAction->attachLogo($hospital, $filters['logo'], 'hospital');
-            $this->mediaAttachAction->attachThumbnail($hospital, $filters['representative_image'], 'hospital');
-            $this->mediaAttachAction->attachGallery($hospital, $filters['interior_images'], 'hospital');
+            $this->mediaAttachAction->attachGallery($hospital, $filters['gallery'], 'hospital');
 
             $this->businessRegistrationCreateAction->execute($hospital, $filters);
             $this->hospitalOwnerCreateAction->execute($hospital, $filters);

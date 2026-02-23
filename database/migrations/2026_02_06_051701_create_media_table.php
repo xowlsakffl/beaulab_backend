@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('model_type', 191)->comment('연결 모델 타입(App\\Domains\\Hospital\\Models\\Hospital 등)');
             $table->unsignedBigInteger('model_id')->comment('연결 모델 고유 ID');
 
-            $table->string('collection', 32)->comment('파일 용도(logo, thumbnail, gallery, license 등)');
+            $table->string('collection', 50)->comment('파일 용도(logo, thumbnail, gallery, business_registration_file 등)');
 
             $table->string('disk', 32)->default('public')->comment('저장 디스크(public, s3 등)');
             $table->string('path', 1024)->comment('파일 저장 경로 또는 키');

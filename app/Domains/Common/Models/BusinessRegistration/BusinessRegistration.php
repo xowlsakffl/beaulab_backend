@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Common\Models;
+namespace App\Domains\Common\Models\BusinessRegistration;
 
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Database\Eloquent\Model;
@@ -30,7 +30,7 @@ final class BusinessRegistration extends Model
     protected function casts(): array
     {
         return [
-            'issued_at' => 'datetime',
+            'issued_at' => 'date',
         ];
     }
 

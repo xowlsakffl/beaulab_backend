@@ -18,18 +18,7 @@ final class MediaAttachAction
     {
         if (!$file) return null;
 
-        $this->query->clearPrimary($owner, 'logo');
-
-        return $this->storeOne($owner, $file, 'logo', "{$dirPrefix}/{$owner->getKey()}/logo", true, 0);
-    }
-
-    public function attachThumbnail(Model $owner, ?UploadedFile $file, string $dirPrefix): ?Media
-    {
-        if (!$file) return null;
-
-        $this->query->clearPrimary($owner, 'thumbnail');
-
-        return $this->storeOne($owner, $file, 'thumbnail', "{$dirPrefix}/{$owner->getKey()}/thumbnail", true, 0);
+        return $this->storeOne($owner, $file, 'logo', "{$dirPrefix}/{$owner->getKey()}/logo", false, 0);
     }
 
     public function attachCertificate(Model $owner, UploadedFile $file, string $dirPrefix): Media
@@ -37,9 +26,9 @@ final class MediaAttachAction
         return $this->storeOne(
             $owner,
             $file,
-            'business_registration_certificate',
+            'business_registration_file',
             "{$dirPrefix}/{$owner->getKey()}/business-registration",
-            true,
+            false,
             0,
         );
     }
@@ -77,7 +66,7 @@ final class MediaAttachAction
 
         [$w, $h] = $this->imageSize($file);
 
-        return $this->query->create([
+        $media = $this->query->create([
             'model_type' => $owner::class,
             'model_id' => $owner->getKey(),
             'collection' => $collection,
@@ -88,9 +77,15 @@ final class MediaAttachAction
             'width' => $w,
             'height' => $h,
             'sort_order' => max(0, $sortOrder),
-            'is_primary' => $isPrimary,
+            'is_primary' => false,
             'metadata' => null,
         ]);
+
+        if ($isPrimary) {
+            $media->setPrimary(true);
+        }
+
+        return $media;
     }
 
     /**

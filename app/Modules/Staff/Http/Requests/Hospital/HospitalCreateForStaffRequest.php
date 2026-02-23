@@ -54,7 +54,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'ceo_name' => ['required', 'string', 'max:100'],
             'business_type' => ['required', 'string', 'max:100'],
             'business_item' => ['required', 'string', 'max:100'],
-            'business_registration_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'business_registration_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'business_address' => ['nullable', 'string', 'max:255'],
             'business_address_detail' => ['nullable', 'string', 'max:255'],
 
@@ -63,12 +63,10 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'owner_nickname' => ['required', 'string', 'max:255', 'unique:account_partners,nickname'],
             'owner_password' => ['required', 'string', 'min:8', 'max:255'],
 
-            // 파일
             // 파일 필수
             'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'representative_image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
-            'interior_images' => ['required', 'array', 'min:1', 'max:12'],
-            'interior_images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'gallery' => ['required', 'array', 'min:1', 'max:12'],
+            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ];
     }
 
@@ -86,15 +84,14 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'ceo_name' => '대표자',
             'business_type' => '업태',
             'business_item' => '종목',
-            'business_registration_certificate' => '사업자등록증 파일',
+            'business_registration_file' => '사업자등록증 파일',
             'owner_email' => '병원 소유주 이메일',
             'owner_nickname' => '병원 소유주 아이디',
             'owner_password' => '병원 소유주 비밀번호',
 
             'logo' => '로고',
-            'representative_image' => '대표 이미지',
-            'interior_images' => '내부 이미지',
-            'interior_images.*' => '내부 이미지',
+            'gallery' => '갤러리 이미지',
+            'gallery.*' => '갤러리 이미지',
         ];
     }
 }

@@ -23,8 +23,8 @@ return new class extends Migration
             $table->string('business_type', 100)->nullable()->comment('업태');
             $table->string('business_item', 100)->nullable()->comment('종목');
 
-            $table->string('address', 255)->nullable()->comment('사업장 주소');
-            $table->string('address_detail', 255)->nullable()->comment('사업장 상세 주소');
+            $table->string('business_address', 255)->nullable()->comment('사업장 주소');
+            $table->string('business_address_detail', 255)->nullable()->comment('사업장 상세 주소');
 
             $table->unsignedBigInteger('certificate_media_id')->comment('사업자 등록증 파일 ID(media.id 참조)');
 

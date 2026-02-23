@@ -8,6 +8,21 @@ use Illuminate\Validation\Rule;
 
 final class HospitalCreateForStaffRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $businessNumber = $this->input('business_number');
+
+        if (! is_string($businessNumber)) {
+            return;
+        }
+
+        $normalizedBusinessNumber = preg_replace('/\D+/', '', $businessNumber);
+
+        $this->merge([
+            'business_number' => $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $businessNumber,
+        ]);
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -43,7 +58,6 @@ final class HospitalCreateForStaffRequest extends FormRequest
             // 연락처
             'tel' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
-
 
             /**
              * 사업자 정보

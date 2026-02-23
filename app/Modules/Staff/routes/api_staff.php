@@ -59,18 +59,18 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
 
     // 뷰티 단건 조회
     Route::get('beauties/{beauty}', [BeautyForStaffController::class, 'getBeautyForStaff'])
-        ->name('hospitals.getBeautyForStaff');
+        ->name('beauties.getBeautyForStaff');
 
     // 뷰티 생성
-    Route::post('hospitals', [BeautyForStaffController::class, 'storeBeautyForStaff'])
-        ->name('hospitals.storeBeautyForStaff');
+    Route::post('beauties', [BeautyForStaffController::class, 'storeBeautyForStaff'])
+        ->name('beauties.storeBeautyForStaff');
 
     // 뷰티 수정
-    Route::match(['post', 'put', 'patch'], 'hospitals/{hospital}', [BeautyForStaffController::class, 'updateBeautyForStaff'])
-        ->name('hospitals.updateBeautyForStaff');
+    Route::match(['post', 'put', 'patch'], 'beauties/{beauty}', [BeautyForStaffController::class, 'updateBeautyForStaff'])
+        ->name('beauties.updateBeautyForStaff');
 
     // 뷰티 삭제
-    Route::delete('hospitals/{hospital}', [BeautyForStaffController::class, 'deleteBeautyForStaff'])
-        ->name('hospitals.deleteBeautyForStaff');
+    Route::delete('beauties/{beauty}', [BeautyForStaffController::class, 'deleteBeautyForStaff'])
+        ->name('beauties.deleteBeautyForStaff');
 
 });

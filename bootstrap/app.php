@@ -12,6 +12,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
@@ -39,6 +40,26 @@ return Application::configure(basePath: dirname(__DIR__))
     */
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(RequestId::class);
+
+        // 요청 주체(staff/partner/user)에 따라 각 로그인 라우트로 리다이렉트한다.
+        // 라우트가 정의되어 있지 않으면 null을 반환해 401 JSON 응답을 유지한다.
+        $middleware->redirectGuestsTo(function (Request $request): ?string {
+            $guards = ['staff', 'partner', 'user'];
+
+            foreach ($guards as $guard) {
+                if (! $request->is("api/v1/{$guard}/*")) {
+                    continue;
+                }
+
+                $loginRouteName = "{$guard}.login";
+
+                return RouteFacade::has($loginRouteName)
+                    ? route($loginRouteName)
+                    : null;
+            }
+
+            return null;
+        });
 
         $middleware->alias([
             'role' => RoleMiddleware::class,

@@ -71,8 +71,7 @@ final class Hospital extends Model
     public function logoMedia(): MorphOne
     {
         return $this->morphOne(Media::class, 'model')
-            ->where('collection', 'logo')
-            ->latestOfMany('id');
+            ->where('collection', 'logo');
     }
 
     public function galleryMedia(): MorphMany

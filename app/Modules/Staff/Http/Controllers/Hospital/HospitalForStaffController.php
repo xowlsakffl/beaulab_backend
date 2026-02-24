@@ -13,6 +13,7 @@ use App\Domains\Hospital\Actions\Staff\HospitalListForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCreateForStaffRequest;
+use App\Modules\Staff\Http\Requests\Hospital\HospitalGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalListForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalUpdateForStaffRequest;
 
@@ -37,9 +38,10 @@ final class HospitalForStaffController extends Controller
      */
     public function getHospitalForStaff(
         Hospital $hospital,
+        HospitalGetForStaffRequest $request,
         HospitalGetForStaffAction $action,
     ) {
-        $result = $action->execute($hospital);
+        $result = $action->execute($hospital, $request->filters()['include']);
 
         return ApiResponse::success($result['hospital'] ?? $result);
     }

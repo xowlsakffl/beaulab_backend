@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class BusinessRegistration extends Model
 {
+    // status
+    public const STATUS_ACTIVE    = 'ACTIVE';
+    public const STATUS_EXPIRED = 'EXPIRED';
+    public const STATUS_REVOKED = 'REVOKED';
+
     protected $table = 'business_registrations';
 
     protected $fillable = [

@@ -37,7 +37,7 @@ final class BusinessRegistrationCreateForStaffAction
             'business_address_detail' => $payload['business_address_detail'],
             'certificate_media_id' => $businessRegistrationMedia->id,
             'issued_at' => $payload['issued_at'],
-            'status' => 'ACTIVE',
+            'status' => BusinessRegistration::STATUS_ACTIVE,
         ]);
     }
 }

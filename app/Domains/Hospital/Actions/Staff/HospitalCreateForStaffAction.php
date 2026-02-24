@@ -18,7 +18,6 @@ final class HospitalCreateForStaffAction
         private readonly HospitalCreateForStaffQuery $query,
         private readonly MediaAttachAction $mediaAttachAction,
         private readonly BusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
-        private readonly HospitalOwnerCreateForStaffAction $hospitalOwnerCreateAction,
     ) {}
 
     /**
@@ -47,7 +46,10 @@ final class HospitalCreateForStaffAction
         });
 
         return [
-            'hospital' => HospitalForStaffDetailDto::fromModel($hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']))->toArray(),
+            'hospital' => HospitalForStaffDetailDto::fromModel(
+                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']),
+                ['business_registration'],
+            )->toArray(),
         ];
     }
 }

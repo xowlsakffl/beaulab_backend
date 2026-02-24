@@ -18,7 +18,6 @@ final class BeautyCreateForStaffAction
         private readonly BeautyCreateForStaffQuery $query,
         private readonly MediaAttachAction $mediaAttachAction,
         private readonly BusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
-        private readonly BeautyOwnerCreateForStaffAction $beautyOwnerCreateAction,
     ) {}
 
     /**
@@ -47,7 +46,10 @@ final class BeautyCreateForStaffAction
         });
 
         return [
-            'beauty' => BeautyForStaffDetailDto::fromModel($beauty->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']))->toArray(),
+            'beauty' => BeautyForStaffDetailDto::fromModel(
+                $beauty->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']),
+                ['business_registration'],
+            )->toArray(),
         ];
     }
 }

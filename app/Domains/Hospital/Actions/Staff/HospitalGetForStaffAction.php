@@ -16,14 +16,14 @@ final class HospitalGetForStaffAction
     {
         Gate::authorize('view', $hospital);
 
-        $relations = [];
+        $relations = ['logoMedia', 'galleryMedia'];
 
         if (in_array('business_registration', $include, true)) {
             $relations[] = 'businessRegistration.certificateMedia';
         }
 
         if (in_array('account_partners', $include, true)) {
-            $relations[] = 'partners';
+            $relations[] = 'partners.roles';
         }
 
         if ($relations !== []) {

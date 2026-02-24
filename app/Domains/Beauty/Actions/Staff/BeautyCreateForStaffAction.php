@@ -47,7 +47,7 @@ final class BeautyCreateForStaffAction
         });
 
         return [
-            'beauty' => BeautyForStaffDetailDto::fromModel($beauty->load('businessRegistration.certificateMedia'))->toArray(),
+            'beauty' => BeautyForStaffDetailDto::fromModel($beauty->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']))->toArray(),
         ];
     }
 }

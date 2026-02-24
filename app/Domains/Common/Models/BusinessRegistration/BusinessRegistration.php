@@ -6,7 +6,7 @@ namespace App\Domains\Common\Models\BusinessRegistration;
 
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 final class BusinessRegistration extends Model
 {
@@ -22,7 +22,6 @@ final class BusinessRegistration extends Model
         'business_item',
         'business_address',
         'business_address_detail',
-        'certificate_media_id',
         'issued_at',
         'status',
     ];
@@ -34,8 +33,10 @@ final class BusinessRegistration extends Model
         ];
     }
 
-    public function certificateMedia(): BelongsTo
+    public function certificateMedia(): HasOne
     {
-        return $this->belongsTo(Media::class, 'certificate_media_id');
+        return $this->hasOne(Media::class, 'model_id', 'id')
+            ->where('model_type', self::class)
+            ->where('collection', 'business_registration_file');
     }
 }

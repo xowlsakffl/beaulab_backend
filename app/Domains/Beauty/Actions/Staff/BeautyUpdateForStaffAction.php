@@ -98,15 +98,11 @@ final class BeautyUpdateForStaffAction
                 $existingCertificate->delete();
             }
 
-            $newCertificate = $this->mediaAttachAction->attachCertificate(
-                $beauty,
+            $this->mediaAttachAction->attachCertificate(
+                $businessRegistration,
                 $payload['business_registration_file'],
                 'beauty',
             );
-
-            $businessRegistration->update([
-                'certificate_media_id' => $newCertificate->id,
-            ]);
         }
     }
 

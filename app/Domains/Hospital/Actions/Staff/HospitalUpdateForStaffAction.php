@@ -98,15 +98,11 @@ final class HospitalUpdateForStaffAction
                 $existingCertificate->delete();
             }
 
-            $newCertificate = $this->mediaAttachAction->attachCertificate(
-                $hospital,
+            $this->mediaAttachAction->attachCertificate(
+                $businessRegistration,
                 $payload['business_registration_file'],
                 'hospital',
             );
-
-            $businessRegistration->update([
-                'certificate_media_id' => $newCertificate->id,
-            ]);
         }
     }
 

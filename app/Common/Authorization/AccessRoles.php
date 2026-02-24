@@ -104,6 +104,7 @@ final class AccessRoles
                     'beaulab.beauty.show',
                     'beaulab.agency.show',
                     'beaulab.user.show',
+                    'beaulab.doctor.show',
                 ]),
 
                 // 개발(현재는 staff 동일)
@@ -113,6 +114,7 @@ final class AccessRoles
                     'beaulab.beauty.show',
                     'beaulab.agency.show',
                     'beaulab.user.show',
+                    'beaulab.doctor.show',
                 ]),
             ],
 

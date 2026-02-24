@@ -18,7 +18,6 @@ final class AccountUserFactory extends Factory
     {
         return [
             'name'              => $this->faker->name(),
-            'nickname'          => $this->faker->unique()->userName(),
             'email'             => $this->faker->unique()->safeEmail(),
 
             'password'          => Hash::make('password'),

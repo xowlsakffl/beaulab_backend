@@ -11,7 +11,7 @@ final class AccountUserUpdateForStaffQuery
     public function update(AccountUser $user, array $payload): AccountUser
     {
         $filter = [];
-        foreach (['name', 'email', 'status'] as $field) {
+        foreach (['name', 'status'] as $field) {
             if (array_key_exists($field, $payload)) {
                 $filter[$field] = $payload[$field];
             }

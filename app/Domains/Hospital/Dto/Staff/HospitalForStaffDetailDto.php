@@ -3,6 +3,7 @@
 namespace App\Domains\Hospital\Dto\Staff;
 
 use App\Domains\Common\Models\Media\Media;
+use Illuminate\Support\Collection;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Partner\Models\AccountPartner;
 
@@ -17,17 +18,6 @@ final readonly class HospitalForStaffDetailDto
      */
     public static function fromModel(Hospital $hospital, array $include = []): self
     {
-        $logo = Media::query()
-            ->for($hospital)
-            ->collection('logo')
-            ->latest('id')
-            ->first();
-
-        $gallery = Media::query()
-            ->for($hospital)
-            ->collection('gallery')
-            ->ordered()
-            ->get();
 
         $payload = [
             'id' => $hospital->id,
@@ -46,8 +36,8 @@ final readonly class HospitalForStaffDetailDto
             'status' => $hospital->status,
             'created_at' => $hospital->created_at?->toISOString(),
             'updated_at' => $hospital->updated_at?->toISOString(),
-            'logo' => self::formatMedia($logo),
-            'gallery' => $gallery->map(fn (Media $media): array => self::formatMedia($media))->all(),
+            'logo' => self::formatMedia(self::resolveLogo($hospital)),
+            'gallery' => self::resolveGallery($hospital)->map(fn (Media $media): array => self::formatMedia($media))->all(),
         ];
 
         if (in_array('account_partners', $include, true)) {
@@ -58,6 +48,7 @@ final readonly class HospitalForStaffDetailDto
                 'email' => $partner->email,
                 'partner_type' => $partner->partner_type,
                 'status' => $partner->status,
+                'roles' => $partner->getRoleNames()->values()->all(),
                 'last_login_at' => $partner->last_login_at?->toISOString(),
                 'created_at' => $partner->created_at?->toISOString(),
                 'updated_at' => $partner->updated_at?->toISOString(),
@@ -87,6 +78,27 @@ final readonly class HospitalForStaffDetailDto
     public function toArray(): array
     {
         return $this->hospital;
+    }
+
+    private static function resolveLogo(Hospital $hospital): ?Media
+    {
+        if (! $hospital->relationLoaded('logoMedia')) {
+            return null;
+        }
+
+        return $hospital->logoMedia;
+    }
+
+    /**
+     * @return Collection<int, Media>
+     */
+    private static function resolveGallery(Hospital $hospital): Collection
+    {
+        if (! $hospital->relationLoaded('galleryMedia')) {
+            return collect();
+        }
+
+        return $hospital->galleryMedia;
     }
 
     private static function formatMedia(?Media $media): ?array

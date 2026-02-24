@@ -41,7 +41,7 @@ final class HospitalUpdateForStaffAction
         });
 
         return [
-            'hospital' => HospitalForStaffDetailDto::fromModel($updated->load('businessRegistration.certificateMedia'))->toArray(),
+            'hospital' => HospitalForStaffDetailDto::fromModel($updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']))->toArray(),
         ];
     }
 

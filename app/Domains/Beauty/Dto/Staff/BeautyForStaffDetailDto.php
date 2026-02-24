@@ -4,6 +4,7 @@ namespace App\Domains\Beauty\Dto\Staff;
 
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Models\Media\Media;
+use Illuminate\Support\Collection;
 use App\Domains\Partner\Models\AccountPartner;
 
 final readonly class BeautyForStaffDetailDto
@@ -17,17 +18,6 @@ final readonly class BeautyForStaffDetailDto
      */
     public static function fromModel(Beauty $beauty, array $include = []): self
     {
-        $logo = Media::query()
-            ->for($beauty)
-            ->collection('logo')
-            ->latest('id')
-            ->first();
-
-        $gallery = Media::query()
-            ->for($beauty)
-            ->collection('gallery')
-            ->ordered()
-            ->get();
 
         $payload = [
             'id' => $beauty->id,
@@ -46,8 +36,8 @@ final readonly class BeautyForStaffDetailDto
             'status' => $beauty->status,
             'created_at' => $beauty->created_at?->toISOString(),
             'updated_at' => $beauty->updated_at?->toISOString(),
-            'logo' => self::formatMedia($logo),
-            'gallery' => $gallery->map(fn (Media $media): array => self::formatMedia($media))->all(),
+            'logo' => self::formatMedia(self::resolveLogo($beauty)),
+            'gallery' => self::resolveGallery($beauty)->map(fn (Media $media): array => self::formatMedia($media))->all(),
         ];
 
         if (in_array('account_partners', $include, true)) {
@@ -58,6 +48,7 @@ final readonly class BeautyForStaffDetailDto
                 'email' => $partner->email,
                 'partner_type' => $partner->partner_type,
                 'status' => $partner->status,
+                'roles' => $partner->getRoleNames()->values()->all(),
                 'last_login_at' => $partner->last_login_at?->toISOString(),
                 'created_at' => $partner->created_at?->toISOString(),
                 'updated_at' => $partner->updated_at?->toISOString(),
@@ -87,6 +78,27 @@ final readonly class BeautyForStaffDetailDto
     public function toArray(): array
     {
         return $this->beauty;
+    }
+
+    private static function resolveLogo(Beauty $beauty): ?Media
+    {
+        if (! $beauty->relationLoaded('logoMedia')) {
+            return null;
+        }
+
+        return $beauty->logoMedia;
+    }
+
+    /**
+     * @return Collection<int, Media>
+     */
+    private static function resolveGallery(Beauty $beauty): Collection
+    {
+        if (! $beauty->relationLoaded('galleryMedia')) {
+            return collect();
+        }
+
+        return $beauty->galleryMedia;
     }
 
     private static function formatMedia(?Media $media): ?array

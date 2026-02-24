@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Domains\Beauty\Models\Beauty;
-use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Database\Seeder;
 
 final class BeautySeeder extends Seeder
@@ -14,13 +13,13 @@ final class BeautySeeder extends Seeder
             ->count(40)
             ->approved()
             ->active()
-            ->withOwner()
+            ->withPartner()
             ->create();
 
         // 나머지 랜덤 뷰티 + 소유주
         Beauty::factory()
             ->count(10)
-            ->withOwner()
+            ->withPartner()
             ->create();
     }
 }

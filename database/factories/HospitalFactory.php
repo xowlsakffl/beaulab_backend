@@ -50,7 +50,7 @@ final class HospitalFactory extends Factory
         ];
     }
 
-    public function withOwner(): self
+    public function withPartner(): self
     {
         return $this->afterCreating(function (Hospital $hospital) {
             $seedKey = str_pad((string) $hospital->id, 4, '0', STR_PAD_LEFT);

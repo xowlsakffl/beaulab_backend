@@ -51,7 +51,7 @@ final class BeautyFactory extends Factory
         ];
     }
 
-    public function withOwner(): self
+    public function withPartner(): self
     {
         return $this->afterCreating(function (Beauty $beauty) {
             $seedKey = str_pad((string) $beauty->id, 4, '0', STR_PAD_LEFT);

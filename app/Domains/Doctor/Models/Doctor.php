@@ -71,14 +71,14 @@ final class Doctor extends Model
         return $this->morphMany(Media::class, 'model')->where('collection', 'specialist_certificate_image')->orderBy('sort_order')->orderBy('id');
     }
 
-    public function graduationCertificates(): MorphMany
+    public function graduationCertificateImages(): MorphMany
     {
-        return $this->morphMany(Media::class, 'model')->where('collection', 'graduation_certificate')->orderBy('sort_order')->orderBy('id');
+        return $this->morphMany(Media::class, 'model')->where('collection', 'graduation_certificate_image')->orderBy('sort_order')->orderBy('id');
     }
 
-    public function etcCertificates(): MorphMany
+    public function etcCertificateImages(): MorphMany
     {
-        return $this->morphMany(Media::class, 'model')->where('collection', 'etc_certificate')->orderBy('sort_order')->orderBy('id');
+        return $this->morphMany(Media::class, 'model')->where('collection', 'etc_certificate_image')->orderBy('sort_order')->orderBy('id');
     }
 
     public function isApproved(): bool

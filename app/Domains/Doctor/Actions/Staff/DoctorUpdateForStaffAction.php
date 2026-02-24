@@ -34,8 +34,8 @@ final class DoctorUpdateForStaffAction
                 'profileImage',
                 'licenseImage',
                 'specialistCertificateImages',
-                'graduationCertificates',
-                'etcCertificates',
+                'graduationCertificateImages',
+                'etcCertificateImages',
             ]))->toArray(),
         ];
     }
@@ -57,14 +57,14 @@ final class DoctorUpdateForStaffAction
             $this->mediaAttachAction->attachDoctorSpecialistCertificateImages($doctor, $this->onlyFiles($payload['specialist_certificate_image']), 'doctor');
         }
 
-        if (array_key_exists('graduation_certificate', $payload) && is_array($payload['graduation_certificate'])) {
-            $this->deleteCollectionMedia($doctor, 'graduation_certificate');
-            $this->mediaAttachAction->attachDoctorGraduationCertificates($doctor, $this->onlyFiles($payload['graduation_certificate']), 'doctor');
+        if (array_key_exists('graduation_certificate_image', $payload) && is_array($payload['graduation_certificate_image'])) {
+            $this->deleteCollectionMedia($doctor, 'graduation_certificate_image');
+            $this->mediaAttachAction->attachDoctorGraduationCertificateImages($doctor, $this->onlyFiles($payload['graduation_certificate_image']), 'doctor');
         }
 
-        if (array_key_exists('etc_certificate', $payload) && is_array($payload['etc_certificate'])) {
-            $this->deleteCollectionMedia($doctor, 'etc_certificate');
-            $this->mediaAttachAction->attachDoctorEtcCertificates($doctor, $this->onlyFiles($payload['etc_certificate']), 'doctor');
+        if (array_key_exists('etc_certificate_image', $payload) && is_array($payload['etc_certificate_image'])) {
+            $this->deleteCollectionMedia($doctor, 'etc_certificate_image');
+            $this->mediaAttachAction->attachDoctorEtcCertificateImages($doctor, $this->onlyFiles($payload['etc_certificate_image']), 'doctor');
         }
     }
 

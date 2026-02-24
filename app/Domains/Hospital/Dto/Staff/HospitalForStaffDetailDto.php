@@ -4,6 +4,7 @@ namespace App\Domains\Hospital\Dto\Staff;
 
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Partner\Models\AccountPartner;
 
 final readonly class HospitalForStaffDetailDto
 {
@@ -11,7 +12,10 @@ final readonly class HospitalForStaffDetailDto
         public array $hospital,
     ) {}
 
-    public static function fromModel(Hospital $hospital): self
+    /**
+     * @param array<int, string> $include
+     */
+    public static function fromModel(Hospital $hospital, array $include = []): self
     {
         $logo = Media::query()
             ->for($hospital)
@@ -25,43 +29,59 @@ final readonly class HospitalForStaffDetailDto
             ->ordered()
             ->get();
 
-        $businessRegistration = $hospital->businessRegistration;
+        $payload = [
+            'id' => $hospital->id,
+            'name' => $hospital->name,
+            'description' => $hospital->description,
+            'address' => $hospital->address,
+            'address_detail' => $hospital->address_detail,
+            'latitude' => $hospital->latitude,
+            'longitude' => $hospital->longitude,
+            'tel' => $hospital->tel,
+            'email' => $hospital->email,
+            'consulting_hours' => $hospital->consulting_hours,
+            'direction' => $hospital->direction,
+            'view_count' => (int) $hospital->view_count,
+            'allow_status' => $hospital->allow_status,
+            'status' => $hospital->status,
+            'created_at' => $hospital->created_at?->toISOString(),
+            'updated_at' => $hospital->updated_at?->toISOString(),
+            'logo' => self::formatMedia($logo),
+            'gallery' => $gallery->map(fn (Media $media): array => self::formatMedia($media))->all(),
+        ];
 
-        return new self(
-            hospital: [
-                'id' => $hospital->id,
-                'name' => $hospital->name,
-                'description' => $hospital->description,
-                'address' => $hospital->address,
-                'address_detail' => $hospital->address_detail,
-                'latitude' => $hospital->latitude,
-                'longitude' => $hospital->longitude,
-                'tel' => $hospital->tel,
-                'email' => $hospital->email,
-                'consulting_hours' => $hospital->consulting_hours,
-                'direction' => $hospital->direction,
-                'view_count' => (int) $hospital->view_count,
-                'allow_status' => $hospital->allow_status,
-                'status' => $hospital->status,
-                'created_at' => $hospital->created_at?->toISOString(),
-                'updated_at' => $hospital->updated_at?->toISOString(),
-                'logo' => self::formatMedia($logo),
-                'gallery' => $gallery->map(fn (Media $media): array => self::formatMedia($media))->all(),
-                'business_registration' => $businessRegistration ? [
-                    'id' => $businessRegistration->id,
-                    'business_number' => $businessRegistration->business_number,
-                    'company_name' => $businessRegistration->company_name,
-                    'ceo_name' => $businessRegistration->ceo_name,
-                    'business_type' => $businessRegistration->business_type,
-                    'business_item' => $businessRegistration->business_item,
-                    'business_address' => $businessRegistration->business_address,
-                    'business_address_detail' => $businessRegistration->business_address_detail,
-                    'issued_at' => $businessRegistration->issued_at?->toDateString(),
-                    'status' => $businessRegistration->status,
-                    'certificate_media' => self::formatMedia($businessRegistration->certificateMedia),
-                ] : null,
-            ],
-        );
+        if (in_array('account_partners', $include, true)) {
+            $payload['account_partners'] = $hospital->partners->map(fn (AccountPartner $partner): array => [
+                'id' => $partner->id,
+                'name' => $partner->name,
+                'nickname' => $partner->nickname,
+                'email' => $partner->email,
+                'partner_type' => $partner->partner_type,
+                'status' => $partner->status,
+                'last_login_at' => $partner->last_login_at?->toISOString(),
+                'created_at' => $partner->created_at?->toISOString(),
+                'updated_at' => $partner->updated_at?->toISOString(),
+            ])->all();
+        }
+
+        if (in_array('business_registration', $include, true)) {
+            $businessRegistration = $hospital->businessRegistration;
+            $payload['business_registration'] = $businessRegistration ? [
+                'id' => $businessRegistration->id,
+                'business_number' => $businessRegistration->business_number,
+                'company_name' => $businessRegistration->company_name,
+                'ceo_name' => $businessRegistration->ceo_name,
+                'business_type' => $businessRegistration->business_type,
+                'business_item' => $businessRegistration->business_item,
+                'business_address' => $businessRegistration->business_address,
+                'business_address_detail' => $businessRegistration->business_address_detail,
+                'issued_at' => $businessRegistration->issued_at?->toDateString(),
+                'status' => $businessRegistration->status,
+                'certificate_media' => self::formatMedia($businessRegistration->certificateMedia),
+            ] : null;
+        }
+
+        return new self(hospital: $payload);
     }
 
     public function toArray(): array

@@ -9,16 +9,29 @@ use Illuminate\Support\Facades\Gate;
 final class HospitalGetForStaffAction
 {
     /**
+     * @param array<int, string> $include
      * @return array{hospital: array}
      */
-    public function execute(Hospital $hospital): array
+    public function execute(Hospital $hospital, array $include = []): array
     {
         Gate::authorize('view', $hospital);
 
-        $hospital->load('businessRegistration.certificateMedia');
+        $relations = [];
+
+        if (in_array('business_registration', $include, true)) {
+            $relations[] = 'businessRegistration.certificateMedia';
+        }
+
+        if (in_array('account_partners', $include, true)) {
+            $relations[] = 'partners';
+        }
+
+        if ($relations !== []) {
+            $hospital->load($relations);
+        }
 
         return [
-            'hospital' => HospitalForStaffDetailDto::fromModel($hospital)->toArray(),
+            'hospital' => HospitalForStaffDetailDto::fromModel($hospital, $include)->toArray(),
         ];
     }
 }

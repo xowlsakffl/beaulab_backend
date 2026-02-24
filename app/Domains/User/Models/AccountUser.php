@@ -3,6 +3,8 @@
 namespace App\Domains\User\Models;
 
 use App\Common\Notifications\QueuedResetPasswordNotification;
+use Database\Factories\AccountUserFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -51,6 +53,11 @@ final class AccountUser extends Authenticatable
             'password' => 'hashed',
             'last_login_at' => 'datetime',
         ];
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return AccountUserFactory::new();
     }
 
     public function sendPasswordResetNotification($token): void

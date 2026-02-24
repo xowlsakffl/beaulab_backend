@@ -67,7 +67,7 @@ final class Beauty extends Model
     public function businessRegistration(): HasOne
     {
         return $this->hasOne(BusinessRegistration::class, 'owner_id')
-            ->where('owner_type', 'hospital');
+            ->where('owner_type', 'beauty');
     }
 
     public function isApproved(): bool

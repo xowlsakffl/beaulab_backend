@@ -27,6 +27,10 @@ return [
     'exists' => '선택한 :attribute 값이 올바르지 않습니다.',
     'in' => '선택한 :attribute 값이 올바르지 않습니다.',
     'boolean' => ':attribute 항목은 true/false 값이어야 합니다.',
+    'file' => ':attribute 항목은 파일이어야 합니다.',
+    'image' => ':attribute 항목은 이미지 파일이어야 합니다.',
+    'mimes' => ':attribute 항목의 파일 형식이 올바르지 않습니다. (:values)',
+    'uploaded' => ':attribute 업로드에 실패했습니다. 파일 크기 또는 네트워크 상태를 확인해주세요.',
 
     // Fortify/설정 화면에서 자주 뜨는 것들
     'current_password' => '현재 비밀번호가 올바르지 않습니다.',

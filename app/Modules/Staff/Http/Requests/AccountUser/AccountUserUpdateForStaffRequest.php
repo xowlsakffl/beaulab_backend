@@ -6,6 +6,7 @@ namespace App\Modules\Staff\Http\Requests\AccountUser;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+
 final class AccountUserUpdateForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void

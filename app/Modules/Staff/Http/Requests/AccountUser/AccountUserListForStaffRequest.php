@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 
 namespace App\Modules\Staff\Http\Requests\AccountUser;
 
@@ -29,7 +31,7 @@ final class AccountUserListForStaffRequest extends FormRequest
             'end_date'     => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
 
             'status'       => ['nullable', 'array'],
-            'status.*'     => ['in:ACTIVE,SUSPENDED,WITHDRAWN'],
+            'status.*'     => ['in:ACTIVE,SUSPENDED,BLOCKED'],
 
             'sort'         => ['nullable', 'in:id,name,status,created_at,updated_at'],
 

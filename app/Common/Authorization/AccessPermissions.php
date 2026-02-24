@@ -91,6 +91,11 @@ final class AccessPermissions
             'beaulab.agency.create',
             'beaulab.agency.update',
             'beaulab.agency.delete',
+
+            // 일반회원
+            'beaulab.user.show',
+            'beaulab.user.update',
+            'beaulab.user.delete',
         ];
     }
 

@@ -41,7 +41,10 @@ final class BeautyUpdateForStaffAction
         });
 
         return [
-            'beauty' => BeautyForStaffDetailDto::fromModel($updated->load('businessRegistration.certificateMedia'))->toArray(),
+            'beauty' => BeautyForStaffDetailDto::fromModel(
+                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']),
+                ['business_registration'],
+            )->toArray(),
         ];
     }
 
@@ -98,15 +101,11 @@ final class BeautyUpdateForStaffAction
                 $existingCertificate->delete();
             }
 
-            $newCertificate = $this->mediaAttachAction->attachCertificate(
-                $beauty,
+            $this->mediaAttachAction->attachCertificate(
+                $businessRegistration,
                 $payload['business_registration_file'],
                 'beauty',
             );
-
-            $businessRegistration->update([
-                'certificate_media_id' => $newCertificate->id,
-            ]);
         }
     }
 

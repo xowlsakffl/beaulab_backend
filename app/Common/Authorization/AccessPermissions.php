@@ -96,6 +96,12 @@ final class AccessPermissions
             'beaulab.user.show',
             'beaulab.user.update',
             'beaulab.user.delete',
+
+            // 의사
+            'beaulab.doctor.show',
+            'beaulab.doctor.create',
+            'beaulab.doctor.update',
+            'beaulab.doctor.delete',
         ];
     }
 

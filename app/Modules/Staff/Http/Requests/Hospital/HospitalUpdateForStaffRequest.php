@@ -91,6 +91,29 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         ];
     }
 
+    public function attributes(): array
+    {
+        return [
+            'name' => '병원명',
+            'address' => '주소',
+            'address_detail' => '상세 주소',
+            'tel' => '대표 번호',
+            'email' => '대표 이메일',
+
+            'business_number' => '사업자 등록번호',
+            'company_name' => '상호명',
+            'ceo_name' => '대표자',
+            'business_type' => '업태',
+            'business_item' => '종목',
+            'business_registration_file' => '사업자등록증 파일',
+            'issued_at' => '사업자 등록일',
+
+            'logo' => '로고',
+            'gallery' => '갤러리 이미지',
+            'gallery.*' => '갤러리 이미지',
+        ];
+    }
+
     private function businessRegistrationId(): ?int
     {
         $hospital = $this->route('hospital');

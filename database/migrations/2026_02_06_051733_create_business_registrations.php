@@ -26,8 +26,6 @@ return new class extends Migration
             $table->string('business_address', 255)->nullable()->comment('사업장 주소');
             $table->string('business_address_detail', 255)->nullable()->comment('사업장 상세 주소');
 
-            $table->unsignedBigInteger('certificate_media_id')->comment('사업자 등록증 파일 ID(media.id 참조)');
-
             $table->date('issued_at')->nullable()->comment('사업자 등록일');
 
             $table->string('status', 20)->default('ACTIVE')->comment('등록증 상태(ACTIVE, EXPIRED, REVOKED)');
@@ -38,10 +36,6 @@ return new class extends Migration
             $table->index(['owner_type', 'owner_id'], 'business_registrations_owner_index');
             $table->index('status');
 
-            $table->foreign('certificate_media_id')
-                ->references('id')
-                ->on('media')
-                ->cascadeOnDelete();
         });
 
         DB::statement("ALTER TABLE business_registrations COMMENT = '사업자 등록 테이블'");

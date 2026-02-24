@@ -4,6 +4,8 @@ namespace App\Domains\Beauty\Dto\Staff;
 
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Models\Media\Media;
+use Illuminate\Support\Collection;
+use App\Domains\Partner\Models\AccountPartner;
 
 final readonly class BeautyForStaffDetailDto
 {
@@ -11,62 +13,92 @@ final readonly class BeautyForStaffDetailDto
         public array $beauty,
     ) {}
 
-    public static function fromModel(Beauty $beauty): self
+    /**
+     * @param array<int, string> $include
+     */
+    public static function fromModel(Beauty $beauty, array $include = []): self
     {
-        $logo = Media::query()
-            ->for($beauty)
-            ->collection('logo')
-            ->latest('id')
-            ->first();
 
-        $gallery = Media::query()
-            ->for($beauty)
-            ->collection('gallery')
-            ->ordered()
-            ->get();
+        $payload = [
+            'id' => $beauty->id,
+            'name' => $beauty->name,
+            'description' => $beauty->description,
+            'address' => $beauty->address,
+            'address_detail' => $beauty->address_detail,
+            'latitude' => $beauty->latitude,
+            'longitude' => $beauty->longitude,
+            'tel' => $beauty->tel,
+            'email' => $beauty->email,
+            'consulting_hours' => $beauty->consulting_hours,
+            'direction' => $beauty->direction,
+            'view_count' => (int) $beauty->view_count,
+            'allow_status' => $beauty->allow_status,
+            'status' => $beauty->status,
+            'created_at' => $beauty->created_at?->toISOString(),
+            'updated_at' => $beauty->updated_at?->toISOString(),
+            'logo' => self::formatMedia(self::resolveLogo($beauty)),
+            'gallery' => self::resolveGallery($beauty)->map(fn (Media $media): array => self::formatMedia($media))->all(),
+        ];
 
-        $businessRegistration = $beauty->businessRegistration;
+        if (in_array('account_partners', $include, true)) {
+            $payload['account_partners'] = $beauty->partners->map(fn (AccountPartner $partner): array => [
+                'id' => $partner->id,
+                'name' => $partner->name,
+                'nickname' => $partner->nickname,
+                'email' => $partner->email,
+                'partner_type' => $partner->partner_type,
+                'status' => $partner->status,
+                'roles' => $partner->getRoleNames()->values()->all(),
+                'last_login_at' => $partner->last_login_at?->toISOString(),
+                'created_at' => $partner->created_at?->toISOString(),
+                'updated_at' => $partner->updated_at?->toISOString(),
+            ])->all();
+        }
 
-        return new self(
-            beauty: [
-                'id' => $beauty->id,
-                'name' => $beauty->name,
-                'description' => $beauty->description,
-                'address' => $beauty->address,
-                'address_detail' => $beauty->address_detail,
-                'latitude' => $beauty->latitude,
-                'longitude' => $beauty->longitude,
-                'tel' => $beauty->tel,
-                'email' => $beauty->email,
-                'consulting_hours' => $beauty->consulting_hours,
-                'direction' => $beauty->direction,
-                'view_count' => (int) $beauty->view_count,
-                'allow_status' => $beauty->allow_status,
-                'status' => $beauty->status,
-                'created_at' => $beauty->created_at?->toISOString(),
-                'updated_at' => $beauty->updated_at?->toISOString(),
-                'logo' => self::formatMedia($logo),
-                'gallery' => $gallery->map(fn (Media $media): array => self::formatMedia($media))->all(),
-                'business_registration' => $businessRegistration ? [
-                    'id' => $businessRegistration->id,
-                    'business_number' => $businessRegistration->business_number,
-                    'company_name' => $businessRegistration->company_name,
-                    'ceo_name' => $businessRegistration->ceo_name,
-                    'business_type' => $businessRegistration->business_type,
-                    'business_item' => $businessRegistration->business_item,
-                    'business_address' => $businessRegistration->business_address,
-                    'business_address_detail' => $businessRegistration->business_address_detail,
-                    'issued_at' => $businessRegistration->issued_at?->toDateString(),
-                    'status' => $businessRegistration->status,
-                    'certificate_media' => self::formatMedia($businessRegistration->certificateMedia),
-                ] : null,
-            ],
-        );
+        if (in_array('business_registration', $include, true)) {
+            $businessRegistration = $beauty->businessRegistration;
+            $payload['business_registration'] = $businessRegistration ? [
+                'id' => $businessRegistration->id,
+                'business_number' => $businessRegistration->business_number,
+                'company_name' => $businessRegistration->company_name,
+                'ceo_name' => $businessRegistration->ceo_name,
+                'business_type' => $businessRegistration->business_type,
+                'business_item' => $businessRegistration->business_item,
+                'business_address' => $businessRegistration->business_address,
+                'business_address_detail' => $businessRegistration->business_address_detail,
+                'issued_at' => $businessRegistration->issued_at?->toDateString(),
+                'status' => $businessRegistration->status,
+                'certificate_media' => self::formatMedia($businessRegistration->certificateMedia),
+            ] : null;
+        }
+
+        return new self(beauty: $payload);
     }
 
     public function toArray(): array
     {
         return $this->beauty;
+    }
+
+    private static function resolveLogo(Beauty $beauty): ?Media
+    {
+        if (! $beauty->relationLoaded('logoMedia')) {
+            return null;
+        }
+
+        return $beauty->logoMedia;
+    }
+
+    /**
+     * @return Collection<int, Media>
+     */
+    private static function resolveGallery(Beauty $beauty): Collection
+    {
+        if (! $beauty->relationLoaded('galleryMedia')) {
+            return collect();
+        }
+
+        return $beauty->galleryMedia;
     }
 
     private static function formatMedia(?Media $media): ?array

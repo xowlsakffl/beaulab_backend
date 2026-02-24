@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Hospital\Models;
 
 use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\Partner\Models\AccountPartner;
 use Database\Factories\HospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Hospital extends Model
@@ -62,6 +65,29 @@ final class Hospital extends Model
     public function partners(): HasMany
     {
         return $this->hasMany(AccountPartner::class, 'hospital_id');
+    }
+
+
+    public function logoMedia(): MorphOne
+    {
+        return $this->morphOne(Media::class, 'model')
+            ->where('collection', 'logo');
+    }
+
+    public function galleryMedia(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'model')
+            ->where('collection', 'gallery')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
+
+    public function doctors(): HasMany
+    {
+        return $this->hasMany(Doctor::class, 'hospital_id')
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
     public function businessRegistration(): HasOne

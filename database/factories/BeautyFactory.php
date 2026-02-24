@@ -51,33 +51,83 @@ final class BeautyFactory extends Factory
         ];
     }
 
-    public function withOwner(): self
+    public function withPartner(): self
     {
         return $this->afterCreating(function (Beauty $beauty) {
-
             $seedKey = str_pad((string) $beauty->id, 4, '0', STR_PAD_LEFT);
 
-            $rawPassword = (string) env('SEED_STAFF_PASSWORD', '');
-
-            $partner = AccountPartner::factory()->create([
-                'email'    => "beauty{$seedKey}@owner.test",
-                'nickname' => "beauty_owner_{$seedKey}",
-                'name'     => "뷰티 소유주 {$seedKey}",
-                'partner_type' => AccountPartner::PARTNER_BEAUTY,
-                'beauty_id' => $beauty->id,
-                'status'   => AccountPartner::STATUS_ACTIVE,
-                'password' => $rawPassword,
-            ]);
-
-            $partner->syncRoles([
+            $this->createBeautyPartner(
+                $beauty,
+                $seedKey,
+                'owner',
+                '뷰티 소유주',
                 AccessRoles::BEAUTY_OWNER,
-            ]);
+                1
+            );
 
-            $partner->syncPermissions([
-                ...AccessPermissions::common(),
-                ...AccessPermissions::beauty(),
-            ]);
+            for ($i = 1; $i <= 3; $i++) {
+                $this->createBeautyPartner(
+                    $beauty,
+                    $seedKey,
+                    'manager',
+                    '뷰티 매니저',
+                    AccessRoles::BEAUTY_MANAGER,
+                    $i
+                );
+            }
+
+            for ($i = 1; $i <= 10; $i++) {
+                $this->createBeautyPartner(
+                    $beauty,
+                    $seedKey,
+                    'staff',
+                    '뷰티 직원',
+                    AccessRoles::BEAUTY_STAFF,
+                    $i
+                );
+            }
         });
+    }
+
+    private function createBeautyPartner(
+        Beauty $beauty,
+        string $seedKey,
+        string $type,
+        string $nameLabel,
+        string $role,
+        int $index
+    ): void {
+        $rawPassword = (string) env('SEED_STAFF_PASSWORD', '');
+        $suffix = $type === 'owner' ? '' : str_pad((string) $index, 2, '0', STR_PAD_LEFT);
+
+        $email = $type === 'owner'
+            ? "beauty{$seedKey}@owner.test"
+            : "beauty{$seedKey}.{$type}{$suffix}@partner.test";
+
+        $nickname = $type === 'owner'
+            ? "beauty_owner_{$seedKey}"
+            : "beauty_{$type}_{$seedKey}_{$suffix}";
+
+        $name = $type === 'owner'
+            ? "{$nameLabel} {$seedKey}"
+            : "{$nameLabel} {$seedKey}-{$suffix}";
+
+        $partner = AccountPartner::factory()->create([
+            'email'        => $email,
+            'nickname'     => $nickname,
+            'name'         => $name,
+            'partner_type' => AccountPartner::PARTNER_BEAUTY,
+            'beauty_id'    => $beauty->id,
+            'status'       => AccountPartner::STATUS_ACTIVE,
+            'password'     => $rawPassword,
+        ]);
+
+        $partner->syncRoles([$role]);
+
+        $partner->syncPermissions([
+            ...AccessPermissions::common(),
+            ...AccessRoles::map()[$role],
+        ]);
     }
 
     public function approved(): self

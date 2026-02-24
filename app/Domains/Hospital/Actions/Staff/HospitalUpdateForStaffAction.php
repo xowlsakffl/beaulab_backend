@@ -41,7 +41,10 @@ final class HospitalUpdateForStaffAction
         });
 
         return [
-            'hospital' => HospitalForStaffDetailDto::fromModel($updated->load('businessRegistration.certificateMedia'))->toArray(),
+            'hospital' => HospitalForStaffDetailDto::fromModel(
+                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']),
+                ['business_registration'],
+            )->toArray(),
         ];
     }
 
@@ -98,15 +101,11 @@ final class HospitalUpdateForStaffAction
                 $existingCertificate->delete();
             }
 
-            $newCertificate = $this->mediaAttachAction->attachCertificate(
-                $hospital,
+            $this->mediaAttachAction->attachCertificate(
+                $businessRegistration,
                 $payload['business_registration_file'],
                 'hospital',
             );
-
-            $businessRegistration->update([
-                'certificate_media_id' => $newCertificate->id,
-            ]);
         }
     }
 

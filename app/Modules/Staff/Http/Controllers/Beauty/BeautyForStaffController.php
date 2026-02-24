@@ -13,6 +13,7 @@ use App\Domains\Beauty\Actions\Staff\BeautyListForStaffAction;
 use App\Domains\Beauty\Actions\Staff\BeautyUpdateForStaffAction;
 use App\Domains\Beauty\Models\Beauty;
 use App\Modules\Staff\Http\Requests\Beauty\BeautyCreateForStaffRequest;
+use App\Modules\Staff\Http\Requests\Beauty\BeautyGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Beauty\BeautyListForStaffRequest;
 use App\Modules\Staff\Http\Requests\Beauty\BeautyUpdateForStaffRequest;
 
@@ -37,9 +38,10 @@ final class BeautyForStaffController extends Controller
      */
     public function getBeautyForStaff(
         Beauty $beauty,
+        BeautyGetForStaffRequest $request,
         BeautyGetForStaffAction $action,
     ) {
-        $result = $action->execute($beauty);
+        $result = $action->execute($beauty, $request->filters()['include']);
 
         return ApiResponse::success($result['beauty'] ?? $result);
     }

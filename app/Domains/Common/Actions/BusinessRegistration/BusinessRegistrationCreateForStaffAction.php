@@ -5,7 +5,6 @@ namespace App\Domains\Common\Actions\BusinessRegistration;
 use App\Domains\Common\Actions\Media\MediaAttachAction;
 use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Common\Queries\BusinessRegistration\BusinessRegistrationCreateForStaffQuery;
-use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Database\Eloquent\Model;
 
 final class BusinessRegistrationCreateForStaffAction
@@ -19,13 +18,7 @@ final class BusinessRegistrationCreateForStaffAction
     {
         $ownerType = strtolower(class_basename($owner));
 
-        $businessRegistrationMedia = $this->mediaAttachAction->attachCertificate(
-            $owner,
-            $payload['business_registration_file'],
-            $ownerType
-        );
-
-        return $this->query->create([
+        $businessRegistration = $this->query->create([
             'owner_type' => $ownerType,
             'owner_id' => $owner->id,
             'business_number' => $payload['business_number'],
@@ -35,9 +28,16 @@ final class BusinessRegistrationCreateForStaffAction
             'business_item' => $payload['business_item'],
             'business_address' => $payload['business_address'],
             'business_address_detail' => $payload['business_address_detail'],
-            'certificate_media_id' => $businessRegistrationMedia->id,
             'issued_at' => $payload['issued_at'],
             'status' => BusinessRegistration::STATUS_ACTIVE,
         ]);
+
+        $this->mediaAttachAction->attachCertificate(
+            $businessRegistration,
+            $payload['business_registration_file'],
+            $ownerType,
+        );
+
+        return $businessRegistration;
     }
 }

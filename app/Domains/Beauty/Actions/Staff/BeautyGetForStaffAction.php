@@ -9,16 +9,29 @@ use Illuminate\Support\Facades\Gate;
 final class BeautyGetForStaffAction
 {
     /**
+     * @param array<int, string> $include
      * @return array{beauty: array}
      */
-    public function execute(Beauty $beauty): array
+    public function execute(Beauty $beauty, array $include = []): array
     {
         Gate::authorize('view', $beauty);
 
-        $beauty->load('businessRegistration.certificateMedia');
+        $relations = ['logoMedia', 'galleryMedia'];
+
+        if (in_array('business_registration', $include, true)) {
+            $relations[] = 'businessRegistration.certificateMedia';
+        }
+
+        if (in_array('account_partners', $include, true)) {
+            $relations[] = 'partners.roles';
+        }
+
+        if ($relations !== []) {
+            $beauty->load($relations);
+        }
 
         return [
-            'beauty' => BeautyForStaffDetailDto::fromModel($beauty)->toArray(),
+            'beauty' => BeautyForStaffDetailDto::fromModel($beauty, $include)->toArray(),
         ];
     }
 }

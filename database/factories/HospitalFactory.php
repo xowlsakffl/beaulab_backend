@@ -50,33 +50,82 @@ final class HospitalFactory extends Factory
         ];
     }
 
-    public function withOwner(): self
+    public function withPartner(): self
     {
         return $this->afterCreating(function (Hospital $hospital) {
-
             $seedKey = str_pad((string) $hospital->id, 4, '0', STR_PAD_LEFT);
-
-            $rawPassword = (string) env('SEED_STAFF_PASSWORD', '');
-
-            $partner = AccountPartner::factory()->create([
-                'email'    => "hospital{$seedKey}@owner.test",
-                'nickname' => "hospital_owner_{$seedKey}",
-                'name'     => "병원 소유주 {$seedKey}",
-                'partner_type' => AccountPartner::PARTNER_HOSPITAL,
-                'hospital_id' => $hospital->id,
-                'status'   => AccountPartner::STATUS_ACTIVE,
-                'password' => $rawPassword,
-            ]);
-
-            $partner->syncRoles([
+            $this->createHospitalPartner(
+                $hospital,
+                $seedKey,
+                'owner',
+                '병원 소유주',
                 AccessRoles::HOSPITAL_OWNER,
-            ]);
+                1
+            );
 
-            $partner->syncPermissions([
-                ...AccessPermissions::common(),
-                ...AccessPermissions::hospital(),
-            ]);
+            for ($i = 1; $i <= 3; $i++) {
+                $this->createHospitalPartner(
+                    $hospital,
+                    $seedKey,
+                    'manager',
+                    '병원 매니저',
+                    AccessRoles::HOSPITAL_MANAGER,
+                    $i
+                );
+            }
+
+            for ($i = 1; $i <= 10; $i++) {
+                $this->createHospitalPartner(
+                    $hospital,
+                    $seedKey,
+                    'staff',
+                    '병원 직원',
+                    AccessRoles::HOSPITAL_STAFF,
+                    $i
+                );
+            }
         });
+    }
+
+    private function createHospitalPartner(
+        Hospital $hospital,
+        string $seedKey,
+        string $type,
+        string $nameLabel,
+        string $role,
+        int $index
+    ): void {
+        $rawPassword = (string) env('SEED_STAFF_PASSWORD', '');
+        $suffix = $type === 'owner' ? '' : str_pad((string) $index, 2, '0', STR_PAD_LEFT);
+
+        $email = $type === 'owner'
+            ? "hospital{$seedKey}@owner.test"
+            : "hospital{$seedKey}.{$type}{$suffix}@partner.test";
+
+        $nickname = $type === 'owner'
+            ? "hospital_owner_{$seedKey}"
+            : "hospital_{$type}_{$seedKey}_{$suffix}";
+
+        $name = $type === 'owner'
+            ? "{$nameLabel} {$seedKey}"
+            : "{$nameLabel} {$seedKey}-{$suffix}";
+
+        $partner = AccountPartner::factory()->create([
+            'email'        => $email,
+            'nickname'     => $nickname,
+            'name'         => $name,
+            'partner_type' => AccountPartner::PARTNER_HOSPITAL,
+            'hospital_id'  => $hospital->id,
+            'status'       => AccountPartner::STATUS_ACTIVE,
+            'password'     => $rawPassword,
+        ]);
+
+        $partner->syncRoles([$role]);
+
+        $partner->syncPermissions([
+            ...AccessPermissions::common(),
+            ...AccessRoles::map()[$role],
+        ]);
     }
 
     public function approved(): self

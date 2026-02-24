@@ -83,6 +83,14 @@ final class Hospital extends Model
             ->orderBy('id');
     }
 
+
+    public function doctors(): HasMany
+    {
+        return $this->hasMany(Doctor::class, 'hospital_id')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
     public function businessRegistration(): HasOne
     {
         return $this->hasOne(BusinessRegistration::class, 'owner_id')

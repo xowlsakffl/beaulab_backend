@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique()->comment('로그인 이메일');
             $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
             $table->string('password')->comment('암호화된 비밀번호');
-            $table->string('status')->default('active')->comment('계정 상태(active, suspended, blocked)');
+            $table->string('status')->default('ACTIVE')->comment('계정 상태(ACTIVE, SUSPENDED, BLOCKED)');
             $table->timestamp('last_login_at')->nullable()->comment('마지막 로그인 시각');
             $table->timestamps();
             $table->softDeletes()->comment('탈퇴 처리 시각');
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->index('last_login_at');
         });
 
-        DB::statement("ALTER TABLE account_users COMMENT = 'Beaulab 앱 서비스 일반 사용자 계정 (Sanctum 토큰 인증)'");
+        DB::statement("ALTER TABLE account_users COMMENT = '뷰랩 서비스 일반 사용자 계정 (Sanctum 토큰 인증)'");
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('actor')->comment('user|partner|staff');

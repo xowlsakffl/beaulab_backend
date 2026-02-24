@@ -17,9 +17,9 @@ final class AccountUser extends Authenticatable
     protected string $guard_name = 'user';
     protected $table = 'account_users';
 
-    public const STATUS_ACTIVE = 'active';
-    public const STATUS_SUSPENDED = 'suspended';
-    public const STATUS_BLOCKED = 'blocked';
+    public const STATUS_ACTIVE = 'ACTIVE';
+    public const STATUS_SUSPENDED = 'SUSPENDED';
+    public const STATUS_BLOCKED = 'BLOCKED';
 
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,

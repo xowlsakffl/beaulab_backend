@@ -70,6 +70,7 @@ final class BeautyCreateForStaffRequest extends FormRequest
             'business_registration_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'business_address' => ['nullable', 'string', 'max:255'],
             'business_address_detail' => ['nullable', 'string', 'max:255'],
+            'issued_at' => ['date'],
 
             // 파일 필수
             'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
@@ -93,6 +94,7 @@ final class BeautyCreateForStaffRequest extends FormRequest
             'business_type' => '업태',
             'business_item' => '종목',
             'business_registration_file' => '사업자등록증 파일',
+            'issued_at' => '사업자 등록일',
 
             'logo' => '로고',
             'gallery' => '갤러리 이미지',

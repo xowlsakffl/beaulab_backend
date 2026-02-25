@@ -43,7 +43,7 @@ return new class extends Migration
             $table->index('allow_status');
         });
 
-        DB::statement("ALTER TABLE doctors COMMENT = '뷰티 소속 뷰티전문가 테이블'");
+        DB::statement("ALTER TABLE experts COMMENT = '뷰티 소속 뷰티전문가 테이블'");
     }
 
     /**

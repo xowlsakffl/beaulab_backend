@@ -5,6 +5,7 @@ namespace App\Domains\Hospital\Dto\Staff;
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Support\Collection;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Doctor\Models\Doctor;
 use App\Domains\Partner\Models\AccountPartner;
 
 final readonly class HospitalForStaffDetailDto
@@ -52,6 +53,22 @@ final readonly class HospitalForStaffDetailDto
                 'last_login_at' => $partner->last_login_at?->toISOString(),
                 'created_at' => $partner->created_at?->toISOString(),
                 'updated_at' => $partner->updated_at?->toISOString(),
+            ])->all();
+        }
+
+
+        if (in_array('doctors', $include, true)) {
+            $payload['doctors'] = $hospital->doctors->map(fn (Doctor $doctor): array => [
+                'id' => $doctor->id,
+                'hospital_id' => $doctor->hospital_id,
+                'name' => $doctor->name,
+                'position' => $doctor->position,
+                'is_specialist' => (bool) $doctor->is_specialist,
+                'sort_order' => (int) $doctor->sort_order,
+                'allow_status' => $doctor->allow_status,
+                'status' => $doctor->status,
+                'created_at' => $doctor->created_at?->toISOString(),
+                'updated_at' => $doctor->updated_at?->toISOString(),
             ])->all();
         }
 

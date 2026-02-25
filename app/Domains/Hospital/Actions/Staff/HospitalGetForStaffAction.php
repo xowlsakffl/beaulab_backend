@@ -4,6 +4,7 @@ namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Doctor\Models\Doctor;
 use Illuminate\Support\Facades\Gate;
 
 final class HospitalGetForStaffAction
@@ -24,6 +25,11 @@ final class HospitalGetForStaffAction
 
         if (in_array('account_partners', $include, true)) {
             $relations[] = 'partners.roles';
+        }
+
+        if (in_array('doctors', $include, true)) {
+            Gate::authorize('viewAny', Doctor::class);
+            $relations[] = 'doctors';
         }
 
         if ($relations !== []) {

@@ -8,6 +8,59 @@ final class AccessPermissions
     public const GUARD_PARTNER = 'partner';
     public const GUARD_USER    = 'user';
 
+    // Common
+    public const COMMON_ACCESS = 'common.access';
+    public const COMMON_DASHBOARD_SHOW = 'common.dashboard.show';
+    public const COMMON_PROFILE_SHOW = 'common.profile.show';
+    public const COMMON_PROFILE_UPDATE = 'common.profile.update';
+
+    // Beaulab
+    public const BEAULAB_HOSPITAL_SHOW = 'beaulab.hospital.show';
+    public const BEAULAB_HOSPITAL_CREATE = 'beaulab.hospital.create';
+    public const BEAULAB_HOSPITAL_UPDATE = 'beaulab.hospital.update';
+    public const BEAULAB_HOSPITAL_DELETE = 'beaulab.hospital.delete';
+    public const BEAULAB_BEAUTY_SHOW = 'beaulab.beauty.show';
+    public const BEAULAB_BEAUTY_CREATE = 'beaulab.beauty.create';
+    public const BEAULAB_BEAUTY_UPDATE = 'beaulab.beauty.update';
+    public const BEAULAB_BEAUTY_DELETE = 'beaulab.beauty.delete';
+    public const BEAULAB_AGENCY_SHOW = 'beaulab.agency.show';
+    public const BEAULAB_AGENCY_CREATE = 'beaulab.agency.create';
+    public const BEAULAB_AGENCY_UPDATE = 'beaulab.agency.update';
+    public const BEAULAB_AGENCY_DELETE = 'beaulab.agency.delete';
+    public const BEAULAB_USER_SHOW = 'beaulab.user.show';
+    public const BEAULAB_USER_UPDATE = 'beaulab.user.update';
+    public const BEAULAB_USER_DELETE = 'beaulab.user.delete';
+    public const BEAULAB_DOCTOR_SHOW = 'beaulab.doctor.show';
+    public const BEAULAB_DOCTOR_CREATE = 'beaulab.doctor.create';
+    public const BEAULAB_DOCTOR_UPDATE = 'beaulab.doctor.update';
+    public const BEAULAB_DOCTOR_DELETE = 'beaulab.doctor.delete';
+    public const BEAULAB_EXPERT_SHOW = 'beaulab.expert.show';
+    public const BEAULAB_EXPERT_CREATE = 'beaulab.expert.create';
+    public const BEAULAB_EXPERT_UPDATE = 'beaulab.expert.update';
+    public const BEAULAB_EXPERT_DELETE = 'beaulab.expert.delete';
+
+    // Hospital
+    public const HOSPITAL_PROFILE_SHOW = 'hospital.profile.show';
+    public const HOSPITAL_PROFILE_UPDATE = 'hospital.profile.update';
+    public const HOSPITAL_PROFILE_DELETE = 'hospital.profile.delete';
+    public const HOSPITAL_MEMBERS_MANAGE = 'hospital.members.manage';
+
+    // Beauty
+    public const BEAUTY_PROFILE_SHOW = 'beauty.profile.show';
+    public const BEAUTY_PROFILE_UPDATE = 'beauty.profile.update';
+    public const BEAUTY_PROFILE_DELETE = 'beauty.profile.delete';
+    public const BEAUTY_MEMBERS_MANAGE = 'beauty.members.manage';
+
+    // Agency
+    public const AGENCY_PROFILE_SHOW = 'agency.profile.show';
+    public const AGENCY_PROFILE_UPDATE = 'agency.profile.update';
+    public const AGENCY_PROFILE_DELETE = 'agency.profile.delete';
+    public const AGENCY_MEMBERS_MANAGE = 'agency.members.manage';
+
+    // User
+    public const USER_PROFILE_SHOW = 'user.profile.show';
+    public const USER_PROFILE_UPDATE = 'user.profile.update';
+
     /**
      * guard별 생성해야 할 permission 목록 (Seeder는 이걸 기준으로 생성)
      *
@@ -58,13 +111,10 @@ final class AccessPermissions
     public static function common(): array
     {
         return [
-            // 관리영역 접근
-            'common.access',
-
-            // 기본 화면/계정
-            'common.dashboard.show',
-            'common.profile.show',
-            'common.profile.update',
+            self::COMMON_ACCESS,
+            self::COMMON_DASHBOARD_SHOW,
+            self::COMMON_PROFILE_SHOW,
+            self::COMMON_PROFILE_UPDATE,
         ];
     }
 
@@ -74,40 +124,29 @@ final class AccessPermissions
     public static function beaulab(): array
     {
         return [
-            // 병원
-            'beaulab.hospital.show',
-            'beaulab.hospital.create',
-            'beaulab.hospital.update',
-            'beaulab.hospital.delete',
-
-            // 뷰티
-            'beaulab.beauty.show',
-            'beaulab.beauty.create',
-            'beaulab.beauty.update',
-            'beaulab.beauty.delete',
-
-            // 대행사
-            'beaulab.agency.show',
-            'beaulab.agency.create',
-            'beaulab.agency.update',
-            'beaulab.agency.delete',
-
-            // 일반회원
-            'beaulab.user.show',
-            'beaulab.user.update',
-            'beaulab.user.delete',
-
-            // 의사
-            'beaulab.doctor.show',
-            'beaulab.doctor.create',
-            'beaulab.doctor.update',
-            'beaulab.doctor.delete',
-
-            // 뷰티전문가
-            'beaulab.expert.show',
-            'beaulab.expert.create',
-            'beaulab.expert.update',
-            'beaulab.expert.delete',
+            self::BEAULAB_HOSPITAL_SHOW,
+            self::BEAULAB_HOSPITAL_CREATE,
+            self::BEAULAB_HOSPITAL_UPDATE,
+            self::BEAULAB_HOSPITAL_DELETE,
+            self::BEAULAB_BEAUTY_SHOW,
+            self::BEAULAB_BEAUTY_CREATE,
+            self::BEAULAB_BEAUTY_UPDATE,
+            self::BEAULAB_BEAUTY_DELETE,
+            self::BEAULAB_AGENCY_SHOW,
+            self::BEAULAB_AGENCY_CREATE,
+            self::BEAULAB_AGENCY_UPDATE,
+            self::BEAULAB_AGENCY_DELETE,
+            self::BEAULAB_USER_SHOW,
+            self::BEAULAB_USER_UPDATE,
+            self::BEAULAB_USER_DELETE,
+            self::BEAULAB_DOCTOR_SHOW,
+            self::BEAULAB_DOCTOR_CREATE,
+            self::BEAULAB_DOCTOR_UPDATE,
+            self::BEAULAB_DOCTOR_DELETE,
+            self::BEAULAB_EXPERT_SHOW,
+            self::BEAULAB_EXPERT_CREATE,
+            self::BEAULAB_EXPERT_UPDATE,
+            self::BEAULAB_EXPERT_DELETE,
         ];
     }
 
@@ -117,10 +156,10 @@ final class AccessPermissions
     public static function hospital(): array
     {
         return [
-            'hospital.profile.show',
-            'hospital.profile.update',
-            'hospital.profile.delete',
-            'hospital.members.manage',
+            self::HOSPITAL_PROFILE_SHOW,
+            self::HOSPITAL_PROFILE_UPDATE,
+            self::HOSPITAL_PROFILE_DELETE,
+            self::HOSPITAL_MEMBERS_MANAGE,
         ];
     }
 
@@ -130,10 +169,10 @@ final class AccessPermissions
     public static function beauty(): array
     {
         return [
-            'beauty.profile.show',
-            'beauty.profile.update',
-            'beauty.profile.delete',
-            'beauty.members.manage',
+            self::BEAUTY_PROFILE_SHOW,
+            self::BEAUTY_PROFILE_UPDATE,
+            self::BEAUTY_PROFILE_DELETE,
+            self::BEAUTY_MEMBERS_MANAGE,
         ];
     }
 
@@ -143,10 +182,10 @@ final class AccessPermissions
     public static function agency(): array
     {
         return [
-            'agency.profile.show',
-            'agency.profile.update',
-            'agency.profile.delete',
-            'agency.members.manage',
+            self::AGENCY_PROFILE_SHOW,
+            self::AGENCY_PROFILE_UPDATE,
+            self::AGENCY_PROFILE_DELETE,
+            self::AGENCY_MEMBERS_MANAGE,
         ];
     }
 
@@ -156,8 +195,8 @@ final class AccessPermissions
     public static function user(): array
     {
         return [
-            'user.profile.show',
-            'user.profile.update',
+            self::USER_PROFILE_SHOW,
+            self::USER_PROFILE_UPDATE,
         ];
     }
 

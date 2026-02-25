@@ -100,23 +100,23 @@ final class AccessRoles
                 self::BEAULAB_STAFF => self::unique([
                     ...$staffCommon,
                     // 조회 중심
-                    'beaulab.hospital.show',
-                    'beaulab.beauty.show',
-                    'beaulab.agency.show',
-                    'beaulab.user.show',
-                    'beaulab.doctor.show',
-                    'beaulab.expert.show',
+                    AccessPermissions::BEAULAB_HOSPITAL_SHOW,
+                    AccessPermissions::BEAULAB_BEAUTY_SHOW,
+                    AccessPermissions::BEAULAB_AGENCY_SHOW,
+                    AccessPermissions::BEAULAB_USER_SHOW,
+                    AccessPermissions::BEAULAB_DOCTOR_SHOW,
+                    AccessPermissions::BEAULAB_EXPERT_SHOW,
                 ]),
 
                 // 개발(현재는 staff 동일)
                 self::BEAULAB_DEV => self::unique([
                     ...$staffCommon,
-                    'beaulab.hospital.show',
-                    'beaulab.beauty.show',
-                    'beaulab.agency.show',
-                    'beaulab.user.show',
-                    'beaulab.doctor.show',
-                    'beaulab.expert.show',
+                    AccessPermissions::BEAULAB_HOSPITAL_SHOW,
+                    AccessPermissions::BEAULAB_BEAUTY_SHOW,
+                    AccessPermissions::BEAULAB_AGENCY_SHOW,
+                    AccessPermissions::BEAULAB_USER_SHOW,
+                    AccessPermissions::BEAULAB_DOCTOR_SHOW,
+                    AccessPermissions::BEAULAB_EXPERT_SHOW,
                 ]),
             ],
 
@@ -130,13 +130,13 @@ final class AccessRoles
                 ]),
                 self::HOSPITAL_MANAGER => self::unique([
                     ...$partnerCommon,
-                    'hospital.profile.show',
-                    'hospital.profile.update',
-                    'hospital.members.manage',
+                    AccessPermissions::HOSPITAL_PROFILE_SHOW,
+                    AccessPermissions::HOSPITAL_PROFILE_UPDATE,
+                    AccessPermissions::HOSPITAL_MEMBERS_MANAGE,
                 ]),
                 self::HOSPITAL_STAFF => self::unique([
                     ...$partnerCommon,
-                    'hospital.profile.show',
+                    AccessPermissions::HOSPITAL_PROFILE_SHOW,
                 ]),
 
                 self::BEAUTY_OWNER => self::unique([
@@ -145,13 +145,13 @@ final class AccessRoles
                 ]),
                 self::BEAUTY_MANAGER => self::unique([
                     ...$partnerCommon,
-                    'beauty.profile.show',
-                    'beauty.profile.update',
-                    'beauty.members.manage',
+                    AccessPermissions::BEAUTY_PROFILE_SHOW,
+                    AccessPermissions::BEAUTY_PROFILE_UPDATE,
+                    AccessPermissions::BEAUTY_MEMBERS_MANAGE,
                 ]),
                 self::BEAUTY_STAFF => self::unique([
                     ...$partnerCommon,
-                    'beauty.profile.show',
+                    AccessPermissions::BEAUTY_PROFILE_SHOW,
                 ]),
 
                 self::AGENCY_OWNER => self::unique([
@@ -160,7 +160,7 @@ final class AccessRoles
                 ]),
                 self::AGENCY_STAFF => self::unique([
                     ...$partnerCommon,
-                    'agency.profile.show',
+                    AccessPermissions::AGENCY_PROFILE_SHOW,
                 ]),
             ],
 

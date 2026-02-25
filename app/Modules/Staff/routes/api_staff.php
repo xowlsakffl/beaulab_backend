@@ -5,6 +5,7 @@ use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
 use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Doctor\DoctorForStaffController;
+use App\Modules\Staff\Http\Controllers\Expert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use Illuminate\Support\Facades\Route;
 
@@ -81,4 +82,18 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('doctors.updateDoctorForStaff');
     Route::delete('doctors/{doctor}', [DoctorForStaffController::class, 'deleteDoctorForStaff'])
         ->name('doctors.deleteDoctorForStaff');
+
+    /**
+     * 뷰티전문가 관리
+     **/
+    Route::get('experts', [ExpertForStaffController::class, 'getExpertsForStaff'])
+        ->name('experts.getExpertsForStaff');
+    Route::get('experts/{expert}', [ExpertForStaffController::class, 'getExpertForStaff'])
+        ->name('experts.getExpertForStaff');
+    Route::post('experts', [ExpertForStaffController::class, 'storeExpertForStaff'])
+        ->name('experts.storeExpertForStaff');
+    Route::match(['post', 'put', 'patch'], 'experts/{expert}', [ExpertForStaffController::class, 'updateExpertForStaff'])
+        ->name('experts.updateExpertForStaff');
+    Route::delete('experts/{expert}', [ExpertForStaffController::class, 'deleteExpertForStaff'])
+        ->name('experts.deleteExpertForStaff');
 });

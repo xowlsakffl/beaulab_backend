@@ -85,6 +85,25 @@ final class MediaAttachAction
         return $this->storeMany($owner, $files, 'etc_certificate_image', "{$dirPrefix}/{$owner->getKey()}/etc-certificate-image");
     }
 
+    public function attachExpertProfileImage(Model $owner, ?UploadedFile $file, string $dirPrefix): ?Media
+    {
+        if (! $file) return null;
+
+        return $this->storeOne($owner, $file, 'profile_image', "{$dirPrefix}/{$owner->getKey()}/profile-image", false, 0);
+    }
+
+    /** @param array<int, UploadedFile> $files */
+    public function attachExpertEducationCertificateImages(Model $owner, array $files, string $dirPrefix): array
+    {
+        return $this->storeMany($owner, $files, 'education_certificate_image', "{$dirPrefix}/{$owner->getKey()}/education-certificate-image");
+    }
+
+    /** @param array<int, UploadedFile> $files */
+    public function attachExpertEtcCertificateImages(Model $owner, array $files, string $dirPrefix): array
+    {
+        return $this->storeMany($owner, $files, 'etc_certificate_image', "{$dirPrefix}/{$owner->getKey()}/etc-certificate-image");
+    }
+
     /**
      * @param array<int, UploadedFile> $files
      * @return array<int, Media>

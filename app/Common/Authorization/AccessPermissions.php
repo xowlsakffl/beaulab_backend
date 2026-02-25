@@ -102,6 +102,12 @@ final class AccessPermissions
             'beaulab.doctor.create',
             'beaulab.doctor.update',
             'beaulab.doctor.delete',
+
+            // 뷰티전문가
+            'beaulab.expert.show',
+            'beaulab.expert.create',
+            'beaulab.expert.update',
+            'beaulab.expert.delete',
         ];
     }
 

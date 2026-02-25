@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
+use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Partner\Models\AccountPartner;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -84,6 +85,25 @@ final class HospitalFactory extends Factory
                     $i
                 );
             }
+        });
+    }
+
+    public function withBusinessRegistration(): self
+    {
+        return $this->afterCreating(function (Hospital $hospital): void {
+            BusinessRegistration::query()->create([
+                'owner_type'              => 'hospital',
+                'owner_id'                => $hospital->id,
+                'business_number'         => $this->faker->unique()->numerify('###-##-#####'),
+                'company_name'            => $hospital->name,
+                'ceo_name'                => $this->faker->name(),
+                'business_type'           => $this->faker->randomElement(['의료업', '보건업']),
+                'business_item'           => $this->faker->randomElement(['성형외과', '피부과', '치과']),
+                'business_address'        => $hospital->address,
+                'business_address_detail' => $hospital->address_detail,
+                'issued_at'               => $this->faker->date(),
+                'status'                  => BusinessRegistration::STATUS_ACTIVE,
+            ]);
         });
     }
 

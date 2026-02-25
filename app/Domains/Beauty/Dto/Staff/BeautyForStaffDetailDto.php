@@ -4,6 +4,7 @@ namespace App\Domains\Beauty\Dto\Staff;
 
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Models\Media\Media;
+use App\Domains\Expert\Models\Expert;
 use Illuminate\Support\Collection;
 use App\Domains\Partner\Models\AccountPartner;
 
@@ -52,6 +53,26 @@ final readonly class BeautyForStaffDetailDto
                 'last_login_at' => $partner->last_login_at?->toISOString(),
                 'created_at' => $partner->created_at?->toISOString(),
                 'updated_at' => $partner->updated_at?->toISOString(),
+            ])->all();
+        }
+
+        if (in_array('experts', $include, true)) {
+            $payload['experts'] = $beauty->experts->map(fn (Expert $expert): array => [
+                'id' => $expert->id,
+                'beauty_id' => $expert->beauty_id,
+                'sort_order' => (int) $expert->sort_order,
+                'name' => $expert->name,
+                'gender' => $expert->gender,
+                'position' => $expert->position,
+                'career_started_at' => $expert->career_started_at?->toDateString(),
+                'educations' => $expert->educations ?? [],
+                'careers' => $expert->careers ?? [],
+                'etc_contents' => $expert->etc_contents ?? [],
+                'status' => $expert->status,
+                'allow_status' => $expert->allow_status,
+                'profile_image' => self::formatMedia($expert->profileImage),
+                'created_at' => $expert->created_at?->toISOString(),
+                'updated_at' => $expert->updated_at?->toISOString(),
             ])->all();
         }
 

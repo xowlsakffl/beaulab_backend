@@ -4,6 +4,7 @@ namespace App\Domains\Beauty\Actions\Staff;
 
 use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
+use App\Domains\Expert\Models\Expert;
 use Illuminate\Support\Facades\Gate;
 
 final class BeautyGetForStaffAction
@@ -24,6 +25,11 @@ final class BeautyGetForStaffAction
 
         if (in_array('account_partners', $include, true)) {
             $relations[] = 'partners.roles';
+        }
+
+        if (in_array('experts', $include, true)) {
+            Gate::authorize('viewAny', Expert::class);
+            $relations[] = 'experts.profileImage';
         }
 
         if ($relations !== []) {

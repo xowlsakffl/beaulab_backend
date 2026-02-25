@@ -24,7 +24,7 @@ final class BeautyGetForStaffRequest extends FormRequest
     {
         return [
             'include' => ['nullable', 'array'],
-            'include.*' => ['in:business_registration,account_partners'],
+            'include.*' => ['in:business_registration,account_partners,experts'],
         ];
     }
 

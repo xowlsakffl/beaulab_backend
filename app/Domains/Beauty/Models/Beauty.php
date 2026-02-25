@@ -6,6 +6,7 @@ namespace App\Domains\Beauty\Models;
 
 use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Common\Models\Media\Media;
+use App\Domains\Expert\Models\Expert;
 use App\Domains\Partner\Models\AccountPartner;
 use Database\Factories\BeautyFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -67,6 +68,12 @@ final class Beauty extends Model
         return $this->hasMany(AccountPartner::class, 'beauty_id');
     }
 
+    public function experts(): HasMany
+    {
+        return $this->hasMany(Expert::class, 'beauty_id')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
 
     public function logoMedia(): MorphOne
     {

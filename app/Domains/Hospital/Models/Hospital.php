@@ -6,6 +6,7 @@ namespace App\Domains\Hospital\Models;
 
 use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Common\Models\Media\Media;
+use App\Domains\Doctor\Models\Doctor;
 use App\Domains\Partner\Models\AccountPartner;
 use Database\Factories\HospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;

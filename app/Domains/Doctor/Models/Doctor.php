@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Doctor\Models;
 
 use App\Domains\Common\Models\Media\Media;
+use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -71,9 +72,9 @@ final class Doctor extends Model
         return $this->morphMany(Media::class, 'model')->where('collection', 'specialist_certificate_image')->orderBy('sort_order')->orderBy('id');
     }
 
-    public function graduationCertificateImages(): MorphMany
+    public function educationCertificateImages(): MorphMany
     {
-        return $this->morphMany(Media::class, 'model')->where('collection', 'graduation_certificate_image')->orderBy('sort_order')->orderBy('id');
+        return $this->morphMany(Media::class, 'model')->where('collection', 'education_certificate_image')->orderBy('sort_order')->orderBy('id');
     }
 
     public function etcCertificateImages(): MorphMany

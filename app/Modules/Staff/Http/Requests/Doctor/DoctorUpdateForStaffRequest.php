@@ -53,8 +53,8 @@ final class DoctorUpdateForStaffRequest extends FormRequest
             'license_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
             'specialist_certificate_image' => ['nullable', 'array', 'max:12'],
             'specialist_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'graduation_certificate_image' => ['nullable', 'array', 'max:12'],
-            'graduation_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+            'education_certificate_image' => ['nullable', 'array', 'max:12'],
+            'education_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
             'etc_certificate_image' => ['nullable', 'array', 'max:12'],
             'etc_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ];
@@ -80,8 +80,8 @@ final class DoctorUpdateForStaffRequest extends FormRequest
 
             'specialist_certificate_image' => '전문의 면허증 이미지',
             'specialist_certificate_image.*' => '전문의 면허증 이미지',
-            'graduation_certificate_image' => '학력 증명서 이미지',
-            'graduation_certificate_image.*' => '학력 증명서 이미지',
+            'education_certificate_image' => '학력 증명서 이미지',
+            'education_certificate_image.*' => '학력 증명서 이미지',
             'etc_certificate_image' => '기타 증명서 이미지',
             'etc_certificate_image.*' => '기타 증명서 이미지',
         ];

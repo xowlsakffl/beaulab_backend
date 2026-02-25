@@ -34,7 +34,7 @@ final class DoctorCreateForStaffAction
                 'profileImage',
                 'licenseImage',
                 'specialistCertificateImages',
-                'graduationCertificateImages',
+                'educationCertificateImages',
                 'etcCertificateImages',
             ]))->toArray(),
         ];
@@ -51,9 +51,9 @@ final class DoctorCreateForStaffAction
             'doctor',
         );
 
-        $this->mediaAttachAction->attachDoctorGraduationCertificateImages(
+        $this->mediaAttachAction->attachDoctorEducationCertificateImages(
             $doctor,
-            $this->onlyFiles($payload['graduation_certificate_image'] ?? null),
+            $this->onlyFiles($payload['education_certificate_image'] ?? null),
             'doctor',
         );
 

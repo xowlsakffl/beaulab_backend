@@ -74,9 +74,9 @@ final class MediaAttachAction
     }
 
     /** @param array<int, UploadedFile> $files */
-    public function attachDoctorGraduationCertificateImages(Model $owner, array $files, string $dirPrefix): array
+    public function attachDoctorEducationCertificateImages(Model $owner, array $files, string $dirPrefix): array
     {
-        return $this->storeMany($owner, $files, 'graduation_certificate_image', "{$dirPrefix}/{$owner->getKey()}/graduation-certificate-image");
+        return $this->storeMany($owner, $files, 'education_certificate_image', "{$dirPrefix}/{$owner->getKey()}/education-certificate-image");
     }
 
     /** @param array<int, UploadedFile> $files */

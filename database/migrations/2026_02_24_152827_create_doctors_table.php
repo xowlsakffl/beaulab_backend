@@ -33,7 +33,7 @@ return new class extends Migration
             // - profile_image
             // - license_image
             // - specialist_certificate_image
-            // - graduation_certificate_image
+            // - education_certificate_image
             // - etc_certificate_image
 
             $table->string('status', 20)->default('SUSPENDED')->comment('의사 상태(정상, 정지, 비활성)');

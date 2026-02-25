@@ -32,7 +32,7 @@ final readonly class DoctorForStaffDetailDto
             'profile_image' => self::formatMedia($doctor->profileImage),
             'license_image' => self::formatMedia($doctor->licenseImage),
             'specialist_certificate_image' => self::formatMediaList($doctor->specialistCertificateImages),
-            'graduation_certificate_image' => self::formatMediaList($doctor->graduationCertificateImages),
+            'education_certificate_image' => self::formatMediaList($doctor->educationCertificateImages),
             'etc_certificate_image' => self::formatMediaList($doctor->etcCertificateImages),
             'created_at' => $doctor->created_at?->toISOString(),
             'updated_at' => $doctor->updated_at?->toISOString(),

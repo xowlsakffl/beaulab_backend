@@ -16,7 +16,7 @@ final class DoctorGetForStaffAction
             'profileImage',
             'licenseImage',
             'specialistCertificateImages',
-            'graduationCertificateImages',
+            'educationCertificateImages',
             'etcCertificateImages',
         ]);
 

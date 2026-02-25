@@ -2,6 +2,7 @@
 
 namespace App\Domains\Beauty\Policies\Staff;
 
+use App\Common\Authorization\AccessPermissions;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Staff\Models\AccountStaff;
 
@@ -9,26 +10,26 @@ final class BeautyForStaffPolicy
 {
     public function viewAny(AccountStaff $actor): bool
     {
-        return $actor->can('beaulab.beauty.show');
+        return $actor->can(AccessPermissions::BEAULAB_BEAUTY_SHOW);
     }
 
     public function view(AccountStaff $actor, Beauty $beauty): bool
     {
-        return $actor->can('beaulab.beauty.show');
+        return $actor->can(AccessPermissions::BEAULAB_BEAUTY_SHOW);
     }
 
     public function create(AccountStaff $actor): bool
     {
-        return $actor->can('beaulab.beauty.create');
+        return $actor->can(AccessPermissions::BEAULAB_BEAUTY_CREATE);
     }
 
     public function update(AccountStaff $actor, Beauty $beauty): bool
     {
-        return $actor->can('beaulab.beauty.update');
+        return $actor->can(AccessPermissions::BEAULAB_BEAUTY_UPDATE);
     }
 
     public function delete(AccountStaff $actor, Beauty $beauty): bool
     {
-        return $actor->can('beaulab.beauty.delete');
+        return $actor->can(AccessPermissions::BEAULAB_BEAUTY_DELETE);
     }
 }

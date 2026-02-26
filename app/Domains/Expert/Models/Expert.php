@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Expert\Models;
 
+use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Expert extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasAuditLogs;
 
     public const ALLOW_PENDING  = 'PENDING';
     public const ALLOW_APPROVED = 'APPROVED';

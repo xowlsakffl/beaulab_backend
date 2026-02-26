@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Beauty\Models;
 
+use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Expert\Models\Expert;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Beauty extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasAuditLogs;
 
     // allow_status
     public const string ALLOW_PENDING  = 'PENDING';

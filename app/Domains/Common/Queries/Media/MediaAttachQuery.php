@@ -14,11 +14,17 @@ final class MediaAttachQuery
 
     public function clearPrimary(Model $owner, string $collection): int
     {
-        return Media::query()
+        $rows = Media::query()
             ->where('model_type', $owner::class)
             ->where('model_id', $owner->getKey())
             ->where('collection', $collection)
             ->where('is_primary', true)
-            ->update(['is_primary' => false]);
+            ->get();
+
+        foreach ($rows as $row) {
+            $row->forceFill(['is_primary' => false])->save();
+        }
+
+        return $rows->count();
     }
 }

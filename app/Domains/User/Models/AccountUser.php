@@ -2,6 +2,7 @@
 
 namespace App\Domains\User\Models;
 
+use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Common\Notifications\QueuedResetPasswordNotification;
 use Database\Factories\AccountUserFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -14,7 +15,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 final class AccountUser extends Authenticatable
 {
-    use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes, HasAuditLogs;
 
     protected string $guard_name = 'user';
     protected $table = 'account_users';

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domains\Common\Models\BusinessRegistration;
 
+use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 final class BusinessRegistration extends Model
 {
+    use HasAuditLogs;
+
     // status
     public const STATUS_ACTIVE    = 'ACTIVE';
     public const STATUS_EXPIRED = 'EXPIRED';

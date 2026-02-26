@@ -104,6 +104,16 @@ final class MediaAttachAction
         return $this->storeMany($owner, $files, 'etc_certificate_image', "{$dirPrefix}/{$owner->getKey()}/etc-certificate-image");
     }
 
+    public function attachVideoRequestSourceVideo(Model $owner, UploadedFile $file, string $dirPrefix): Media
+    {
+        return $this->storeOne($owner, $file, 'source_video_file', "{$dirPrefix}/{$owner->getKey()}/source-video", false, 0);
+    }
+
+    public function attachVideoRequestSourceThumbnail(Model $owner, UploadedFile $file, string $dirPrefix): Media
+    {
+        return $this->storeOne($owner, $file, 'source_thumbnail_file', "{$dirPrefix}/{$owner->getKey()}/source-thumbnail", false, 0);
+    }
+
     /**
      * @param array<int, UploadedFile> $files
      * @return array<int, Media>

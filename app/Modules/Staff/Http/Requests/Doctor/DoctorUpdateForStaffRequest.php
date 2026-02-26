@@ -74,6 +74,8 @@ final class DoctorUpdateForStaffRequest extends FormRequest
             'educations' => '학력 사항',
             'careers' => '경력 사항',
             'etc_contents' => '기타 사항',
+            'status' => '상태',
+            'allow_status' => '노출 승인 상태',
 
             'profile_image' => '프로필 이미지',
             'license_image' => '면허증 이미지',

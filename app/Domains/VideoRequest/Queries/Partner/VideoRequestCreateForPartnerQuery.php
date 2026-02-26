@@ -18,8 +18,6 @@ final class VideoRequestCreateForPartnerQuery
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'is_usage_consented' => (bool) $data['is_usage_consented'],
-            'source_video_media_id' => $data['source_video_media_id'] ?? null,
-            'source_thumbnail_media_id' => $data['source_thumbnail_media_id'] ?? null,
             'duration_seconds' => (int) $data['duration_seconds'],
             'requested_publish_start_at' => $data['requested_publish_start_at'] ?? null,
             'requested_publish_end_at' => $data['requested_publish_end_at'] ?? null,

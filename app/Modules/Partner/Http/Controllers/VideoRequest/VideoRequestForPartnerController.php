@@ -9,6 +9,7 @@ use App\Domains\VideoRequest\Actions\Partner\VideoRequestCancelForPartnerAction;
 use App\Domains\VideoRequest\Actions\Partner\VideoRequestListForPartnerAction;
 use App\Domains\VideoRequest\Actions\Partner\VideoRequestUpdateForPartnerAction;
 use App\Domains\VideoRequest\Models\VideoRequest;
+use App\Modules\Partner\Http\Requests\VideoRequest\VideoRequestCancelForPartnerRequest;
 use App\Modules\Partner\Http\Requests\VideoRequest\VideoRequestCreateForPartnerRequest;
 use App\Modules\Partner\Http\Requests\VideoRequest\VideoRequestListForPartnerRequest;
 use App\Modules\Partner\Http\Requests\VideoRequest\VideoRequestUpdateForPartnerRequest;
@@ -36,9 +37,9 @@ final class VideoRequestForPartnerController extends Controller
         return ApiResponse::success($result['video_request'] ?? $result);
     }
 
-    public function cancelVideoRequestForPartner(VideoRequest $videoRequest, VideoRequestCancelForPartnerAction $action)
+    public function cancelVideoRequestForPartner(VideoRequest $videoRequest, VideoRequestCancelForPartnerRequest $request, VideoRequestCancelForPartnerAction $action)
     {
-        $result = $action->execute($videoRequest);
+        $result = $action->execute($videoRequest, $request->validated());
 
         return ApiResponse::success($result['video_request'] ?? $result);
     }

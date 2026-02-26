@@ -166,4 +166,39 @@ Action 간 중복이 발생하면 아래 레이어로 흡수한다.
 
 ---
 
+## 9. 데이터 변경/감사 로깅 아키텍처 원칙
+
+### 9.1 감사 대상 모델(Auditable Model) 변경 방식
+
+감사 추적이 필요한 모델은 **벌크 업데이트를 금지**한다.
+
+- 금지: `Model::query()->update(...)`, `Model::where(...)->delete()` 같은 bulk CUD
+- 허용: 개별 인스턴스 단위의 `save()`, `delete()`
+
+이 원칙은 Activity Log(`LogsActivity`)가 모델 이벤트 기반으로 기록되는 구조를 보장하기 위함이다.
+
+### 9.2 로그 레이어 분리
+
+로그는 목적에 따라 아래처럼 분리한다.
+
+- **감사로그(Audit Log)**
+    - 대상: 누가 어떤 데이터를 C/U/D 했는지의 변경 이력
+    - 저장: `activity_log` 테이블(Spatie Activitylog)
+    - 기본 로그명: `audit`
+    - 기준 구현: `HasAuditLogs` trait
+- **운영로그(App Log)**
+    - 대상: 예외, 요청 추적(traceId), 시스템 운영 이벤트
+    - 저장: `storage/logs/laravel.log` 및 logging channel
+
+자세한 운영 규칙은 `logging.md`를 참고한다.
+
+### 9.3 기록 우선순위
+
+현 시점 기준으로 아래는 감사로그 기록을 기본 원칙으로 한다.
+
+- 주요 도메인 CUD(Create/Update/Delete)
+- 모든 도메인 권한 변경사항(Role/Permission 부여/회수/동기화)
+
+---
+
 작성자: 안민성

@@ -12,6 +12,7 @@
 - [아키텍처 & 흐름](./architecture.md)
 - [에러 / 예외 처리](./error-handling.md)
 - [권한 / 메뉴 설계 (Staff / Partner / User)](./authorization.md)
+- [로깅 전략 (감사로그 / 운영로그)](./logging.md)
 
 ---
 

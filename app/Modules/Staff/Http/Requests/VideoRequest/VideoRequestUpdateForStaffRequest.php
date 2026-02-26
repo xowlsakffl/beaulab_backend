@@ -27,7 +27,7 @@ final class VideoRequestUpdateForStaffRequest extends FormRequest
             'requested_publish_start_at' => ['sometimes', 'nullable', 'date'],
             'requested_publish_end_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:requested_publish_start_at'],
             'is_publish_period_unlimited' => ['sometimes', 'boolean'],
-            'review_status' => ['sometimes', 'in:PENDING,IN_REVIEW,APPROVED,REJECTED'],
+            'review_status' => ['sometimes', 'in:PENDING,IN_REVIEW,APPROVED,REJECTED,PARTNER_CANCELED'],
             'reviewed_by_staff_id' => ['sometimes', 'nullable', 'integer', 'exists:account_staffs,id'],
             'reviewed_at' => ['sometimes', 'nullable', 'date'],
             'reject_reason' => ['sometimes', 'nullable', 'string', 'max:100'],

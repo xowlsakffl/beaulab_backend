@@ -25,7 +25,7 @@ final class VideoRequestListForStaffRequest extends FormRequest
             'beauty_id' => ['nullable', 'integer', 'exists:beauties,id'],
             'q' => ['nullable', 'string', 'max:100'],
             'review_status' => ['nullable', 'array'],
-            'review_status.*' => ['in:PENDING,IN_REVIEW,APPROVED,REJECTED'],
+            'review_status.*' => ['in:PENDING,IN_REVIEW,APPROVED,REJECTED,PARTNER_CANCELED'],
             'sort' => ['nullable', 'in:id,title,review_status,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],

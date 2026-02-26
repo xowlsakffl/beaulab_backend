@@ -136,7 +136,7 @@ final class AccessRoles
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_CREATE,
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_UPDATE,
-                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_DELETE,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_CANCEL,
                 ]),
                 self::HOSPITAL_STAFF => self::unique([
                     ...$partnerCommon,
@@ -144,7 +144,7 @@ final class AccessRoles
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_CREATE,
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_UPDATE,
-                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_DELETE,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_CANCEL,
                 ]),
 
                 self::BEAUTY_OWNER => self::unique([
@@ -159,7 +159,7 @@ final class AccessRoles
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_SHOW,
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_CREATE,
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_UPDATE,
-                    AccessPermissions::BEAUTY_VIDEO_REQUEST_DELETE,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_CANCEL,
                 ]),
                 self::BEAUTY_STAFF => self::unique([
                     ...$partnerCommon,
@@ -167,7 +167,7 @@ final class AccessRoles
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_SHOW,
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_CREATE,
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_UPDATE,
-                    AccessPermissions::BEAUTY_VIDEO_REQUEST_DELETE,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_CANCEL,
                 ]),
 
                 self::AGENCY_OWNER => self::unique([

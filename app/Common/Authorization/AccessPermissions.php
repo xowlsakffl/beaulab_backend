@@ -52,7 +52,7 @@ final class AccessPermissions
     public const HOSPITAL_VIDEO_REQUEST_SHOW = 'hospital.video-request.show';
     public const HOSPITAL_VIDEO_REQUEST_CREATE = 'hospital.video-request.create';
     public const HOSPITAL_VIDEO_REQUEST_UPDATE = 'hospital.video-request.update';
-    public const HOSPITAL_VIDEO_REQUEST_DELETE = 'hospital.video-request.delete';
+    public const HOSPITAL_VIDEO_REQUEST_CANCEL = 'hospital.video-request.cancel';
 
     // Beauty
     public const BEAUTY_PROFILE_SHOW = 'beauty.profile.show';
@@ -63,7 +63,7 @@ final class AccessPermissions
     public const BEAUTY_VIDEO_REQUEST_SHOW = 'beauty.video-request.show';
     public const BEAUTY_VIDEO_REQUEST_CREATE = 'beauty.video-request.create';
     public const BEAUTY_VIDEO_REQUEST_UPDATE = 'beauty.video-request.update';
-    public const BEAUTY_VIDEO_REQUEST_DELETE = 'beauty.video-request.delete';
+    public const BEAUTY_VIDEO_REQUEST_CANCEL = 'beauty.video-request.cancel';
 
     // Agency
     public const AGENCY_PROFILE_SHOW = 'agency.profile.show';
@@ -180,7 +180,7 @@ final class AccessPermissions
             self::HOSPITAL_VIDEO_REQUEST_SHOW,
             self::HOSPITAL_VIDEO_REQUEST_CREATE,
             self::HOSPITAL_VIDEO_REQUEST_UPDATE,
-            self::HOSPITAL_VIDEO_REQUEST_DELETE,
+            self::HOSPITAL_VIDEO_REQUEST_CANCEL,
         ];
     }
 
@@ -197,7 +197,7 @@ final class AccessPermissions
             self::BEAUTY_VIDEO_REQUEST_SHOW,
             self::BEAUTY_VIDEO_REQUEST_CREATE,
             self::BEAUTY_VIDEO_REQUEST_UPDATE,
-            self::BEAUTY_VIDEO_REQUEST_DELETE,
+            self::BEAUTY_VIDEO_REQUEST_CANCEL,
         ];
     }
 

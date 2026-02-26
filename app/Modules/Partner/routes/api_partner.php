@@ -16,7 +16,7 @@ Route::middleware(['auth:sanctum', 'abilities:actor:partner'])->group(function (
     Route::match(['post', 'put', 'patch'], 'video-requests/{videoRequest}', [VideoRequestForPartnerController::class, 'updateVideoRequestForPartner'])
         ->middleware('permission:hospital.video-request.update|beauty.video-request.update')
         ->name('videoRequests.updateVideoRequestForPartner');
-    Route::delete('video-requests/{videoRequest}', [VideoRequestForPartnerController::class, 'deleteVideoRequestForPartner'])
-        ->middleware('permission:hospital.video-request.delete|beauty.video-request.delete')
-        ->name('videoRequests.deleteVideoRequestForPartner');
+    Route::patch('video-requests/{videoRequest}/cancel', [VideoRequestForPartnerController::class, 'cancelVideoRequestForPartner'])
+        ->middleware('permission:hospital.video-request.cancel|beauty.video-request.cancel')
+        ->name('videoRequests.cancelVideoRequestForPartner');
 });

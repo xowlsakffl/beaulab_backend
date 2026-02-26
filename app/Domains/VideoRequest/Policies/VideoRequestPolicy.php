@@ -36,6 +36,11 @@ final class VideoRequestPolicy
         return $this->delegate($actor)->delete($actor, $videoRequest);
     }
 
+    public function cancel(mixed $actor, VideoRequest $videoRequest): bool
+    {
+        return $this->delegate($actor)->cancel($actor, $videoRequest);
+    }
+
     private function delegate(mixed $actor): object
     {
         return match (true) {
@@ -47,6 +52,7 @@ final class VideoRequestPolicy
                 public function create(mixed $actor): bool { return false; }
                 public function update(mixed $actor, VideoRequest $videoRequest): bool { return false; }
                 public function delete(mixed $actor, VideoRequest $videoRequest): bool { return false; }
+                public function cancel(mixed $actor, VideoRequest $videoRequest): bool { return false; }
             },
             default => new class {
                 public function viewAny(mixed $actor): bool { return false; }
@@ -54,6 +60,7 @@ final class VideoRequestPolicy
                 public function create(mixed $actor): bool { return false; }
                 public function update(mixed $actor, VideoRequest $videoRequest): bool { return false; }
                 public function delete(mixed $actor, VideoRequest $videoRequest): bool { return false; }
+                public function cancel(mixed $actor, VideoRequest $videoRequest): bool { return false; }
             },
         };
     }

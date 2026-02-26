@@ -33,7 +33,12 @@ final class VideoRequestForPartnerPolicy
 
     public function delete(AccountPartner $actor, VideoRequest $videoRequest): bool
     {
-        return $this->hasPermission($actor, 'delete')
+        return false;
+    }
+
+    public function cancel(AccountPartner $actor, VideoRequest $videoRequest): bool
+    {
+        return $this->hasPermission($actor, 'cancel')
             && $this->isOwner($actor, $videoRequest)
             && $videoRequest->review_status === VideoRequest::REVIEW_STATUS_PENDING;
     }
@@ -45,7 +50,7 @@ final class VideoRequestForPartnerPolicy
                 'show' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
                 'create' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_CREATE,
                 'update' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_UPDATE,
-                'delete' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_DELETE,
+                'cancel' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_CANCEL,
                 default => AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
             };
         }
@@ -55,7 +60,7 @@ final class VideoRequestForPartnerPolicy
                 'show' => AccessPermissions::BEAUTY_VIDEO_REQUEST_SHOW,
                 'create' => AccessPermissions::BEAUTY_VIDEO_REQUEST_CREATE,
                 'update' => AccessPermissions::BEAUTY_VIDEO_REQUEST_UPDATE,
-                'delete' => AccessPermissions::BEAUTY_VIDEO_REQUEST_DELETE,
+                'cancel' => AccessPermissions::BEAUTY_VIDEO_REQUEST_CANCEL,
                 default => null,
             };
         }

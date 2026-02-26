@@ -16,6 +16,7 @@ final class VideoRequest extends Model
     public const REVIEW_STATUS_IN_REVIEW = 'IN_REVIEW';
     public const REVIEW_STATUS_APPROVED = 'APPROVED';
     public const REVIEW_STATUS_REJECTED = 'REJECTED';
+    public const REVIEW_STATUS_PARTNER_CANCELED = 'PARTNER_CANCELED';
 
     protected $table = 'video_requests';
 

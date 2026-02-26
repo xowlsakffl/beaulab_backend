@@ -28,6 +28,7 @@ return new class extends Migration
             $table->unsignedInteger('duration_seconds')->default(0)->comment('게시 재생 시간(초)');
 
             $table->string('status', 20)->default('ACTIVE')->comment('동영상 상태(ACTIVE, SUSPENDED, PRIVATE)');
+
             $table->timestamp('published_at')->nullable()->comment('실제 게시 시각');
 
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');

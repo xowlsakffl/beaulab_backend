@@ -16,7 +16,7 @@ final class VideoRequestForPartnerPolicy
     public function view(AccountPartner $actor, VideoRequest $videoRequest): bool
     {
         return $this->hasPermission($actor, 'show')
-            && $this->isOwner($actor, $videoRequest);
+            && $videoRequest->isOwnedByPartner($actor);
     }
 
     public function create(AccountPartner $actor): bool
@@ -27,8 +27,8 @@ final class VideoRequestForPartnerPolicy
     public function update(AccountPartner $actor, VideoRequest $videoRequest): bool
     {
         return $this->hasPermission($actor, 'update')
-            && $this->isOwner($actor, $videoRequest)
-            && $videoRequest->review_status === VideoRequest::REVIEW_STATUS_PENDING;
+            && $videoRequest->isOwnedByPartner($actor)
+            && $videoRequest->isPending();
     }
 
     public function delete(AccountPartner $actor, VideoRequest $videoRequest): bool
@@ -39,8 +39,8 @@ final class VideoRequestForPartnerPolicy
     public function cancel(AccountPartner $actor, VideoRequest $videoRequest): bool
     {
         return $this->hasPermission($actor, 'cancel')
-            && $this->isOwner($actor, $videoRequest)
-            && $videoRequest->review_status === VideoRequest::REVIEW_STATUS_PENDING;
+            && $videoRequest->isOwnedByPartner($actor)
+            && $videoRequest->isPending();
     }
 
     private function permissionFor(AccountPartner $actor, string $action): ?string
@@ -75,8 +75,4 @@ final class VideoRequestForPartnerPolicy
         return is_string($permission) && $permission !== '' && $actor->can($permission);
     }
 
-    private function isOwner(AccountPartner $actor, VideoRequest $videoRequest): bool
-    {
-        return (int) $videoRequest->submitted_by_partner_id === (int) $actor->id;
-    }
 }

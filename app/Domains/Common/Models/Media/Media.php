@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\Models\Media;
 
+use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Media extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasAuditLogs;
 
     protected $table = 'media';
 
@@ -119,13 +120,17 @@ final class Media extends Model
         }
 
         // 같은 owner+collection 대표 모두 해제 후, 이 레코드만 대표로
-        self::query()
+        $others = self::query()
             ->where('model_type', $this->model_type)
             ->where('model_id', $this->model_id)
             ->where('collection', $this->collection)
             ->where('is_primary', true)
             ->whereKeyNot($this->getKey())
-            ->update(['is_primary' => false]);
+            ->get();
+
+        foreach ($others as $other) {
+            $other->forceFill(['is_primary' => false])->save();
+        }
 
         $this->forceFill(['is_primary' => true])->save();
     }

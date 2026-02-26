@@ -7,6 +7,7 @@ use App\Common\Authorization\AccessRoles;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Partner\Queries\BeautyOwnerCreateForStaffQuery;
 use App\Domains\Partner\Models\AccountPartner;
+use Illuminate\Support\Facades\Auth;
 
 final class BeautyOwnerCreateForStaffAction
 {
@@ -27,10 +28,24 @@ final class BeautyOwnerCreateForStaffAction
         ]);
 
         $owner->assignRole(AccessRoles::BEAUTY_OWNER);
-        $owner->syncPermissions([
+
+        $permissions = [
             ...AccessPermissions::common(),
             ...AccessPermissions::beauty(),
-        ]);
+        ];
+        $owner->syncPermissions($permissions);
+
+        activity('audit')
+            ->causedBy(Auth::guard('staff')->user())
+            ->performedOn($owner)
+            ->event('permission_changed')
+            ->withProperties([
+                'role' => AccessRoles::BEAUTY_OWNER,
+                'permissions' => $permissions,
+                'partner_type' => $owner->partner_type,
+                'beauty_id' => $owner->beauty_id,
+            ])
+            ->log('partner owner permissions synced');
 
         return $owner;
     }

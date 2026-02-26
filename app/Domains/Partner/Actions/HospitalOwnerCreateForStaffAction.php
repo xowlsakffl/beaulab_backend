@@ -7,6 +7,7 @@ use App\Common\Authorization\AccessRoles;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Partner\Queries\HospitalOwnerCreateForStaffQuery;
 use App\Domains\Partner\Models\AccountPartner;
+use Illuminate\Support\Facades\Auth;
 
 final class HospitalOwnerCreateForStaffAction
 {
@@ -27,10 +28,24 @@ final class HospitalOwnerCreateForStaffAction
         ]);
 
         $owner->assignRole(AccessRoles::HOSPITAL_OWNER);
-        $owner->syncPermissions([
+
+        $permissions = [
             ...AccessPermissions::common(),
             ...AccessPermissions::hospital(),
-        ]);
+        ];
+        $owner->syncPermissions($permissions);
+
+        activity('audit')
+            ->causedBy(Auth::guard('staff')->user())
+            ->performedOn($owner)
+            ->event('permission_changed')
+            ->withProperties([
+                'role' => AccessRoles::HOSPITAL_OWNER,
+                'permissions' => $permissions,
+                'partner_type' => $owner->partner_type,
+                'hospital_id' => $owner->hospital_id,
+            ])
+            ->log('partner owner permissions synced');
 
         return $owner;
     }

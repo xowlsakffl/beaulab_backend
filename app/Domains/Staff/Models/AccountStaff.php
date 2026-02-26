@@ -3,6 +3,7 @@
 namespace App\Domains\Staff\Models;
 
 use App\Common\Notifications\QueuedResetPasswordNotification;
+use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use Database\Factories\AccountStaffFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,13 +11,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
 final class AccountStaff extends Authenticatable
 {
-    use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes, LogsActivity;
+    use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes, HasAuditLogs;
 
     protected string $guard_name = 'staff';
 
@@ -63,14 +62,6 @@ final class AccountStaff extends Authenticatable
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new QueuedResetPasswordNotification($token));
-    }
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logOnly(['status'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
     }
 
     public function isActive(): bool

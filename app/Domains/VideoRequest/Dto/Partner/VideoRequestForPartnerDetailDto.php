@@ -28,8 +28,6 @@ final readonly class VideoRequestForPartnerDetailDto
             'requested_publish_end_at' => $videoRequest->requested_publish_end_at?->toISOString(),
             'is_publish_period_unlimited' => (bool) $videoRequest->is_publish_period_unlimited,
             'review_status' => $videoRequest->review_status,
-            'reviewed_by_staff_id' => $videoRequest->reviewed_by_staff_id,
-            'reviewed_at' => $videoRequest->reviewed_at?->toISOString(),
             'reject_reason' => $videoRequest->reject_reason,
             'reject_reason_detail' => $videoRequest->reject_reason_detail,
             'created_at' => $videoRequest->created_at?->toISOString(),

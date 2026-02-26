@@ -282,4 +282,21 @@ php artisan db:seed AuthorizationSeeder
 
 ---
 
-작성 기준: 2026-01-23
+
+## 14. 권한 변경 감사 로깅 원칙
+
+권한 정책 운영 시(Role/Permission 변경)는 반드시 감사로그 대상이다.
+
+기록 대상 예시:
+- 역할 부여/회수(`assignRole`, `removeRole`)
+- 권한 부여/회수(`givePermissionTo`, `revokePermissionTo`)
+- 권한 동기화(`syncRoles`, `syncPermissions`)
+
+원칙:
+- 권한 변경은 가급적 Action/Service 레이어에서만 수행한다.
+- 변경 이벤트마다 누가(주체), 누구에게(대상), 무엇을(권한), 어떻게(추가/삭제/동기화)를 남긴다.
+- 대량 처리 시에도 감사 누락이 발생하지 않도록 벌크 업데이트 패턴을 피한다.
+
+---
+
+작성 기준: 2026-02-26

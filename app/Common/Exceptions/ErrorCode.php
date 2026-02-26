@@ -15,6 +15,7 @@ enum ErrorCode: string
     case DB_ERROR = 'DB_ERROR';
     case USER_NOT_FOUND = 'USER_NOT_FOUND';
     case RATE_LIMITED = 'RATE_LIMITED';
+    case PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE';
 
     public function status(): int
     {
@@ -24,6 +25,7 @@ enum ErrorCode: string
             self::FORBIDDEN => 403,
             self::NOT_FOUND => 404,
             self::METHOD_NOT_ALLOWED => 405,
+            self::PAYLOAD_TOO_LARGE => 413,
             self::TOKEN_ERROR => 419,
             self::RATE_LIMITED => 429,
             self::DB_ERROR => 500,
@@ -40,6 +42,7 @@ enum ErrorCode: string
             self::FORBIDDEN => '권한이 없습니다.',
             self::NOT_FOUND => '요청한 정보를 찾을 수 없습니다.',
             self::METHOD_NOT_ALLOWED => '허용되지 않는 HTTP 메서드입니다.',
+            self::PAYLOAD_TOO_LARGE => '요청 용량이 초과되었습니다.',
             self::TOKEN_ERROR => '토큰이 유효하지 않습니다.',
             self::RATE_LIMITED => '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
             self::DB_ERROR => '서버 오류가 발생했습니다.',

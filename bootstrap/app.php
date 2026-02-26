@@ -11,6 +11,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Validation\ValidationException;
@@ -148,6 +149,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 return ApiResponse::errorCode(ErrorCode::DB_ERROR, details: $details);
             }
+
+            // 업로드 용량 초과 (php.ini post_max_size)
+            if ($e instanceof PostTooLargeException) {
+                return ApiResponse::errorCode(ErrorCode::PAYLOAD_TOO_LARGE);
+            }
+
 
             // abort(429), abort(419) 등 HTTP 예외
             if ($e instanceof HttpExceptionInterface) {

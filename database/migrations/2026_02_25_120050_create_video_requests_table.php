@@ -23,8 +23,6 @@ return new class extends Migration
             $table->text('description')->nullable()->comment('신청 동영상 설명');
             $table->boolean('is_usage_consented')->default(false)->comment('영상 활용 동의 여부');
 
-            $table->foreignId('source_video_media_id')->nullable()->constrained('media')->nullOnDelete()->comment('파트너가 업로드한 원본 영상 미디어 ID');
-            $table->foreignId('source_thumbnail_media_id')->nullable()->constrained('media')->nullOnDelete()->comment('파트너가 업로드한 원본 썸네일 미디어 ID');
             $table->unsignedInteger('duration_seconds')->default(0)->comment('원본 재생 시간(초)');
 
             $table->timestamp('requested_publish_start_at')->nullable()->comment('요청 게시 시작 시각');

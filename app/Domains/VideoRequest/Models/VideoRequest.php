@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domains\VideoRequest\Models;
 
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\Partner\Models\AccountPartner;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class VideoRequest extends Model
@@ -30,8 +32,6 @@ final class VideoRequest extends Model
         'title',
         'description',
         'is_usage_consented',
-        'source_video_media_id',
-        'source_thumbnail_media_id',
         'duration_seconds',
         'requested_publish_start_at',
         'requested_publish_end_at',
@@ -51,6 +51,17 @@ final class VideoRequest extends Model
         'requested_publish_end_at' => 'datetime',
         'reviewed_at' => 'datetime',
     ];
+
+
+    public function sourceVideo(): MorphOne
+    {
+        return $this->morphOne(Media::class, 'model')->where('collection', 'source_video_file');
+    }
+
+    public function sourceThumbnail(): MorphOne
+    {
+        return $this->morphOne(Media::class, 'model')->where('collection', 'source_thumbnail_file');
+    }
 
     public function isPending(): bool
     {

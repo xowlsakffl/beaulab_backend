@@ -95,8 +95,13 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     {
         return [
             'name' => '병원명',
+            'description' => '병원 소개',
+            'consulting_hours' => '상담 가능 시간',
+            'direction' => '찾아오는 길',
             'address' => '주소',
             'address_detail' => '상세 주소',
+            'latitude' => '위도',
+            'longitude' => '경도',
             'tel' => '대표 번호',
             'email' => '대표 이메일',
 
@@ -106,6 +111,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'business_type' => '업태',
             'business_item' => '종목',
             'business_registration_file' => '사업자등록증 파일',
+            'business_address' => '사업장 주소',
+            'business_address_detail' => '사업장 상세 주소',
             'issued_at' => '사업자 등록일',
 
             'logo' => '로고',

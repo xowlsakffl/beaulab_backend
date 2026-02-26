@@ -21,8 +21,6 @@ final class VideoRequestUpdateForStaffRequest extends FormRequest
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'is_usage_consented' => ['sometimes', 'boolean'],
-            'source_video_media_id' => ['sometimes', 'nullable', 'integer', 'exists:media,id'],
-            'source_thumbnail_media_id' => ['sometimes', 'nullable', 'integer', 'exists:media,id'],
             'duration_seconds' => ['sometimes', 'integer', 'min:0'],
             'requested_publish_start_at' => ['sometimes', 'nullable', 'date'],
             'requested_publish_end_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:requested_publish_start_at'],

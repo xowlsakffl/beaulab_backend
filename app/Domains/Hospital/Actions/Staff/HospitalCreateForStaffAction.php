@@ -7,7 +7,6 @@ use App\Domains\Common\Actions\Media\MediaAttachAction;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;
-use App\Domains\Partner\Actions\HospitalOwnerCreateForStaffAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;

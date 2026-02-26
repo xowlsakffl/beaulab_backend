@@ -54,4 +54,27 @@ final class ExpertUpdateForStaffRequest extends FormRequest
             'etc_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ];
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'sort_order' => '정렬 순서',
+            'name' => '전문가명',
+            'gender' => '성별',
+            'position' => '직책',
+            'career_started_at' => '경력 시작일',
+            'educations' => '학력 사항',
+            'careers' => '경력 사항',
+            'etc_contents' => '기타 사항',
+            'status' => '상태',
+            'allow_status' => '승인 상태',
+            'profile_image' => '프로필 이미지',
+            'education_certificate_image' => '학력 증명서 이미지',
+            'education_certificate_image.*' => '학력 증명서 이미지',
+            'etc_certificate_image' => '기타 증명서 이미지',
+            'etc_certificate_image.*' => '기타 증명서 이미지',
+        ];
+    }
+
 }

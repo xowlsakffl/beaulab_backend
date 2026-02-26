@@ -68,4 +68,20 @@ final class VideoRequestListForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : $normalized;
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'hospital_id' => '병원 ID',
+            'beauty_id' => '뷰티 ID',
+            'q' => '검색어',
+            'review_status' => '검토 상태',
+            'review_status.*' => '검토 상태',
+            'sort' => '정렬 기준',
+            'direction' => '정렬 방향',
+            'per_page' => '페이지당 개수',
+        ];
+    }
+
 }

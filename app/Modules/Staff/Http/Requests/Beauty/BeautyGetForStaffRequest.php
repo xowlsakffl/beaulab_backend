@@ -61,4 +61,14 @@ final class BeautyGetForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : array_values(array_unique($normalized));
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'include' => '포함 항목',
+            'include.*' => '포함 항목',
+        ];
+    }
+
 }

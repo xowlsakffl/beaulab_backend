@@ -32,4 +32,28 @@ final class VideoRequestUpdateForStaffRequest extends FormRequest
             'reject_reason_detail' => ['sometimes', 'nullable', 'string'],
         ];
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'hospital_id' => '병원 ID',
+            'beauty_id' => '뷰티 ID',
+            'doctor_id' => '의사 ID',
+            'expert_id' => '전문가 ID',
+            'title' => '제목',
+            'description' => '설명',
+            'is_usage_consented' => '사용 동의 여부',
+            'duration_seconds' => '영상 길이(초)',
+            'requested_publish_start_at' => '게시 시작 요청일',
+            'requested_publish_end_at' => '게시 종료 요청일',
+            'is_publish_period_unlimited' => '게시 기간 무제한 여부',
+            'review_status' => '검토 상태',
+            'reviewed_by_staff_id' => '검토 담당자 ID',
+            'reviewed_at' => '검토 일시',
+            'reject_reason' => '반려 사유',
+            'reject_reason_detail' => '반려 사유 상세',
+        ];
+    }
+
 }

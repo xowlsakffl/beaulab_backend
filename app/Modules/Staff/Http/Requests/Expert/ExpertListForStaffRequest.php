@@ -70,4 +70,21 @@ final class ExpertListForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : $normalized;
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'beauty_id' => '뷰티 ID',
+            'q' => '검색어',
+            'status' => '상태',
+            'status.*' => '상태',
+            'allow_status' => '승인 상태',
+            'allow_status.*' => '승인 상태',
+            'sort' => '정렬 기준',
+            'direction' => '정렬 방향',
+            'per_page' => '페이지당 개수',
+        ];
+    }
+
 }

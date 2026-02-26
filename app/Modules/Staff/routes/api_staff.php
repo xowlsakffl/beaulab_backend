@@ -7,6 +7,7 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Doctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\Expert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\VideoRequest\VideoRequestForStaffController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -96,4 +97,16 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('experts.updateExpertForStaff');
     Route::delete('experts/{expert}', [ExpertForStaffController::class, 'deleteExpertForStaff'])
         ->name('experts.deleteExpertForStaff');
+
+    /**
+     * 동영상 검수 신청 관리
+     **/
+    Route::get('video-requests', [VideoRequestForStaffController::class, 'getVideoRequestsForStaff'])
+        ->name('videoRequests.getVideoRequestsForStaff');
+    Route::get('video-requests/{videoRequest}', [VideoRequestForStaffController::class, 'getVideoRequestForStaff'])
+        ->name('videoRequests.getVideoRequestForStaff');
+    Route::match(['post', 'put', 'patch'], 'video-requests/{videoRequest}', [VideoRequestForStaffController::class, 'updateVideoRequestForStaff'])
+        ->name('videoRequests.updateVideoRequestForStaff');
+    Route::delete('video-requests/{videoRequest}', [VideoRequestForStaffController::class, 'deleteVideoRequestForStaff'])
+        ->name('videoRequests.deleteVideoRequestForStaff');
 });

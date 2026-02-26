@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\VideoRequest\Models;
 
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Partner\Models\AccountPartner;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -16,6 +17,7 @@ final class VideoRequest extends Model
     public const REVIEW_STATUS_IN_REVIEW = 'IN_REVIEW';
     public const REVIEW_STATUS_APPROVED = 'APPROVED';
     public const REVIEW_STATUS_REJECTED = 'REJECTED';
+    public const REVIEW_STATUS_PARTNER_CANCELED = 'PARTNER_CANCELED';
 
     protected $table = 'video_requests';
 
@@ -49,4 +51,34 @@ final class VideoRequest extends Model
         'requested_publish_end_at' => 'datetime',
         'reviewed_at' => 'datetime',
     ];
+
+    public function isPending(): bool
+    {
+        return $this->review_status === self::REVIEW_STATUS_PENDING;
+    }
+
+    public function isInReview(): bool
+    {
+        return $this->review_status === self::REVIEW_STATUS_IN_REVIEW;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->review_status === self::REVIEW_STATUS_APPROVED;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->review_status === self::REVIEW_STATUS_REJECTED;
+    }
+
+    public function isPartnerCanceled(): bool
+    {
+        return $this->review_status === self::REVIEW_STATUS_PARTNER_CANCELED;
+    }
+
+    public function isOwnedByPartner(AccountPartner $partner): bool
+    {
+        return (int) $this->submitted_by_partner_id === (int) $partner->id;
+    }
 }

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Staff\Http\Requests\VideoRequest;
+namespace App\Modules\Partner\Http\Requests\VideoRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class VideoRequestListForStaffRequest extends FormRequest
+final class VideoRequestListForPartnerRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -21,8 +21,6 @@ final class VideoRequestListForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'hospital_id' => ['nullable', 'integer', 'exists:hospitals,id'],
-            'beauty_id' => ['nullable', 'integer', 'exists:beauties,id'],
             'q' => ['nullable', 'string', 'max:100'],
             'review_status' => ['nullable', 'array'],
             'review_status.*' => ['in:PENDING,IN_REVIEW,APPROVED,REJECTED,PARTNER_CANCELED'],
@@ -37,8 +35,6 @@ final class VideoRequestListForStaffRequest extends FormRequest
         $validated = $this->validated();
 
         return [
-            'hospital_id' => $validated['hospital_id'] ?? null,
-            'beauty_id' => $validated['beauty_id'] ?? null,
             'q' => $validated['q'] ?? null,
             'review_status' => $validated['review_status'] ?? null,
             'sort' => $validated['sort'] ?? 'id',

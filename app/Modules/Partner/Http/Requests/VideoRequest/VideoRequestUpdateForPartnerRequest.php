@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Staff\Http\Requests\VideoRequest;
+namespace App\Modules\Partner\Http\Requests\VideoRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class VideoRequestUpdateForStaffRequest extends FormRequest
+final class VideoRequestUpdateForPartnerRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -27,11 +27,6 @@ final class VideoRequestUpdateForStaffRequest extends FormRequest
             'requested_publish_start_at' => ['sometimes', 'nullable', 'date'],
             'requested_publish_end_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:requested_publish_start_at'],
             'is_publish_period_unlimited' => ['sometimes', 'boolean'],
-            'review_status' => ['sometimes', 'in:PENDING,IN_REVIEW,APPROVED,REJECTED,PARTNER_CANCELED'],
-            'reviewed_by_staff_id' => ['sometimes', 'nullable', 'integer', 'exists:account_staffs,id'],
-            'reviewed_at' => ['sometimes', 'nullable', 'date'],
-            'reject_reason' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'reject_reason_detail' => ['sometimes', 'nullable', 'string'],
         ];
     }
 }

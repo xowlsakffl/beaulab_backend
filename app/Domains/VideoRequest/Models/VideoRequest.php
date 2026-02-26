@@ -90,6 +90,7 @@ final class VideoRequest extends Model
 
     public function isOwnedByPartner(AccountPartner $partner): bool
     {
+        #TODO 로그인한 사용자뿐만 아닌 해당 병원, 뷰티 소속 직원만
         return (int) $this->submitted_by_partner_id === (int) $partner->id;
     }
 }

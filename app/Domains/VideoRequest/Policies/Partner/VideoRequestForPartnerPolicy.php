@@ -21,13 +21,13 @@ final class VideoRequestForPartnerPolicy
 
     public function create(AccountPartner $actor): bool
     {
-        #TODO 병원, 뷰티 소속만
+        #TODO  로그인한 사용자 해당 병원, 뷰티 소속 병원, 의사만
         return $this->hasPermission($actor, 'create');
     }
 
     public function update(AccountPartner $actor, VideoRequest $videoRequest): bool
     {
-        #TODO 병원, 뷰티 소속만
+        #TODO  로그인한 사용자 해당 병원, 뷰티 소속 병원, 의사만
         return $this->hasPermission($actor, 'update')
             && $videoRequest->isOwnedByPartner($actor)
             && $videoRequest->isPending();

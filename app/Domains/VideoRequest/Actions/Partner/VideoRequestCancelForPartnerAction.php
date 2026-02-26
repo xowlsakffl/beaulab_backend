@@ -12,11 +12,11 @@ final class VideoRequestCancelForPartnerAction
 {
     public function __construct(private readonly VideoRequestCancelForPartnerQuery $query) {}
 
-    public function execute(VideoRequest $videoRequest): array
+    public function execute(VideoRequest $videoRequest, array $payload): array
     {
         Gate::authorize('cancel', $videoRequest);
 
-        $videoRequest = DB::transaction(fn () => $this->query->cancel($videoRequest));
+        $videoRequest = DB::transaction(fn () => $this->query->cancel($videoRequest, $payload));
 
         return [
             'video_request' => VideoRequestForPartnerDetailDto::fromModel($videoRequest)->toArray(),

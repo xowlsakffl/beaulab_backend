@@ -6,14 +6,16 @@ use App\Domains\VideoRequest\Models\VideoRequest;
 
 final class VideoRequestCancelForPartnerQuery
 {
-    public function cancel(VideoRequest $videoRequest): VideoRequest
+    public function cancel(VideoRequest $videoRequest, array $payload): VideoRequest
     {
+        $reviewStatus = $payload['review_status'];
+
         $videoRequest->fill([
-            'review_status' => VideoRequest::REVIEW_STATUS_PARTNER_CANCELED,
+            'review_status' => $reviewStatus,
             'reviewed_by_staff_id' => null,
             'reviewed_at' => null,
-            'reject_reason' => 'PARTNER_CANCELED',
-            'reject_reason_detail' => '파트너 취소',
+            'reject_reason' => $reviewStatus === VideoRequest::REVIEW_STATUS_PARTNER_CANCELED ? 'PARTNER_CANCELED' : null,
+            'reject_reason_detail' => $reviewStatus === VideoRequest::REVIEW_STATUS_PARTNER_CANCELED ? '파트너 취소' : null,
         ]);
 
         if ($videoRequest->isDirty()) {

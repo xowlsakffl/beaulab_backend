@@ -12,8 +12,6 @@ return new class extends Migration
         Schema::create('videos', function (Blueprint $table) {
             $table->id()->comment('동영상 고유 ID');
 
-            $table->foreignId('video_post_application_id')->nullable()->constrained('video_post_applications')->nullOnDelete()->comment('승인된 게시 신청 ID');
-
             $table->foreignId('hospital_id')->nullable()->constrained('hospitals')->nullOnDelete()->comment('병원 ID(선택)');
             $table->foreignId('beauty_id')->nullable()->constrained('beauties')->nullOnDelete()->comment('뷰티업체 ID(선택)');
             $table->foreignId('doctor_id')->nullable()->constrained('doctors')->nullOnDelete()->comment('의사 ID(선택, 병원 영상 대표 의사 1명)');
@@ -26,15 +24,15 @@ return new class extends Migration
             $table->string('external_video_id', 191)->nullable()->comment('외부 채널 영상 ID(유튜브 videoId 등)');
             $table->string('external_video_url', 1024)->nullable()->comment('외부 채널 영상 URL');
 
-            $table->foreignId('edited_video_media_id')->nullable()->constrained('media')->nullOnDelete()->comment('내부 편집본 영상 미디어 ID(아카이브용)');
             $table->foreignId('thumbnail_media_id')->nullable()->constrained('media')->nullOnDelete()->comment('게시 썸네일 미디어 ID');
             $table->unsignedInteger('duration_seconds')->default(0)->comment('게시 재생 시간(초)');
 
             $table->string('status', 20)->default('ACTIVE')->comment('동영상 상태(ACTIVE, SUSPENDED, PRIVATE)');
-            $table->timestamp('published_at')->nullable()->comment('실제 게시 시각(외부 채널 업로드 완료 시각)');
 
-            $table->unsignedBigInteger('view_count')->default(0)->comment('조회수(외부 채널 동기화 값)');
-            $table->unsignedBigInteger('like_count')->default(0)->comment('좋아요 수(외부 채널 동기화 값)');
+            $table->timestamp('published_at')->nullable()->comment('실제 게시 시각');
+
+            $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
+            $table->unsignedBigInteger('like_count')->default(0)->comment('좋아요 수');
 
             $table->timestamp('publish_start_at')->nullable()->comment('앱 노출 시작 시각');
             $table->timestamp('publish_end_at')->nullable()->comment('앱 노출 종료 시각');
@@ -42,8 +40,6 @@ return new class extends Migration
 
             $table->timestamps();
             $table->softDeletes()->comment('동영상 비활성/삭제 시각');
-
-            $table->unique('video_post_application_id');
 
             // 조회/노출 패턴 중심 인덱스
             $table->index(['status', 'publish_start_at', 'publish_end_at'], 'videos_status_publish_period_idx');

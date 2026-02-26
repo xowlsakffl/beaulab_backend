@@ -133,10 +133,18 @@ final class AccessRoles
                     AccessPermissions::HOSPITAL_PROFILE_SHOW,
                     AccessPermissions::HOSPITAL_PROFILE_UPDATE,
                     AccessPermissions::HOSPITAL_MEMBERS_MANAGE,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_CREATE,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_UPDATE,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_DELETE,
                 ]),
                 self::HOSPITAL_STAFF => self::unique([
                     ...$partnerCommon,
                     AccessPermissions::HOSPITAL_PROFILE_SHOW,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_CREATE,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_UPDATE,
+                    AccessPermissions::HOSPITAL_VIDEO_REQUEST_DELETE,
                 ]),
 
                 self::BEAUTY_OWNER => self::unique([
@@ -148,10 +156,18 @@ final class AccessRoles
                     AccessPermissions::BEAUTY_PROFILE_SHOW,
                     AccessPermissions::BEAUTY_PROFILE_UPDATE,
                     AccessPermissions::BEAUTY_MEMBERS_MANAGE,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_SHOW,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_CREATE,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_UPDATE,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_DELETE,
                 ]),
                 self::BEAUTY_STAFF => self::unique([
                     ...$partnerCommon,
                     AccessPermissions::BEAUTY_PROFILE_SHOW,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_SHOW,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_CREATE,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_UPDATE,
+                    AccessPermissions::BEAUTY_VIDEO_REQUEST_DELETE,
                 ]),
 
                 self::AGENCY_OWNER => self::unique([

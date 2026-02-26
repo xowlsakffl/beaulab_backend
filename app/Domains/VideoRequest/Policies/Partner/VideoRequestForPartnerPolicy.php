@@ -2,6 +2,7 @@
 
 namespace App\Domains\VideoRequest\Policies\Partner;
 
+use App\Common\Authorization\AccessPermissions;
 use App\Domains\Partner\Models\AccountPartner;
 use App\Domains\VideoRequest\Models\VideoRequest;
 
@@ -9,27 +10,64 @@ final class VideoRequestForPartnerPolicy
 {
     public function viewAny(AccountPartner $actor): bool
     {
-        return $actor->can('common.access');
+        return $this->hasPermission($actor, 'show');
     }
 
     public function view(AccountPartner $actor, VideoRequest $videoRequest): bool
     {
-        return $this->isOwner($actor, $videoRequest);
+        return $this->hasPermission($actor, 'show')
+            && $this->isOwner($actor, $videoRequest);
     }
 
     public function create(AccountPartner $actor): bool
     {
-        return $actor->can('common.access');
+        return $this->hasPermission($actor, 'create');
     }
 
     public function update(AccountPartner $actor, VideoRequest $videoRequest): bool
     {
-        return $this->isOwner($actor, $videoRequest) && $videoRequest->review_status === VideoRequest::REVIEW_STATUS_PENDING;
+        return $this->hasPermission($actor, 'update')
+            && $this->isOwner($actor, $videoRequest)
+            && $videoRequest->review_status === VideoRequest::REVIEW_STATUS_PENDING;
     }
 
     public function delete(AccountPartner $actor, VideoRequest $videoRequest): bool
     {
-        return $this->isOwner($actor, $videoRequest) && $videoRequest->review_status === VideoRequest::REVIEW_STATUS_PENDING;
+        return $this->hasPermission($actor, 'delete')
+            && $this->isOwner($actor, $videoRequest)
+            && $videoRequest->review_status === VideoRequest::REVIEW_STATUS_PENDING;
+    }
+
+    private function permissionFor(AccountPartner $actor, string $action): ?string
+    {
+        if ($actor->isHospital()) {
+            return match ($action) {
+                'show' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
+                'create' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_CREATE,
+                'update' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_UPDATE,
+                'delete' => AccessPermissions::HOSPITAL_VIDEO_REQUEST_DELETE,
+                default => AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
+            };
+        }
+
+        if ($actor->isBeauty()) {
+            return match ($action) {
+                'show' => AccessPermissions::BEAUTY_VIDEO_REQUEST_SHOW,
+                'create' => AccessPermissions::BEAUTY_VIDEO_REQUEST_CREATE,
+                'update' => AccessPermissions::BEAUTY_VIDEO_REQUEST_UPDATE,
+                'delete' => AccessPermissions::BEAUTY_VIDEO_REQUEST_DELETE,
+                default => null,
+            };
+        }
+
+        return null;
+    }
+
+    private function hasPermission(AccountPartner $actor, string $action): bool
+    {
+        $permission = $this->permissionFor($actor, $action);
+
+        return is_string($permission) && $permission !== '' && $actor->can($permission);
     }
 
     private function isOwner(AccountPartner $actor, VideoRequest $videoRequest): bool

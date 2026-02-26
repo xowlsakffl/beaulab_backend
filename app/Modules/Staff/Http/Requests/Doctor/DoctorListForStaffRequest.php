@@ -74,4 +74,22 @@ final class DoctorListForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : $normalized;
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'hospital_id' => '병원 ID',
+            'q' => '검색어',
+            'status' => '상태',
+            'status.*' => '상태',
+            'allow_status' => '승인 상태',
+            'allow_status.*' => '승인 상태',
+            'is_specialist' => '전문의 여부',
+            'sort' => '정렬 기준',
+            'direction' => '정렬 방향',
+            'per_page' => '페이지당 개수',
+        ];
+    }
+
 }

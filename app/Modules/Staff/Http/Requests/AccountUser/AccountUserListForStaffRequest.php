@@ -80,4 +80,20 @@ final class AccountUserListForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : $normalized;
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'q' => '검색어',
+            'start_date' => '시작일',
+            'end_date' => '종료일',
+            'status' => '상태',
+            'status.*' => '상태',
+            'sort' => '정렬 기준',
+            'page' => '페이지',
+            'per_page' => '페이지당 개수',
+        ];
+    }
+
 }

@@ -30,6 +30,18 @@ final class VideoRequestListForPartnerRequest extends FormRequest
         ];
     }
 
+    public function attributes(): array
+    {
+        return [
+            'q' => '검색어',
+            'review_status' => '검토 상태',
+            'review_status.*' => '검토 상태',
+            'sort' => '정렬 기준',
+            'direction' => '정렬 방향',
+            'per_page' => '페이지당 개수',
+        ];
+    }
+
     public function filters(): array
     {
         $validated = $this->validated();

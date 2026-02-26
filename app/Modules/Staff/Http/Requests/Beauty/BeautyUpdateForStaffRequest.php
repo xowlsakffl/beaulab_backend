@@ -100,4 +100,32 @@ final class BeautyUpdateForStaffRequest extends FormRequest
         }
         return $beauty->businessRegistration()->value('id');
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'description' => '소개',
+            'consulting_hours' => '진료 시간',
+            'direction' => '오시는 길',
+            'address' => '주소',
+            'address_detail' => '상세 주소',
+            'latitude' => '위도',
+            'longitude' => '경도',
+            'tel' => '전화번호',
+            'email' => '이메일',
+            'business_number' => '사업자 등록번호',
+            'company_name' => '상호명',
+            'ceo_name' => '대표자명',
+            'business_type' => '업태',
+            'business_item' => '종목',
+            'business_registration_file' => '사업자등록증 파일',
+            'business_address' => '사업장 주소',
+            'business_address_detail' => '사업장 상세 주소',
+            'logo' => '로고 이미지',
+            'gallery' => '갤러리 이미지',
+            'gallery.*' => '갤러리 이미지',
+        ];
+    }
+
 }

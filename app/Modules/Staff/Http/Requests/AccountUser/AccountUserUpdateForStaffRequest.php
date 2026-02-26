@@ -32,4 +32,14 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
             'status' => ['sometimes', 'required', 'in:ACTIVE,SUSPENDED,BLOCKED'],
         ];
     }
+
+
+    public function attributes(): array
+    {
+        return [
+            'name' => '이름',
+            'status' => '상태',
+        ];
+    }
+
 }

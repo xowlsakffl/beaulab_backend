@@ -29,4 +29,12 @@ class ProfileUpdateRequest extends FormRequest
             ],
         ];
     }
+
+    public function attributes(): array
+    {
+        return [
+            'name' => '이름',
+            'email' => '이메일',
+        ];
+    }
 }

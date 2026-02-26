@@ -6,6 +6,7 @@ use App\Domains\Partner\Models\AccountPartner;
 use App\Domains\Staff\Models\AccountStaff;
 use App\Domains\User\Models\AccountUser;
 use App\Domains\VideoRequest\Models\VideoRequest;
+use App\Domains\VideoRequest\Policies\Partner\VideoRequestForPartnerPolicy;
 use App\Domains\VideoRequest\Policies\Staff\VideoRequestForStaffPolicy;
 
 final class VideoRequestPolicy
@@ -39,7 +40,8 @@ final class VideoRequestPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff => app(VideoRequestForStaffPolicy::class),
-            $actor instanceof AccountPartner, $actor instanceof AccountUser => new class {
+            $actor instanceof AccountPartner => app(VideoRequestForPartnerPolicy::class),
+            $actor instanceof AccountUser => new class {
                 public function viewAny(mixed $actor): bool { return false; }
                 public function view(mixed $actor, VideoRequest $videoRequest): bool { return false; }
                 public function create(mixed $actor): bool { return false; }

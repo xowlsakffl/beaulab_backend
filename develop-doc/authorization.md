@@ -1,302 +1,113 @@
 # Authorization & Navigation 설계 (Staff / Partner / User)
 
-이 문서는 Beaulab 프로젝트에서 **권한(Authorization) 분기**와  
-**메뉴/기능 노출(Navigation) 분기**를 일관되게 구현하기 위한 설계 기준입니다.
+이 문서는 **현재 코드 기준**의 권한 모델(Role/Permission/Guard)과 운영 규칙을 정리합니다.
+권한 단일 소스는 아래 두 파일입니다.
 
-본 프로젝트는 **API-only 구조**를 전제로 하며,  
-Laravel은 인증/인가 및 비즈니스 규칙을 담당하고  
-UI는 외부 프론트엔드(Web / Mobile)에서 처리합니다.
-
----
-
-## 1. 인증(Authentication) 레벨 구분
-
-프로젝트의 인증 레벨은 다음과 같이 구분됩니다.
-
-- **User**: 일반 사용자
-    - Sanctum 토큰 기반
-    - `/api/v1/user/*`
-- **Partner**: 병원 / 뷰티 / 대행사 계정
-    - Sanctum 토큰 기반
-    - `/api/v1/partner/*`
-- **Staff**: Beaulab 내부 직원
-    - Sanctum 토큰 기반
-    - `/api/v1/staff/*`
-- **Guest**: 비로그인 사용자
-    - 입점 신청 / 제휴 문의 등 제한된 공개 기능
+- `app/Common/Authorization/AccessPermissions.php`
+- `app/Common/Authorization/AccessRoles.php`
 
 ---
 
-## 2. 설계 목표
+## 1) Guard 구분
 
-1) **보안**  
-   메뉴 노출은 UX일 뿐이며, 실제 접근 제어는 반드시 **API/Policy 레벨**에서 차단한다.
+- `staff` : 내부 직원
+- `partner` : 병원/뷰티/대행사 파트너
+- `user` : 일반 앱 사용자
 
-2) **유지보수성**  
-   화면/컨트롤러에 role if 분기를 두지 않고,  
-   **권한 규칙을 단일 소스(Common Authorization)** 로 관리한다.
-
-3) **확장성**  
-   내부 직원, 파트너(병원/뷰티/대행사), 사용자 확장을 전제로 한다.
-
-4) **일관성**  
-   API 접근, 메뉴 노출, 데이터 범위를 **같은 Permission / Scope 규칙**으로 통제한다.
+Permission은 guard별로 생성/관리하며, Seeder에서 guard를 기준으로 동기화합니다.
 
 ---
 
-## 3. 권한 모델 개요 (Role / Permission / Scope)
+## 2) Role 목록
 
-권한은 다음 3요소로 분리한다.
+### 2.1 Staff (`guard: staff`)
+- `beaulab.super_admin`
+- `beaulab.admin`
+- `beaulab.staff`
+- `beaulab.dev`
 
-- **Role(역할)**  
-  계정의 정체성(권한 템플릿)
+### 2.2 Partner (`guard: partner`)
+- Hospital: `hospital.owner`, `hospital.manager`, `hospital.staff`
+- Beauty: `beauty.owner`, `beauty.manager`, `beauty.staff`
+- Agency: `agency.owner`, `agency.staff`
 
-- **Permission(기능 권한)**  
-  무엇을 할 수 있는가 (Ability)
-
-- **Scope(데이터 범위)**  
-  어느 데이터까지 접근 가능한가
-
-원칙:
-- 기능 접근 제어 = **Permission**
-- 데이터 범위 제어 = **Scope + Policy / Query Scoping**
-- 메뉴 노출은 role이 아니라 **required permissions** 기준으로 처리한다.
-- Scope는 Spatie Permission으로 해결하지 않고 **도메인 규칙으로 고정**한다.
+### 2.3 User (`guard: user`)
+- 현재 role 기반 매핑은 비워둔 상태(필요 시 확장)
 
 ---
 
-## 4. 계정 타입 / 역할 모델 (Role Taxonomy)
+## 3) Permission 목록 (현재 코드 반영)
 
-### 4.1 Account Type (누가 로그인하는가)
+## 3.1 Common
+- `common.access`
+- `common.dashboard.show`
+- `common.profile.show`
+- `common.profile.update`
 
-- `guest`
-- `user` (일반 사용자)
-- `partner`
-    - 병원(Hospital)
-    - 뷰티(Beauty)
-- `staff` (Beaulab 내부 직원)
+### 3.2 Beaulab(Staff 전용)
+- Hospital: `beaulab.hospital.show|create|update|delete`
+- Beauty: `beaulab.beauty.show|create|update|delete`
+- Agency: `beaulab.agency.show|create|update|delete`
+- User: `beaulab.user.show|update|delete`
+- Doctor: `beaulab.doctor.show|create|update|delete`
+- Expert: `beaulab.expert.show|create|update|delete`
 
-> 이 문서의 권한/메뉴 규칙은 **Staff / Partner API**를 중심으로 한다.
+### 3.3 Partner 전용
+- Hospital: `hospital.profile.show|update|delete`, `hospital.members.manage`
+- Beauty: `beauty.profile.show|update|delete`, `beauty.members.manage`
+- Agency: `agency.profile.show|update|delete`, `agency.members.manage`
 
----
-
-### 4.2 Role 네이밍 규칙 (Spatie Role)
-
-Role 이름은 **소속(prefix) + 역할**로 정의한다.
-
-- 내부직원(Staff)
-    - `beaulab.super_admin`
-    - `beaulab.admin`
-    - `beaulab.staff`
-    - `beaulab.dev`
-
-- 병원(Partner)
-    - `hospital.owner`
-    - `hospital.manager`
-    - `hospital.staff`
-
-- 뷰티(Partner)
-    - `beauty.owner`
-    - `beauty.manager`
-    - `beauty.staff`
-
-- 대행사(Partner)
-    - `agency.owner`
-    - `agency.staff`
+### 3.4 User 전용
+- `user.profile.show`
+- `user.profile.update`
 
 ---
 
-## 6. Scope 표 (데이터 범위) (확정)
+## 4) Role → Permission 매핑 요약
 
-Scope는 **도메인 규칙으로 고정**하며 Policy/Query에서 강제한다.
+- `beaulab.super_admin`: staff guard의 모든 permission
+- `beaulab.admin`: common + beaulab 전체
+- `beaulab.staff`, `beaulab.dev`: common + 조회 중심 권한
+  - `beaulab.*.show` (hospital/beauty/agency/user/doctor/expert)
 
-| Scope 코드 | 적용 대상 | 범위 정의 |
-|---|---|---|
-| `PUBLIC` | Guest | 공개 페이지/폼 |
-| `OWN_HOSPITAL` | 병원 계정 | 자기 병원 데이터만 |
-| `OWN_BEAUTY` | 뷰티 계정 | 자기 뷰티 데이터만 |
-| `ASSIGNED_ACCOUNTS` | 대행사 | 할당된 병원/뷰티 범위 |
-| `ALL` | 내부 직원 | 전체 데이터 |
-
----
-
-## 7. Permission(Ability) 네이밍 규칙
-
-형식:
-- `{domain}.{resource}.{action}`
-
-규칙:
-- Permission은 **기능(Ability)** 만 표현한다.
-- 데이터 범위는 Scope / Policy / Query에서 제어한다.
-- 권한 정의의 단일 소스는  
-  `app/Common/Authorization/AccessPermissions.php` 이다.
+- Partner owner 계열: common + 도메인 전체 권한
+- Partner manager 계열: 조회/수정/멤버관리 중심
+- Partner staff 계열: 조회 중심
 
 ---
 
-## 8. Permission 목록
-(`AccessPermissions` 기준)
+## 5) Seeder 동기화 원칙
 
-### 8.1 공통(Common)
+권한/역할 변경 후 아래 시더로 동기화합니다.
 
-| Permission | 설명 |
-|---|---|
-| `common.access` | 기본 접근 |
-| `common.dashboard.show` | 대시보드 조회 |
-| `common.profile.show` | 내 프로필 조회 |
-| `common.profile.update` | 내 프로필 수정 |
-
----
-
-### 8.2 Beaulab 내부직원(Staff)
-
-#### 병원 관리
-- `beaulab.hospital.show`
-- `beaulab.hospital.create`
-- `beaulab.hospital.update`
-- `beaulab.hospital.delete`
-
-#### 뷰티 관리
-- `beaulab.beauty.show`
-- `beaulab.beauty.create`
-- `beaulab.beauty.update`
-- `beaulab.beauty.delete`
-
-#### 대행사 관리
-- `beaulab.agency.show`
-- `beaulab.agency.create`
-- `beaulab.agency.update`
-- `beaulab.agency.delete`
-
----
-
-### 8.3 병원(Hospital)
-- `hospital.profile.show`
-- `hospital.profile.update`
-- `hospital.profile.delete`
-- `hospital.members.manage`
-
----
-
-### 8.4 뷰티(Beauty)
-- `beauty.profile.show`
-- `beauty.profile.update`
-- `beauty.profile.delete`
-- `beauty.members.manage`
-
----
-
-### 8.5 대행사(Agency)
-- `agency.profile.show`
-- `agency.profile.update`
-- `agency.profile.delete`
-- `agency.members.manage`
-
----
-
-## 9. Role 표
-(`AccessRoles` 기준)
-
-### 9.1 내부직원(Staff)
-
-| Role | 설명 | Scope |
-|---|---|---|
-| `beaulab.super_admin` | 최고 관리자 | ALL |
-| `beaulab.admin` | 관리자 | ALL |
-| `beaulab.staff` | 일반 직원 | ALL |
-| `beaulab.dev` | 개발자 | ALL |
-
----
-
-### 9.2 병원(Hospital)
-
-| Role | 설명 | Scope |
-|---|---|---|
-| `hospital.owner` | 병원 소유주 | OWN_HOSPITAL |
-| `hospital.manager` | 병원 매니저 | OWN_HOSPITAL |
-| `hospital.staff` | 병원 직원 | OWN_HOSPITAL |
-
----
-
-### 9.3 뷰티(Beauty)
-
-| Role | 설명 | Scope |
-|---|---|---|
-| `beauty.owner` | 뷰티 소유주 | OWN_BEAUTY |
-| `beauty.manager` | 뷰티 매니저 | OWN_BEAUTY |
-| `beauty.staff` | 뷰티 직원 | OWN_BEAUTY |
-
----
-
-### 9.4 대행사(Agency)
-
-| Role | 설명 | Scope |
-|---|---|---|
-| `agency.owner` | 대행사 소유주 | ASSIGNED_ACCOUNTS |
-| `agency.staff` | 대행사 직원 | ASSIGNED_ACCOUNTS |
-
----
-
-## 10. Role × Permission 매핑 원칙
-
-> 실제 부여 기준은 `AccessRoles` 및 Seeder를 단일 기준으로 한다.
-> 권한 정의대로 부여하는 시더가 정의돼있음
-``` text
-php artisan db:seed AuthorizationSeeder
+```bash
+php artisan db:seed --class=AuthorizationSeeder
 ```
 
-원칙:
-- `beaulab.super_admin` : 모든 Permission
-- `beaulab.admin` : 내부직원 전체 기능
-- `beaulab.staff` / `beaulab.dev` : 조회 중심
-
-- `hospital.*` Role : `hospital.*` Permission만
-- `beauty.*` Role : `beauty.*` Permission만
-- `agency.*` Role : `agency.*` Permission만
+Seeder 동작:
+1. PermissionRegistrar 캐시 초기화
+2. guard별 permission 생성
+3. guard별 role 생성
+4. role-permission sync
+5. 캐시 재초기화
 
 ---
 
-## 11. API 권한 체크 규칙 (구현 원칙)
+## 6) API 레벨 권한 체크 규칙
 
-### 11.1 API 접근 제어
-- 모든 보호 API는 `auth:sanctum` 전제
-- 그 다음 단계에서 Permission 기반으로 차단한다.
-
-### 11.2 데이터 접근 제어 (Scope)
-- 내부 직원: Permission 기준
-- 파트너 계정: Scope 기준으로 소속 데이터만 접근 가능
+- 보호 API는 인증 미들웨어를 통과해야 함
+- 기능 접근은 `permission:*` 미들웨어 + Policy로 제어
+- 데이터 범위(소속 병원/뷰티 등)는 Query/Policy에서 강제
+- 메뉴 노출은 UX 보조이며, 최종 차단은 서버 권한 체크로 보장
 
 ---
 
-## 12. 메뉴 / 기능 노출 규칙
+## 7) 운영 시 주의사항
 
-- 메뉴 노출은 **required permissions 기준**으로 처리한다.
-- 메뉴는 UX이며, 보안은 API/Policy에서 강제한다.
-
----
-
-## 13. 운영 원칙
-
-- 모든 계정은 최소 1개 Role을 가진다.
-- 기본은 Role 템플릿으로 부여한다.
-- Permission 이름은 문서와 코드에서 1:1로 유지한다.
+- Permission 문자열은 코드/문서 1:1로 유지
+- guard 혼합 금지(같은 role에 다른 guard permission 연결 금지)
+- 권한 변경은 감사로그 대상(부여/회수/동기화)
 
 ---
 
-
-## 14. 권한 변경 감사 로깅 원칙
-
-권한 정책 운영 시(Role/Permission 변경)는 반드시 감사로그 대상이다.
-
-기록 대상 예시:
-- 역할 부여/회수(`assignRole`, `removeRole`)
-- 권한 부여/회수(`givePermissionTo`, `revokePermissionTo`)
-- 권한 동기화(`syncRoles`, `syncPermissions`)
-
-원칙:
-- 권한 변경은 가급적 Action/Service 레이어에서만 수행한다.
-- 변경 이벤트마다 누가(주체), 누구에게(대상), 무엇을(권한), 어떻게(추가/삭제/동기화)를 남긴다.
-- 대량 처리 시에도 감사 누락이 발생하지 않도록 벌크 업데이트 패턴을 피한다.
-
----
-
-작성 기준: 2026-02-26
+작성 기준: 2026-02-26 (Doctor/Expert/User 권한 포함)

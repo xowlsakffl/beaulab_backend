@@ -1,204 +1,88 @@
 # Architecture (구조 / 흐름)
 
-이 문서는 Beaulab 프로젝트의 **전체 구조와 요청 흐름**을 설명합니다.  
-본 프로젝트는 **Laravel API 서버 + 외부 프론트엔드(웹/모바일)** 구조를 전제로 하며,  
-Actor(Staff / Partner / User)와 Domain(비즈니스 규칙)을 **명확히 분리**하는 것을 목표로 합니다.
+이 문서는 현재 코드 기준으로 Beaulab 백엔드 구조를 정리합니다.
+핵심은 **Actor(Staff/Partner/User) 진입점**과 **Domain 비즈니스 로직**을 분리하는 것입니다.
 
 ---
 
-## 1. 큰 그림
+## 1) API 엔드포인트 구성
 
-본 프로젝트는 아래 **3가지 Actor 기반 API 영역**으로 구성됩니다.
+`routes/api.php`에서 v1 라우트를 Actor 단위로 분기합니다.
 
-| 구분 | 목적 | URL Prefix | 응답 |
-|---|---|---|---|
-| Staff API | 내부 직원용 관리 기능 | `/api/v1/staff/*` | JSON |
-| Partner API | 병원/뷰티/대행사 파트너 관리 | `/api/v1/partner/*` | JSON |
-| User API | 일반 사용자 서비스 | `/api/v1/user/*` | JSON |
+- Staff API: `/api/v1/staff/*`
+- Partner API: `/api/v1/partner/*`
+- User API: `/api/v1/user/*`
 
-### 핵심 원칙
-- Laravel은 **API 서버 역할만 담당**한다.
-- 모든 클라이언트(UI)는 외부 프론트엔드에서 처리한다.
-- 서버는 **상태를 가지지 않는(stateless) JSON API**만 제공한다.
-- 모든 API 응답은 **공통 ApiResponse 규칙**을 따른다.
+> 실제 상세 라우트는 각 모듈 파일(`app/Modules/*/routes/api_*.php`)에서 관리합니다.
 
 ---
 
-## 2. 백엔드 디렉토리 구조
+## 2) 실제 디렉토리 구조 (현재 구현 기준)
 
 - `app/Modules/Staff/*`
-    - 내부 직원(Staff) API 진입점
+  - Staff 전용 컨트롤러/요청 검증/라우트
 - `app/Modules/Partner/*`
-    - 파트너(병원/뷰티/대행사) API 진입점
+  - Partner 전용 컨트롤러/라우트
 - `app/Modules/User/*`
-    - 일반 사용자 API 진입점
+  - User 전용 라우트(현재 최소 구성)
 - `app/Domains/*`
-    - **업무 도메인(비즈니스 로직)**
-    - 예: `Hospital`, `Review`, `Beauty`, `Reservation` 등
-    - 모델 / 액션 / 정책 / 쿼리 등 **규칙과 상태의 중심**
+  - 도메인 모델/액션/쿼리/정책
+  - 현재 주요 도메인: `Hospital`, `Beauty`, `Doctor`, `Expert`, `User`, `Partner`, `Common`
 - `app/Common/*`
-    - 전역 공통 요소
-    - ApiResponse, ErrorCode, Authorization, Middleware, Exception 처리 등
-- `app/Modules/*/routes/api_{actor}.php`
-    - Actor별 API 라우트 정의
+  - 공통 응답, 예외, 권한 정의, 미들웨어
 
 ---
 
-### 역할 요약
-- `Modules/*`
-    - HTTP/API 진입점
-    - 인증/인가 적용
-    - 요청 → Domain Action 연결
-- `Domains`
-    - **비즈니스 규칙의 중심**
-    - 모델 / 유스케이스 / 정책 / 쿼리
-- `Common`
-    - 공통 규칙
-    - 응답 포맷, 예외 처리, 권한 정의, 미들웨어
+## 3) 요청 처리 원칙
+
+1. **Module Controller**
+   - Request Validation
+   - 인증/인가 미들웨어 통과
+   - Domain Action 호출
+2. **Domain Action/Query**
+   - 비즈니스 규칙 처리
+   - 조회/상태 변경
+3. **공통 응답 반환**
+   - `ApiResponse` 포맷으로 일관 반환
 
 ---
 
-## 3. 핵심 설계 원칙 (중요)
+## 4) Staff API 인증/인가 흐름 (현재 운영 중)
 
-### 3.1 “모델은 무조건 Domain”
-- 모든 Eloquent Model은 `app/Domains/{Domain}/Models` 아래에 위치한다.
-- `Modules/Staff`, `Modules/Partner`, `Modules/User`에는 모델을 두지 않는다.
+Staff 라우트는 아래 미들웨어를 공통으로 사용합니다.
 
-> Staff / Partner / User는 “누가 호출하느냐(Actor)”의 차이이고,  
-> Hospital / Review 같은 “무엇을 다루느냐(Domain)”가 비즈니스 규칙의 주인공이다.
+- `auth:sanctum`
+- `abilities:actor:staff`
+- `permission:common.access`
 
----
-
-### 3.2 컨트롤러는 얇게, 비즈니스 로직은 Domain Action으로
-컨트롤러는 아래 역할만 담당한다.
-- Request validation
-- 인증 / 인가 통과 여부
-- Domain Action 호출
-- ApiResponse 반환
-
-컨트롤러에서 **금지**
-- 복잡한 쿼리 작성
-- 트랜잭션/상태 변경 로직
-- 권한 분기 if 문
+그 위에서 기능별로 병원/뷰티/회원/의사/뷰티전문가 관리 API를 제공합니다.
 
 ---
 
-### 3.3 Actor 차이는 Action / DTO로 분리
-같은 도메인을 다루더라도 Actor에 따라 다음이 달라질 수 있다.
-- 조회 조건
-- 허용 필터/정렬
-- 노출 필드
+## 5) Partner/User 영역 상태
 
-따라서 Domain 내부에서 다음을 분리한다.
-- `Actions/Staff/*`
-- `Actions/Partner/*`
-- `Actions/User/*`
-- `Dto/Staff/*`
-- `Dto/Partner/*`
-- `Dto/User/*`
+- Partner 라우트는 별도 파일에서 정의되어 있으며, 현재 코드상 `web`, `auth:admin`, `permission:*` 미들웨어 구조를 사용 중입니다.
+- User 라우트 파일은 현재 뼈대만 존재합니다.
+
+즉, Staff API가 가장 완성도가 높고 Partner/User는 단계적으로 확장 중인 상태입니다.
 
 ---
 
-### 3.4 공통 쿼리/로직은 Query / Support로 분리
-Action 간 중복이 발생하면 아래 레이어로 흡수한다.
-- `Queries/*` : 검색 / 필터 / 정렬 / 페이징
-- `Supports/*` : 도메인 공통 계산, 변환, 보조 로직
+## 6) 도메인 계층 원칙
+
+- 모델은 `app/Domains/{Domain}/Models`에 둔다.
+- 컨트롤러는 얇게 유지하고 복잡한 비즈니스 로직은 `Actions`/`Queries`로 이동한다.
+- Actor별 차이가 필요한 경우 `Actions/Staff`, `Actions/Partner`, `Actions/User`로 분리한다.
 
 ---
 
-## 4. 메소드 / 클래스 명명 규칙
+## 7) 체크리스트
 
-### 4.1 Controller 메소드 (API 진입점)
-
-패턴:
-- 동사 + 명사 + 액터 형태
-- HTTP 메서드로 역할을 구분
-
-예:
-- getHospitalsForStaff()
+- [ ] 새 모델을 `Domains/*/Models`에 생성했는가?
+- [ ] 컨트롤러에 비즈니스 로직이 과도하게 들어가지 않았는가?
+- [ ] Permission/Policy 기준으로 접근 제어를 적용했는가?
+- [ ] 응답 포맷을 `ApiResponse`로 통일했는가?
 
 ---
 
-## 5. 도메인 디렉토리 템플릿 (예: Hospital)
-
-권장 기본 형태:
-
-- `app/Domains/Hospital/Models/Hospital.php`
-- `app/Domains/Hospital/Actions/Staff/HospitalListForStaffAction.php`
-- `app/Domains/Hospital/Dto/Staff/HospitalForStaffDto.php`
-
----
-
-## 6. 인증 (Authentication)
-
-### 공통 원칙
-- 인증 방식: **Sanctum 토큰 기반**
-- API는 stateless
-
-### Actor별
-- Staff / Partner / User 모두 동일한 토큰 인증 방식
-- Actor 구분은
-    - 토큰 발급 시 actor 정보 포함
-    - `actor:*` 미들웨어로 검증
-
----
-
-## 7. 응답 / 예외 처리 기준
-
-### 7.1 응답 타입
-- 모든 API는 **ApiResponse 포맷**으로 응답한다.
-
-### 7.2 예외 처리 원칙
-- 예외 처리는 `bootstrap/app.php`에서 단일 기준으로 처리한다.
-- ErrorCode → HTTP Status → ApiResponse 매핑을 고정한다.
-
-자세한 내용은 `error-handling.md`를 참고한다.
-
----
-
-## 8. 실수 방지 체크리스트
-
-- [ ] 새로운 모델을 `Domains/*/Models`에 만들었는가?
-- [ ] 컨트롤러에 비즈니스 로직이 들어가 있지 않은가?
-- [ ] Actor 차이가 Action / DTO로 분리되어 있는가?
-- [ ] API 응답이 ApiResponse 규칙을 따르는가?
-- [ ] 권한 정의를 Common Authorization 기준으로 사용하고 있는가?
-
----
-
-## 9. 데이터 변경/감사 로깅 아키텍처 원칙
-
-### 9.1 감사 대상 모델(Auditable Model) 변경 방식
-
-감사 추적이 필요한 모델은 **벌크 업데이트를 금지**한다.
-
-- 금지: `Model::query()->update(...)`, `Model::where(...)->delete()` 같은 bulk CUD
-- 허용: 개별 인스턴스 단위의 `save()`, `delete()`
-
-이 원칙은 Activity Log(`LogsActivity`)가 모델 이벤트 기반으로 기록되는 구조를 보장하기 위함이다.
-
-### 9.2 로그 레이어 분리
-
-로그는 목적에 따라 아래처럼 분리한다.
-
-- **감사로그(Audit Log)**
-    - 대상: 누가 어떤 데이터를 C/U/D 했는지의 변경 이력
-    - 저장: `activity_log` 테이블(Spatie Activitylog)
-    - 기본 로그명: `audit`
-    - 기준 구현: `HasAuditLogs` trait
-- **운영로그(App Log)**
-    - 대상: 예외, 요청 추적(traceId), 시스템 운영 이벤트
-    - 저장: `storage/logs/laravel.log` 및 logging channel
-
-자세한 운영 규칙은 `logging.md`를 참고한다.
-
-### 9.3 기록 우선순위
-
-현 시점 기준으로 아래는 감사로그 기록을 기본 원칙으로 한다.
-
-- 주요 도메인 CUD(Create/Update/Delete)
-- 모든 도메인 권한 변경사항(Role/Permission 부여/회수/동기화)
-
----
-
-작성자: 안민성
+작성 기준: 2026-02-26 (코드 스냅샷 반영)

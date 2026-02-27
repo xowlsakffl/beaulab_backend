@@ -6,6 +6,7 @@ use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\VideoRequest\Actions\Partner\VideoRequestCreateForPartnerAction;
 use App\Domains\VideoRequest\Actions\Partner\VideoRequestCancelForPartnerAction;
+use App\Domains\VideoRequest\Actions\Partner\VideoRequestGetForPartnerAction;
 use App\Domains\VideoRequest\Actions\Partner\VideoRequestListForPartnerAction;
 use App\Domains\VideoRequest\Actions\Partner\VideoRequestUpdateForPartnerAction;
 use App\Domains\VideoRequest\Models\VideoRequest;
@@ -21,6 +22,13 @@ final class VideoRequestForPartnerController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getVideoRequestForPartner(VideoRequest $videoRequest, VideoRequestGetForPartnerAction $action)
+    {
+        $result = $action->execute($videoRequest);
+
+        return ApiResponse::success($result['video_request'] ?? $result);
     }
 
     public function storeVideoRequestForPartner(VideoRequestCreateForPartnerRequest $request, VideoRequestCreateForPartnerAction $action)

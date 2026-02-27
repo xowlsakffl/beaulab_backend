@@ -88,9 +88,18 @@ final class VideoRequest extends Model
         return $this->review_status === self::REVIEW_STATUS_PARTNER_CANCELED;
     }
 
-    public function isOwnedByPartner(AccountPartner $partner): bool
+    public function isAccessibleByPartner(AccountPartner $partner): bool
     {
-        #TODO 로그인한 사용자뿐만 아닌 해당 병원, 뷰티 소속 직원만
-        return (int) $this->submitted_by_partner_id === (int) $partner->id;
+        if ($partner->isHospital()) {
+            return (int) $this->hospital_id > 0
+                && (int) $this->hospital_id === (int) $partner->hospital_id;
+        }
+
+        if ($partner->isBeauty()) {
+            return (int) $this->beauty_id > 0
+                && (int) $this->beauty_id === (int) $partner->beauty_id;
+        }
+
+        return false;
     }
 }

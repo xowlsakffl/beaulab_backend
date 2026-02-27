@@ -24,6 +24,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:partner'])->group(function (
      */
     Route::get('video-requests', [VideoRequestForPartnerController::class, 'getVideoRequestsForPartner'])
         ->name('videoRequests.getVideoRequestsForPartner');
+    Route::get('video-requests/{videoRequest}', [VideoRequestForPartnerController::class, 'getVideoRequestForPartner'])
+        ->name('videoRequests.getVideoRequestForPartner');
     Route::post('video-requests', [VideoRequestForPartnerController::class, 'storeVideoRequestForPartner'])
         ->name('videoRequests.storeVideoRequestForPartner');
     Route::match(['post', 'put', 'patch'], 'video-requests/{videoRequest}', [VideoRequestForPartnerController::class, 'updateVideoRequestForPartner'])

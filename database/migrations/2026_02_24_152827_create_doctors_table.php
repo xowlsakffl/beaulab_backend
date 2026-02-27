@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('doctors', function (Blueprint $table) {
             $table->id()->comment('의사 고유 ID');
 
-            $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete()->comment('소속 병원 ID');
+            $table->foreignId('hospital_id')->comment('소속 병원 ID')->constrained('hospitals')->cascadeOnDelete();
             $table->unsignedInteger('sort_order')->default(0)->comment('의사 노출 순서');
 
             $table->string('name')->comment('의사 이름');

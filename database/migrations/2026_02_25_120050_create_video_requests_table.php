@@ -12,12 +12,12 @@ return new class extends Migration
         Schema::create('video_requests', function (Blueprint $table) {
             $table->id()->comment('동영상 게시 신청 고유 ID');
 
-            $table->foreignId('hospital_id')->nullable()->constrained('hospitals')->nullOnDelete()->comment('병원 ID(선택)');
-            $table->foreignId('beauty_id')->nullable()->constrained('beauties')->nullOnDelete()->comment('뷰티업체 ID(선택)');
-            $table->foreignId('doctor_id')->nullable()->constrained('doctors')->nullOnDelete()->comment('의사 ID(선택)');
-            $table->foreignId('expert_id')->nullable()->constrained('experts')->nullOnDelete()->comment('뷰티전문가 ID(선택)');
+            $table->foreignId('hospital_id')->nullable()->comment('병원 ID(선택)')->constrained('hospitals')->nullOnDelete();
+            $table->foreignId('beauty_id')->nullable()->comment('뷰티업체 ID(선택)')->constrained('beauties')->nullOnDelete();
+            $table->foreignId('doctor_id')->nullable()->comment('의사 ID(선택)')->constrained('doctors')->nullOnDelete();
+            $table->foreignId('expert_id')->nullable()->comment('뷰티전문가 ID(선택)')->constrained('experts')->nullOnDelete();
 
-            $table->foreignId('submitted_by_partner_id')->nullable()->constrained('account_partners')->nullOnDelete()->comment('신청 파트너 계정 ID');
+            $table->foreignId('submitted_by_partner_id')->nullable()->comment('신청 파트너 계정 ID')->constrained('account_partners')->nullOnDelete();
 
             $table->string('title')->comment('신청 동영상 제목');
             $table->text('description')->nullable()->comment('신청 동영상 설명');
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->boolean('is_publish_period_unlimited')->default(false)->comment('무기한 등록 요청 여부');
 
             $table->string('review_status', 20)->default('PENDING')->comment('검수 상태(PENDING, IN_REVIEW, APPROVED, REJECTED)');
-            $table->foreignId('reviewed_by_staff_id')->nullable()->constrained('account_staffs')->nullOnDelete()->comment('검수 처리 스태프 계정 ID');
+            $table->foreignId('reviewed_by_staff_id')->nullable()->comment('검수 처리 스태프 계정 ID')->constrained('account_staffs')->nullOnDelete();
             $table->timestamp('reviewed_at')->nullable()->comment('검수 처리 시각');
 
             $table->string('reject_reason', 100)->nullable()->comment('반려 사유 코드/요약');

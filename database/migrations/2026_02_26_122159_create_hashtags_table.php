@@ -25,7 +25,7 @@ return new class extends Migration
 
         Schema::create('hashtaggables', function (Blueprint $table) {
             $table->id()->comment('해시태그 매핑 고유 ID');
-            $table->foreignId('hashtag_id')->constrained('hashtags')->cascadeOnDelete()->comment('해시태그 ID');
+            $table->foreignId('hashtag_id')->comment('해시태그 ID')->constrained('hashtags')->cascadeOnDelete();
 
             $table->string('hashtaggable_type', 191)->comment('매핑 모델 타입(App\\Domains\\Video\\Models\\Video 등)');
             $table->unsignedBigInteger('hashtaggable_id')->comment('매핑 모델 고유 ID');

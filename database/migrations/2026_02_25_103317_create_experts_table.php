@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('experts', function (Blueprint $table) {
             $table->id()->comment('뷰티전문가 고유 ID');
 
-            $table->foreignId('beauty_id')->constrained('beauties')->cascadeOnDelete()->comment('소속 뷰티 ID');
+            $table->foreignId('beauty_id')->comment('소속 뷰티 ID')->constrained('beauties')->cascadeOnDelete();
             $table->unsignedInteger('sort_order')->default(0)->comment('뷰티전문가 노출 순서');
 
             $table->string('name')->comment('뷰티전문가 이름');

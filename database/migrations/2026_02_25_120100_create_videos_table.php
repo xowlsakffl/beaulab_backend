@@ -12,10 +12,10 @@ return new class extends Migration
         Schema::create('videos', function (Blueprint $table) {
             $table->id()->comment('동영상 고유 ID');
 
-            $table->foreignId('hospital_id')->nullable()->constrained('hospitals')->nullOnDelete()->comment('병원 ID(선택)');
-            $table->foreignId('beauty_id')->nullable()->constrained('beauties')->nullOnDelete()->comment('뷰티업체 ID(선택)');
-            $table->foreignId('doctor_id')->nullable()->constrained('doctors')->nullOnDelete()->comment('의사 ID(선택, 병원 영상 대표 의사 1명)');
-            $table->foreignId('expert_id')->nullable()->constrained('experts')->nullOnDelete()->comment('뷰티전문가 ID(선택, 뷰티 영상 대표 전문가 1명)');
+            $table->foreignId('hospital_id')->nullable()->comment('병원 ID(선택)')->constrained('hospitals')->nullOnDelete();
+            $table->foreignId('beauty_id')->nullable()->comment('뷰티업체 ID(선택)')->constrained('beauties')->nullOnDelete();
+            $table->foreignId('doctor_id')->nullable()->comment('의사 ID(선택, 병원 영상 대표 의사 1명)')->constrained('doctors')->nullOnDelete();
+            $table->foreignId('expert_id')->nullable()->comment('뷰티전문가 ID(선택, 뷰티 영상 대표 전문가 1명)')->constrained('experts')->nullOnDelete();
 
             $table->string('title')->comment('동영상 제목');
             $table->text('description')->nullable()->comment('동영상 설명');
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('external_video_id', 191)->nullable()->comment('외부 채널 영상 ID(유튜브 videoId 등)');
             $table->string('external_video_url', 1024)->nullable()->comment('외부 채널 영상 URL');
 
-            $table->foreignId('thumbnail_media_id')->nullable()->constrained('media')->nullOnDelete()->comment('게시 썸네일 미디어 ID');
+            $table->foreignId('thumbnail_media_id')->nullable()->comment('게시 썸네일 미디어 ID')->constrained('media')->nullOnDelete();
             $table->unsignedInteger('duration_seconds')->default(0)->comment('게시 재생 시간(초)');
 
             $table->string('status', 20)->default('ACTIVE')->comment('동영상 상태(ACTIVE, SUSPENDED, PRIVATE)');

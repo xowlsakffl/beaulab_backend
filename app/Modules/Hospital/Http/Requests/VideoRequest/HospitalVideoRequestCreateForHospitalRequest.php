@@ -15,7 +15,7 @@ final class HospitalVideoRequestCreateForHospitalRequest extends FormRequest
     {
         return [
             'hospital_id' => ['sometimes', 'nullable', 'integer', 'exists:hospitals,id'],
-            'doctor_id' => ['nullable', 'integer', 'exists:doctors,id'],
+            'doctor_id' => ['nullable', 'integer', 'exists:hospital_doctors,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_usage_consented' => ['required', 'boolean'],
@@ -31,8 +31,8 @@ final class HospitalVideoRequestCreateForHospitalRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병원 ID',
-            'doctor_id' => '의사 ID',
+            'hospital_id' => '병원 정보',
+            'doctor_id' => '의사 정보',
             'title' => '제목',
             'description' => '설명',
             'is_usage_consented' => '사용 동의 여부',

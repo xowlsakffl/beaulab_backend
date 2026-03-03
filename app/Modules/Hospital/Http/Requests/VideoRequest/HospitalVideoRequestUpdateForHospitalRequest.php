@@ -30,7 +30,7 @@ final class HospitalVideoRequestUpdateForHospitalRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'doctor_id' => '의사 ID',
+            'doctor_id' => '의사 정보',
             'title' => '제목',
             'description' => '설명',
             'is_usage_consented' => '사용 동의 여부',

@@ -3,7 +3,7 @@
 namespace App\Domains\HospitalVideoRequest\Policies\Staff;
 
 use App\Common\Authorization\AccessPermissions;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\HospitalVideoRequest\Models\HospitalVideoRequest;
 
 final class HospitalVideoRequestForStaffPolicy

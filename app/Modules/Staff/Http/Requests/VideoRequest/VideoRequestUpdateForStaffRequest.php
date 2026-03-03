@@ -15,9 +15,7 @@ final class VideoRequestUpdateForStaffRequest extends FormRequest
     {
         return [
             'hospital_id' => ['sometimes', 'nullable', 'integer', 'exists:hospitals,id'],
-            'beauty_id' => ['sometimes', 'nullable', 'integer', 'exists:beauties,id'],
             'doctor_id' => ['sometimes', 'nullable', 'integer', 'exists:doctors,id'],
-            'expert_id' => ['sometimes', 'nullable', 'integer', 'exists:experts,id'],
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'is_usage_consented' => ['sometimes', 'boolean'],

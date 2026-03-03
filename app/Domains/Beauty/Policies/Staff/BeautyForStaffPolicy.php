@@ -3,8 +3,8 @@
 namespace App\Domains\Beauty\Policies\Staff;
 
 use App\Common\Authorization\AccessPermissions;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Beauty\Models\Beauty;
-use App\Domains\Staff\Models\AccountStaff;
 
 final class BeautyForStaffPolicy
 {

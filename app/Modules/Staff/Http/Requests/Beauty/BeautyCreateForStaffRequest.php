@@ -62,7 +62,7 @@ final class BeautyCreateForStaffRequest extends FormRequest
              * 사업자 정보
              **/
             // 사업자 등록 필수
-            'business_number' => ['required', 'string', 'max:20', 'unique:business_registrations,business_number'],
+            'business_number' => ['required', 'string', 'max:20', 'unique:beauty_business_registrations,business_number'],
             'company_name' => ['required', 'string', 'max:255'],
             'ceo_name' => ['required', 'string', 'max:100'],
             'business_type' => ['required', 'string', 'max:100'],

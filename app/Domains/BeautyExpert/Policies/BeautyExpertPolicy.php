@@ -5,7 +5,7 @@ namespace App\Domains\BeautyExpert\Policies;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\BeautyExpert\Policies\Staff\BeautyExpertForStaffPolicy;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 
 final class BeautyExpertPolicy
 {

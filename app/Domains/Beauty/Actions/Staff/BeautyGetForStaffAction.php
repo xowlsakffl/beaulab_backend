@@ -4,7 +4,7 @@ namespace App\Domains\Beauty\Actions\Staff;
 
 use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
-use App\Domains\Expert\Models\BeautyExpert;
+use App\Domains\BeautyExpert\Models\BeautyExpert;
 use Illuminate\Support\Facades\Gate;
 
 final class BeautyGetForStaffAction

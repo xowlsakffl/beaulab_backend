@@ -77,7 +77,7 @@ final class BeautyUpdateForStaffRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:20',
-                Rule::unique('business_registrations', 'business_number')->ignore($this->businessRegistrationId()),
+                Rule::unique('beauty_business_registrations', 'business_number')->ignore($this->businessRegistrationId()),
             ],
             'company_name' => ['nullable', 'string', 'max:255'],
             'ceo_name' => ['nullable', 'string', 'max:100'],

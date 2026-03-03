@@ -21,7 +21,7 @@ final class BeautyBusinessRegistration extends Model
     protected $table = 'beauty_business_registrations';
 
     protected $fillable = [
-        'owner_id',
+        'beauty_id',
         'business_number',
         'company_name',
         'ceo_name',

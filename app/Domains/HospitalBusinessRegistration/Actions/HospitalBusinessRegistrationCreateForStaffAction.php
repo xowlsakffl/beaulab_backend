@@ -19,7 +19,7 @@ final class HospitalBusinessRegistrationCreateForStaffAction
         $ownerType = strtolower(class_basename($owner));
 
         $businessRegistration = $this->query->create([
-            'owner_id' => $owner->id,
+            'hospital_id' => $owner->id,
             'business_number' => $payload['business_number'],
             'company_name' => $owner->name,
             'ceo_name' => $payload['ceo_name'],

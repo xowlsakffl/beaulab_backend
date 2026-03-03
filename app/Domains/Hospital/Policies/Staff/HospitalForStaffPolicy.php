@@ -3,8 +3,8 @@
 namespace App\Domains\Hospital\Policies\Staff;
 
 use App\Common\Authorization\AccessPermissions;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\Staff\Models\AccountStaff;
 
 final class HospitalForStaffPolicy
 {

@@ -26,7 +26,7 @@ final class HospitalDoctor extends Model
     public const STATUS_SUSPENDED = 'SUSPENDED';
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    protected $table = 'doctors';
+    protected $table = 'hospital_doctors';
 
     protected $fillable = [
         'hospital_id',

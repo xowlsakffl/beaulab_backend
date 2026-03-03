@@ -21,7 +21,7 @@ final class HospitalBusinessRegistration extends Model
     protected $table = 'hospital_business_registrations';
 
     protected $fillable = [
-        'owner_id',
+        'hospital_id',
         'business_number',
         'company_name',
         'ceo_name',

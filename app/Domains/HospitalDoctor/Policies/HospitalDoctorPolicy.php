@@ -4,7 +4,7 @@ namespace App\Domains\HospitalDoctor\Policies;
 
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalDoctor\Policies\Staff\HospitalDoctorForStaffPolicy;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountUser\Models\AccountUser;
 
 final class HospitalDoctorPolicy

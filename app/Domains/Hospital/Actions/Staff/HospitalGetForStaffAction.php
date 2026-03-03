@@ -4,7 +4,7 @@ namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\Doctor\Models\HospitalDoctor;
+use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Support\Facades\Gate;
 
 final class HospitalGetForStaffAction
@@ -23,8 +23,8 @@ final class HospitalGetForStaffAction
             $relations[] = 'businessRegistration.certificateMedia';
         }
 
-        if (in_array('account_partners', $include, true)) {
-            $relations[] = 'partners.roles';
+        if (in_array('account_hospitals', $include, true)) {
+            $relations[] = 'accountHospitals.roles';
         }
 
         if (in_array('doctors', $include, true)) {

@@ -92,7 +92,7 @@ final class HospitalFactory extends Factory
     {
         return $this->afterCreating(function (Hospital $hospital): void {
             HospitalBusinessRegistration::query()->create([
-                'owner_id'                => $hospital->id,
+                'hospital_id'                => $hospital->id,
                 'business_number'         => $this->faker->unique()->numerify('###-##-#####'),
                 'company_name'            => $hospital->name,
                 'ceo_name'                => $this->faker->name(),

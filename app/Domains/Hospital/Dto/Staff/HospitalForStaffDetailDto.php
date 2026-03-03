@@ -43,7 +43,7 @@ final readonly class HospitalForStaffDetailDto
         ];
 
         if (in_array('account_hospitals', $include, true)) {
-            $payload['account_partners'] = $hospital->accountHospitals->map(fn (AccountHospital $accountHospital): array => [
+            $payload['account_hospitals'] = $hospital->accountHospitals->map(fn (AccountHospital $accountHospital): array => [
                 'id' => $accountHospital->id,
                 'name' => $accountHospital->name,
                 'nickname' => $accountHospital->nickname,

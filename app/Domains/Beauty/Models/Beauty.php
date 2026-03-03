@@ -8,7 +8,7 @@ use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\BeautyBusinessRegistration\Models\BeautyBusinessRegistration;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
-use App\Domains\Expert\Models\BeautyExpert;
+use App\Domains\BeautyExpert\Models\BeautyExpert;
 use Database\Factories\BeautyFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

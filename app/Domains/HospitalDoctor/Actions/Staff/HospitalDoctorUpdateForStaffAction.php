@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Doctor\Actions\Staff;
+namespace App\Domains\HospitalDoctor\Actions\Staff;
 
 use App\Domains\Common\Actions\Media\MediaAttachAction;
 use App\Domains\Common\Models\Media\Media;

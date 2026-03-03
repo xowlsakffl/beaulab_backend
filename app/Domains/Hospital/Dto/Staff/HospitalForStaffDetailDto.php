@@ -6,8 +6,7 @@ use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Support\Collection;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\Doctor\Models\HospitalDoctor;
-use App\Domains\Partner\Models\AccountPartner;
+use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 
 final readonly class HospitalForStaffDetailDto
 {

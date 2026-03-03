@@ -4,12 +4,12 @@ namespace App\Modules\Staff\Http\Controllers\BeautyExpert;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\Expert\Actions\Staff\BeautyExpertCreateForStaffAction;
-use App\Domains\Expert\Actions\Staff\BeautyExpertDeleteForStaffAction;
-use App\Domains\Expert\Actions\Staff\BeautyExpertGetForStaffAction;
-use App\Domains\Expert\Actions\Staff\BeautyExpertListForStaffAction;
-use App\Domains\Expert\Actions\Staff\BeautyExpertUpdateForStaffAction;
-use App\Domains\Expert\Models\BeautyExpert;
+use App\Domains\BeautyExpert\Actions\Staff\BeautyExpertCreateForStaffAction;
+use App\Domains\BeautyExpert\Actions\Staff\BeautyExpertDeleteForStaffAction;
+use App\Domains\BeautyExpert\Actions\Staff\BeautyExpertGetForStaffAction;
+use App\Domains\BeautyExpert\Actions\Staff\BeautyExpertListForStaffAction;
+use App\Domains\BeautyExpert\Actions\Staff\BeautyExpertUpdateForStaffAction;
+use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Modules\Staff\Http\Requests\Expert\ExpertCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Expert\ExpertListForStaffRequest;
 use App\Modules\Staff\Http\Requests\Expert\ExpertUpdateForStaffRequest;

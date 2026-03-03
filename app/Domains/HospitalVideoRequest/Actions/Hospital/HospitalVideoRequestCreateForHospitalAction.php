@@ -6,7 +6,6 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Actions\Media\MediaAttachAction;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
-use App\Domains\Expert\Models\BeautyExpert;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\HospitalVideoRequest\Dto\Hospital\HospitalVideoRequestForHospitalDetailDto;
 use App\Domains\HospitalVideoRequest\Models\HospitalVideoRequest;

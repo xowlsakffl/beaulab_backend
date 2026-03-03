@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\AccountUser\Policies\Staff;
 
 use App\Common\Authorization\AccessPermissions;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountUser\Models\AccountUser;
 
 final class AccountUserForStaffPolicy

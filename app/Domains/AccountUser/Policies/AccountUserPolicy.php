@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\AccountUser\Policies;
 
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\AccountUser\Policies\Staff\AccountUserForStaffPolicy;
 use App\Domains\AccountUser\Policies\User\AccountUserForUserPolicy;

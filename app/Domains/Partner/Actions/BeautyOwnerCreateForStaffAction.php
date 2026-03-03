@@ -6,7 +6,7 @@ use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Partner\Queries\BeautyOwnerCreateForStaffQuery;
-use App\Domains\Partner\Models\AccountPartner;
+use App\Domains\Beauty\Models\AccountBeauty;
 use Illuminate\Support\Facades\Auth;
 
 final class BeautyOwnerCreateForStaffAction
@@ -15,16 +15,15 @@ final class BeautyOwnerCreateForStaffAction
         private readonly BeautyOwnerCreateForStaffQuery $query,
     ) {}
 
-    public function execute(Beauty $beauty, array $payload): AccountPartner
+    public function execute(Beauty $beauty, array $payload ): AccountBeauty
     {
         $owner = $this->query->create([
             'name' => $payload['owner_nickname'],
             'nickname' => $payload['owner_nickname'],
             'email' => mb_strtolower((string) $payload['owner_email']),
             'password' => $payload['owner_password'],
-            'partner_type' => AccountPartner::PARTNER_BEAUTY,
-            'beauty_id' => $beauty->id,
-            'status' => AccountPartner::STATUS_ACTIVE,
+                        'beauty_id' => $beauty->id,
+            'status' => AccountBeauty::STATUS_ACTIVE,
         ]);
 
         $owner->assignRole(AccessRoles::BEAUTY_OWNER);

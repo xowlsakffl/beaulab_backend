@@ -47,9 +47,14 @@ return [
             'provider' => 'staff',
         ],
 
-        'partner' => [
+        'hospital' => [
             'driver' => 'sanctum',
-            'provider' => 'partners',
+            'provider' => 'hospitals',
+        ],
+
+        'beauty' => [
+            'driver' => 'sanctum',
+            'provider' => 'beauties',
         ],
 
         'user' => [
@@ -81,9 +86,14 @@ return [
             'model' => env('AUTH_USER_MODEL', \App\Domains\User\Models\AccountUser::class),
         ],
 
-        'partners' => [
+        'hospitals' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_PARTNER_MODEL', \App\Domains\Partner\Models\AccountPartner::class),
+            'model' => env('AUTH_HOSPITAL_MODEL', \App\Domains\Hospital\Models\AccountHospital::class),
+        ],
+
+        'beauties' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_BEAUTY_MODEL', \App\Domains\Beauty\Models\AccountBeauty::class),
         ],
 
         'staff' => [
@@ -123,8 +133,14 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
-        'partners' => [
-            'provider' => 'partners',
+        'hospitals' => [
+            'provider' => 'hospitals',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'beauties' => [
+            'provider' => 'beauties',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,

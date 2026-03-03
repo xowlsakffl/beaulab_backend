@@ -2,12 +2,12 @@
 
 namespace App\Domains\Partner\Queries;
 
-use App\Domains\Partner\Models\AccountPartner;
+use App\Domains\Hospital\Models\AccountHospital;
 
 final class HospitalOwnerCreateForStaffQuery
 {
-    public function create(array $data): AccountPartner
+    public function create(array $data): AccountHospital
     {
-        return AccountPartner::create($data);
+        return AccountHospital::create($data);
     }
 }

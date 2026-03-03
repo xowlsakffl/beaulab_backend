@@ -2,7 +2,7 @@
 
 namespace App\Domains\Partner\Queries;
 
-use App\Domains\Beauty\Models\AccountBeauty;
+use App\Domains\AccountBeauty\Models\AccountBeauty;
 
 final class BeautyOwnerCreateForStaffQuery
 {

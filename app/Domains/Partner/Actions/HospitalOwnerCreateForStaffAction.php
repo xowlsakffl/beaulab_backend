@@ -6,7 +6,7 @@ use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Partner\Queries\HospitalOwnerCreateForStaffQuery;
-use App\Domains\Hospital\Models\AccountHospital;
+use App\Domains\AccountHospital\Models\AccountHospital;
 use Illuminate\Support\Facades\Auth;
 
 final class HospitalOwnerCreateForStaffAction
@@ -15,14 +15,14 @@ final class HospitalOwnerCreateForStaffAction
         private readonly HospitalOwnerCreateForStaffQuery $query,
     ) {}
 
-    public function execute(Hospital $hospital, array $payload ): AccountHospital
+    public function execute(Hospital $hospital, array $payload): AccountHospital
     {
         $owner = $this->query->create([
             'name' => $payload['owner_nickname'],
             'nickname' => $payload['owner_nickname'],
             'email' => mb_strtolower((string) $payload['owner_email']),
             'password' => $payload['owner_password'],
-                        'hospital_id' => $hospital->id,
+            'hospital_id' => $hospital->id,
             'status' => AccountHospital::STATUS_ACTIVE,
         ]);
 

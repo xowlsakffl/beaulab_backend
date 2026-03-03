@@ -2,7 +2,7 @@
 
 namespace App\Domains\VideoRequest\Actions\Beauty;
 
-use App\Domains\Beauty\Models\AccountBeauty;
+use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\VideoRequest\Dto\Partner\VideoRequestForPartnerDto;
 use App\Domains\VideoRequest\Models\VideoRequest;
 use App\Domains\VideoRequest\Queries\Partner\VideoRequestListForPartnerQuery;

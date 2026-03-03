@@ -3,49 +3,49 @@
 namespace App\Modules\Hospital\Http\Controllers\Auth;
 
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\Hospital\Actions\Auth\GetMyProfileForHospitalAction;
-use App\Domains\Hospital\Actions\Auth\LoginForHospitalAction;
-use App\Domains\Hospital\Actions\Auth\LogoutForHospitalAction;
-use App\Domains\Hospital\Actions\Auth\UpdatePasswordForHospitalAction;
-use App\Domains\Hospital\Actions\Auth\UpdateProfileForHospitalAction;
-use App\Modules\Hospital\Http\Requests\Auth\LoginForHospitalRequest;
-use App\Modules\Hospital\Http\Requests\Auth\UpdatePasswordForHospitalRequest;
-use App\Modules\Hospital\Http\Requests\Auth\UpdateProfileForHospitalRequest;
+use App\Domains\AccountHospital\Actions\Auth\GetMyProfileForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Auth\LoginForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Auth\LogoutForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Auth\UpdatePasswordForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Auth\UpdateProfileForAccountHospitalAction;
+use App\Modules\Hospital\Http\Requests\Auth\LoginForAccountHospitalRequest;
+use App\Modules\Hospital\Http\Requests\Auth\UpdatePasswordForAccountHospitalRequest;
+use App\Modules\Hospital\Http\Requests\Auth\UpdateProfileForAccountHospitalRequest;
 use Illuminate\Http\Request;
 
 final class AuthForHospitalController
 {
     public function login(
-        LoginForHospitalRequest $request,
-        LoginForHospitalAction $action
+        LoginForAccountHospitalRequest $request,
+        LoginForAccountHospitalAction $action
     ) {
         return ApiResponse::success($action->execute($request->filters()));
     }
 
     public function logout(
         Request $request,
-        LogoutForHospitalAction $action
+        LogoutForAccountHospitalAction $action
     ) {
         return ApiResponse::success($action->execute($request->user()));
     }
 
     public function getMyProfile(
         Request $request,
-        GetMyProfileForHospitalAction $action
+        GetMyProfileForAccountHospitalAction $action
     ) {
         return ApiResponse::success($action->execute($request->user()));
     }
 
     public function updateMyProfile(
-        UpdateProfileForHospitalRequest $request,
-        UpdateProfileForHospitalAction $action
+        UpdateProfileForAccountHospitalRequest $request,
+        UpdateProfileForAccountHospitalAction $action
     ) {
         return ApiResponse::success($action->execute($request->user(), $request->filters()));
     }
 
     public function updateMyPassword(
-        UpdatePasswordForHospitalRequest $request,
-        UpdatePasswordForHospitalAction $action
+        UpdatePasswordForAccountHospitalRequest $request,
+        UpdatePasswordForAccountHospitalAction $action
     ) {
         return ApiResponse::success($action->execute($request->user(), $request->filters()));
     }

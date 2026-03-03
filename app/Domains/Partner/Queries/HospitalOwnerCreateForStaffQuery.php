@@ -2,7 +2,7 @@
 
 namespace App\Domains\Partner\Queries;
 
-use App\Domains\Hospital\Models\AccountHospital;
+use App\Domains\AccountHospital\Models\AccountHospital;
 
 final class HospitalOwnerCreateForStaffQuery
 {

@@ -7,7 +7,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Actions\Media\MediaAttachAction;
 use App\Domains\Doctor\Models\Doctor;
 use App\Domains\Expert\Models\Expert;
-use App\Domains\Hospital\Models\AccountHospital;
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\VideoRequest\Dto\Partner\VideoRequestForPartnerDetailDto;
 use App\Domains\VideoRequest\Models\VideoRequest;
 use App\Domains\VideoRequest\Queries\Partner\VideoRequestCreateForPartnerQuery;

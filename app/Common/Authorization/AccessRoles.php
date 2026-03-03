@@ -14,7 +14,7 @@ final class AccessRoles
     public const BEAULAB_DEV         = 'beaulab.dev';
 
     // =========================
-    // Partner Roles
+    // Partner Roles (guard: partner)
     // =========================
 
     // Hospital
@@ -26,6 +26,10 @@ final class AccessRoles
     public const BEAUTY_OWNER        = 'beauty.owner';
     public const BEAUTY_MANAGER      = 'beauty.manager';
     public const BEAUTY_STAFF        = 'beauty.staff';
+
+    // Agency
+    public const AGENCY_OWNER        = 'agency.owner';
+    public const AGENCY_STAFF        = 'agency.staff';
 
     /**
      * guard별 role 목록
@@ -65,7 +69,8 @@ final class AccessRoles
      */
     public static function mapByGuard(): array
     {
-        $common   = AccessPermissions::common();
+        $staffCommon   = AccessPermissions::common();
+        $partnerCommon = AccessPermissions::common();
 
         $beaulab  = AccessPermissions::beaulab();
         $hospital = AccessPermissions::hospital();
@@ -73,8 +78,6 @@ final class AccessRoles
 
         // guard별로 생성될 permission 집합 (Seeder에서 그대로 생성되는 목록)
         $staffAllPermissions   = AccessPermissions::byGuard()[AccessPermissions::GUARD_STAFF];
-        $hospitalAllPermissions   = AccessPermissions::byGuard()[AccessPermissions::GUARD_HOSPITAL];
-        $beautyAllPermissions   = AccessPermissions::byGuard()[AccessPermissions::GUARD_BEAUTY];
         $userAllPermissions    = AccessPermissions::byGuard()[AccessPermissions::GUARD_USER];
 
         return [
@@ -86,12 +89,12 @@ final class AccessRoles
                 self::BEAULAB_SUPER_ADMIN => $staffAllPermissions,
 
                 self::BEAULAB_ADMIN => self::unique([
-                    ...$common,
+                    ...$staffCommon,
                     ...$beaulab,
                 ]),
 
                 self::BEAULAB_STAFF => self::unique([
-                    ...$common,
+                    ...$staffCommon,
                     // 조회 중심
                     AccessPermissions::BEAULAB_HOSPITAL_SHOW,
                     AccessPermissions::BEAULAB_BEAUTY_SHOW,
@@ -103,7 +106,7 @@ final class AccessRoles
 
                 // 개발(현재는 staff 동일)
                 self::BEAULAB_DEV => self::unique([
-                    ...$common,
+                    ...$staffCommon,
                     AccessPermissions::BEAULAB_HOSPITAL_SHOW,
                     AccessPermissions::BEAULAB_BEAUTY_SHOW,
                     AccessPermissions::BEAULAB_AGENCY_SHOW,
@@ -118,11 +121,11 @@ final class AccessRoles
             // =========================
             AccessPermissions::GUARD_HOSPITAL => [
                 self::HOSPITAL_OWNER => self::unique([
-                    ...$common,
+                    ...$partnerCommon,
                     ...$hospital,
                 ]),
                 self::HOSPITAL_MANAGER => self::unique([
-                    ...$common,
+                    ...$partnerCommon,
                     AccessPermissions::HOSPITAL_PROFILE_SHOW,
                     AccessPermissions::HOSPITAL_PROFILE_UPDATE,
                     AccessPermissions::HOSPITAL_MEMBERS_MANAGE,
@@ -132,7 +135,7 @@ final class AccessRoles
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_CANCEL,
                 ]),
                 self::HOSPITAL_STAFF => self::unique([
-                    ...$common,
+                    ...$partnerCommon,
                     AccessPermissions::HOSPITAL_PROFILE_SHOW,
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_SHOW,
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_CREATE,
@@ -143,11 +146,11 @@ final class AccessRoles
 
             AccessPermissions::GUARD_BEAUTY => [
                 self::BEAUTY_OWNER => self::unique([
-                    ...$common,
+                    ...$partnerCommon,
                     ...$beauty,
                 ]),
                 self::BEAUTY_MANAGER => self::unique([
-                    ...$common,
+                    ...$partnerCommon,
                     AccessPermissions::BEAUTY_PROFILE_SHOW,
                     AccessPermissions::BEAUTY_PROFILE_UPDATE,
                     AccessPermissions::BEAUTY_MEMBERS_MANAGE,
@@ -157,7 +160,7 @@ final class AccessRoles
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_CANCEL,
                 ]),
                 self::BEAUTY_STAFF => self::unique([
-                    ...$common,
+                    ...$partnerCommon,
                     AccessPermissions::BEAUTY_PROFILE_SHOW,
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_SHOW,
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_CREATE,

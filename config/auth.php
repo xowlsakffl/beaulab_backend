@@ -88,12 +88,12 @@ return [
 
         'hospitals' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_HOSPITAL_MODEL', \App\Domains\Hospital\Models\AccountHospital::class),
+            'model' => env('AUTH_HOSPITAL_MODEL', \App\Domains\AccountHospital\Models\AccountHospital::class),
         ],
 
         'beauties' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_BEAUTY_MODEL', \App\Domains\Beauty\Models\AccountBeauty::class),
+            'model' => env('AUTH_BEAUTY_MODEL', \App\Domains\AccountBeauty\Models\AccountBeauty::class),
         ],
 
         'staff' => [

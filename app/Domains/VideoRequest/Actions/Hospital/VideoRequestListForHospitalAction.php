@@ -2,7 +2,7 @@
 
 namespace App\Domains\VideoRequest\Actions\Hospital;
 
-use App\Domains\Hospital\Models\AccountHospital;
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\VideoRequest\Dto\Partner\VideoRequestForPartnerDto;
 use App\Domains\VideoRequest\Models\VideoRequest;
 use App\Domains\VideoRequest\Queries\Partner\VideoRequestListForPartnerQuery;

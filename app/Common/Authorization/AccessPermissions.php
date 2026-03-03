@@ -66,12 +66,6 @@ final class AccessPermissions
     public const BEAUTY_VIDEO_REQUEST_UPDATE = 'beauty.video-request.update';
     public const BEAUTY_VIDEO_REQUEST_CANCEL = 'beauty.video-request.cancel';
 
-    // Agency
-    public const AGENCY_PROFILE_SHOW = 'agency.profile.show';
-    public const AGENCY_PROFILE_UPDATE = 'agency.profile.update';
-    public const AGENCY_PROFILE_DELETE = 'agency.profile.delete';
-    public const AGENCY_MEMBERS_MANAGE = 'agency.members.manage';
-
     // User
     public const USER_PROFILE_SHOW = 'user.profile.show';
     public const USER_PROFILE_UPDATE = 'user.profile.update';
@@ -202,19 +196,6 @@ final class AccessPermissions
             self::BEAUTY_VIDEO_REQUEST_CREATE,
             self::BEAUTY_VIDEO_REQUEST_UPDATE,
             self::BEAUTY_VIDEO_REQUEST_CANCEL,
-        ];
-    }
-
-    /**
-     * Partner - Agency 권한
-     */
-    public static function agency(): array
-    {
-        return [
-            self::AGENCY_PROFILE_SHOW,
-            self::AGENCY_PROFILE_UPDATE,
-            self::AGENCY_PROFILE_DELETE,
-            self::AGENCY_MEMBERS_MANAGE,
         ];
     }
 

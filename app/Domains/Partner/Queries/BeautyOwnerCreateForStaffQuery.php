@@ -2,12 +2,12 @@
 
 namespace App\Domains\Partner\Queries;
 
-use App\Domains\Partner\Models\AccountPartner;
+use App\Domains\AccountBeauty\Models\AccountBeauty;
 
 final class BeautyOwnerCreateForStaffQuery
 {
-    public function create(array $data): AccountPartner
+    public function create(array $data): AccountBeauty
     {
-        return AccountPartner::create($data);
+        return AccountBeauty::create($data);
     }
 }

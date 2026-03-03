@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-final class AccountPartner extends Authenticatable
+class AccountPartner extends Authenticatable
 {
     use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes, HasAuditLogs;
 

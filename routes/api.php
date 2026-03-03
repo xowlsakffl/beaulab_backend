@@ -8,9 +8,13 @@ Route::prefix('v1')->group(function () {
         ->name('staff.')
         ->group(base_path('app/Modules/Staff/routes/api_staff.php'));
 
-    Route::prefix('partner')
-        ->name('partner.')
-        ->group(base_path('app/Modules/Partner/routes/api_partner.php'));
+    Route::prefix('hospital')
+        ->name('hospital.')
+        ->group(base_path('app/Modules/Hospital/routes/api_hospital.php'));
+
+    Route::prefix('beauty')
+        ->name('beauty.')
+        ->group(base_path('app/Modules/Beauty/routes/api_beauty.php'));
 
     Route::prefix('user')
         ->name('user.')

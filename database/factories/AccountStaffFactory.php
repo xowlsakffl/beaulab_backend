@@ -74,7 +74,7 @@ final class AccountStaffFactory extends Factory
         return DB::transaction(function () use ($payload, $role): AccountStaff {
             $staff = AccountStaff::query()->firstOrCreate(
                 ['email' => $payload['email']],
-                $this->fromSeedEnv()->make()->toArray()
+                $this->fromSeedEnv()->raw()
             );
 
             app(PermissionRegistrar::class)->forgetCachedPermissions();

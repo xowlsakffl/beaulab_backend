@@ -6,7 +6,8 @@ return [
 
     'guards' => [
         'user',
-        'partner',
+        'hospital',
+        'beauty',
         'staff',
     ],
 

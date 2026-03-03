@@ -5,7 +5,8 @@ namespace App\Common\Authorization;
 final class AccessPermissions
 {
     public const GUARD_STAFF   = 'staff';
-    public const GUARD_PARTNER = 'partner';
+    public const GUARD_HOSPITAL = 'hospital';
+    public const GUARD_BEAUTY = 'beauty';
     public const GUARD_USER    = 'user';
 
     // Common
@@ -90,11 +91,14 @@ final class AccessPermissions
                 ...self::beaulab(),  // staff 전용
             ]),
 
-            self::GUARD_PARTNER => self::unique([
-                ...self::common(),   // staff/partner 공통(관리영역)
+            self::GUARD_HOSPITAL => self::unique([
+                ...self::common(),
                 ...self::hospital(),
+            ]),
+
+            self::GUARD_BEAUTY => self::unique([
+                ...self::common(),
                 ...self::beauty(),
-                ...self::agency(),
             ]),
 
             self::GUARD_USER => self::unique([

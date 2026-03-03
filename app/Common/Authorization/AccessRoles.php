@@ -45,17 +45,15 @@ final class AccessRoles
                 self::BEAULAB_STAFF,
                 self::BEAULAB_DEV,
             ],
-            AccessPermissions::GUARD_PARTNER => [
+            AccessPermissions::GUARD_HOSPITAL => [
                 self::HOSPITAL_OWNER,
                 self::HOSPITAL_MANAGER,
                 self::HOSPITAL_STAFF,
-
+            ],
+            AccessPermissions::GUARD_BEAUTY => [
                 self::BEAUTY_OWNER,
                 self::BEAUTY_MANAGER,
                 self::BEAUTY_STAFF,
-
-                self::AGENCY_OWNER,
-                self::AGENCY_STAFF,
             ],
             AccessPermissions::GUARD_USER => [
                 // 유저는 role을 안 쓰면 비워둬도 됨.
@@ -77,11 +75,9 @@ final class AccessRoles
         $beaulab  = AccessPermissions::beaulab();
         $hospital = AccessPermissions::hospital();
         $beauty   = AccessPermissions::beauty();
-        $agency   = AccessPermissions::agency();
 
         // guard별로 생성될 permission 집합 (Seeder에서 그대로 생성되는 목록)
         $staffAllPermissions   = AccessPermissions::byGuard()[AccessPermissions::GUARD_STAFF];
-        $partnerAllPermissions = AccessPermissions::byGuard()[AccessPermissions::GUARD_PARTNER];
         $userAllPermissions    = AccessPermissions::byGuard()[AccessPermissions::GUARD_USER];
 
         return [
@@ -123,7 +119,7 @@ final class AccessRoles
             // =========================
             // Partner (guard: partner)
             // =========================
-            AccessPermissions::GUARD_PARTNER => [
+            AccessPermissions::GUARD_HOSPITAL => [
                 self::HOSPITAL_OWNER => self::unique([
                     ...$partnerCommon,
                     ...$hospital,
@@ -146,7 +142,9 @@ final class AccessRoles
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_UPDATE,
                     AccessPermissions::HOSPITAL_VIDEO_REQUEST_CANCEL,
                 ]),
+            ],
 
+            AccessPermissions::GUARD_BEAUTY => [
                 self::BEAUTY_OWNER => self::unique([
                     ...$partnerCommon,
                     ...$beauty,
@@ -168,15 +166,6 @@ final class AccessRoles
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_CREATE,
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_UPDATE,
                     AccessPermissions::BEAUTY_VIDEO_REQUEST_CANCEL,
-                ]),
-
-                self::AGENCY_OWNER => self::unique([
-                    ...$partnerCommon,
-                    ...$agency,
-                ]),
-                self::AGENCY_STAFF => self::unique([
-                    ...$partnerCommon,
-                    AccessPermissions::AGENCY_PROFILE_SHOW,
                 ]),
             ],
 

@@ -15,7 +15,7 @@ final class UpdateProfileForAccountBeautyAction
      */
     public function execute(AccountBeauty $beauty, array $filters): array
     {
-        Log::info('파트너 프로필 수정', [
+        Log::info('뷰티 프로필 수정', [
             'beauty_id' => $beauty->id,
             'keys' => array_keys($filters),
         ]);

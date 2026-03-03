@@ -2,10 +2,11 @@
 
 namespace App\Domains\Hospital\Dto\Staff;
 
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Support\Collection;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\Doctor\Models\Doctor;
+use App\Domains\Doctor\Models\HospitalDoctor;
 use App\Domains\Partner\Models\AccountPartner;
 
 final readonly class HospitalForStaffDetailDto
@@ -41,24 +42,22 @@ final readonly class HospitalForStaffDetailDto
             'gallery' => self::resolveGallery($hospital)->map(fn (Media $media): array => self::formatMedia($media))->all(),
         ];
 
-        if (in_array('account_partners', $include, true)) {
-            $payload['account_partners'] = $hospital->partners->map(fn (AccountPartner $partner): array => [
-                'id' => $partner->id,
-                'name' => $partner->name,
-                'nickname' => $partner->nickname,
-                'email' => $partner->email,
-                'partner_type' => $partner->partner_type,
-                'status' => $partner->status,
-                'roles' => $partner->getRoleNames()->values()->all(),
-                'last_login_at' => $partner->last_login_at?->toISOString(),
-                'created_at' => $partner->created_at?->toISOString(),
-                'updated_at' => $partner->updated_at?->toISOString(),
+        if (in_array('account_hospitals', $include, true)) {
+            $payload['account_partners'] = $hospital->accountHospitals->map(fn (AccountHospital $accountHospital): array => [
+                'id' => $accountHospital->id,
+                'name' => $accountHospital->name,
+                'nickname' => $accountHospital->nickname,
+                'email' => $accountHospital->email,
+                'status' => $accountHospital->status,
+                'roles' => $accountHospital->getRoleNames()->values()->all(),
+                'last_login_at' => $accountHospital->last_login_at?->toISOString(),
+                'created_at' => $accountHospital->created_at?->toISOString(),
+                'updated_at' => $accountHospital->updated_at?->toISOString(),
             ])->all();
         }
 
-
         if (in_array('doctors', $include, true)) {
-            $payload['doctors'] = $hospital->doctors->map(fn (Doctor $doctor): array => [
+            $payload['doctors'] = $hospital->doctors->map(fn (HospitalDoctor $doctor): array => [
                 'id' => $doctor->id,
                 'hospital_id' => $doctor->hospital_id,
                 'name' => $doctor->name,

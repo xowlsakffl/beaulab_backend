@@ -4,7 +4,7 @@ namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\Doctor\Models\Doctor;
+use App\Domains\Doctor\Models\HospitalDoctor;
 use Illuminate\Support\Facades\Gate;
 
 final class HospitalGetForStaffAction
@@ -28,7 +28,7 @@ final class HospitalGetForStaffAction
         }
 
         if (in_array('doctors', $include, true)) {
-            Gate::authorize('viewAny', Doctor::class);
+            Gate::authorize('viewAny', HospitalDoctor::class);
             $relations[] = 'doctors';
         }
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domains\Staff\Dto\Auth;
+namespace App\Domains\AccountStaff\Dto\Auth;
 
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 
 final readonly class AuthForStaffDto
 {

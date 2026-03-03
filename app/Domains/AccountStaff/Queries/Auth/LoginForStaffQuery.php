@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domains\Staff\Queries\Auth;
+namespace App\Domains\AccountStaff\Queries\Auth;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use Illuminate\Support\Facades\Hash;
 
 final class LoginForStaffQuery

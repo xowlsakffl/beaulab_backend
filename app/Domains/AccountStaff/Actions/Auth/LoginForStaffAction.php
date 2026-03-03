@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domains\Staff\Actions\Auth;
+namespace App\Domains\AccountStaff\Actions\Auth;
 
-use App\Domains\Staff\Dto\Auth\AuthForStaffDto;
-use App\Domains\Staff\Dto\Auth\StaffLoginDto;
-use App\Domains\Staff\Queries\Auth\LoginForStaffQuery;
+use App\Domains\AccountStaff\Dto\Auth\AuthForStaffDto;
+use App\Domains\AccountStaff\Dto\Auth\StaffLoginDto;
+use App\Domains\AccountStaff\Queries\Auth\LoginForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 

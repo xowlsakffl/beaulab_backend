@@ -4,10 +4,10 @@ use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
 use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
-use App\Modules\Staff\Http\Controllers\Doctor\DoctorForStaffController;
-use App\Modules\Staff\Http\Controllers\Expert\ExpertForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
+use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
-use App\Modules\Staff\Http\Controllers\VideoRequest\VideoRequestForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalVideoRequest\VideoRequestForStaffController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {

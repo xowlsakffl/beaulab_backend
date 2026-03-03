@@ -42,8 +42,8 @@ final class HospitalPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff   => app(HospitalForStaffPolicy::class),
-            $actor instanceof AccountPartner => app(HospitalForPartnerPolicy::class),
-            $actor instanceof AccountUser    => app(HospitalForUserPolicy::class),
+            //$actor instanceof AccountPartner => app(HospitalForPartnerPolicy::class),
+            //$actor instanceof AccountUser    => app(HospitalForUserPolicy::class),
             default => new class {
                 public function viewAny(mixed $actor): bool { return false; }
                 public function view(mixed $actor, Hospital $hospital): bool { return false; }

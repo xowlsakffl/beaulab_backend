@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domains\Staff\Actions\Auth;
+namespace App\Domains\AccountStaff\Actions\Auth;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;

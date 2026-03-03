@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domains\Beauty\Models;
 
+use App\Domains\AccountBeauty\Models\AccountBeauty;
+use App\Domains\BeautyBusinessRegistration\Models\BeautyBusinessRegistration;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Common\Models\Media\Media;
-use App\Domains\Expert\Models\Expert;
-use App\Domains\Partner\Models\AccountPartner;
+use App\Domains\Expert\Models\BeautyExpert;
 use Database\Factories\BeautyFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -64,14 +64,14 @@ final class Beauty extends Model
         return BeautyFactory::new();
     }
 
-    public function partners(): HasMany
+    public function accountBeauties(): HasMany
     {
-        return $this->hasMany(AccountPartner::class, 'beauty_id');
+        return $this->hasMany(AccountBeauty::class, 'beauty_id');
     }
 
     public function experts(): HasMany
     {
-        return $this->hasMany(Expert::class, 'beauty_id')
+        return $this->hasMany(BeautyExpert::class, 'beauty_id')
             ->orderBy('sort_order')
             ->orderBy('id');
     }
@@ -92,8 +92,7 @@ final class Beauty extends Model
 
     public function businessRegistration(): HasOne
     {
-        return $this->hasOne(BusinessRegistration::class, 'owner_id')
-            ->where('owner_type', 'beauty');
+        return $this->hasOne(BeautyBusinessRegistration::class, 'beauty_id');
     }
 
     public function isApproved(): bool

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domains\Hospital\Models;
 
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
 use App\Domains\Common\Models\Media\Media;
-use App\Domains\Doctor\Models\Doctor;
-use App\Domains\Partner\Models\AccountPartner;
+use App\Domains\Doctor\Models\HospitalDoctor;
+use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
 use Database\Factories\HospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -64,9 +64,9 @@ final class Hospital extends Model
         return HospitalFactory::new();
     }
 
-    public function partners(): HasMany
+    public function accountHospitals(): HasMany
     {
-        return $this->hasMany(AccountPartner::class, 'hospital_id');
+        return $this->hasMany(AccountHospital::class, 'hospital_id');
     }
 
 
@@ -87,15 +87,14 @@ final class Hospital extends Model
 
     public function doctors(): HasMany
     {
-        return $this->hasMany(Doctor::class, 'hospital_id')
+        return $this->hasMany(HospitalDoctor::class, 'hospital_id')
             ->orderBy('sort_order')
             ->orderBy('id');
     }
 
     public function businessRegistration(): HasOne
     {
-        return $this->hasOne(BusinessRegistration::class, 'owner_id')
-            ->where('owner_type', 'hospital');
+        return $this->hasOne(HospitalBusinessRegistration::class, 'hospital_id');
     }
 
     public function isApproved(): bool

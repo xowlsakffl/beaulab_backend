@@ -3,12 +3,11 @@
 namespace App\Modules\Staff\Http\Controllers\Auth;
 
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\Staff\Actions\Auth\GetMyProfileForStaffAction;
-use App\Domains\Staff\Actions\Auth\LoginForStaffAction;
-use App\Domains\Staff\Actions\Auth\LogoutForStaffAction;
-use App\Domains\Staff\Actions\Auth\UpdatePasswordForStaffAction;
-use App\Domains\Staff\Actions\Auth\UpdateProfileForStaffAction;
-use App\Domains\Staff\Dto\Auth\ProfileForStaffDto;
+use App\Domains\AccountStaff\Actions\Auth\GetMyProfileForStaffAction;
+use App\Domains\AccountStaff\Actions\Auth\LoginForStaffAction;
+use App\Domains\AccountStaff\Actions\Auth\LogoutForStaffAction;
+use App\Domains\AccountStaff\Actions\Auth\UpdatePasswordForStaffAction;
+use App\Domains\AccountStaff\Actions\Auth\UpdateProfileForStaffAction;
 use App\Modules\Staff\Http\Requests\Auth\LoginForStaffRequest;
 use App\Modules\Staff\Http\Requests\Auth\UpdatePasswordForStaffRequest;
 use App\Modules\Staff\Http\Requests\Auth\UpdateProfileForStaffRequest;

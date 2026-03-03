@@ -15,7 +15,7 @@ final class UpdateProfileForAccountHospitalAction
      */
     public function execute(AccountHospital $hospital, array $filters): array
     {
-        Log::info('파트너 프로필 수정', [
+        Log::info('병원 프로필 수정', [
             'hospital_id' => $hospital->id,
             'keys' => array_keys($filters),
         ]);

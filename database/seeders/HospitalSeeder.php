@@ -14,14 +14,14 @@ final class HospitalSeeder extends Seeder
             ->approved()
             ->active()
             ->withBusinessRegistration()
-            ->withPartner()
+            ->withAccountHospital()
             ->create();
 
         // 나머지 랜덤 병원 + 소유주
         Hospital::factory()
             ->count(10)
             ->withBusinessRegistration()
-            ->withPartner()
+            ->withAccountHospital()
             ->create();
     }
 }

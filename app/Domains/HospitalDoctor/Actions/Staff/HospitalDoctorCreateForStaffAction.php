@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Domains\HospitalDoctor\Actions\Staff;
+
+use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\HospitalDoctor\Dto\Staff\HospitalDoctorForStaffDetailDto;
+use App\Domains\HospitalDoctor\Models\HospitalDoctor;
+use App\Domains\HospitalDoctor\Queries\Staff\HospitalDoctorCreateForStaffQuery;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+
+final class HospitalDoctorCreateForStaffAction
+{
+    public function __construct(
+        private readonly HospitalDoctorCreateForStaffQuery $query,
+        private readonly MediaAttachAction $mediaAttachAction,
+    ) {}
+
+    public function execute(array $payload): array
+    {
+        Gate::authorize('create', HospitalDoctor::class);
+
+        $doctor = DB::transaction(function () use ($payload) {
+            $doctor = $this->query->create($payload);
+
+            $this->attachMedia($doctor, $payload);
+
+            return $doctor->fresh();
+        });
+
+        return [
+            'doctor' => HospitalDoctorForStaffDetailDto::fromModel($doctor->load([
+                'profileImage',
+                'licenseImage',
+                'specialistCertificateImages',
+                'educationCertificateImages',
+                'etcCertificateImages',
+            ]))->toArray(),
+        ];
+    }
+
+    private function attachMedia(HospitalDoctor $doctor, array $payload): void
+    {
+        $this->mediaAttachAction->attachDoctorProfileImage($doctor, $payload['profile_image'] ?? null, 'doctor');
+        $this->mediaAttachAction->attachDoctorLicenseImage($doctor, $payload['license_image'] ?? null, 'doctor');
+
+        $this->mediaAttachAction->attachDoctorSpecialistCertificateImages(
+            $doctor,
+            $this->onlyFiles($payload['specialist_certificate_image'] ?? null),
+            'doctor',
+        );
+
+        $this->mediaAttachAction->attachDoctorEducationCertificateImages(
+            $doctor,
+            $this->onlyFiles($payload['education_certificate_image'] ?? null),
+            'doctor',
+        );
+
+        $this->mediaAttachAction->attachDoctorEtcCertificateImages(
+            $doctor,
+            $this->onlyFiles($payload['etc_certificate_image'] ?? null),
+            'doctor',
+        );
+    }
+
+    private function onlyFiles(mixed $files): array
+    {
+        if (! is_array($files)) {
+            return [];
+        }
+
+        return array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
+    }
+}

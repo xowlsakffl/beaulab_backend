@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\User\Actions\Staff;
+namespace App\Domains\AccountUser\Actions\Staff;
 
-use App\Domains\User\Dto\Staff\AccountUserForStaffDto;
-use App\Domains\User\Models\AccountUser;
-use App\Domains\User\Queries\Staff\AccountUserListForStaffQuery;
+use App\Domains\AccountUser\Dto\Staff\AccountUserForStaffDto;
+use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\AccountUser\Queries\Staff\AccountUserListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 

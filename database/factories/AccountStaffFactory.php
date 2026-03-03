@@ -2,8 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Domains\Admin\Models\Staff;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 

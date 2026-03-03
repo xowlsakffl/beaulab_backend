@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Staff\Actions\Auth;
+namespace App\Domains\AccountStaff\Actions\Auth;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;

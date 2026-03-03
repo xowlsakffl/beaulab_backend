@@ -4,7 +4,7 @@ namespace App\Domains\Beauty\Actions\Staff;
 
 use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
-use App\Domains\Expert\Models\Expert;
+use App\Domains\Expert\Models\BeautyExpert;
 use Illuminate\Support\Facades\Gate;
 
 final class BeautyGetForStaffAction
@@ -23,12 +23,12 @@ final class BeautyGetForStaffAction
             $relations[] = 'businessRegistration.certificateMedia';
         }
 
-        if (in_array('account_partners', $include, true)) {
-            $relations[] = 'partners.roles';
+        if (in_array('account_beauties', $include, true)) {
+            $relations[] = 'accountBeauties.roles';
         }
 
         if (in_array('experts', $include, true)) {
-            Gate::authorize('viewAny', Expert::class);
+            Gate::authorize('viewAny', BeautyExpert::class);
             $relations[] = 'experts.profileImage';
         }
 

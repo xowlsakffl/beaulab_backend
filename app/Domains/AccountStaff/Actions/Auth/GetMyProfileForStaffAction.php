@@ -1,10 +1,10 @@
 <?php
 
 
-namespace App\Domains\Staff\Actions\Auth;
+namespace App\Domains\AccountStaff\Actions\Auth;
 
-use App\Domains\Staff\Dto\Auth\ProfileForStaffDto;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Dto\Auth\ProfileForStaffDto;
+use App\Domains\AccountStaff\Models\AccountStaff;
 
 final class GetMyProfileForStaffAction
 {

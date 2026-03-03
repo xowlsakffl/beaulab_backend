@@ -13,13 +13,13 @@ final class BeautySeeder extends Seeder
             ->count(40)
             ->approved()
             ->active()
-            ->withPartner()
+            ->withAccountBeauty()
             ->create();
 
         // 나머지 랜덤 뷰티 + 소유주
         Beauty::factory()
             ->count(10)
-            ->withPartner()
+            ->withAccountBeauty()
             ->create();
     }
 }

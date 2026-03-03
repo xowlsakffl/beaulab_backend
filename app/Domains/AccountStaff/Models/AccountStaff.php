@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Staff\Models;
+namespace App\Domains\AccountStaff\Models;
 
 use App\Common\Notifications\QueuedResetPasswordNotification;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;

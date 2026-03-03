@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\User\Queries\Staff;
+namespace App\Domains\AccountUser\Queries\Staff;
 
-use App\Domains\User\Models\AccountUser;
+use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 final class AccountUserListForStaffQuery

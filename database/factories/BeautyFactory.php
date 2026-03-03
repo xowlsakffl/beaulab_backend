@@ -4,9 +4,9 @@ namespace Database\Factories;
 
 use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
+use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\Partner\Models\AccountPartner;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -51,12 +51,12 @@ final class BeautyFactory extends Factory
         ];
     }
 
-    public function withPartner(): self
+    public function withAccountBeauty(): self
     {
         return $this->afterCreating(function (Beauty $beauty) {
             $seedKey = str_pad((string) $beauty->id, 4, '0', STR_PAD_LEFT);
 
-            $this->createBeautyPartner(
+            $this->createAccountBeauty(
                 $beauty,
                 $seedKey,
                 'owner',
@@ -66,7 +66,7 @@ final class BeautyFactory extends Factory
             );
 
             for ($i = 1; $i <= 3; $i++) {
-                $this->createBeautyPartner(
+                $this->createAccountBeauty(
                     $beauty,
                     $seedKey,
                     'manager',
@@ -77,7 +77,7 @@ final class BeautyFactory extends Factory
             }
 
             for ($i = 1; $i <= 10; $i++) {
-                $this->createBeautyPartner(
+                $this->createAccountBeauty(
                     $beauty,
                     $seedKey,
                     'staff',
@@ -89,7 +89,7 @@ final class BeautyFactory extends Factory
         });
     }
 
-    private function createBeautyPartner(
+    private function createAccountBeauty(
         Beauty $beauty,
         string $seedKey,
         string $type,
@@ -102,7 +102,7 @@ final class BeautyFactory extends Factory
 
         $email = $type === 'owner'
             ? "beauty{$seedKey}@owner.test"
-            : "beauty{$seedKey}.{$type}{$suffix}@partner.test";
+            : "beauty{$seedKey}.{$type}{$suffix}@beauty.test";
 
         $nickname = $type === 'owner'
             ? "beauty_owner_{$seedKey}"
@@ -112,19 +112,18 @@ final class BeautyFactory extends Factory
             ? "{$nameLabel} {$seedKey}"
             : "{$nameLabel} {$seedKey}-{$suffix}";
 
-        $partner = AccountPartner::factory()->create([
+        $accountBeauty = AccountBeauty::factory()->create([
             'email'        => $email,
             'nickname'     => $nickname,
             'name'         => $name,
-            'partner_type' => AccountPartner::PARTNER_BEAUTY,
             'beauty_id'    => $beauty->id,
-            'status'       => AccountPartner::STATUS_ACTIVE,
+            'status'       => AccountBeauty::STATUS_ACTIVE,
             'password'     => $rawPassword,
         ]);
 
-        $partner->syncRoles([$role]);
+        $accountBeauty->syncRoles([$role]);
 
-        $partner->syncPermissions([
+        $accountBeauty->syncPermissions([
             ...AccessPermissions::common(),
             ...AccessRoles::map()[$role],
         ]);

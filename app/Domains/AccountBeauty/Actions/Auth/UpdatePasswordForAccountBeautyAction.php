@@ -25,7 +25,7 @@ final class UpdatePasswordForAccountBeautyAction
             );
         }
 
-        Log::info('파트너 비밀번호 변경', [
+        Log::info('뷰티 비밀번호 변경', [
             'beauty_id' => $beauty->id,
         ]);
 
@@ -35,7 +35,7 @@ final class UpdatePasswordForAccountBeautyAction
         });
 
         return [
-            'message' => 'Password updated',
+            'message' => '비밀번호가 변경되었습니다.',
         ];
     }
 }

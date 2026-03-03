@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\User\Actions\Staff;
+namespace App\Domains\AccountUser\Actions\Staff;
 
-use App\Domains\User\Dto\Staff\AccountUserForStaffDetailDto;
-use App\Domains\User\Models\AccountUser;
+use App\Domains\AccountUser\Dto\Staff\AccountUserForStaffDetailDto;
+use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Support\Facades\Gate;
 
 final class AccountUserGetForStaffAction

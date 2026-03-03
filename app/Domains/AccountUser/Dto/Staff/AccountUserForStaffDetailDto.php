@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\User\Dto\Staff;
+namespace App\Domains\AccountUser\Dto\Staff;
 
-use App\Domains\User\Models\AccountUser;
+use App\Domains\AccountUser\Models\AccountUser;
 
 final readonly class AccountUserForStaffDetailDto
 {

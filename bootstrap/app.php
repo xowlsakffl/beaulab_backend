@@ -42,10 +42,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(RequestId::class);
 
-        // 요청 주체(staff/partner/user)에 따라 각 로그인 라우트로 리다이렉트한다.
+        // 요청 주체(staff/hospital/beauty/user)에 따라 각 로그인 라우트로 리다이렉트한다.
         // 라우트가 정의되어 있지 않으면 null을 반환해 401 JSON 응답을 유지한다.
         $middleware->redirectGuestsTo(function (Request $request): ?string {
-            $guards = ['staff', 'partner', 'user'];
+            $guards = ['staff', 'hospital', 'beauty', 'user'];
 
             foreach ($guards as $guard) {
                 if (! $request->is("api/v1/{$guard}/*")) {

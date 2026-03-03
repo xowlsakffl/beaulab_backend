@@ -4,9 +4,9 @@ namespace Database\Factories;
 
 use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
-use App\Domains\Common\Models\BusinessRegistration\BusinessRegistration;
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\Partner\Models\AccountPartner;
+use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -51,11 +51,11 @@ final class HospitalFactory extends Factory
         ];
     }
 
-    public function withPartner(): self
+    public function withAccountHospital(): self
     {
         return $this->afterCreating(function (Hospital $hospital) {
             $seedKey = str_pad((string) $hospital->id, 4, '0', STR_PAD_LEFT);
-            $this->createHospitalPartner(
+            $this->createAccountHospital(
                 $hospital,
                 $seedKey,
                 'owner',
@@ -65,7 +65,7 @@ final class HospitalFactory extends Factory
             );
 
             for ($i = 1; $i <= 3; $i++) {
-                $this->createHospitalPartner(
+                $this->createAccountHospital(
                     $hospital,
                     $seedKey,
                     'manager',
@@ -76,7 +76,7 @@ final class HospitalFactory extends Factory
             }
 
             for ($i = 1; $i <= 10; $i++) {
-                $this->createHospitalPartner(
+                $this->createAccountHospital(
                     $hospital,
                     $seedKey,
                     'staff',
@@ -91,8 +91,7 @@ final class HospitalFactory extends Factory
     public function withBusinessRegistration(): self
     {
         return $this->afterCreating(function (Hospital $hospital): void {
-            BusinessRegistration::query()->create([
-                'owner_type'              => 'hospital',
+            HospitalBusinessRegistration::query()->create([
                 'owner_id'                => $hospital->id,
                 'business_number'         => $this->faker->unique()->numerify('###-##-#####'),
                 'company_name'            => $hospital->name,
@@ -102,12 +101,12 @@ final class HospitalFactory extends Factory
                 'business_address'        => $hospital->address,
                 'business_address_detail' => $hospital->address_detail,
                 'issued_at'               => $this->faker->date(),
-                'status'                  => BusinessRegistration::STATUS_ACTIVE,
+                'status'                  => HospitalBusinessRegistration::STATUS_ACTIVE,
             ]);
         });
     }
 
-    private function createHospitalPartner(
+    private function createAccountHospital(
         Hospital $hospital,
         string $seedKey,
         string $type,
@@ -120,7 +119,7 @@ final class HospitalFactory extends Factory
 
         $email = $type === 'owner'
             ? "hospital{$seedKey}@owner.test"
-            : "hospital{$seedKey}.{$type}{$suffix}@partner.test";
+            : "hospital{$seedKey}.{$type}{$suffix}@hospital.test";
 
         $nickname = $type === 'owner'
             ? "hospital_owner_{$seedKey}"
@@ -130,19 +129,18 @@ final class HospitalFactory extends Factory
             ? "{$nameLabel} {$seedKey}"
             : "{$nameLabel} {$seedKey}-{$suffix}";
 
-        $partner = AccountPartner::factory()->create([
+        $accountHospital = AccountHospital::factory()->create([
             'email'        => $email,
             'nickname'     => $nickname,
             'name'         => $name,
-            'partner_type' => AccountPartner::PARTNER_HOSPITAL,
             'hospital_id'  => $hospital->id,
-            'status'       => AccountPartner::STATUS_ACTIVE,
+            'status'       => AccountHospital::STATUS_ACTIVE,
             'password'     => $rawPassword,
         ]);
 
-        $partner->syncRoles([$role]);
+        $accountHospital->syncRoles([$role]);
 
-        $partner->syncPermissions([
+        $accountHospital->syncPermissions([
             ...AccessPermissions::common(),
             ...AccessRoles::map()[$role],
         ]);

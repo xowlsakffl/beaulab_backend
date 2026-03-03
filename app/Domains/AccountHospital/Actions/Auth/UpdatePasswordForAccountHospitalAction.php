@@ -25,7 +25,7 @@ final class UpdatePasswordForAccountHospitalAction
             );
         }
 
-        Log::info('파트너 비밀번호 변경', [
+        Log::info('병원 비밀번호 변경', [
             'hospital_id' => $hospital->id,
         ]);
 

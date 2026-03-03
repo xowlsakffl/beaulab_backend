@@ -19,7 +19,7 @@ final class LoginForAccountHospitalAction
      */
     public function execute(array $filters): array
     {
-        Log::info('파트너 로그인', [
+        Log::info('병원 로그인', [
             'nickname' => $filters['nickname'] ?? null,
         ]);
 

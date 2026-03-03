@@ -12,7 +12,7 @@ final class LogoutForAccountHospitalAction
      */
     public function execute(?Authenticatable $actor): array
     {
-        Log::info('파트너 로그아웃', [
+        Log::info('병원 로그아웃', [
             'actor_type' => get_class($actor),
             'actor_id' => $actor->getAuthIdentifier(),
         ]);

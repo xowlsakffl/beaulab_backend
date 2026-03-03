@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
-use App\Domains\Staff\Models\AccountStaff;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;

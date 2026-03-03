@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\User\Policies\User;
+namespace App\Domains\AccountUser\Policies\User;
 
-use App\Domains\User\Models\AccountUser;
+use App\Domains\AccountUser\Models\AccountUser;
 
 final class AccountUserForUserPolicy
 {

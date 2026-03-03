@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Domains\User\Models\AccountUser;
+use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Database\Seeder;
 
 final class AccountUserSeeder extends Seeder

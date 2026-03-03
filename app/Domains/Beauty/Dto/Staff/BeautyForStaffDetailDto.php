@@ -2,11 +2,11 @@
 
 namespace App\Domains\Beauty\Dto\Staff;
 
+use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\Beauty\Models\Beauty;
+use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\Common\Models\Media\Media;
-use App\Domains\Expert\Models\Expert;
 use Illuminate\Support\Collection;
-use App\Domains\Partner\Models\AccountPartner;
 
 final readonly class BeautyForStaffDetailDto
 {
@@ -41,23 +41,22 @@ final readonly class BeautyForStaffDetailDto
             'gallery' => self::resolveGallery($beauty)->map(fn (Media $media): array => self::formatMedia($media))->all(),
         ];
 
-        if (in_array('account_partners', $include, true)) {
-            $payload['account_partners'] = $beauty->partners->map(fn (AccountPartner $partner): array => [
-                'id' => $partner->id,
-                'name' => $partner->name,
-                'nickname' => $partner->nickname,
-                'email' => $partner->email,
-                'partner_type' => $partner->partner_type,
-                'status' => $partner->status,
-                'roles' => $partner->getRoleNames()->values()->all(),
-                'last_login_at' => $partner->last_login_at?->toISOString(),
-                'created_at' => $partner->created_at?->toISOString(),
-                'updated_at' => $partner->updated_at?->toISOString(),
+        if (in_array('account_beauties', $include, true)) {
+            $payload['account_beauties'] = $beauty->accountBeauties->map(fn (AccountBeauty $accountBeauty): array => [
+                'id' => $accountBeauty->id,
+                'name' => $accountBeauty->name,
+                'nickname' => $accountBeauty->nickname,
+                'email' => $accountBeauty->email,
+                'status' => $accountBeauty->status,
+                'roles' => $accountBeauty->getRoleNames()->values()->all(),
+                'last_login_at' => $accountBeauty->last_login_at?->toISOString(),
+                'created_at' => $accountBeauty->created_at?->toISOString(),
+                'updated_at' => $accountBeauty->updated_at?->toISOString(),
             ])->all();
         }
 
         if (in_array('experts', $include, true)) {
-            $payload['experts'] = $beauty->experts->map(fn (Expert $expert): array => [
+            $payload['experts'] = $beauty->experts->map(fn (BeautyExpert $expert): array => [
                 'id' => $expert->id,
                 'beauty_id' => $expert->beauty_id,
                 'sort_order' => (int) $expert->sort_order,

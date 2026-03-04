@@ -3,6 +3,8 @@
 namespace App\Domains\HospitalVideoRequest\Policies;
 
 use App\Domains\HospitalVideoRequest\Policies\Staff\HospitalVideoRequestForStaffPolicy;
+use App\Domains\HospitalVideoRequest\Policies\Hospital\HospitalVideoRequestForHospitalPolicy;
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\HospitalVideoRequest\Models\HospitalVideoRequest;
@@ -43,6 +45,7 @@ final class HospitalVideoRequestPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff => app(HospitalVideoRequestForStaffPolicy::class),
+            $actor instanceof AccountHospital => app(HospitalVideoRequestForHospitalPolicy::class),
             $actor instanceof AccountUser => new class {
                 public function viewAny(mixed $actor): bool { return false; }
                 public function view(mixed $actor, HospitalVideoRequest $videoRequest): bool { return false; }

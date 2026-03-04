@@ -5,7 +5,7 @@ use App\Modules\Beauty\Http\Controllers\VideoRequest\VideoRequestForBeautyContro
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthForBeautyController::class, 'login'])->name('login');
+    Route::post('login', [AuthForBeautyController::class, 'login'])->name('login')->middleware('throttle:6,1');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:beauty'])->group(function () {

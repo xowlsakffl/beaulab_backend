@@ -11,7 +11,7 @@ use App\Modules\Staff\Http\Controllers\HospitalVideoRequest\VideoRequestForStaff
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthForStaffController::class, 'login'])->name('login');
+    Route::post('login', [AuthForStaffController::class, 'login'])->name('login')->middleware('throttle:6,1');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.access'])->group(function () {

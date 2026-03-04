@@ -5,7 +5,7 @@ use App\Modules\Hospital\Http\Controllers\VideoRequest\VideoRequestForHospitalCo
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthForHospitalController::class, 'login'])->name('login');
+    Route::post('login', [AuthForHospitalController::class, 'login'])->name('login')->middleware('throttle:6,1');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function () {

@@ -14,7 +14,7 @@ final class HospitalVideoRequestUpdateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'doctor_id' => ['sometimes', 'nullable', 'integer', 'exists:doctors,id'],
+            'doctor_id' => ['sometimes', 'nullable', 'integer', 'exists:hospital_doctors,id'],
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'is_usage_consented' => ['sometimes', 'boolean'],

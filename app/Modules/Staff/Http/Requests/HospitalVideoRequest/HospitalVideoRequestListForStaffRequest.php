@@ -37,7 +37,6 @@ final class HospitalVideoRequestListForStaffRequest extends FormRequest
 
         return [
             'hospital_id' => $validated['hospital_id'] ?? null,
-            'beauty_id' => $validated['beauty_id'] ?? null,
             'q' => $validated['q'] ?? null,
             'review_status' => $validated['review_status'] ?? null,
             'sort' => $validated['sort'] ?? 'id',
@@ -72,8 +71,7 @@ final class HospitalVideoRequestListForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병원 ID',
-            'beauty_id' => '뷰티 ID',
+            'hospital_id' => '병원 아이디',
             'q' => '검색어',
             'review_status' => '검토 상태',
             'review_status.*' => '검토 상태',

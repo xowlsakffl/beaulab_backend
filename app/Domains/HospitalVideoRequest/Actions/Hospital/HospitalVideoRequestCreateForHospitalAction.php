@@ -33,10 +33,10 @@ final class HospitalVideoRequestCreateForHospitalAction
         $videoRequest = DB::transaction(function () use ($normalized) {
             $videoRequest = $this->query->create($normalized);
 
-            $this->mediaAttachAction->attachVideoRequestSourceVideo($videoRequest, $normalized['source_video_file'], 'video-request');
+            $this->mediaAttachAction->attachVideoRequestSourceVideo($videoRequest, $normalized['source_video_file'], 'hospital-video-request');
 
             if (! empty($normalized['source_thumbnail_file'])) {
-                $this->mediaAttachAction->attachVideoRequestSourceThumbnail($videoRequest, $normalized['source_thumbnail_file'], 'video-request');
+                $this->mediaAttachAction->attachVideoRequestSourceThumbnail($videoRequest, $normalized['source_thumbnail_file'], 'hospital-video-request');
             }
 
             return $videoRequest->fresh(['sourceVideo', 'sourceThumbnail']);

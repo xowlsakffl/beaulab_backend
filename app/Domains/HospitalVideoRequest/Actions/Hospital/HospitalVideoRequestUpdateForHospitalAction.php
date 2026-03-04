@@ -38,11 +38,11 @@ final class HospitalVideoRequestUpdateForHospitalAction
             $updated = $this->query->update($videoRequest, $normalized);
 
             if (! empty($normalized['source_video_file'])) {
-                $this->mediaAttachAction->attachVideoRequestSourceVideo($updated, $normalized['source_video_file'], 'video-request');
+                $this->mediaAttachAction->attachVideoRequestSourceVideo($updated, $normalized['source_video_file'], 'hospital-video-request');
             }
 
             if (! empty($normalized['source_thumbnail_file'])) {
-                $this->mediaAttachAction->attachVideoRequestSourceThumbnail($updated, $normalized['source_thumbnail_file'], 'video-request');
+                $this->mediaAttachAction->attachVideoRequestSourceThumbnail($updated, $normalized['source_thumbnail_file'], 'hospital-video-request');
             }
 
             return $updated->fresh(['sourceVideo', 'sourceThumbnail']);

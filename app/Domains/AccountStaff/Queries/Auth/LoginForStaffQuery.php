@@ -47,7 +47,7 @@ final class LoginForStaffQuery
         ])->save();
 
         $token = $staff
-            ->createToken('staff-web', ['actor:staff', '*'])
+            ->createToken('staff-web', ['actor:staff'])
             ->plainTextToken;
 
         return [

@@ -8,7 +8,7 @@
 ## 1. 목적
 
 - API 에러 응답 포맷을 **완전히 통일**
-- Actor(Staff / Partner / User) 간 **일관된 에러 처리 기준 유지**
+- Actor(Staff / Hospital / Beauty / User) 간 **일관된 에러 처리 기준 유지**
 - 예외 처리를 **단일 지점(bootstrap/app.php)** 에서 관리
 - 운영 시 에러를 **traceId 기준으로 추적 가능**하게 함
 
@@ -21,7 +21,8 @@
 | 구분 | URL | 응답 형식 |
 |---|---|---|
 | Staff API | `/api/v1/staff/*` | JSON |
-| Partner API | `/api/v1/partner/*` | JSON |
+| Hospital API | `/api/v1/hospital/*` | JSON |
+| Beauty API | `/api/v1/beauty/*` | JSON |
 | User API | `/api/v1/user/*` | JSON |
 
 ---
@@ -115,7 +116,7 @@
 - User API
     - 짧고 안전한 메시지
     - 민감 정보 노출 최소화
-- Staff / Partner API
+- Staff / Hospital / Beauty API
     - 운영에 도움이 되는 힌트 허용
     - SQL, 토큰, 개인정보는 금지
 
@@ -132,7 +133,7 @@
 
 허용 범위:
 - `APP_DEBUG=true` 인 경우
-- Staff / Partner API에 한해 제한적으로 허용
+- Staff / Hospital / Beauty API에 한해 제한적으로 허용
 
 예:
 - `QueryException` : sql, bindings
@@ -166,4 +167,4 @@
 
 ---
 
-작성 기준: 2026-01-23
+작성 기준: 2026-03-04

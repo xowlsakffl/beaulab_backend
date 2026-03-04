@@ -52,30 +52,40 @@
 
 ## 4) Staff API 인증/인가 흐름 (현재 운영 중)
 
-Staff 라우트는 아래 미들웨어를 공통으로 사용합니다.
-
-- `auth:sanctum`
-- `abilities:actor:staff`
-- `permission:common.access`
-
-그 위에서 기능별로 병원/뷰티/회원/의사/뷰티전문가 관리 API를 제공합니다.
-
+- Staff 보호 라우트
+    - `auth:sanctum`
+    - `abilities:actor:staff`
+- Hospital 보호 라우트
+    - `auth:sanctum`
+    - `abilities:actor:hospital`
+- Beauty 보호 라우트
+    - `auth:sanctum`
+    - `abilities:actor:beauty`
+- User
+    - 현재 라우트 뼈대만 존재(추가 구현 예정)
 ---
 
-## 5) Partner/User 영역 상태
+## 5) 기능 구현 상태 (현재 코드 기준)
 
-- Partner 라우트는 별도 파일에서 정의되어 있으며, 현재 코드상 `web`, `auth:admin`, `permission:*` 미들웨어 구조를 사용 중입니다.
-- User 라우트 파일은 현재 뼈대만 존재합니다.
-
-즉, Staff API가 가장 완성도가 높고 Partner/User는 단계적으로 확장 중인 상태입니다.
-
+- Staff
+    - 인증, 프로필/비밀번호 수정
+    - 병원/뷰티/회원/의사/뷰티전문가 CRUD
+    - 영상요청(목록/상세/수정/삭제)
+- Hospital
+    - 인증, 프로필/비밀번호 수정
+    - 영상요청(목록/상세/생성/수정/취소)
+- Beauty
+    - 인증, 프로필/비밀번호 수정
+    - 영상요청 라우트는 아직 미노출(추가 예정)
+- User
+    - 모듈 경로만 존재, 실질 API는 미구현
 ---
 
 ## 6) 도메인 계층 원칙
 
 - 모델은 `app/Domains/{Domain}/Models`에 둔다.
 - 컨트롤러는 얇게 유지하고 복잡한 비즈니스 로직은 `Actions`/`Queries`로 이동한다.
-- Actor별 차이가 필요한 경우 `Actions/Staff`, `Actions/Partner`, `Actions/User`로 분리한다.
+- Actor별 차이가 필요한 경우 `Actions/Staff`, `Actions/Hospital`, `Actions/Beauty`, `Actions/User`로 분리한다.
 
 ---
 
@@ -88,4 +98,4 @@ Staff 라우트는 아래 미들웨어를 공통으로 사용합니다.
 
 ---
 
-작성 기준: 2026-02-26 (코드 스냅샷 반영)
+작성 기준: 2026-03-04 (코드 스냅샷 반영)

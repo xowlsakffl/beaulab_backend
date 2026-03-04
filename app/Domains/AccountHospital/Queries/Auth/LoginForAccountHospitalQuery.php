@@ -44,7 +44,7 @@ final class LoginForAccountHospitalQuery
         $tokenName = $data['device_name'] ?? 'hospital-web';
 
         $token = $hospital
-            ->createToken($tokenName, ['actor:hospital', '*'])
+            ->createToken($tokenName, ['actor:hospital'])
             ->plainTextToken;
 
         return [

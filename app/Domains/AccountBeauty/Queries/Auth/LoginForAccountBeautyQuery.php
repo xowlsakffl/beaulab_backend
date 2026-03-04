@@ -44,7 +44,7 @@ final class LoginForAccountBeautyQuery
         $tokenName = $data['device_name'] ?? 'beauty-web';
 
         $token = $beauty
-            ->createToken($tokenName, ['actor:beauty', '*'])
+            ->createToken($tokenName, ['actor:beauty'])
             ->plainTextToken;
 
         return [

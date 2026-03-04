@@ -83,7 +83,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_USER_MODEL', \App\Domains\User\Models\AccountUser::class),
+            'model' => env('AUTH_USER_MODEL', \App\Domains\AccountUser\Models\AccountUser::class),
         ],
 
         'hospitals' => [
@@ -98,7 +98,7 @@ return [
 
         'staff' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_STAFF_MODEL', \App\Domains\Staff\Models\AccountStaff::class),
+            'model' => env('AUTH_STAFF_MODEL', \App\Domains\AccountStaff\Models\AccountStaff::class),
         ],
 
         // 'users' => [

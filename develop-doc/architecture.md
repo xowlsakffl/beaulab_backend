@@ -1,7 +1,7 @@
 # Architecture (구조 / 흐름)
 
 이 문서는 현재 코드 기준으로 Beaulab 백엔드 구조를 정리합니다.
-핵심은 **Actor(Staff/Partner/User) 진입점**과 **Domain 비즈니스 로직**을 분리하는 것입니다.
+핵심은 **Actor(Staff/Hospital/Beauty/User) 진입점**과 **Domain 비즈니스 로직**을 분리하는 것입니다.
 
 ---
 
@@ -10,7 +10,8 @@
 `routes/api.php`에서 v1 라우트를 Actor 단위로 분기합니다.
 
 - Staff API: `/api/v1/staff/*`
-- Partner API: `/api/v1/partner/*`
+- Hospital API: `/api/v1/hospital/*`
+- Beauty API: `/api/v1/beauty/*`
 - User API: `/api/v1/user/*`
 
 > 실제 상세 라우트는 각 모듈 파일(`app/Modules/*/routes/api_*.php`)에서 관리합니다.
@@ -21,13 +22,15 @@
 
 - `app/Modules/Staff/*`
   - Staff 전용 컨트롤러/요청 검증/라우트
-- `app/Modules/Partner/*`
-  - Partner 전용 컨트롤러/라우트
+- `app/Modules/Hospital/*`
+  - Hospital 전용 컨트롤러/요청 검증/라우트
+- `app/Modules/Beauty/*`
+  - Beauty 전용 컨트롤러/요청 검증/라우트
 - `app/Modules/User/*`
   - User 전용 라우트(현재 최소 구성)
 - `app/Domains/*`
   - 도메인 모델/액션/쿼리/정책
-  - 현재 주요 도메인: `Hospital`, `Beauty`, `Doctor`, `Expert`, `User`, `Partner`, `Common`
+  - 현재 주요 도메인: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `Account*`, `Common`
 - `app/Common/*`
   - 공통 응답, 예외, 권한 정의, 미들웨어
 

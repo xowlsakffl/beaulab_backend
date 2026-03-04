@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Hospital\Http\Requests\VideoRequest;
+namespace App\Modules\Hospital\Http\Requests\HospitalVideoRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 

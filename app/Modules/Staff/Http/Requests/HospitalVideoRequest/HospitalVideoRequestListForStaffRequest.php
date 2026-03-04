@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Staff\Http\Requests\VideoRequest;
+namespace App\Modules\Staff\Http\Requests\HospitalVideoRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class VideoRequestListForStaffRequest extends FormRequest
+final class HospitalVideoRequestListForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -22,7 +22,6 @@ final class VideoRequestListForStaffRequest extends FormRequest
     {
         return [
             'hospital_id' => ['nullable', 'integer', 'exists:hospitals,id'],
-            'beauty_id' => ['nullable', 'integer', 'exists:beauties,id'],
             'q' => ['nullable', 'string', 'max:100'],
             'review_status' => ['nullable', 'array'],
             'review_status.*' => ['in:APPLYING,IN_REVIEW,APPROVED,REJECTED,PARTNER_CANCELED'],

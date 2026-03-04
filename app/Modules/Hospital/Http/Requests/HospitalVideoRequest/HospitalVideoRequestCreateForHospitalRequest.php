@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Hospital\Http\Requests\VideoRequest;
+namespace App\Modules\Hospital\Http\Requests\HospitalVideoRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,7 +14,6 @@ final class HospitalVideoRequestCreateForHospitalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'hospital_id' => ['sometimes', 'nullable', 'integer', 'exists:hospitals,id'],
             'doctor_id' => ['nullable', 'integer', 'exists:hospital_doctors,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -31,7 +30,6 @@ final class HospitalVideoRequestCreateForHospitalRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병원 정보',
             'doctor_id' => '의사 정보',
             'title' => '제목',
             'description' => '설명',

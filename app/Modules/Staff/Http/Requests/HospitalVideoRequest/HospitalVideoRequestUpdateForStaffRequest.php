@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Staff\Http\Requests\VideoRequest;
+namespace App\Modules\Staff\Http\Requests\HospitalVideoRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class VideoRequestUpdateForStaffRequest extends FormRequest
+final class HospitalVideoRequestUpdateForStaffRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +14,6 @@ final class VideoRequestUpdateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'hospital_id' => ['sometimes', 'nullable', 'integer', 'exists:hospitals,id'],
             'doctor_id' => ['sometimes', 'nullable', 'integer', 'exists:doctors,id'],
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
@@ -35,10 +34,7 @@ final class VideoRequestUpdateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병원 ID',
-            'beauty_id' => '뷰티 ID',
             'doctor_id' => '의사 ID',
-            'expert_id' => '전문가 ID',
             'title' => '제목',
             'description' => '설명',
             'is_usage_consented' => '사용 동의 여부',

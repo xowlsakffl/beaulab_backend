@@ -9,12 +9,12 @@ use App\Domains\VideoRequest\Actions\Staff\HospitalVideoRequestGetForStaffAction
 use App\Domains\VideoRequest\Actions\Staff\HospitalVideoRequestListForStaffAction;
 use App\Domains\VideoRequest\Actions\Staff\HospitalVideoRequestUpdateForStaffAction;
 use App\Domains\VideoRequest\Models\HospitalVideoRequest;
-use App\Modules\Staff\Http\Requests\VideoRequest\VideoRequestListForStaffRequest;
-use App\Modules\Staff\Http\Requests\VideoRequest\VideoRequestUpdateForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalVideoRequest\HospitalVideoRequestListForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalVideoRequest\HospitalVideoRequestUpdateForStaffRequest;
 
 final class VideoRequestForStaffController extends Controller
 {
-    public function getVideoRequestsForStaff(VideoRequestListForStaffRequest $request, HospitalVideoRequestListForStaffAction $action)
+    public function getVideoRequestsForStaff(HospitalVideoRequestListForStaffRequest $request, HospitalVideoRequestListForStaffAction $action)
     {
         $result = $action->execute($request->filters());
 
@@ -28,7 +28,7 @@ final class VideoRequestForStaffController extends Controller
         return ApiResponse::success($result['video_request'] ?? $result);
     }
 
-    public function updateVideoRequestForStaff(HospitalVideoRequest $videoRequest, VideoRequestUpdateForStaffRequest $request, HospitalVideoRequestUpdateForStaffAction $action)
+    public function updateVideoRequestForStaff(HospitalVideoRequest $videoRequest, HospitalVideoRequestUpdateForStaffRequest $request, HospitalVideoRequestUpdateForStaffAction $action)
     {
         $result = $action->execute($videoRequest, $request->validated());
 

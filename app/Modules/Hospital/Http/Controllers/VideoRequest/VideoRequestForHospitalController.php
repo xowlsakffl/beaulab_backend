@@ -10,10 +10,10 @@ use App\Domains\HospitalVideoRequest\Actions\Hospital\HospitalVideoRequestListFo
 use App\Domains\HospitalVideoRequest\Actions\Hospital\HospitalVideoRequestUpdateForHospitalAction;
 use App\Domains\HospitalVideoRequest\Models\HospitalVideoRequest;
 use App\Domains\HospitalVideoRequest\Actions\Hospital\HospitalVideoRequestCreateForHospitalAction;
-use App\Modules\Hospital\Http\Requests\VideoRequest\HospitalVideoRequestCancelForHospitalRequest;
-use App\Modules\Hospital\Http\Requests\VideoRequest\HospitalVideoRequestCreateForHospitalRequest;
-use App\Modules\Hospital\Http\Requests\VideoRequest\HospitalVideoRequestListForHospitalRequest;
-use App\Modules\Hospital\Http\Requests\VideoRequest\HospitalVideoRequestUpdateForHospitalRequest;
+use App\Modules\Hospital\Http\Requests\HospitalVideoRequest\HospitalVideoRequestCancelForHospitalRequest;
+use App\Modules\Hospital\Http\Requests\HospitalVideoRequest\HospitalVideoRequestCreateForHospitalRequest;
+use App\Modules\Hospital\Http\Requests\HospitalVideoRequest\HospitalVideoRequestListForHospitalRequest;
+use App\Modules\Hospital\Http\Requests\HospitalVideoRequest\HospitalVideoRequestUpdateForHospitalRequest;
 
 final class VideoRequestForHospitalController extends Controller
 {

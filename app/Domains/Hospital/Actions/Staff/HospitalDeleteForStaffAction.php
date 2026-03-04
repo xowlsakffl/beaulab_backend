@@ -2,6 +2,7 @@
 
 namespace App\Domains\Hospital\Actions\Staff;
 
+use App\Domains\Common\Actions\Media\MediaAttachAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,7 @@ final class HospitalDeleteForStaffAction
 {
     public function __construct(
         private readonly HospitalDeleteForStaffQuery $query,
+        private readonly MediaAttachAction $mediaAttachAction,
     ) {}
 
     public function execute(Hospital $hospital): array
@@ -23,6 +25,21 @@ final class HospitalDeleteForStaffAction
         ]);
 
         return DB::transaction(function () use ($hospital) {
+            $this->mediaAttachAction->deleteCollectionMediaBulk($hospital, ['logo', 'gallery']);
+
+            if ($hospital->businessRegistration) {
+                $this->mediaAttachAction->deleteCollectionMedia($hospital->businessRegistration, 'business_registration_file');
+            }
+
+            $hospital->doctors()->get()->each(function ($doctor): void {
+                $this->mediaAttachAction->deleteCollectionMediaBulk($doctor, [
+                    'profile_image',
+                    'license_image',
+                    'specialist_certificate_image',
+                    'education_certificate_image',
+                    'etc_certificate_image',
+                ]);
+            });
 
             $this->query->softDelete($hospital);
 

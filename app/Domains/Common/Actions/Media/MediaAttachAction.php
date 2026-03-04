@@ -114,6 +114,26 @@ final class MediaAttachAction
         return $this->storeOne($owner, $file, 'source_thumbnail_file', "{$dirPrefix}/{$owner->getKey()}/source-thumbnail", false, 0);
     }
 
+    public function deleteCollectionMedia(Model $owner, string $collection): void
+    {
+        Media::query()
+            ->for($owner)
+            ->collection($collection)
+            ->get()
+            ->each(function (Media $media): void {
+                Storage::disk($media->disk)->delete($media->path);
+                $media->delete();
+            });
+    }
+
+    /** @param array<int, string> $collections */
+    public function deleteCollectionMediaBulk(Model $owner, array $collections): void
+    {
+        foreach ($collections as $collection) {
+            $this->deleteCollectionMedia($owner, $collection);
+        }
+    }
+
     /**
      * @param array<int, UploadedFile> $files
      * @return array<int, Media>

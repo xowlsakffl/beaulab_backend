@@ -42,17 +42,17 @@ final class BeautyExpertUpdateForStaffAction
     {
         if (($payload['profile_image'] ?? null) instanceof UploadedFile) {
             $this->deleteCollectionMedia($expert, 'profile_image');
-            $this->mediaAttachAction->attachExpertProfileImage($expert, $payload['profile_image'], 'expert');
+            $this->mediaAttachAction->attachOne($expert, $payload['profile_image'], 'profile_image', 'expert', 'profile-image');
         }
 
         if (array_key_exists('education_certificate_image', $payload) && is_array($payload['education_certificate_image'])) {
             $this->deleteCollectionMedia($expert, 'education_certificate_image');
-            $this->mediaAttachAction->attachExpertEducationCertificateImages($expert, $this->onlyFiles($payload['education_certificate_image']), 'expert');
+            $this->mediaAttachAction->attachMany($expert, $this->onlyFiles($payload['education_certificate_image']), 'education_certificate_image', 'expert', 'education-certificate-image');
         }
 
         if (array_key_exists('etc_certificate_image', $payload) && is_array($payload['etc_certificate_image'])) {
             $this->deleteCollectionMedia($expert, 'etc_certificate_image');
-            $this->mediaAttachAction->attachExpertEtcCertificateImages($expert, $this->onlyFiles($payload['etc_certificate_image']), 'expert');
+            $this->mediaAttachAction->attachMany($expert, $this->onlyFiles($payload['etc_certificate_image']), 'etc_certificate_image', 'expert', 'etc-certificate-image');
         }
     }
 

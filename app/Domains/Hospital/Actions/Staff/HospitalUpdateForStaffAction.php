@@ -52,7 +52,7 @@ final class HospitalUpdateForStaffAction
     {
         if (isset($payload['logo']) && $payload['logo'] instanceof UploadedFile) {
             $this->deleteCollectionMedia($hospital, 'logo');
-            $this->mediaAttachAction->attachLogo($hospital, $payload['logo'], 'hospital');
+            $this->mediaAttachAction->attachOne($hospital, $payload['logo'], 'logo', 'hospital', 'logo');
         }
 
         if (isset($payload['gallery']) && is_array($payload['gallery'])) {
@@ -63,7 +63,7 @@ final class HospitalUpdateForStaffAction
 
             if ($galleryFiles !== []) {
                 $this->deleteCollectionMedia($hospital, 'gallery');
-                $this->mediaAttachAction->attachGallery($hospital, $galleryFiles, 'hospital');
+                $this->mediaAttachAction->attachMany($hospital, $galleryFiles, 'gallery', 'hospital', 'gallery', true);
             }
         }
     }
@@ -101,11 +101,7 @@ final class HospitalUpdateForStaffAction
                 $existingCertificate->delete();
             }
 
-            $this->mediaAttachAction->attachCertificate(
-                $businessRegistration,
-                $payload['business_registration_file'],
-                'hospital',
-            );
+            $this->mediaAttachAction->attachOne($businessRegistration, $payload['business_registration_file'], 'business_registration_file', 'hospital', 'business-registration');
         }
     }
 

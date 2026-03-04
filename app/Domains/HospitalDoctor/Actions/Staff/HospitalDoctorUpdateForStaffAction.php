@@ -44,27 +44,27 @@ final class HospitalDoctorUpdateForStaffAction
     {
         if (($payload['profile_image'] ?? null) instanceof UploadedFile) {
             $this->deleteCollectionMedia($doctor, 'profile_image');
-            $this->mediaAttachAction->attachDoctorProfileImage($doctor, $payload['profile_image'], 'doctor');
+            $this->mediaAttachAction->attachOne($doctor, $payload['profile_image'], 'profile_image', 'doctor', 'profile-image');
         }
 
         if (($payload['license_image'] ?? null) instanceof UploadedFile) {
             $this->deleteCollectionMedia($doctor, 'license_image');
-            $this->mediaAttachAction->attachDoctorLicenseImage($doctor, $payload['license_image'], 'doctor');
+            $this->mediaAttachAction->attachOne($doctor, $payload['license_image'], 'license_image', 'doctor', 'license-image');
         }
 
         if (array_key_exists('specialist_certificate_image', $payload) && is_array($payload['specialist_certificate_image'])) {
             $this->deleteCollectionMedia($doctor, 'specialist_certificate_image');
-            $this->mediaAttachAction->attachDoctorSpecialistCertificateImages($doctor, $this->onlyFiles($payload['specialist_certificate_image']), 'doctor');
+            $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['specialist_certificate_image']), 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
         }
 
         if (array_key_exists('education_certificate_image', $payload) && is_array($payload['education_certificate_image'])) {
             $this->deleteCollectionMedia($doctor, 'education_certificate_image');
-            $this->mediaAttachAction->attachDoctorEducationCertificateImages($doctor, $this->onlyFiles($payload['education_certificate_image']), 'doctor');
+            $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['education_certificate_image']), 'education_certificate_image', 'doctor', 'education-certificate-image');
         }
 
         if (array_key_exists('etc_certificate_image', $payload) && is_array($payload['etc_certificate_image'])) {
             $this->deleteCollectionMedia($doctor, 'etc_certificate_image');
-            $this->mediaAttachAction->attachDoctorEtcCertificateImages($doctor, $this->onlyFiles($payload['etc_certificate_image']), 'doctor');
+            $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['etc_certificate_image']), 'etc_certificate_image', 'doctor', 'etc-certificate-image');
         }
     }
 

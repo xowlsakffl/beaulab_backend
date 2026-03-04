@@ -52,7 +52,7 @@ final class BeautyUpdateForStaffAction
     {
         if (isset($payload['logo']) && $payload['logo'] instanceof UploadedFile) {
             $this->deleteCollectionMedia($beauty, 'logo');
-            $this->mediaAttachAction->attachLogo($beauty, $payload['logo'], 'beauty');
+            $this->mediaAttachAction->attachOne($beauty, $payload['logo'], 'logo', 'beauty', 'logo');
         }
 
         if (isset($payload['gallery']) && is_array($payload['gallery'])) {
@@ -63,7 +63,7 @@ final class BeautyUpdateForStaffAction
 
             if ($galleryFiles !== []) {
                 $this->deleteCollectionMedia($beauty, 'gallery');
-                $this->mediaAttachAction->attachGallery($beauty, $galleryFiles, 'beauty');
+                $this->mediaAttachAction->attachMany($beauty, $galleryFiles, 'gallery', 'beauty', 'gallery', true);
             }
         }
     }
@@ -101,11 +101,7 @@ final class BeautyUpdateForStaffAction
                 $existingCertificate->delete();
             }
 
-            $this->mediaAttachAction->attachCertificate(
-                $businessRegistration,
-                $payload['business_registration_file'],
-                'beauty',
-            );
+            $this->mediaAttachAction->attachOne($businessRegistration, $payload['business_registration_file'], 'business_registration_file', 'beauty', 'business-registration');
         }
     }
 

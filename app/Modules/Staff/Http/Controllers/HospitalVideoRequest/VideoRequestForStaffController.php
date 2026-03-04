@@ -4,11 +4,11 @@ namespace App\Modules\Staff\Http\Controllers\HospitalVideoRequest;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\VideoRequest\Actions\Staff\HospitalVideoRequestDeleteForStaffAction;
-use App\Domains\VideoRequest\Actions\Staff\HospitalVideoRequestGetForStaffAction;
-use App\Domains\VideoRequest\Actions\Staff\HospitalVideoRequestListForStaffAction;
-use App\Domains\VideoRequest\Actions\Staff\HospitalVideoRequestUpdateForStaffAction;
-use App\Domains\VideoRequest\Models\HospitalVideoRequest;
+use App\Domains\HospitalVideoRequest\Actions\Staff\HospitalVideoRequestDeleteForStaffAction;
+use App\Domains\HospitalVideoRequest\Actions\Staff\HospitalVideoRequestGetForStaffAction;
+use App\Domains\HospitalVideoRequest\Actions\Staff\HospitalVideoRequestListForStaffAction;
+use App\Domains\HospitalVideoRequest\Actions\Staff\HospitalVideoRequestUpdateForStaffAction;
+use App\Domains\HospitalVideoRequest\Models\HospitalVideoRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideoRequest\HospitalVideoRequestListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideoRequest\HospitalVideoRequestUpdateForStaffRequest;
 

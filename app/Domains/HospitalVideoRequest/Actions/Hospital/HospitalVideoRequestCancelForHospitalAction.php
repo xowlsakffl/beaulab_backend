@@ -20,6 +20,10 @@ final class HospitalVideoRequestCancelForHospitalAction
 
         Gate::authorize('cancel', $videoRequest);
 
+        if ($videoRequest->isPartnerCanceled()) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 취소되었습니다.');
+        }
+
         if (! $videoRequest->isApplying()) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '신청중 상태일 때만 취소할 수 있습니다.');
         }

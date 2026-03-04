@@ -36,8 +36,8 @@ final class HospitalCreateForStaffAction
                 'email' => mb_strtolower((string) ($filters['email'] ?? '')) ?: null,
             ]);
 
-            $this->mediaAttachAction->attachLogo($hospital, $filters['logo'], 'hospital');
-            $this->mediaAttachAction->attachGallery($hospital, $filters['gallery'], 'hospital');
+            $this->mediaAttachAction->attachOne($hospital, $filters['logo'], 'logo', 'hospital', 'logo');
+            $this->mediaAttachAction->attachMany($hospital, $filters['gallery'], 'gallery', 'hospital', 'gallery', true);
 
             $this->businessRegistrationCreateAction->execute($hospital, $filters);
 

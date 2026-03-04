@@ -31,11 +31,7 @@ final class HospitalBusinessRegistrationCreateForStaffAction
             'status' => HospitalBusinessRegistration::STATUS_ACTIVE,
         ]);
 
-        $this->mediaAttachAction->attachCertificate(
-            $businessRegistration,
-            $payload['business_registration_file'],
-            $ownerType,
-        );
+        $this->mediaAttachAction->attachOne($businessRegistration, $payload['business_registration_file'], 'business_registration_file', $ownerType, 'business-registration');
 
         return $businessRegistration;
     }

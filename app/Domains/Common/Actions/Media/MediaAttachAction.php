@@ -14,22 +14,26 @@ final class MediaAttachAction
         private readonly MediaAttachQuery $query,
     ) {}
 
-    public function attachLogo(Model $owner, ?UploadedFile $file, string $dirPrefix): ?Media
-    {
-        if (!$file) return null;
+    public function attachOne(
+        Model $owner,
+        ?UploadedFile $file,
+        string $collection,
+        string $dirPrefix,
+        string $dirName,
+        bool $isPrimary = false,
+        int $sortOrder = 0,
+    ): ?Media {
+        if (! $file) {
+            return null;
+        }
 
-        return $this->storeOne($owner, $file, 'logo', "{$dirPrefix}/{$owner->getKey()}/logo", false, 0);
-    }
-
-    public function attachCertificate(Model $owner, UploadedFile $file, string $dirPrefix): Media
-    {
         return $this->storeOne(
             $owner,
             $file,
-            'business_registration_file',
-            "{$dirPrefix}/{$owner->getKey()}/business-registration",
-            false,
-            0,
+            $collection,
+            "{$dirPrefix}/{$owner->getKey()}/{$dirName}",
+            $isPrimary,
+            $sortOrder,
         );
     }
 
@@ -37,95 +41,52 @@ final class MediaAttachAction
      * @param array<int, UploadedFile> $files
      * @return array<int, Media>
      */
-    public function attachGallery(Model $owner, array $files, string $dirPrefix): array
-    {
+    public function attachMany(
+        Model $owner,
+        array $files,
+        string $collection,
+        string $dirPrefix,
+        string $dirName,
+        bool $firstPrimary = false,
+    ): array {
         $out = [];
+
         foreach (array_values($files) as $i => $file) {
+            if (! $file instanceof UploadedFile) {
+                continue;
+            }
+
             $out[] = $this->storeOne(
                 $owner,
                 $file,
-                'gallery',
-                "{$dirPrefix}/{$owner->getKey()}/gallery",
-                $i === 0,
-                $i
+                $collection,
+                "{$dirPrefix}/{$owner->getKey()}/{$dirName}",
+                $firstPrimary && $i === 0,
+                $i,
             );
         }
+
         return $out;
     }
 
-    public function attachDoctorProfileImage(Model $owner, ?UploadedFile $file, string $dirPrefix): ?Media
+    public function deleteCollectionMedia(Model $owner, string $collection): void
     {
-        if (! $file) return null;
-
-        return $this->storeOne($owner, $file, 'profile_image', "{$dirPrefix}/{$owner->getKey()}/profile-image", false, 0);
+        Media::query()
+            ->for($owner)
+            ->collection($collection)
+            ->get()
+            ->each(function (Media $media): void {
+                Storage::disk($media->disk)->delete($media->path);
+                $media->delete();
+            });
     }
 
-    public function attachDoctorLicenseImage(Model $owner, ?UploadedFile $file, string $dirPrefix): ?Media
+    /** @param array<int, string> $collections */
+    public function deleteCollectionMediaBulk(Model $owner, array $collections): void
     {
-        if (! $file) return null;
-
-        return $this->storeOne($owner, $file, 'license_image', "{$dirPrefix}/{$owner->getKey()}/license-image", false, 0);
-    }
-
-    /** @param array<int, UploadedFile> $files */
-    public function attachDoctorSpecialistCertificateImages(Model $owner, array $files, string $dirPrefix): array
-    {
-        return $this->storeMany($owner, $files, 'specialist_certificate_image', "{$dirPrefix}/{$owner->getKey()}/specialist-certificate-image");
-    }
-
-    /** @param array<int, UploadedFile> $files */
-    public function attachDoctorEducationCertificateImages(Model $owner, array $files, string $dirPrefix): array
-    {
-        return $this->storeMany($owner, $files, 'education_certificate_image', "{$dirPrefix}/{$owner->getKey()}/education-certificate-image");
-    }
-
-    /** @param array<int, UploadedFile> $files */
-    public function attachDoctorEtcCertificateImages(Model $owner, array $files, string $dirPrefix): array
-    {
-        return $this->storeMany($owner, $files, 'etc_certificate_image', "{$dirPrefix}/{$owner->getKey()}/etc-certificate-image");
-    }
-
-    public function attachExpertProfileImage(Model $owner, ?UploadedFile $file, string $dirPrefix): ?Media
-    {
-        if (! $file) return null;
-
-        return $this->storeOne($owner, $file, 'profile_image', "{$dirPrefix}/{$owner->getKey()}/profile-image", false, 0);
-    }
-
-    /** @param array<int, UploadedFile> $files */
-    public function attachExpertEducationCertificateImages(Model $owner, array $files, string $dirPrefix): array
-    {
-        return $this->storeMany($owner, $files, 'education_certificate_image', "{$dirPrefix}/{$owner->getKey()}/education-certificate-image");
-    }
-
-    /** @param array<int, UploadedFile> $files */
-    public function attachExpertEtcCertificateImages(Model $owner, array $files, string $dirPrefix): array
-    {
-        return $this->storeMany($owner, $files, 'etc_certificate_image', "{$dirPrefix}/{$owner->getKey()}/etc-certificate-image");
-    }
-
-    public function attachVideoRequestSourceVideo(Model $owner, UploadedFile $file, string $dirPrefix): Media
-    {
-        return $this->storeOne($owner, $file, 'source_video_file', "{$dirPrefix}/{$owner->getKey()}/source-video", false, 0);
-    }
-
-    public function attachVideoRequestSourceThumbnail(Model $owner, UploadedFile $file, string $dirPrefix): Media
-    {
-        return $this->storeOne($owner, $file, 'source_thumbnail_file', "{$dirPrefix}/{$owner->getKey()}/source-thumbnail", false, 0);
-    }
-
-    /**
-     * @param array<int, UploadedFile> $files
-     * @return array<int, Media>
-     */
-    private function storeMany(Model $owner, array $files, string $collection, string $dir): array
-    {
-        $out = [];
-        foreach (array_values($files) as $i => $file) {
-            $out[] = $this->storeOne($owner, $file, $collection, $dir, false, $i);
+        foreach ($collections as $collection) {
+            $this->deleteCollectionMedia($owner, $collection);
         }
-
-        return $out;
     }
 
     private function storeOne(
@@ -170,8 +131,12 @@ final class MediaAttachAction
     {
         try {
             $info = @getimagesize($file->getRealPath());
-            if (!$info) return [null, null];
-            return [(int)$info[0], (int)$info[1]];
+
+            if (! $info) {
+                return [null, null];
+            }
+
+            return [(int) $info[0], (int) $info[1]];
         } catch (\Throwable) {
             return [null, null];
         }

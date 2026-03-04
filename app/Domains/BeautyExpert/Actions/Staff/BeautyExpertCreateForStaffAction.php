@@ -40,19 +40,11 @@ final class BeautyExpertCreateForStaffAction
 
     private function attachMedia(BeautyExpert $expert, array $payload): void
     {
-        $this->mediaAttachAction->attachExpertProfileImage($expert, $payload['profile_image'] ?? null, 'expert');
+        $this->mediaAttachAction->attachOne($expert, $payload['profile_image'] ?? null, 'profile_image', 'expert', 'profile-image');
 
-        $this->mediaAttachAction->attachExpertEducationCertificateImages(
-            $expert,
-            $this->onlyFiles($payload['education_certificate_image'] ?? null),
-            'expert',
-        );
+        $this->mediaAttachAction->attachMany($expert, $this->onlyFiles($payload['education_certificate_image'] ?? null), 'education_certificate_image', 'expert', 'education-certificate-image');
 
-        $this->mediaAttachAction->attachExpertEtcCertificateImages(
-            $expert,
-            $this->onlyFiles($payload['etc_certificate_image'] ?? null),
-            'expert',
-        );
+        $this->mediaAttachAction->attachMany($expert, $this->onlyFiles($payload['etc_certificate_image'] ?? null), 'etc_certificate_image', 'expert', 'etc-certificate-image');
     }
 
     private function onlyFiles(mixed $files): array

@@ -36,8 +36,8 @@ final class BeautyCreateForStaffAction
                 'email' => mb_strtolower((string) ($filters['email'] ?? '')) ?: null,
             ]);
 
-            $this->mediaAttachAction->attachLogo($beauty, $filters['logo'], 'beauty');
-            $this->mediaAttachAction->attachGallery($beauty, $filters['gallery'], 'beauty');
+            $this->mediaAttachAction->attachOne($beauty, $filters['logo'], 'logo', 'beauty', 'logo');
+            $this->mediaAttachAction->attachMany($beauty, $filters['gallery'], 'gallery', 'beauty', 'gallery', true);
 
             $this->businessRegistrationCreateAction->execute($beauty, $filters);
 

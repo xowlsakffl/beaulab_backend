@@ -42,26 +42,14 @@ final class HospitalDoctorCreateForStaffAction
 
     private function attachMedia(HospitalDoctor $doctor, array $payload): void
     {
-        $this->mediaAttachAction->attachDoctorProfileImage($doctor, $payload['profile_image'] ?? null, 'doctor');
-        $this->mediaAttachAction->attachDoctorLicenseImage($doctor, $payload['license_image'] ?? null, 'doctor');
+        $this->mediaAttachAction->attachOne($doctor, $payload['profile_image'] ?? null, 'profile_image', 'doctor', 'profile-image');
+        $this->mediaAttachAction->attachOne($doctor, $payload['license_image'] ?? null, 'license_image', 'doctor', 'license-image');
 
-        $this->mediaAttachAction->attachDoctorSpecialistCertificateImages(
-            $doctor,
-            $this->onlyFiles($payload['specialist_certificate_image'] ?? null),
-            'doctor',
-        );
+        $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['specialist_certificate_image'] ?? null), 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
 
-        $this->mediaAttachAction->attachDoctorEducationCertificateImages(
-            $doctor,
-            $this->onlyFiles($payload['education_certificate_image'] ?? null),
-            'doctor',
-        );
+        $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['education_certificate_image'] ?? null), 'education_certificate_image', 'doctor', 'education-certificate-image');
 
-        $this->mediaAttachAction->attachDoctorEtcCertificateImages(
-            $doctor,
-            $this->onlyFiles($payload['etc_certificate_image'] ?? null),
-            'doctor',
-        );
+        $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['etc_certificate_image'] ?? null), 'etc_certificate_image', 'doctor', 'etc-certificate-image');
     }
 
     private function onlyFiles(mixed $files): array

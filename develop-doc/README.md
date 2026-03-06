@@ -1,4 +1,4 @@
-# Beaulab 개발 문서
+﻿# Beaulab 개발 문서
 
 이 폴더는 Beaulab 프로젝트의 **구조 / 권한 / 운영 규칙**을 정리한 문서 모음입니다.
 실제 코드 변화(도메인 추가, 권한 확장, 라우트 변경)를 기준으로 계속 업데이트합니다.
@@ -12,6 +12,7 @@
 - [권한 / 메뉴 설계 (Staff / Hospital / Beauty / User)](./authorization.md)
 - [로깅 전략 (감사로그 / 운영로그)](./logging.md)
 - [도메인 & 상태 정의서](./domain-status-definition.md)
+- [카테고리 ERD 정의서 (비개발자용)](./category-erd-definition.md)
 ---
 
 ## 현재 기준 핵심 요약
@@ -26,4 +27,6 @@
 ---
 
 작성 기준: 2026-03-04
+
+
 

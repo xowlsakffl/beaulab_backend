@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AuthorizationSeeder::class, // 권한 정의
             AccountStaffSeeder::class, // 뷰랩 내부 직원
+            HospitalCategorySeeder::class, // 병원 카테고리(성형/피부시술)
             HospitalSeeder::class, // 병원 테스트
             BeautySeeder::class, // 뷰티 테스트
             AccountUserSeeder::class, // 일반회원 테스트

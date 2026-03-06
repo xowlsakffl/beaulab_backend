@@ -35,6 +35,14 @@ final class CategoryGetForStaffRequest extends FormRequest
         ];
     }
 
+    public function attributes(): array
+    {
+        return [
+            'include' => '포함 항목',
+            'include.*' => '포함 항목',
+        ];
+    }
+
     private function normalizeToArray(mixed $value): ?array
     {
         if ($value === null || $value === '') {
@@ -57,4 +65,3 @@ final class CategoryGetForStaffRequest extends FormRequest
         return $normalized === [] ? null : array_values(array_unique($normalized));
     }
 }
-

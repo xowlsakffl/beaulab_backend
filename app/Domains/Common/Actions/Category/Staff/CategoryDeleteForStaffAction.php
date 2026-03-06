@@ -4,6 +4,7 @@ namespace App\Domains\Common\Actions\Category\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Queries\Category\Staff\CategoryDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ final class CategoryDeleteForStaffAction
 {
     public function __construct(
         private readonly CategoryDeleteForStaffQuery $query,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
     ) {}
 
     public function execute(Category $category): array
@@ -37,6 +39,7 @@ final class CategoryDeleteForStaffAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '연결된 데이터가 있어 삭제할 수 없습니다.');
         }
 
+        $this->mediaAttachAction->deleteCollectionMedia($category, 'icon');
         $this->query->delete($category);
 
         Log::info('카테고리 삭제', [

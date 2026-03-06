@@ -4,8 +4,12 @@ namespace App\Domains\Common\Actions\Category\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\Common\Queries\Category\Staff\CategoryCreateForStaffQuery;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -13,6 +17,7 @@ final class CategoryCreateForStaffAction
 {
     public function __construct(
         private readonly CategoryCreateForStaffQuery $query,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
     ) {}
 
     public function execute(array $payload): array
@@ -64,17 +69,30 @@ final class CategoryCreateForStaffAction
             ? trim((string) $payload['code'])
             : null;
 
-        $category = $this->query->create([
-            'domain' => $domain,
-            'parent_id' => $parent?->id,
-            'depth' => $depth,
-            'name' => $name,
-            'code' => $normalizedCode !== '' ? $normalizedCode : null,
-            'full_path' => $fullPath,
-            'sort_order' => (int) ($payload['sort_order'] ?? 0),
-            'status' => (string) ($payload['status'] ?? Category::STATUS_ACTIVE),
-            'is_menu_visible' => (bool) ($payload['is_menu_visible'] ?? true),
-        ]);
+        $icon = $payload['icon'] ?? null;
+        if (! $icon instanceof UploadedFile) {
+            $icon = null;
+        }
+
+        $category = DB::transaction(function () use ($domain, $parent, $depth, $name, $normalizedCode, $fullPath, $payload, $icon) {
+            $created = $this->query->create([
+                'domain' => $domain,
+                'parent_id' => $parent?->id,
+                'depth' => $depth,
+                'name' => $name,
+                'code' => $normalizedCode !== '' ? $normalizedCode : null,
+                'full_path' => $fullPath,
+                'sort_order' => (int) ($payload['sort_order'] ?? 0),
+                'status' => (string) ($payload['status'] ?? Category::STATUS_ACTIVE),
+                'is_menu_visible' => (bool) ($payload['is_menu_visible'] ?? true),
+            ]);
+
+            if ($icon) {
+                $this->mediaAttachAction->attachOne($created, $icon, 'icon', 'category', 'icon', true);
+            }
+
+            return $created->fresh();
+        });
 
         Log::info('카테고리 생성', [
             'category_id' => $category->id,
@@ -84,7 +102,7 @@ final class CategoryCreateForStaffAction
         ]);
 
         return [
-            'category' => $this->toArray($category),
+            'category' => $this->toArray($category->load('iconMedia')),
         ];
     }
 
@@ -101,8 +119,32 @@ final class CategoryCreateForStaffAction
             'sort_order' => (int) $category->sort_order,
             'status' => (string) $category->status,
             'is_menu_visible' => (bool) $category->is_menu_visible,
+            'icon' => $this->formatMedia($category->relationLoaded('iconMedia') ? $category->iconMedia : null),
             'created_at' => optional($category->created_at)?->toISOString(),
             'updated_at' => optional($category->updated_at)?->toISOString(),
+        ];
+    }
+
+    private function formatMedia(?Media $media): ?array
+    {
+        if (! $media) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $media->id,
+            'collection' => (string) $media->collection,
+            'disk' => (string) $media->disk,
+            'path' => (string) $media->path,
+            'mime_type' => $media->mime_type,
+            'size' => $media->size,
+            'width' => $media->width,
+            'height' => $media->height,
+            'sort_order' => (int) $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
+            'created_at' => optional($media->created_at)?->toISOString(),
+            'updated_at' => optional($media->updated_at)?->toISOString(),
         ];
     }
 }

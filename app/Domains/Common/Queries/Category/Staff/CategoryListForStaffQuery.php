@@ -12,7 +12,9 @@ final class CategoryListForStaffQuery
         $domain = (string) $filters['domain'];
         $q = $filters['q'] ?? null;
         $status = $filters['status'] ?? null;
+        $include = $filters['include'] ?? [];
         $parentId = $filters['parent_id'] ?? null;
+        $depth = $filters['depth'] ?? null;
         $isMenuVisible = $filters['is_menu_visible'] ?? null;
         $sort = $filters['sort'] ?? 'sort_order';
         $direction = $filters['direction'] ?? 'asc';
@@ -33,7 +35,30 @@ final class CategoryListForStaffQuery
                 'is_menu_visible',
                 'created_at',
                 'updated_at',
-            ]);
+            ])
+            ->with('iconMedia');
+
+        $builder->selectSub(
+            Category::query()
+                ->from('categories as c2')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('c2.domain', 'categories.domain')
+                ->whereColumn('c2.parent_id', 'categories.id')
+                ->where('c2.depth', 2),
+            'middle_count',
+        );
+
+        $builder->selectSub(
+            Category::query()
+                ->from('categories as c3')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('c3.domain', 'categories.domain')
+                ->where('c3.depth', 3)
+                ->whereRaw(
+                    "c3.full_path LIKE CONCAT(COALESCE(categories.full_path, categories.name), ' > %')"
+                ),
+            'small_count',
+        );
 
         if ($q) {
             $builder->where(function ($w) use ($q): void {
@@ -47,12 +72,57 @@ final class CategoryListForStaffQuery
             $builder->where('parent_id', (int) $parentId);
         }
 
+        if ($depth !== null) {
+            $builder->where('depth', (int) $depth);
+        } elseif ($parentId === null) {
+            $builder->where('depth', 1);
+        }
+
         if (is_array($status) && $status !== []) {
             $builder->whereIn('status', $status);
         }
 
         if ($isMenuVisible !== null) {
             $builder->where('is_menu_visible', (bool) $isMenuVisible);
+        }
+
+        if (is_array($include) && $include !== []) {
+            if (in_array('parent', $include, true)) {
+                $builder->with([
+                    'parent:id,domain,parent_id,depth,name,code,full_path,sort_order,status,is_menu_visible,created_at,updated_at',
+                    'parent.iconMedia',
+                ]);
+            }
+
+            if (in_array('children', $include, true)) {
+                $selectColumns = [
+                    'id',
+                    'domain',
+                    'parent_id',
+                    'depth',
+                    'name',
+                    'code',
+                    'full_path',
+                    'sort_order',
+                    'status',
+                    'is_menu_visible',
+                    'created_at',
+                    'updated_at',
+                ];
+
+                $builder->with([
+                    'children' => fn ($q) => $q
+                        ->select($selectColumns)
+                        ->orderBy('sort_order')
+                        ->orderBy('id'),
+                    'children.iconMedia',
+                    'children.children' => fn ($q) => $q
+                        ->select($selectColumns)
+                        ->orderBy('sort_order')
+                        ->orderBy('id'),
+                    'children.children.iconMedia',
+                ]);
+            }
         }
 
         $builder->orderBy($sort, $direction);

@@ -4,8 +4,11 @@ namespace App\Domains\Common\Actions\Category\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\Common\Queries\Category\Staff\CategoryUpdateForStaffQuery;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +17,7 @@ final class CategoryUpdateForStaffAction
 {
     public function __construct(
         private readonly CategoryUpdateForStaffQuery $query,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
     ) {}
 
     public function execute(Category $category, array $payload): array
@@ -66,6 +70,8 @@ final class CategoryUpdateForStaffAction
                 $this->syncDescendantPaths((string) $updatedCategory->domain, $oldFullPath, $newFullPath);
             }
 
+            $this->replaceIcon($updatedCategory, $payload);
+
             return $updatedCategory->fresh();
         });
 
@@ -76,8 +82,19 @@ final class CategoryUpdateForStaffAction
         ]);
 
         return [
-            'category' => $this->toArray($updated),
+            'category' => $this->toArray($updated->load('iconMedia')),
         ];
+    }
+
+    private function replaceIcon(Category $category, array $payload): void
+    {
+        $icon = $payload['icon'] ?? null;
+        if (! $icon instanceof UploadedFile) {
+            return;
+        }
+
+        $this->mediaAttachAction->deleteCollectionMedia($category, 'icon');
+        $this->mediaAttachAction->attachOne($category, $icon, 'icon', 'category', 'icon', true);
     }
 
     private function syncDescendantPaths(string $domain, string $oldPrefix, string $newPrefix): void
@@ -121,9 +138,32 @@ final class CategoryUpdateForStaffAction
             'sort_order' => (int) $category->sort_order,
             'status' => (string) $category->status,
             'is_menu_visible' => (bool) $category->is_menu_visible,
+            'icon' => $this->formatMedia($category->relationLoaded('iconMedia') ? $category->iconMedia : null),
             'created_at' => optional($category->created_at)?->toISOString(),
             'updated_at' => optional($category->updated_at)?->toISOString(),
         ];
     }
-}
 
+    private function formatMedia(?Media $media): ?array
+    {
+        if (! $media) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $media->id,
+            'collection' => (string) $media->collection,
+            'disk' => (string) $media->disk,
+            'path' => (string) $media->path,
+            'mime_type' => $media->mime_type,
+            'size' => $media->size,
+            'width' => $media->width,
+            'height' => $media->height,
+            'sort_order' => (int) $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
+            'created_at' => optional($media->created_at)?->toISOString(),
+            'updated_at' => optional($media->updated_at)?->toISOString(),
+        ];
+    }
+}

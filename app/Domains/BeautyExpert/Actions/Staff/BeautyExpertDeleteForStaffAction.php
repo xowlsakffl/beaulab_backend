@@ -4,7 +4,7 @@ namespace App\Domains\BeautyExpert\Actions\Staff;
 
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\BeautyExpert\Queries\Staff\BeautyExpertDeleteForStaffQuery;
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -12,7 +12,7 @@ final class BeautyExpertDeleteForStaffAction
 {
     public function __construct(
         private readonly BeautyExpertDeleteForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly MediaAttachDeleteAction         $mediaAttachAction,
     ) {}
 
     public function execute(BeautyExpert $expert): array

@@ -3,6 +3,7 @@
 use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
 use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
+use App\Modules\Staff\Http\Controllers\Category\CategoryForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
@@ -43,6 +44,20 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospitals.updateHospitalForStaff');
     Route::delete('hospitals/{hospital}', [HospitalForStaffController::class, 'deleteHospitalForStaff'])
         ->name('hospitals.deleteHospitalForStaff');
+
+    /**
+     * 카테고리 관리
+     **/
+    Route::get('categories', [CategoryForStaffController::class, 'getCategoriesForStaff'])
+        ->name('categories.getCategoriesForStaff');
+    Route::get('categories/{category}', [CategoryForStaffController::class, 'getCategoryForStaff'])
+        ->name('categories.getCategoryForStaff');
+    Route::post('categories', [CategoryForStaffController::class, 'storeCategoryForStaff'])
+        ->name('categories.storeCategoryForStaff');
+    Route::match(['post', 'put', 'patch'], 'categories/{category}', [CategoryForStaffController::class, 'updateCategoryForStaff'])
+        ->name('categories.updateCategoryForStaff');
+    Route::delete('categories/{category}', [CategoryForStaffController::class, 'deleteCategoryForStaff'])
+        ->name('categories.deleteCategoryForStaff');
 
     /**
      * 뷰티 관리

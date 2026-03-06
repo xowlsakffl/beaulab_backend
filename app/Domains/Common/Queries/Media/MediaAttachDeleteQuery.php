@@ -5,7 +5,7 @@ namespace App\Domains\Common\Queries\Media;
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Database\Eloquent\Model;
 
-final class MediaAttachQuery
+final class MediaAttachDeleteQuery
 {
     public function create(array $data): Media
     {

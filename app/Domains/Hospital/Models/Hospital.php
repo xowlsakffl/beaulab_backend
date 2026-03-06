@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Hospital\Models;
 
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -95,6 +97,13 @@ final class Hospital extends Model
     public function businessRegistration(): HasOne
     {
         return $this->hasOne(HospitalBusinessRegistration::class, 'hospital_id');
+    }
+
+    public function categories(): MorphToMany
+    {
+        return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')
+            ->withPivot('is_primary')
+            ->withTimestamps();
     }
 
     public function isApproved(): bool

@@ -2,7 +2,7 @@
 
 namespace App\Domains\Hospital\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
@@ -17,7 +17,7 @@ final class HospitalUpdateForStaffAction
 {
     public function __construct(
         private readonly HospitalUpdateForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly MediaAttachDeleteAction     $mediaAttachAction,
     ) {}
 
     /**

@@ -2,7 +2,7 @@
 
 namespace App\Domains\HospitalBusinessRegistration\Actions;
 
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
 use App\Domains\HospitalBusinessRegistration\Queries\HospitalBusinessRegistrationCreateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +11,7 @@ final class HospitalBusinessRegistrationCreateForStaffAction
 {
     public function __construct(
         private readonly HospitalBusinessRegistrationCreateForStaffQuery $query,
-        private readonly MediaAttachAction                               $mediaAttachAction,
+        private readonly MediaAttachDeleteAction                         $mediaAttachAction,
     ) {}
 
     public function execute(Model $owner, array $payload): HospitalBusinessRegistration

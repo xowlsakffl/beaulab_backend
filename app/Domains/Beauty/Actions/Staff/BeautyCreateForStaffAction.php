@@ -6,7 +6,7 @@ use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Beauty\Queries\Staff\BeautyCreateForStaffQuery;
 use App\Domains\BeautyBusinessRegistration\Actions\BeautyBusinessRegistrationCreateForStaffAction;
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Log;
 final class BeautyCreateForStaffAction
 {
     public function __construct(
-        private readonly BeautyCreateForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly BeautyCreateForStaffQuery                      $query,
+        private readonly MediaAttachDeleteAction                        $mediaAttachAction,
         private readonly BeautyBusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
     ) {}
 

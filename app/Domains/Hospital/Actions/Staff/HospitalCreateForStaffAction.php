@@ -3,7 +3,7 @@
 namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\HospitalBusinessRegistration\Actions\HospitalBusinessRegistrationCreateForStaffAction;
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;
@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Log;
 final class HospitalCreateForStaffAction
 {
     public function __construct(
-        private readonly HospitalCreateForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly HospitalCreateForStaffQuery                      $query,
+        private readonly MediaAttachDeleteAction                          $mediaAttachAction,
         private readonly HospitalBusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
     ) {}
 

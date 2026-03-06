@@ -2,7 +2,7 @@
 
 namespace App\Domains\BeautyExpert\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\BeautyExpert\Dto\Staff\BeautyExpertForStaffDetailDto;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
@@ -16,7 +16,7 @@ final class BeautyExpertUpdateForStaffAction
 {
     public function __construct(
         private readonly BeautyExpertUpdateForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly MediaAttachDeleteAction         $mediaAttachAction,
     ) {}
 
     public function execute(BeautyExpert $expert, array $payload): array

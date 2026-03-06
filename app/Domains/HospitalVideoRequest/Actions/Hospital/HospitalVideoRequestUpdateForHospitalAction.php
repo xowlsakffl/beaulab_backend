@@ -4,7 +4,7 @@ namespace App\Domains\HospitalVideoRequest\Actions\Hospital;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalVideoRequest\Dto\Hospital\HospitalVideoRequestForHospitalDetailDto;
@@ -18,7 +18,7 @@ final class HospitalVideoRequestUpdateForHospitalAction
 {
     public function __construct(
         private readonly HospitalVideoRequestUpdateForHospitalQuery $query,
-        private readonly MediaAttachAction                          $mediaAttachAction,
+        private readonly MediaAttachDeleteAction                    $mediaAttachAction,
     ) {}
 
     public function execute(HospitalVideoRequest $videoRequest, array $payload): array

@@ -4,14 +4,14 @@ namespace App\Domains\BeautyBusinessRegistration\Actions;
 
 use App\Domains\BeautyBusinessRegistration\Models\BeautyBusinessRegistration;
 use App\Domains\BeautyBusinessRegistration\Queries\BeautyBusinessRegistrationCreateForStaffQuery;
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use Illuminate\Database\Eloquent\Model;
 
 final class BeautyBusinessRegistrationCreateForStaffAction
 {
     public function __construct(
         private readonly BeautyBusinessRegistrationCreateForStaffQuery $query,
-        private readonly MediaAttachAction                               $mediaAttachAction,
+        private readonly MediaAttachDeleteAction                       $mediaAttachAction,
     ) {}
 
     public function execute(Model $owner, array $payload): BeautyBusinessRegistration

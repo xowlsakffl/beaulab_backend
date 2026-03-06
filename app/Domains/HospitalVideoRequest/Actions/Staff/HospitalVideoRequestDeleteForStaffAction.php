@@ -2,7 +2,7 @@
 
 namespace App\Domains\HospitalVideoRequest\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\HospitalVideoRequest\Models\HospitalVideoRequest;
 use App\Domains\HospitalVideoRequest\Queries\Staff\HospitalVideoRequestDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +12,7 @@ final class HospitalVideoRequestDeleteForStaffAction
 {
     public function __construct(
         private readonly HospitalVideoRequestDeleteForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly MediaAttachDeleteAction                 $mediaAttachAction,
     ) {}
 
     public function execute(HospitalVideoRequest $videoRequest): array

@@ -3,15 +3,15 @@
 namespace App\Domains\Common\Actions\Media;
 
 use App\Domains\Common\Models\Media\Media;
-use App\Domains\Common\Queries\Media\MediaAttachQuery;
+use App\Domains\Common\Queries\Media\MediaAttachDeleteQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-final class MediaAttachAction
+final class MediaAttachDeleteAction
 {
     public function __construct(
-        private readonly MediaAttachQuery $query,
+        private readonly MediaAttachDeleteQuery $query,
     ) {}
 
     public function attachOne(

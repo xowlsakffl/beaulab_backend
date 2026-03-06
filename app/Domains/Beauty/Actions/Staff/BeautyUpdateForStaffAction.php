@@ -2,7 +2,7 @@
 
 namespace App\Domains\Beauty\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
@@ -17,7 +17,7 @@ final class BeautyUpdateForStaffAction
 {
     public function __construct(
         private readonly BeautyUpdateForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly MediaAttachDeleteAction   $mediaAttachAction,
     ) {}
 
     /**

@@ -2,7 +2,7 @@
 
 namespace App\Domains\HospitalDoctor\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Dto\Staff\HospitalDoctorForStaffDetailDto;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalDoctor\Queries\Staff\HospitalDoctorCreateForStaffQuery;
@@ -14,7 +14,7 @@ final class HospitalDoctorCreateForStaffAction
 {
     public function __construct(
         private readonly HospitalDoctorCreateForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly MediaAttachDeleteAction           $mediaAttachAction,
     ) {}
 
     public function execute(array $payload): array

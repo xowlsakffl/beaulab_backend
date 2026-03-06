@@ -43,7 +43,8 @@ final class AccessPermissions
     public const BEAULAB_VIDEO_REQUEST_SHOW = 'beaulab.video-request.show';
     public const BEAULAB_VIDEO_REQUEST_UPDATE = 'beaulab.video-request.update';
     public const BEAULAB_VIDEO_REQUEST_DELETE = 'beaulab.video-request.delete';
-
+    public const BEAULAB_CATEGORY_SHOW = 'beaulab.category.show';
+    public const BEAULAB_CATEGORY_MANAGE = 'beaulab.category.manage';
     // Hospital
     public const HOSPITAL_PROFILE_SHOW = 'hospital.profile.show';
     public const HOSPITAL_PROFILE_UPDATE = 'hospital.profile.update';
@@ -74,7 +75,8 @@ final class AccessPermissions
      * guard별 생성해야 할 permission 목록 (Seeder는 이걸 기준으로 생성)
      *
      * - staff: 내부 직원(뷰랩)
-     * - partner: 병원/뷰티/대행사 파트너
+     * - hospital: 병원 파트너
+     * - beauty: 뷰티 파트너
      * - user: 일반 사용자(앱) => 프로필만
      */
     public static function byGuard(): array
@@ -83,6 +85,7 @@ final class AccessPermissions
             self::GUARD_STAFF => self::unique([
                 ...self::common(),   // staff/partner 공통(관리영역)
                 ...self::beaulab(),  // staff 전용
+                ...self::beaulabSuperAdminOnly(), // super admin 전용
             ]),
 
             self::GUARD_HOSPITAL => self::unique([
@@ -140,28 +143,48 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_CREATE,
             self::BEAULAB_HOSPITAL_UPDATE,
             self::BEAULAB_HOSPITAL_DELETE,
+
             self::BEAULAB_BEAUTY_SHOW,
             self::BEAULAB_BEAUTY_CREATE,
             self::BEAULAB_BEAUTY_UPDATE,
             self::BEAULAB_BEAUTY_DELETE,
+
             self::BEAULAB_AGENCY_SHOW,
             self::BEAULAB_AGENCY_CREATE,
             self::BEAULAB_AGENCY_UPDATE,
             self::BEAULAB_AGENCY_DELETE,
+
             self::BEAULAB_USER_SHOW,
             self::BEAULAB_USER_UPDATE,
             self::BEAULAB_USER_DELETE,
+
             self::BEAULAB_DOCTOR_SHOW,
             self::BEAULAB_DOCTOR_CREATE,
             self::BEAULAB_DOCTOR_UPDATE,
             self::BEAULAB_DOCTOR_DELETE,
+
             self::BEAULAB_EXPERT_SHOW,
             self::BEAULAB_EXPERT_CREATE,
             self::BEAULAB_EXPERT_UPDATE,
             self::BEAULAB_EXPERT_DELETE,
+
             self::BEAULAB_VIDEO_REQUEST_SHOW,
             self::BEAULAB_VIDEO_REQUEST_UPDATE,
             self::BEAULAB_VIDEO_REQUEST_DELETE,
+
+            self::BEAULAB_CATEGORY_SHOW,
+            self::BEAULAB_CATEGORY_MANAGE,
+
+        ];
+    }
+
+    /**
+     * Staff 중 super_admin에게만 부여할 권한
+     */
+    public static function beaulabSuperAdminOnly(): array
+    {
+        return [
+            self::BEAULAB_CATEGORY_MANAGE,
         ];
     }
 

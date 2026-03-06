@@ -2,7 +2,7 @@
 
 namespace App\Domains\HospitalDoctor\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachAction;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalDoctor\Queries\Staff\HospitalDoctorDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +12,7 @@ final class HospitalDoctorDeleteForStaffAction
 {
     public function __construct(
         private readonly HospitalDoctorDeleteForStaffQuery $query,
-        private readonly MediaAttachAction $mediaAttachAction,
+        private readonly MediaAttachDeleteAction           $mediaAttachAction,
     ) {}
 
     public function execute(HospitalDoctor $doctor): array

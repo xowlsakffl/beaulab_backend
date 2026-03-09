@@ -26,6 +26,7 @@ final class BeautyDeleteForStaffAction
 
         return DB::transaction(function () use ($beauty) {
             $this->mediaAttachAction->deleteCollectionMediaBulk($beauty, ['logo', 'gallery']);
+            $beauty->categories()->sync([]);
 
             if ($beauty->businessRegistration) {
                 $this->mediaAttachAction->deleteCollectionMedia($beauty->businessRegistration, 'business_registration_file');

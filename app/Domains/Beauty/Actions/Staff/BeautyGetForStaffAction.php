@@ -17,7 +17,7 @@ final class BeautyGetForStaffAction
     {
         Gate::authorize('view', $beauty);
 
-        $relations = ['logoMedia', 'galleryMedia'];
+        $relations = ['logoMedia', 'galleryMedia', 'categories'];
 
         if (in_array('business_registration', $include, true)) {
             $relations[] = 'businessRegistration.certificateMedia';

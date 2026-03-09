@@ -5,6 +5,7 @@ namespace App\Domains\Beauty\Dto\Staff;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Support\Collection;
 
@@ -39,6 +40,14 @@ final readonly class BeautyForStaffDetailDto
             'updated_at' => $beauty->updated_at?->toISOString(),
             'logo' => self::formatMedia(self::resolveLogo($beauty)),
             'gallery' => self::resolveGallery($beauty)->map(fn (Media $media): array => self::formatMedia($media))->all(),
+            'categories' => self::resolveCategories($beauty)
+                ->map(fn (Category $category): array => [
+                    'id' => (int) $category->id,
+                    'name' => (string) $category->name,
+                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+                ])
+                ->values()
+                ->all(),
         ];
 
         if (in_array('account_beauties', $include, true)) {
@@ -142,5 +151,17 @@ final readonly class BeautyForStaffDetailDto
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    private static function resolveCategories(Beauty $beauty): Collection
+    {
+        if (! $beauty->relationLoaded('categories')) {
+            return collect();
+        }
+
+        return $beauty->categories;
     }
 }

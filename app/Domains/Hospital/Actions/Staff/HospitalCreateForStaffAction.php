@@ -40,15 +40,41 @@ final class HospitalCreateForStaffAction
             $this->mediaAttachAction->attachMany($hospital, $filters['gallery'], 'gallery', 'hospital', 'gallery', true);
 
             $this->businessRegistrationCreateAction->execute($hospital, $filters);
+            $this->syncCategories($hospital, $filters['category_ids'] ?? []);
 
             return $hospital->fresh();
         });
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
-                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']),
+                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories']),
                 ['business_registration'],
             )->toArray(),
         ];
+    }
+
+    /**
+     * @param array<int, int|string> $categoryIds
+     */
+    private function syncCategories(Hospital $hospital, array $categoryIds): void
+    {
+        if ($categoryIds === []) {
+            return;
+        }
+
+        $payload = collect($categoryIds)
+            ->map(static fn (int|string $categoryId): int => (int) $categoryId)
+            ->unique()
+            ->values()
+            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                $categoryId => ['is_primary' => $index === 0],
+            ])
+            ->all();
+
+        if ($payload === []) {
+            return;
+        }
+
+        $hospital->categories()->sync($payload);
     }
 }

@@ -6,6 +6,7 @@ namespace App\Domains\Beauty\Models;
 
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\BeautyBusinessRegistration\Models\BeautyBusinessRegistration;
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Beauty extends Model
@@ -93,6 +95,13 @@ final class Beauty extends Model
     public function businessRegistration(): HasOne
     {
         return $this->hasOne(BeautyBusinessRegistration::class, 'beauty_id');
+    }
+
+    public function categories(): MorphToMany
+    {
+        return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')
+            ->withPivot('is_primary')
+            ->withTimestamps();
     }
 
     public function isApproved(): bool

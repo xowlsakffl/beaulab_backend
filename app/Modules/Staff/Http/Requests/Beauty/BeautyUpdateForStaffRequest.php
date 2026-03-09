@@ -3,7 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Beauty;
 
 use App\Domains\Beauty\Models\Beauty;
-use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Common\Models\Category\Category;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -47,6 +47,10 @@ final class BeautyUpdateForStaffRequest extends FormRequest
             $data['business_number'] = $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $data['business_number'];
         }
 
+        if (array_key_exists('category_ids', $data)) {
+            $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
+        }
+
         $this->replace($data);
     }
 
@@ -86,6 +90,14 @@ final class BeautyUpdateForStaffRequest extends FormRequest
             'business_registration_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'business_address' => ['nullable', 'string', 'max:255'],
             'business_address_detail' => ['nullable', 'string', 'max:255'],
+            'category_ids' => ['sometimes', 'array', 'max:100'],
+            'category_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->where('domain', Category::DOMAIN_BEAUTY)
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'gallery' => ['nullable', 'array', 'min:1', 'max:12'],
             'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
@@ -122,10 +134,37 @@ final class BeautyUpdateForStaffRequest extends FormRequest
             'business_registration_file' => '사업자등록증 파일',
             'business_address' => '사업장 주소',
             'business_address_detail' => '사업장 상세 주소',
+            'category_ids' => '카테고리 목록',
+            'category_ids.*' => '카테고리',
             'logo' => '로고 이미지',
             'gallery' => '갤러리 이미지',
             'gallery.*' => '갤러리 이미지',
         ];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function normalizeIdList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->filter(static fn ($item): bool => is_int($item) || (is_string($item) && ctype_digit(trim($item))))
+            ->map(static fn ($item): int => (int) $item)
+            ->filter(static fn (int $item): bool => $item > 0)
+            ->values()
+            ->all();
     }
 
 }

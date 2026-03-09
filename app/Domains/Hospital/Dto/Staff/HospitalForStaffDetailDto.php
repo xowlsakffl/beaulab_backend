@@ -3,6 +3,7 @@
 namespace App\Domains\Hospital\Dto\Staff;
 
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use Illuminate\Support\Collection;
 use App\Domains\Hospital\Models\Hospital;
@@ -39,6 +40,14 @@ final readonly class HospitalForStaffDetailDto
             'updated_at' => $hospital->updated_at?->toISOString(),
             'logo' => self::formatMedia(self::resolveLogo($hospital)),
             'gallery' => self::resolveGallery($hospital)->map(fn (Media $media): array => self::formatMedia($media))->all(),
+            'categories' => self::resolveCategories($hospital)
+                ->map(fn (Category $category): array => [
+                    'id' => (int) $category->id,
+                    'name' => (string) $category->name,
+                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+                ])
+                ->values()
+                ->all(),
         ];
 
         if (in_array('account_hospitals', $include, true)) {
@@ -137,5 +146,17 @@ final readonly class HospitalForStaffDetailDto
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    private static function resolveCategories(Hospital $hospital): Collection
+    {
+        if (! $hospital->relationLoaded('categories')) {
+            return collect();
+        }
+
+        return $hospital->categories;
     }
 }

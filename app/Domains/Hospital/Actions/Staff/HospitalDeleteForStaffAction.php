@@ -26,6 +26,7 @@ final class HospitalDeleteForStaffAction
 
         return DB::transaction(function () use ($hospital) {
             $this->mediaAttachAction->deleteCollectionMediaBulk($hospital, ['logo', 'gallery']);
+            $hospital->categories()->sync([]);
 
             if ($hospital->businessRegistration) {
                 $this->mediaAttachAction->deleteCollectionMedia($hospital->businessRegistration, 'business_registration_file');

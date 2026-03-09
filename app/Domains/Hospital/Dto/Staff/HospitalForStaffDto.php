@@ -2,6 +2,7 @@
 
 namespace App\Domains\Hospital\Dto\Staff;
 
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Hospital\Models\Hospital;
 
 final readonly class HospitalForStaffDto
@@ -16,6 +17,7 @@ final readonly class HospitalForStaffDto
         public string $status,
         public string $createdAt,
         public string $updatedAt,
+        public ?array $categories = null,
     ) {}
 
     public static function fromModel(Hospital $hospital): self
@@ -30,12 +32,20 @@ final readonly class HospitalForStaffDto
             status: $hospital->status,
             createdAt: $hospital->created_at?->toISOString() ?? '',
             updatedAt: $hospital->updated_at?->toISOString() ?? '',
+            categories: $hospital->relationLoaded('categories')
+                ? $hospital->categories
+                    ->map(fn (Category $category): array => [
+                        'name' => (string) $category->name,
+                    ])
+                    ->values()
+                    ->all()
+                : null,
         );
     }
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id'           => $this->id,
             'name'         => $this->name,
             'address'      => $this->address,
@@ -46,5 +56,11 @@ final readonly class HospitalForStaffDto
             'created_at'   => $this->createdAt,
             'updated_at'   => $this->updatedAt,
         ];
+
+        if ($this->categories !== null) {
+            $data['categories'] = $this->categories;
+        }
+
+        return $data;
     }
 }

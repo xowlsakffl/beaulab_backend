@@ -21,6 +21,8 @@ final class HospitalListForStaffAction
      *   end_date?: string|null,
      *   status?: array<int, string>|null,
      *    allow_status?: array<int, string>|null,
+     *   category_ids?: array<int, int|string>|null,
+     *   include?: array<int, string>,
      *   sort?: string,
      *   direction?: 'asc'|'desc',
      *   per_page?: int

@@ -24,7 +24,7 @@ final class HospitalGetForStaffRequest extends FormRequest
     {
         return [
             'include' => ['nullable', 'array'],
-            'include.*' => ['in:business_registration,account_hospitals,doctors'],
+            'include.*' => ['in:business_registration,account_hospitals,doctors,categories'],
         ];
     }
 

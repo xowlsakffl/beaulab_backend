@@ -3,23 +3,32 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
+use App\Domains\Common\Models\Category\Category;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class HospitalCreateForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
         $businessNumber = $this->input('business_number');
+        $categoryIds = $this->normalizeIdList($this->input('category_ids'));
 
-        if (! is_string($businessNumber)) {
-            return;
+        $mergePayload = [];
+
+        if (is_string($businessNumber)) {
+            $normalizedBusinessNumber = preg_replace('/\D+/', '', $businessNumber);
+
+            $mergePayload['business_number'] = $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $businessNumber;
         }
 
-        $normalizedBusinessNumber = preg_replace('/\D+/', '', $businessNumber);
+        if ($this->has('category_ids')) {
+            $mergePayload['category_ids'] = array_values(array_unique($categoryIds));
+        }
 
-        $this->merge([
-            'business_number' => $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $businessNumber,
-        ]);
+        if ($mergePayload !== []) {
+            $this->merge($mergePayload);
+        }
     }
 
     public function authorize(): bool
@@ -72,6 +81,16 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'business_address_detail' => ['nullable', 'string', 'max:255'],
             'issued_at' => ['date'],
 
+            // 카테고리(단일 입력)
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
+
             // 파일 필수
             'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'gallery' => ['required', 'array', 'min:1', 'max:12'],
@@ -103,9 +122,37 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'business_address_detail' => '사업장 상세 주소',
             'issued_at' => '사업자 등록일',
 
+            'category_ids' => '카테고리 목록',
+            'category_ids.*' => '카테고리',
+
             'logo' => '로고',
             'gallery' => '갤러리 이미지',
             'gallery.*' => '갤러리 이미지',
         ];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function normalizeIdList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->filter(static fn ($item): bool => is_int($item) || (is_string($item) && ctype_digit(trim($item))))
+            ->map(static fn ($item): int => (int) $item)
+            ->filter(static fn (int $item): bool => $item > 0)
+            ->values()
+            ->all();
     }
 }

@@ -36,13 +36,16 @@ final class BeautyUpdateForStaffAction
 
             $this->replaceMedia($updatedBeauty, $payload);
             $this->updateBusinessRegistration($updatedBeauty, $payload);
+            if (array_key_exists('category_ids', $payload) && is_array($payload['category_ids'])) {
+                $this->syncCategories($updatedBeauty, $payload['category_ids']);
+            }
 
             return $updatedBeauty->fresh();
         });
 
         return [
             'beauty' => BeautyForStaffDetailDto::fromModel(
-                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia']),
+                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories']),
                 ['business_registration'],
             )->toArray(),
         ];
@@ -115,5 +118,23 @@ final class BeautyUpdateForStaffAction
                 Storage::disk($media->disk)->delete($media->path);
                 $media->delete();
             });
+    }
+
+    /**
+     * @param array<int, int|string> $categoryIds
+     */
+    private function syncCategories(Beauty $beauty, array $categoryIds): void
+    {
+        $payload = collect($categoryIds)
+            ->map(static fn (int|string $categoryId): int => (int) $categoryId)
+            ->filter(static fn (int $categoryId): bool => $categoryId > 0)
+            ->unique()
+            ->values()
+            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                $categoryId => ['is_primary' => $index === 0],
+            ])
+            ->all();
+
+        $beauty->categories()->sync($payload);
     }
 }

@@ -27,6 +27,7 @@ final class HospitalDoctorDeleteForStaffAction
                 'education_certificate_image',
                 'etc_certificate_image',
             ]);
+            $doctor->categories()->sync([]);
 
             $this->query->softDelete($doctor);
             $doctor->refresh();

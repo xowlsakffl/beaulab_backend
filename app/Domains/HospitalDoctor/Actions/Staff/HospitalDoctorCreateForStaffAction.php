@@ -25,6 +25,7 @@ final class HospitalDoctorCreateForStaffAction
             $doctor = $this->query->create($payload);
 
             $this->attachMedia($doctor, $payload);
+            $this->syncCategories($doctor, $payload['category_ids'] ?? []);
 
             return $doctor->fresh();
         });
@@ -36,6 +37,7 @@ final class HospitalDoctorCreateForStaffAction
                 'specialistCertificateImages',
                 'educationCertificateImages',
                 'etcCertificateImages',
+                'categories',
             ]))->toArray(),
         ];
     }
@@ -59,5 +61,31 @@ final class HospitalDoctorCreateForStaffAction
         }
 
         return array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
+    }
+
+    /**
+     * @param array<int, int|string> $categoryIds
+     */
+    private function syncCategories(HospitalDoctor $doctor, array $categoryIds): void
+    {
+        if ($categoryIds === []) {
+            return;
+        }
+
+        $payload = collect($categoryIds)
+            ->map(static fn (int|string $categoryId): int => (int) $categoryId)
+            ->filter(static fn (int $categoryId): bool => $categoryId > 0)
+            ->unique()
+            ->values()
+            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                $categoryId => ['is_primary' => $index === 0],
+            ])
+            ->all();
+
+        if ($payload === []) {
+            return;
+        }
+
+        $doctor->categories()->sync($payload);
     }
 }

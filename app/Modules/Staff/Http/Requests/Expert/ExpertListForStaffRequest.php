@@ -2,7 +2,9 @@
 
 namespace App\Modules\Staff\Http\Requests\Expert;
 
+use App\Domains\Common\Models\Category\Category;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class ExpertListForStaffRequest extends FormRequest
 {
@@ -11,6 +13,8 @@ final class ExpertListForStaffRequest extends FormRequest
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
             'allow_status' => $this->normalizeToArray($this->input('allow_status')),
+            'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
+            'include' => $this->normalizeToArray($this->input('include')),
         ]);
     }
 
@@ -28,6 +32,16 @@ final class ExpertListForStaffRequest extends FormRequest
             'status.*' => ['in:ACTIVE,SUSPENDED,INACTIVE'],
             'allow_status' => ['nullable', 'array'],
             'allow_status.*' => ['in:PENDING,APPROVED,REJECTED'],
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->where('domain', Category::DOMAIN_BEAUTY)
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
+            'include' => ['nullable', 'array'],
+            'include.*' => ['in:categories'],
             'sort' => ['nullable', 'in:id,name,sort_order,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
@@ -43,6 +57,8 @@ final class ExpertListForStaffRequest extends FormRequest
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
             'allow_status' => $validated['allow_status'] ?? null,
+            'category_ids' => $validated['category_ids'] ?? null,
+            'include' => $validated['include'] ?? [],
             'sort' => $validated['sort'] ?? 'id',
             'direction' => $validated['direction'] ?? 'desc',
             'per_page' => (int) ($validated['per_page'] ?? 15),
@@ -57,6 +73,8 @@ final class ExpertListForStaffRequest extends FormRequest
 
         if (is_string($value)) {
             $value = explode(',', $value);
+        } elseif (is_int($value)) {
+            $value = [(string) $value];
         }
 
         if (! is_array($value)) {
@@ -64,27 +82,40 @@ final class ExpertListForStaffRequest extends FormRequest
         }
 
         $normalized = array_values(array_filter(array_map(
-            static fn ($item) => is_string($item) ? trim($item) : null,
+            static function ($item): ?string {
+                if (is_string($item)) {
+                    $item = trim($item);
+                    return $item === '' ? null : $item;
+                }
+
+                if (is_int($item)) {
+                    return (string) $item;
+                }
+
+                return null;
+            },
             $value,
         )));
 
-        return $normalized === [] ? null : $normalized;
+        return $normalized === [] ? null : array_values(array_unique($normalized));
     }
-
 
     public function attributes(): array
     {
         return [
-            'beauty_id' => '뷰티 ID',
-            'q' => '검색어',
-            'status' => '상태',
-            'status.*' => '상태',
-            'allow_status' => '승인 상태',
-            'allow_status.*' => '승인 상태',
-            'sort' => '정렬 기준',
-            'direction' => '정렬 방향',
-            'per_page' => '페이지당 개수',
+            'beauty_id' => 'Beauty ID',
+            'q' => 'Search query',
+            'status' => 'Status',
+            'status.*' => 'Status',
+            'allow_status' => 'Allow status',
+            'allow_status.*' => 'Allow status',
+            'category_ids' => 'Category IDs',
+            'category_ids.*' => 'Category ID',
+            'include' => 'Include',
+            'include.*' => 'Include',
+            'sort' => 'Sort',
+            'direction' => 'Direction',
+            'per_page' => 'Per page',
         ];
     }
-
 }

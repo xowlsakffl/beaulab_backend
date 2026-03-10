@@ -25,6 +25,7 @@ final class BeautyExpertCreateForStaffAction
             $expert = $this->query->create($payload);
 
             $this->attachMedia($expert, $payload);
+            $this->syncCategories($expert, $payload['category_ids'] ?? []);
 
             return $expert->fresh();
         });
@@ -34,6 +35,7 @@ final class BeautyExpertCreateForStaffAction
                 'profileImage',
                 'educationCertificateImages',
                 'etcCertificateImages',
+                'categories',
             ]))->toArray(),
         ];
     }
@@ -54,5 +56,31 @@ final class BeautyExpertCreateForStaffAction
         }
 
         return array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
+    }
+
+    /**
+     * @param array<int, int|string> $categoryIds
+     */
+    private function syncCategories(BeautyExpert $expert, array $categoryIds): void
+    {
+        if ($categoryIds === []) {
+            return;
+        }
+
+        $payload = collect($categoryIds)
+            ->map(static fn (int|string $categoryId): int => (int) $categoryId)
+            ->filter(static fn (int $categoryId): bool => $categoryId > 0)
+            ->unique()
+            ->values()
+            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                $categoryId => ['is_primary' => $index === 0],
+            ])
+            ->all();
+
+        if ($payload === []) {
+            return;
+        }
+
+        $expert->categories()->sync($payload);
     }
 }

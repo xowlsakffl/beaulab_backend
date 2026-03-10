@@ -16,6 +16,7 @@ final class BeautyExpertGetForStaffAction
             'profileImage',
             'educationCertificateImages',
             'etcCertificateImages',
+            'categories',
         ]);
 
         return [

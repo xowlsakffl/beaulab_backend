@@ -2,6 +2,7 @@
 
 namespace App\Domains\BeautyExpert\Dto\Staff;
 
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 
 final readonly class BeautyExpertForStaffDto
@@ -16,6 +17,7 @@ final readonly class BeautyExpertForStaffDto
         public string $status,
         public string $createdAt,
         public string $updatedAt,
+        public ?array $categories = null,
     ) {}
 
     public static function fromModel(BeautyExpert $expert): self
@@ -30,12 +32,20 @@ final readonly class BeautyExpertForStaffDto
             status: $expert->status,
             createdAt: $expert->created_at?->toISOString() ?? '',
             updatedAt: $expert->updated_at?->toISOString() ?? '',
+            categories: $expert->relationLoaded('categories')
+                ? $expert->categories
+                    ->map(fn (Category $category): array => [
+                        'name' => (string) $category->name,
+                    ])
+                    ->values()
+                    ->all()
+                : null,
         );
     }
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'beauty_id' => $this->beautyId,
             'name' => $this->name,
@@ -46,5 +56,11 @@ final readonly class BeautyExpertForStaffDto
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];
+
+        if ($this->categories !== null) {
+            $data['categories'] = $this->categories;
+        }
+
+        return $data;
     }
 }

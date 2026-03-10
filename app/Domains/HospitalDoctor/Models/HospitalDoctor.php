@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalDoctor\Models;
 
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalDoctor extends Model
@@ -81,6 +83,13 @@ final class HospitalDoctor extends Model
     public function etcCertificateImages(): MorphMany
     {
         return $this->morphMany(Media::class, 'model')->where('collection', 'etc_certificate_image')->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function categories(): MorphToMany
+    {
+        return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')
+            ->withPivot('is_primary')
+            ->withTimestamps();
     }
 
     public function isApproved(): bool

@@ -10,12 +10,12 @@ final class CategoryForStaffPolicy
 {
     public function viewAny(AccountStaff $actor): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_CATEGORY_SHOW);
+        return $actor->can(AccessPermissions::COMMON_ACCESS);
     }
 
     public function view(AccountStaff $actor, Category $category): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_CATEGORY_SHOW);
+        return $actor->can(AccessPermissions::COMMON_ACCESS);
     }
 
     public function create(AccountStaff $actor): bool

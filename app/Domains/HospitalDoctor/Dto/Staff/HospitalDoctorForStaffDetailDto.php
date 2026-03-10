@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalDoctor\Dto\Staff;
 
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Support\Collection;
@@ -34,6 +35,14 @@ final readonly class HospitalDoctorForStaffDetailDto
             'specialist_certificate_image' => self::formatMediaList($doctor->specialistCertificateImages),
             'education_certificate_image' => self::formatMediaList($doctor->educationCertificateImages),
             'etc_certificate_image' => self::formatMediaList($doctor->etcCertificateImages),
+            'categories' => self::resolveCategories($doctor)
+                ->map(fn (Category $category): array => [
+                    'id' => (int) $category->id,
+                    'name' => (string) $category->name,
+                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+                ])
+                ->values()
+                ->all(),
             'created_at' => $doctor->created_at?->toISOString(),
             'updated_at' => $doctor->updated_at?->toISOString(),
         ]);
@@ -69,5 +78,17 @@ final readonly class HospitalDoctorForStaffDetailDto
     private static function formatMediaList(Collection $mediaList): array
     {
         return $mediaList->map(fn (Media $media): array => self::formatMedia($media) ?? [])->all();
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    private static function resolveCategories(HospitalDoctor $doctor): Collection
+    {
+        if (! $doctor->relationLoaded('categories')) {
+            return collect();
+        }
+
+        return $doctor->categories;
     }
 }

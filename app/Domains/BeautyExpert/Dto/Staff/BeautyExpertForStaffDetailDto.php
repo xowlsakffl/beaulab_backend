@@ -2,6 +2,7 @@
 
 namespace App\Domains\BeautyExpert\Dto\Staff;
 
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use Illuminate\Support\Collection;
@@ -30,6 +31,14 @@ final readonly class BeautyExpertForStaffDetailDto
             'profile_image' => self::formatMedia($expert->profileImage),
             'education_certificate_image' => self::formatMediaList($expert->educationCertificateImages),
             'etc_certificate_image' => self::formatMediaList($expert->etcCertificateImages),
+            'categories' => self::resolveCategories($expert)
+                ->map(fn (Category $category): array => [
+                    'id' => (int) $category->id,
+                    'name' => (string) $category->name,
+                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+                ])
+                ->values()
+                ->all(),
             'created_at' => $expert->created_at?->toISOString(),
             'updated_at' => $expert->updated_at?->toISOString(),
         ]);
@@ -69,5 +78,17 @@ final readonly class BeautyExpertForStaffDetailDto
     private static function formatMediaList(Collection|iterable|null $mediaList): array
     {
         return collect($mediaList)->map(fn (Media $media): array => self::formatMedia($media))->values()->all();
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    private static function resolveCategories(BeautyExpert $expert): Collection
+    {
+        if (! $expert->relationLoaded('categories')) {
+            return collect();
+        }
+
+        return $expert->categories;
     }
 }

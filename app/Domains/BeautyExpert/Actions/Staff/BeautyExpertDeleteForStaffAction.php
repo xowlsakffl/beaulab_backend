@@ -25,6 +25,7 @@ final class BeautyExpertDeleteForStaffAction
                 'education_certificate_image',
                 'etc_certificate_image',
             ]);
+            $expert->categories()->sync([]);
 
             $this->query->softDelete($expert);
             $expert->refresh();

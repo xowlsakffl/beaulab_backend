@@ -18,6 +18,7 @@ final class HospitalDoctorGetForStaffAction
             'specialistCertificateImages',
             'educationCertificateImages',
             'etcCertificateImages',
+            'categories',
         ]);
 
         return [

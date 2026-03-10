@@ -2,7 +2,9 @@
 
 namespace App\Modules\Staff\Http\Requests\Expert;
 
+use App\Domains\Common\Models\Category\Category;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class ExpertUpdateForStaffRequest extends FormRequest
 {
@@ -25,6 +27,10 @@ final class ExpertUpdateForStaffRequest extends FormRequest
             }
         }
 
+        if (array_key_exists('category_ids', $data)) {
+            $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
+        }
+
         $this->replace($data);
     }
 
@@ -44,6 +50,14 @@ final class ExpertUpdateForStaffRequest extends FormRequest
             'educations' => ['nullable', 'array'],
             'careers' => ['nullable', 'array'],
             'etc_contents' => ['nullable', 'array'],
+            'category_ids' => ['sometimes', 'array', 'max:100'],
+            'category_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->where('domain', Category::DOMAIN_BEAUTY)
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
             'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],
             'allow_status' => ['nullable', 'in:PENDING,APPROVED,REJECTED'],
 
@@ -55,26 +69,51 @@ final class ExpertUpdateForStaffRequest extends FormRequest
         ];
     }
 
-
     public function attributes(): array
     {
         return [
-            'sort_order' => '정렬 순서',
-            'name' => '전문가명',
-            'gender' => '성별',
-            'position' => '직책',
-            'career_started_at' => '경력 시작일',
-            'educations' => '학력 사항',
-            'careers' => '경력 사항',
-            'etc_contents' => '기타 사항',
-            'status' => '상태',
-            'allow_status' => '승인 상태',
-            'profile_image' => '프로필 이미지',
-            'education_certificate_image' => '학력 증명서 이미지',
-            'education_certificate_image.*' => '학력 증명서 이미지',
-            'etc_certificate_image' => '기타 증명서 이미지',
-            'etc_certificate_image.*' => '기타 증명서 이미지',
+            'sort_order' => 'Sort order',
+            'name' => 'Expert name',
+            'gender' => 'Gender',
+            'position' => 'Position',
+            'career_started_at' => 'Career started at',
+            'educations' => 'Educations',
+            'careers' => 'Careers',
+            'etc_contents' => 'Etc contents',
+            'category_ids' => 'Category IDs',
+            'category_ids.*' => 'Category ID',
+            'status' => 'Status',
+            'allow_status' => 'Allow status',
+            'profile_image' => 'Profile image',
+            'education_certificate_image' => 'Education certificate image',
+            'education_certificate_image.*' => 'Education certificate image',
+            'etc_certificate_image' => 'Etc certificate image',
+            'etc_certificate_image.*' => 'Etc certificate image',
         ];
     }
 
+    /**
+     * @return array<int, int>
+     */
+    private function normalizeIdList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->filter(static fn ($item): bool => is_int($item) || (is_string($item) && ctype_digit(trim($item))))
+            ->map(static fn ($item): int => (int) $item)
+            ->filter(static fn (int $item): bool => $item > 0)
+            ->values()
+            ->all();
+    }
 }

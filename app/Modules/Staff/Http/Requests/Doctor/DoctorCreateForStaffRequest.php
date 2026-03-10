@@ -2,7 +2,9 @@
 
 namespace App\Modules\Staff\Http\Requests\Doctor;
 
+use App\Domains\Common\Models\Category\Category;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class DoctorCreateForStaffRequest extends FormRequest
 {
@@ -17,6 +19,10 @@ final class DoctorCreateForStaffRequest extends FormRequest
                     $data[$key] = $decoded;
                 }
             }
+        }
+
+        if (array_key_exists('category_ids', $data)) {
+            $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
         }
 
         $this->replace($data);
@@ -41,6 +47,14 @@ final class DoctorCreateForStaffRequest extends FormRequest
             'educations' => ['nullable', 'array'],
             'careers' => ['nullable', 'array'],
             'etc_contents' => ['nullable', 'array'],
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
 
             'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'license_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
@@ -68,6 +82,8 @@ final class DoctorCreateForStaffRequest extends FormRequest
             'educations' => '학력 사항',
             'careers' => '경력 사항',
             'etc_contents' => '기타 사항',
+            'category_ids' => '카테고리 목록',
+            'category_ids.*' => '카테고리',
 
             'profile_image' => '프로필 이미지',
             'license_image' => '면허증 이미지',
@@ -79,5 +95,30 @@ final class DoctorCreateForStaffRequest extends FormRequest
             'etc_certificate_image' => '기타 증명서 이미지',
             'etc_certificate_image.*' => '기타 증명서 이미지',
         ];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function normalizeIdList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->filter(static fn ($item): bool => is_int($item) || (is_string($item) && ctype_digit(trim($item))))
+            ->map(static fn ($item): int => (int) $item)
+            ->filter(static fn (int $item): bool => $item > 0)
+            ->values()
+            ->all();
     }
 }

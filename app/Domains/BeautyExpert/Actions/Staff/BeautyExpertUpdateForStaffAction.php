@@ -26,6 +26,9 @@ final class BeautyExpertUpdateForStaffAction
         $expert = DB::transaction(function () use ($expert, $payload) {
             $updated = $this->query->update($expert, $payload);
             $this->replaceMedia($updated, $payload);
+            if (array_key_exists('category_ids', $payload) && is_array($payload['category_ids'])) {
+                $this->syncCategories($updated, $payload['category_ids']);
+            }
             return $updated->fresh();
         });
 
@@ -34,6 +37,7 @@ final class BeautyExpertUpdateForStaffAction
                 'profileImage',
                 'educationCertificateImages',
                 'etcCertificateImages',
+                'categories',
             ]))->toArray(),
         ];
     }
@@ -67,5 +71,23 @@ final class BeautyExpertUpdateForStaffAction
     private function onlyFiles(array $files): array
     {
         return array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
+    }
+
+    /**
+     * @param array<int, int|string> $categoryIds
+     */
+    private function syncCategories(BeautyExpert $expert, array $categoryIds): void
+    {
+        $payload = collect($categoryIds)
+            ->map(static fn (int|string $categoryId): int => (int) $categoryId)
+            ->filter(static fn (int $categoryId): bool => $categoryId > 0)
+            ->unique()
+            ->values()
+            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                $categoryId => ['is_primary' => $index === 0],
+            ])
+            ->all();
+
+        $expert->categories()->sync($payload);
     }
 }

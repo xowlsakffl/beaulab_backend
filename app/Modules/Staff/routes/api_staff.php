@@ -8,6 +8,7 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalVideo\VideoForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideoRequest\VideoRequestForStaffController;
 use Illuminate\Support\Facades\Route;
 
@@ -124,4 +125,15 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('videoRequests.updateVideoRequestForStaff');
     Route::delete('video-requests/{videoRequest}', [VideoRequestForStaffController::class, 'deleteVideoRequestForStaff'])
         ->name('videoRequests.deleteVideoRequestForStaff');
+
+    Route::get('videos', [VideoForStaffController::class, 'getVideosForStaff'])
+        ->name('videos.getVideosForStaff');
+    Route::get('videos/{video}', [VideoForStaffController::class, 'getVideoForStaff'])
+        ->name('videos.getVideoForStaff');
+    Route::post('videos', [VideoForStaffController::class, 'storeVideoForStaff'])
+        ->name('videos.storeVideoForStaff');
+    Route::match(['post', 'put', 'patch'], 'videos/{video}', [VideoForStaffController::class, 'updateVideoForStaff'])
+        ->name('videos.updateVideoForStaff');
+    Route::delete('videos/{video}', [VideoForStaffController::class, 'deleteVideoForStaff'])
+        ->name('videos.deleteVideoForStaff');
 });

@@ -10,16 +10,16 @@ final class AccountUserSeeder extends Seeder
     public function run(): void
     {
         AccountUser::factory()
-            ->count(35)
-            ->create();
-
-        AccountUser::factory()
-            ->count(10)
-            ->suspended()
+            ->count(15)
             ->create();
 
         AccountUser::factory()
             ->count(5)
+            ->suspended()
+            ->create();
+
+        AccountUser::factory()
+            ->count(2)
             ->blocked()
             ->create();
     }

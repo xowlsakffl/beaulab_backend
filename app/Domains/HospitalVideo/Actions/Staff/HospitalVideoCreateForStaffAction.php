@@ -29,20 +29,18 @@ final class HospitalVideoCreateForStaffAction
             $video = $this->query->create($normalized);
 
             if (! empty($normalized['thumbnail_file'])) {
-                $thumbnail = $this->mediaAttachAction->attachOne(
+                $this->mediaAttachAction->attachOne(
                     $video,
                     $normalized['thumbnail_file'],
                     'thumbnail_file',
                     'hospital-video',
                     'thumbnail',
                 );
-
-                if ($thumbnail) {
-                    $video = $this->query->updateThumbnailMediaId($video, $thumbnail->id);
-                }
             }
 
-            return $video->fresh(['thumbnailMedia']);
+            $this->syncCategories($video, $normalized['category_ids'] ?? []);
+
+            return $video->fresh(['thumbnailMedia', 'categories']);
         });
 
         return [
@@ -56,7 +54,7 @@ final class HospitalVideoCreateForStaffAction
             $doctor = HospitalDoctor::query()->find($payload['doctor_id']);
 
             if (! $doctor || (int) $doctor->hospital_id !== (int) $payload['hospital_id']) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, 'Doctor does not belong to the selected hospital.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병원에 소속된 의사가 아닙니다.');
             }
         }
 
@@ -66,5 +64,31 @@ final class HospitalVideoCreateForStaffAction
         }
 
         return $payload;
+    }
+
+    /**
+     * @param array<int, int|string> $categoryIds
+     */
+    private function syncCategories(HospitalVideo $video, array $categoryIds): void
+    {
+        if ($categoryIds === []) {
+            return;
+        }
+
+        $syncPayload = collect($categoryIds)
+            ->map(static fn (int|string $categoryId): int => (int) $categoryId)
+            ->filter(static fn (int $categoryId): bool => $categoryId > 0)
+            ->unique()
+            ->values()
+            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                $categoryId => ['is_primary' => $index === 0],
+            ])
+            ->all();
+
+        if ($syncPayload === []) {
+            return;
+        }
+
+        $video->categories()->sync($syncPayload);
     }
 }

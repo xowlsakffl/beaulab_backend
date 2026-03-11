@@ -13,7 +13,10 @@ final class HospitalVideoGetForStaffAction
         Gate::authorize('view', $video);
 
         return [
-            'video' => HospitalVideoForStaffDetailDto::fromModel($video->load('thumbnailMedia'))->toArray(),
+            'video' => HospitalVideoForStaffDetailDto::fromModel($video->load([
+                'thumbnailMedia',
+                'categories',
+            ]))->toArray(),
         ];
     }
 }

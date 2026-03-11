@@ -18,7 +18,7 @@ final class HospitalVideoUpdateForStaffQuery
             'external_video_url' => array_key_exists('external_video_url', $payload) ? $payload['external_video_url'] : $video->external_video_url,
             'duration_seconds' => array_key_exists('duration_seconds', $payload) ? (int) $payload['duration_seconds'] : $video->duration_seconds,
             'status' => array_key_exists('status', $payload) ? $payload['status'] : $video->status,
-            'published_at' => array_key_exists('published_at', $payload) ? $payload['published_at'] : $video->published_at,
+            'allow_status' => array_key_exists('allow_status', $payload) ? $payload['allow_status'] : $video->allow_status,
             'publish_start_at' => array_key_exists('publish_start_at', $payload) ? $payload['publish_start_at'] : $video->publish_start_at,
             'publish_end_at' => array_key_exists('publish_end_at', $payload) ? $payload['publish_end_at'] : $video->publish_end_at,
             'is_publish_period_unlimited' => array_key_exists('is_publish_period_unlimited', $payload) ? (bool) $payload['is_publish_period_unlimited'] : $video->is_publish_period_unlimited,
@@ -31,14 +31,4 @@ final class HospitalVideoUpdateForStaffQuery
         return $video->fresh();
     }
 
-    public function updateThumbnailMediaId(HospitalVideo $video, ?int $thumbnailMediaId): HospitalVideo
-    {
-        $video->thumbnail_media_id = $thumbnailMediaId;
-
-        if ($video->isDirty('thumbnail_media_id')) {
-            $video->save();
-        }
-
-        return $video->fresh();
-    }
 }

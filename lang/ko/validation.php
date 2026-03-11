@@ -45,6 +45,7 @@ return [
     ],
     'regex' => ':attribute 항목의 형식이 올바르지 않습니다.',
 
+    'integer' => ':attribute 항목의 형식이 올바르지 않습니다.',
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Attributes

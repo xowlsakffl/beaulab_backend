@@ -14,7 +14,7 @@ use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoCreateForStaffReq
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoUpdateForStaffRequest;
 
-final class VideoForStaffController extends Controller
+final class HospitalVideoForStaffController extends Controller
 {
     public function getVideosForStaff(HospitalVideoListForStaffRequest $request, HospitalVideoListForStaffAction $action)
     {

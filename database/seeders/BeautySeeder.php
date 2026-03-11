@@ -14,7 +14,7 @@ final class BeautySeeder extends Seeder
         CategoryFactory::seedBeautyCategories();
 
         $approvedBeauties = Beauty::factory()
-            ->count(20)
+            ->count(10)
             ->approved()
             ->active()
             ->withAccountBeauty()

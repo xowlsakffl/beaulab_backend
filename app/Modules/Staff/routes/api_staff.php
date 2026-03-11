@@ -8,7 +8,8 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
-use App\Modules\Staff\Http\Controllers\HospitalVideo\VideoForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalTalk\HospitalTalkForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideoRequest\VideoRequestForStaffController;
 use Illuminate\Support\Facades\Route;
 
@@ -115,25 +116,30 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('experts.deleteExpertForStaff');
 
     /**
-     * 동영상 검수 신청 관리
+     * 동영상등록 관리
      **/
-    Route::get('video-requests', [VideoRequestForStaffController::class, 'getVideoRequestsForStaff'])
-        ->name('videoRequests.getVideoRequestsForStaff');
-    Route::get('video-requests/{videoRequest}', [VideoRequestForStaffController::class, 'getVideoRequestForStaff'])
-        ->name('videoRequests.getVideoRequestForStaff');
-    Route::match(['post', 'put', 'patch'], 'video-requests/{videoRequest}', [VideoRequestForStaffController::class, 'updateVideoRequestForStaff'])
-        ->name('videoRequests.updateVideoRequestForStaff');
-    Route::delete('video-requests/{videoRequest}', [VideoRequestForStaffController::class, 'deleteVideoRequestForStaff'])
-        ->name('videoRequests.deleteVideoRequestForStaff');
-
-    Route::get('videos', [VideoForStaffController::class, 'getVideosForStaff'])
+    Route::get('videos', [HospitalVideoForStaffController::class, 'getVideosForStaff'])
         ->name('videos.getVideosForStaff');
-    Route::get('videos/{video}', [VideoForStaffController::class, 'getVideoForStaff'])
+    Route::get('videos/{video}', [HospitalVideoForStaffController::class, 'getVideoForStaff'])
         ->name('videos.getVideoForStaff');
-    Route::post('videos', [VideoForStaffController::class, 'storeVideoForStaff'])
+    Route::post('videos', [HospitalVideoForStaffController::class, 'storeVideoForStaff'])
         ->name('videos.storeVideoForStaff');
-    Route::match(['post', 'put', 'patch'], 'videos/{video}', [VideoForStaffController::class, 'updateVideoForStaff'])
+    Route::match(['post', 'put', 'patch'], 'videos/{video}', [HospitalVideoForStaffController::class, 'updateVideoForStaff'])
         ->name('videos.updateVideoForStaff');
-    Route::delete('videos/{video}', [VideoForStaffController::class, 'deleteVideoForStaff'])
+    Route::delete('videos/{video}', [HospitalVideoForStaffController::class, 'deleteVideoForStaff'])
         ->name('videos.deleteVideoForStaff');
+
+    /**
+     * 토크 관리
+     **/
+    Route::get('talks', [HospitalTalkForStaffController::class, 'getTalksForStaff'])
+        ->name('talks.getTalksForStaff');
+    Route::get('talks/{talk}', [HospitalTalkForStaffController::class, 'getTalkForStaff'])
+        ->name('talks.getTalkForStaff');
+    Route::post('talks', [HospitalTalkForStaffController::class, 'storeTalkForStaff'])
+        ->name('talks.storeTalkForStaff');
+    Route::match(['post', 'put', 'patch'], 'talks/{talk}', [HospitalTalkForStaffController::class, 'updateTalkForStaff'])
+        ->name('talks.updateTalkForStaff');
+    Route::delete('talks/{talk}', [HospitalTalkForStaffController::class, 'deleteTalkForStaff'])
+        ->name('talks.deleteTalkForStaff');
 });

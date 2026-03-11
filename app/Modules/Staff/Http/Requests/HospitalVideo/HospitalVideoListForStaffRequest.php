@@ -10,6 +10,8 @@ final class HospitalVideoListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
+            'allow_status' => $this->normalizeToArray($this->input('allow_status')),
+            'include' => $this->normalizeToArray($this->input('include')),
         ]);
     }
 
@@ -24,8 +26,12 @@ final class HospitalVideoListForStaffRequest extends FormRequest
             'hospital_id' => ['nullable', 'integer', 'exists:hospitals,id'],
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
-            'status.*' => ['in:ACTIVE,SUSPENDED,PRIVATE'],
-            'sort' => ['nullable', 'in:id,title,status,published_at,view_count,like_count,created_at,updated_at'],
+            'status.*' => ['in:ACTIVE,INACTIVE'],
+            'allow_status' => ['nullable', 'array'],
+            'allow_status.*' => ['in:SUBMITTED,IN_REVIEW,APPROVED,REJECTED,EXCLUDED,PARTNER_CANCELED'],
+            'include' => ['nullable', 'array'],
+            'include.*' => ['in:categories'],
+            'sort' => ['nullable', 'in:id,title,status,allow_status,view_count,like_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -39,6 +45,8 @@ final class HospitalVideoListForStaffRequest extends FormRequest
             'hospital_id' => $validated['hospital_id'] ?? null,
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
+            'allow_status' => $validated['allow_status'] ?? null,
+            'include' => $validated['include'] ?? [],
             'sort' => $validated['sort'] ?? 'id',
             'direction' => $validated['direction'] ?? 'desc',
             'per_page' => (int) ($validated['per_page'] ?? 15),
@@ -48,13 +56,17 @@ final class HospitalVideoListForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => 'hospital',
-            'q' => 'search query',
-            'status' => 'status list',
-            'status.*' => 'status',
-            'sort' => 'sort',
-            'direction' => 'direction',
-            'per_page' => 'per page',
+            'hospital_id' => '병원',
+            'q' => '검색어',
+            'status' => '상태 목록',
+            'status.*' => '상태',
+            'allow_status' => '검수 상태 목록',
+            'allow_status.*' => '검수 상태',
+            'include' => '포함 항목',
+            'include.*' => '포함 항목',
+            'sort' => '정렬 기준',
+            'direction' => '정렬 방향',
+            'per_page' => '페이지당 개수',
         ];
     }
 

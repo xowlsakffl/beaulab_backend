@@ -31,22 +31,20 @@ final class HospitalVideoUpdateForStaffAction
 
             if (array_key_exists('thumbnail_file', $normalized) && $normalized['thumbnail_file'] instanceof UploadedFile) {
                 $this->mediaAttachAction->deleteCollectionMedia($updated, 'thumbnail_file');
-                $this->query->updateThumbnailMediaId($updated, null);
-
-                $thumbnail = $this->mediaAttachAction->attachOne(
+                $this->mediaAttachAction->attachOne(
                     $updated,
                     $normalized['thumbnail_file'],
                     'thumbnail_file',
                     'hospital-video',
                     'thumbnail',
                 );
-
-                if ($thumbnail) {
-                    $updated = $this->query->updateThumbnailMediaId($updated, $thumbnail->id);
-                }
             }
 
-            return $updated->fresh(['thumbnailMedia']);
+            if (array_key_exists('category_ids', $normalized) && is_array($normalized['category_ids'])) {
+                $this->syncCategories($updated, $normalized['category_ids']);
+            }
+
+            return $updated->fresh(['thumbnailMedia', 'categories']);
         });
 
         return [
@@ -64,7 +62,7 @@ final class HospitalVideoUpdateForStaffAction
             $doctor = HospitalDoctor::query()->find($payload['doctor_id']);
 
             if (! $doctor || (int) $doctor->hospital_id !== $targetHospitalId) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, 'Doctor does not belong to the selected hospital.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병원에 소속된 의사가 아닙니다');
             }
         }
 
@@ -74,5 +72,23 @@ final class HospitalVideoUpdateForStaffAction
         }
 
         return $payload;
+    }
+
+    /**
+     * @param array<int, int|string> $categoryIds
+     */
+    private function syncCategories(HospitalVideo $video, array $categoryIds): void
+    {
+        $syncPayload = collect($categoryIds)
+            ->map(static fn (int|string $categoryId): int => (int) $categoryId)
+            ->filter(static fn (int $categoryId): bool => $categoryId > 0)
+            ->unique()
+            ->values()
+            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                $categoryId => ['is_primary' => $index === 0],
+            ])
+            ->all();
+
+        $video->categories()->sync($syncPayload);
     }
 }

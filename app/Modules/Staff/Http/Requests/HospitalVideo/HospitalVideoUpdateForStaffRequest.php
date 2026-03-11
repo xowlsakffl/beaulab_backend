@@ -2,7 +2,9 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
+use App\Domains\Common\Models\Category\Category;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class HospitalVideoUpdateForStaffRequest extends FormRequest
 {
@@ -20,7 +22,7 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'external_video_url',
             'duration_seconds',
             'status',
-            'published_at',
+            'allow_status',
             'publish_start_at',
             'publish_end_at',
             'is_publish_period_unlimited',
@@ -35,6 +37,10 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             if ($extractedVideoId !== null) {
                 $data['external_video_id'] = $extractedVideoId;
             }
+        }
+
+        if (array_key_exists('category_ids', $data)) {
+            $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
         }
 
         $this->replace($data);
@@ -52,12 +58,20 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'doctor_id' => ['sometimes', 'nullable', 'integer', 'exists:hospital_doctors,id'],
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
-            'distribution_channel' => ['sometimes', 'nullable', 'in:YOUTUBE'],
+            'distribution_channel' => ['sometimes', 'nullable', 'in:YOUTUBE_APP'],
             'external_video_id' => ['sometimes', 'nullable', 'string', 'max:191'],
             'external_video_url' => ['sometimes', 'nullable', 'url', 'max:1024'],
             'duration_seconds' => ['sometimes', 'nullable', 'integer', 'min:0'],
-            'status' => ['sometimes', 'nullable', 'in:ACTIVE,SUSPENDED,PRIVATE'],
-            'published_at' => ['sometimes', 'nullable', 'date'],
+            'status' => ['sometimes', 'nullable', 'in:ACTIVE,INACTIVE'],
+            'allow_status' => ['sometimes', 'nullable', 'in:SUBMITTED,IN_REVIEW,APPROVED,REJECTED,EXCLUDED,PARTNER_CANCELED'],
+            'category_ids' => ['sometimes', 'array', 'max:100'],
+            'category_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
             'publish_start_at' => ['sometimes', 'nullable', 'date'],
             'publish_end_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:publish_start_at'],
             'is_publish_period_unlimited' => ['sometimes', 'nullable', 'boolean'],
@@ -68,21 +82,48 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => 'hospital',
-            'doctor_id' => 'doctor',
-            'title' => 'title',
-            'description' => 'description',
-            'distribution_channel' => 'distribution channel',
-            'external_video_id' => 'external video id',
-            'external_video_url' => 'external video url',
-            'duration_seconds' => 'duration seconds',
-            'status' => 'status',
-            'published_at' => 'published at',
-            'publish_start_at' => 'publish start at',
-            'publish_end_at' => 'publish end at',
-            'is_publish_period_unlimited' => 'is publish period unlimited',
-            'thumbnail_file' => 'thumbnail file',
+            'hospital_id' => '병원',
+            'doctor_id' => '의사',
+            'title' => '제목',
+            'description' => '설명',
+            'distribution_channel' => '배포 채널',
+            'external_video_id' => '외부 영상 ID',
+            'external_video_url' => '외부 영상 URL',
+            'duration_seconds' => '재생 시간(초)',
+            'status' => '상태',
+            'allow_status' => '검수 상태',
+            'category_ids' => '카테고리 목록',
+            'category_ids.*' => '카테고리',
+            'publish_start_at' => '게시 시작 시각',
+            'publish_end_at' => '게시 종료 시각',
+            'is_publish_period_unlimited' => '무기한 게시 여부',
+            'thumbnail_file' => '썸네일 파일',
         ];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function normalizeIdList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->filter(static fn ($item): bool => is_int($item) || (is_string($item) && ctype_digit(trim($item))))
+            ->map(static fn ($item): int => (int) $item)
+            ->filter(static fn (int $item): bool => $item > 0)
+            ->values()
+            ->all();
     }
 
     private function extractYoutubeVideoId(string $url): ?string

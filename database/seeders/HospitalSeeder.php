@@ -14,7 +14,7 @@ final class HospitalSeeder extends Seeder
         CategoryFactory::seedHospitalCategories();
 
         $approvedHospitals = Hospital::factory()
-            ->count(20)
+            ->count(10)
             ->approved()
             ->active()
             ->withBusinessRegistration()

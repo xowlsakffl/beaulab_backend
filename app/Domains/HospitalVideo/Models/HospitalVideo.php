@@ -3,11 +3,14 @@
 namespace App\Domains\HospitalVideo\Models;
 
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalVideo extends Model
@@ -17,14 +20,14 @@ final class HospitalVideo extends Model
     public const DISTRIBUTION_CHANNEL_YOUTUBE = 'YOUTUBE';
 
     public const STATUS_ACTIVE = 'ACTIVE';
-    public const STATUS_SUSPENDED = 'SUSPENDED';
-    public const STATUS_PRIVATE = 'PRIVATE';
+    public const STATUS_INACTIVE = 'INACTIVE';
 
-    public const REVIEW_STATUS_APPLYING = 'APPLYING';
-    public const REVIEW_STATUS_IN_REVIEW = 'IN_REVIEW';
-    public const REVIEW_STATUS_APPROVED = 'APPROVED';
-    public const REVIEW_STATUS_REJECTED = 'REJECTED';
-    public const REVIEW_STATUS_PARTNER_CANCELED = 'PARTNER_CANCELED';
+    public const ALLOW_STATUS_SUBMITTED = 'SUMITTED';
+    public const ALLOW_STATUS_IN_REVIEW = 'IN_REVIEW';
+    public const ALLOW_STATUS_APPROVED = 'APPROVED';
+    public const ALLOW_STATUS_REJECTED = 'REJECTED';
+    public const ALLOW_STATUS_EXCLUDED = 'EXCLUDED';
+    public const ALLOW_STATUS_PARTNER_CANCELED = 'PARTNER_CANCELED';
 
     protected $table = 'hospital_videos';
 
@@ -38,18 +41,16 @@ final class HospitalVideo extends Model
         'distribution_channel',
         'external_video_id',
         'external_video_url',
-        'thumbnail_media_id',
         'duration_seconds',
         'status',
-        'published_at',
         'view_count',
         'like_count',
         'publish_start_at',
         'publish_end_at',
         'is_publish_period_unlimited',
-        'review_status',
-        'reviewed_by_staff_id',
-        'reviewed_at',
+        'allow_status',
+        'allowed_by_staff_id',
+        'allowed_at',
         'reject_reason',
         'reject_reason_detail',
     ];
@@ -60,10 +61,9 @@ final class HospitalVideo extends Model
         'like_count' => 'integer',
         'is_usage_consented' => 'boolean',
         'is_publish_period_unlimited' => 'boolean',
-        'published_at' => 'datetime',
         'publish_start_at' => 'datetime',
         'publish_end_at' => 'datetime',
-        'reviewed_at' => 'datetime',
+        'allowed_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
 
@@ -75,7 +75,7 @@ final class HospitalVideo extends Model
         'like_count' => 0,
         'is_usage_consented' => false,
         'is_publish_period_unlimited' => false,
-        'review_status' => self::REVIEW_STATUS_APPROVED,
+        'allow_status' => self::ALLOW_STATUS_SUBMITTED,
     ];
 
     public function hospital(): BelongsTo
@@ -88,8 +88,16 @@ final class HospitalVideo extends Model
         return $this->belongsTo(HospitalDoctor::class, 'doctor_id');
     }
 
-    public function thumbnailMedia(): BelongsTo
+    public function thumbnailMedia(): MorphOne
     {
-        return $this->belongsTo(Media::class, 'thumbnail_media_id');
+        return $this->morphOne(Media::class, 'model')
+            ->where('collection', 'thumbnail_file');
+    }
+
+    public function categories(): MorphToMany
+    {
+        return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')
+            ->withPivot('is_primary')
+            ->withTimestamps();
     }
 }

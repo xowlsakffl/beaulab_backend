@@ -9,6 +9,7 @@ use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalTalk\HospitalTalkForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalTalkComment\HospitalTalkCommentForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideoRequest\VideoRequestForStaffController;
 use Illuminate\Support\Facades\Route;
@@ -142,4 +143,18 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('talks.updateTalkForStaff');
     Route::delete('talks/{talk}', [HospitalTalkForStaffController::class, 'deleteTalkForStaff'])
         ->name('talks.deleteTalkForStaff');
+
+    /**
+     * 토크 댓글 관리
+     **/
+    Route::get('talk-comments', [HospitalTalkCommentForStaffController::class, 'getCommentsForStaff'])
+        ->name('talk-comments.getCommentsForStaff');
+    Route::get('talk-comments/{comment}', [HospitalTalkCommentForStaffController::class, 'getCommentForStaff'])
+        ->name('talk-comments.getCommentForStaff');
+    Route::post('talk-comments', [HospitalTalkCommentForStaffController::class, 'storeCommentForStaff'])
+        ->name('talk-comments.storeCommentForStaff');
+    Route::match(['post', 'put', 'patch'], 'talk-comments/{comment}', [HospitalTalkCommentForStaffController::class, 'updateCommentForStaff'])
+        ->name('talk-comments.updateCommentForStaff');
+    Route::delete('talk-comments/{comment}', [HospitalTalkCommentForStaffController::class, 'deleteCommentForStaff'])
+        ->name('talk-comments.deleteCommentForStaff');
 });

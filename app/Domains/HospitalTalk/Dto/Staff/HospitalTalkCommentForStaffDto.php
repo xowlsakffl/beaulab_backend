@@ -1,0 +1,118 @@
+<?php
+
+namespace App\Domains\HospitalTalk\Dto\Staff;
+
+use App\Domains\HospitalTalk\Models\HospitalTalkComment;
+use App\Domains\HospitalTalk\Models\HospitalTalkCommentMention;
+use Illuminate\Support\Collection;
+
+final readonly class HospitalTalkCommentForStaffDto
+{
+    public function __construct(
+        public int $id,
+        public int $hospitalTalkId,
+        public ?int $parentId,
+        public bool $isReply,
+        public ?int $authorId,
+        public int $mentionCount,
+        public string $content,
+        public string $status,
+        public bool $isVisible,
+        public int $likeCount,
+        public string $createdAt,
+        public string $updatedAt,
+        public ?array $author,
+        public ?array $talk,
+        public ?array $mentions,
+    ) {}
+
+    public static function fromModel(HospitalTalkComment $comment): self
+    {
+        return new self(
+            id: (int) $comment->id,
+            hospitalTalkId: (int) $comment->hospital_talk_id,
+            parentId: $comment->parent_id ? (int) $comment->parent_id : null,
+            isReply: $comment->isReply(),
+            authorId: $comment->author_id ? (int) $comment->author_id : null,
+            mentionCount: (int) ($comment->mentions_count ?? 0),
+            content: (string) $comment->content,
+            status: (string) $comment->status,
+            isVisible: (bool) $comment->is_visible,
+            likeCount: (int) $comment->like_count,
+            createdAt: $comment->created_at?->toISOString() ?? '',
+            updatedAt: $comment->updated_at?->toISOString() ?? '',
+            author: $comment->relationLoaded('author') && $comment->author
+                ? [
+                    'id' => (int) $comment->author->id,
+                    'name' => (string) $comment->author->name,
+                    'email' => (string) $comment->author->email,
+                ]
+                : null,
+            talk: $comment->relationLoaded('talk') && $comment->talk
+                ? [
+                    'id' => (int) $comment->talk->id,
+                    'title' => (string) $comment->talk->title,
+                ]
+                : null,
+            mentions: $comment->relationLoaded('mentions')
+                ? self::resolveMentions($comment)
+                    ->map(fn (HospitalTalkCommentMention $mention): array => [
+                        'id' => (int) $mention->id,
+                        'mentioned_user_id' => (int) $mention->mentioned_user_id,
+                        'mentioned_user_name' => $mention->relationLoaded('mentionedUser') && $mention->mentionedUser
+                            ? (string) $mention->mentionedUser->name
+                            : null,
+                        'mention_text' => $mention->mention_text,
+                        'start_offset' => $mention->start_offset,
+                        'end_offset' => $mention->end_offset,
+                    ])
+                    ->values()
+                    ->all()
+                : null,
+        );
+    }
+
+    public function toArray(): array
+    {
+        $data = [
+            'id' => $this->id,
+            'hospital_talk_id' => $this->hospitalTalkId,
+            'parent_id' => $this->parentId,
+            'is_reply' => $this->isReply,
+            'author_id' => $this->authorId,
+            'mention_count' => $this->mentionCount,
+            'content' => $this->content,
+            'status' => $this->status,
+            'is_visible' => $this->isVisible,
+            'like_count' => $this->likeCount,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+
+        if ($this->author !== null) {
+            $data['author'] = $this->author;
+        }
+
+        if ($this->talk !== null) {
+            $data['talk'] = $this->talk;
+        }
+
+        if ($this->mentions !== null) {
+            $data['mentions'] = $this->mentions;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return Collection<int, HospitalTalkCommentMention>
+     */
+    private static function resolveMentions(HospitalTalkComment $comment): Collection
+    {
+        if (! $comment->relationLoaded('mentions')) {
+            return collect();
+        }
+
+        return $comment->mentions;
+    }
+}

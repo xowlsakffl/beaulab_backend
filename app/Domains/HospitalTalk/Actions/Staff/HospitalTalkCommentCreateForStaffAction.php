@@ -99,19 +99,12 @@ final class HospitalTalkCommentCreateForStaffAction
      */
     private function assertMentionsAllowed(?int $parentId, array $payload): void
     {
-        $mentions = is_array($payload['mentions'] ?? null) ? $payload['mentions'] : [];
+        $mention = $this->resolveMention($payload);
 
-        if (count($mentions) > 1) {
+        if ($parentId === null && $mention !== null) {
             throw new CustomException(
                 ErrorCode::INVALID_REQUEST,
-                '멘션은 한 명만 지정할 수 있습니다.'
-            );
-        }
-
-        if ($parentId === null && $mentions !== []) {
-            throw new CustomException(
-                ErrorCode::INVALID_REQUEST,
-                '멘션은 답글(대댓글)에서만 사용할 수 있습니다.'
+                '멘션은 답글에서만 사용할 수 있습니다.'
             );
         }
     }
@@ -121,9 +114,23 @@ final class HospitalTalkCommentCreateForStaffAction
      */
     private function syncMentions(HospitalTalkComment $comment, array $payload): void
     {
-        $mentions = is_array($payload['mentions'] ?? null) ? $payload['mentions'] : [];
+        $mention = $this->resolveMention($payload);
         $mentionedByUserId = $comment->author_id ? (int) $comment->author_id : null;
 
-        $this->mentionSyncQuery->sync($comment, $mentions, $mentionedByUserId);
+        $this->mentionSyncQuery->sync($comment, $mention, $mentionedByUserId);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{user_id:int, mention_text?:string|null}|null
+     */
+    private function resolveMention(array $payload): ?array
+    {
+        $mention = $payload['mentions'] ?? null;
+        if (! is_array($mention) || ! array_key_exists('user_id', $mention)) {
+            return null;
+        }
+
+        return $mention;
     }
 }

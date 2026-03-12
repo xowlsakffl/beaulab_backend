@@ -47,9 +47,9 @@ final class HospitalTalkCommentUpdateForStaffRequest extends FormRequest
             'status' => ['sometimes', 'nullable', 'in:ACTIVE,INACTIVE'],
             'is_visible' => ['sometimes', 'nullable', 'boolean'],
             'admin_note' => ['sometimes', 'nullable', 'string', 'max:1000'],
-            'mentions' => ['sometimes', 'array', 'max:1'],
-            'mentions.*.user_id' => ['required', 'integer', 'distinct', 'exists:account_users,id'],
-            'mentions.*.mention_text' => ['nullable', 'string', 'max:120'],
+            'mentions' => ['sometimes', 'nullable', 'array'],
+            'mentions.user_id' => ['required_with:mentions', 'integer', 'exists:account_users,id'],
+            'mentions.mention_text' => ['nullable', 'string', 'max:120'],
         ];
     }
 
@@ -65,9 +65,9 @@ final class HospitalTalkCommentUpdateForStaffRequest extends FormRequest
             'status' => '상태',
             'is_visible' => '노출 여부',
             'admin_note' => '관리자 메모',
-            'mentions' => '멘션 목록',
-            'mentions.*.user_id' => '멘션 사용자',
-            'mentions.*.mention_text' => '멘션 텍스트',
+            'mentions' => '멘션',
+            'mentions.user_id' => '멘션 사용자',
+            'mentions.mention_text' => '멘션 텍스트',
         ];
     }
 }

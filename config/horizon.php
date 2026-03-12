@@ -97,7 +97,13 @@ return [
     */
 
     'waits' => [
+        'redis:critical' => 10,
+        'redis:mail' => 30,
+        'redis:sms' => 30,
+        'redis:chat' => 15,
+        'redis:push' => 60,
         'redis:default' => 60,
+        'redis:maintenance' => 180,
     ],
 
     /*
@@ -197,33 +203,159 @@ return [
     */
 
     'defaults' => [
-        'supervisor-1' => [
+        'supervisor-critical' => [
+            'connection' => 'redis',
+            'queue' => ['critical'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 30,
+            'nice' => 0,
+        ],
+        'supervisor-mail' => [
+            'connection' => 'redis',
+            'queue' => ['mail'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 192,
+            'tries' => 3,
+            'timeout' => 90,
+            'nice' => 0,
+        ],
+        'supervisor-sms' => [
+            'connection' => 'redis',
+            'queue' => ['sms'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 192,
+            'tries' => 5,
+            'timeout' => 60,
+            'nice' => 0,
+        ],
+        'supervisor-chat' => [
+            'connection' => 'redis',
+            'queue' => ['chat'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 2,
+            'timeout' => 30,
+            'nice' => 0,
+        ],
+        'supervisor-push' => [
+            'connection' => 'redis',
+            'queue' => ['push'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 192,
+            'tries' => 5,
+            'timeout' => 180,
+            'nice' => 0,
+        ],
+        'supervisor-default' => [
             'connection' => 'redis',
             'queue' => ['default'],
             'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 90,
+            'nice' => 0,
+        ],
+        'supervisor-maintenance' => [
+            'connection' => 'redis',
+            'queue' => ['maintenance'],
+            'balance' => 'simple',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 128,
             'tries' => 1,
-            'timeout' => 60,
+            'timeout' => 300,
             'nice' => 0,
         ],
     ],
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
+            'supervisor-critical' => [
                 'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+            'supervisor-mail' => [
+                'maxProcesses' => 10,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-sms' => [
+                'maxProcesses' => 12,
+                'balanceMaxShift' => 2,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-chat' => [
+                'maxProcesses' => 12,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-push' => [
+                'maxProcesses' => 20,
+                'balanceMaxShift' => 2,
+                'balanceCooldown' => 5,
+            ],
+            'supervisor-default' => [
+                'maxProcesses' => 8,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-maintenance' => [
+                'maxProcesses' => 3,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 10,
+            ],
         ],
 
         'local' => [
-            'supervisor-1' => [
+            'supervisor-critical' => [
+                'maxProcesses' => 2,
+            ],
+            'supervisor-mail' => [
+                'maxProcesses' => 2,
+            ],
+            'supervisor-sms' => [
+                'maxProcesses' => 2,
+            ],
+            'supervisor-chat' => [
+                'maxProcesses' => 2,
+            ],
+            'supervisor-push' => [
+                'maxProcesses' => 2,
+            ],
+            'supervisor-default' => [
                 'maxProcesses' => 3,
+            ],
+            'supervisor-maintenance' => [
+                'maxProcesses' => 1,
             ],
         ],
     ],

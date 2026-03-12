@@ -51,6 +51,11 @@ final class AccessPermissions
     public const BEAULAB_TALK_COMMENT_CREATE = 'beaulab.talk-comment.create';
     public const BEAULAB_TALK_COMMENT_UPDATE = 'beaulab.talk-comment.update';
     public const BEAULAB_TALK_COMMENT_DELETE = 'beaulab.talk-comment.delete';
+    public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
+    public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
+    public const BEAULAB_NOTICE_UPDATE = 'beaulab.notice.update';
+    public const BEAULAB_NOTICE_DELETE = 'beaulab.notice.delete';
+    public const BEAULAB_NOTICE_PUSH = 'beaulab.notice.push';
     public const BEAULAB_CATEGORY_MANAGE = 'beaulab.category.manage';
     // Hospital
     public const HOSPITAL_PROFILE_SHOW = 'hospital.profile.show';
@@ -186,6 +191,11 @@ final class AccessPermissions
             self::BEAULAB_TALK_COMMENT_CREATE,
             self::BEAULAB_TALK_COMMENT_UPDATE,
             self::BEAULAB_TALK_COMMENT_DELETE,
+            self::BEAULAB_NOTICE_SHOW,
+            self::BEAULAB_NOTICE_CREATE,
+            self::BEAULAB_NOTICE_UPDATE,
+            self::BEAULAB_NOTICE_DELETE,
+            self::BEAULAB_NOTICE_PUSH,
 
             self::BEAULAB_CATEGORY_MANAGE,
 

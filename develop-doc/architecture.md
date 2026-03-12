@@ -1,101 +1,108 @@
-# Architecture (구조 / 흐름)
+﻿# Architecture (구조 / 흐름)
 
-이 문서는 현재 코드 기준으로 Beaulab 백엔드 구조를 정리합니다.
-핵심은 **Actor(Staff/Hospital/Beauty/User) 진입점**과 **Domain 비즈니스 로직**을 분리하는 것입니다.
-
----
+이 문서는 현재 코드 기준으로 Beaulab 백엔드 구조를 정리한다.  
+핵심은 Actor(Staff/Hospital/Beauty/User) 진입점과 Domain 비즈니스 로직을 분리하는 것이다.
 
 ## 1) API 엔드포인트 구성
 
-`routes/api.php`에서 v1 라우트를 Actor 단위로 분기합니다.
+`routes/api.php`에서 v1 라우트를 Actor 단위로 분기한다.
 
 - Staff API: `/api/v1/staff/*`
 - Hospital API: `/api/v1/hospital/*`
 - Beauty API: `/api/v1/beauty/*`
 - User API: `/api/v1/user/*`
 
-> 실제 상세 라우트는 각 모듈 파일(`app/Modules/*/routes/api_*.php`)에서 관리합니다.
+실제 상세 라우트는 `app/Modules/*/routes/api_*.php`에서 관리한다.
 
----
+## 2) 디렉토리 구조 원칙
 
-## 2) 실제 디렉토리 구조 (현재 구현 기준)
-
-- `app/Modules/Staff/*`
-  - Staff 전용 컨트롤러/요청 검증/라우트
-- `app/Modules/Hospital/*`
-  - Hospital 전용 컨트롤러/요청 검증/라우트
-- `app/Modules/Beauty/*`
-  - Beauty 전용 컨트롤러/요청 검증/라우트
-- `app/Modules/User/*`
-  - User 전용 라우트(현재 최소 구성)
+- `app/Modules/*`
+  - HTTP 진입점(Controller, Request, Route)
+  - 인증/인가, 입력 검증, 응답 포맷 처리
 - `app/Domains/*`
-  - 도메인 모델/액션/쿼리/정책
-  - 현재 주요 도메인: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `Account*`, `Common`
+  - 비즈니스 로직(Action, Query, Policy, Model, DTO)
+  - 도메인 규칙과 상태 전이 관리
 - `app/Common/*`
-  - 공통 응답, 예외, 권한 정의, 미들웨어
+  - 공통 응답, 예외, 권한 상수, 공통 미들웨어
 
----
+## 3) 요청 처리 흐름
 
-## 3) 요청 처리 원칙
+1. Module Controller에서 요청 검증
+2. Policy/Gate/Permission으로 인가 확인
+3. Domain Action/Query로 비즈니스 처리
+4. `ApiResponse` 포맷으로 응답 반환
 
-1. **Module Controller**
-   - Request Validation
-   - 인증/인가 미들웨어 통과
-   - Domain Action 호출
-2. **Domain Action/Query**
-   - 비즈니스 규칙 처리
-   - 조회/상태 변경
-3. **공통 응답 반환**
-   - `ApiResponse` 포맷으로 일관 반환
-
----
-
-## 4) Staff API 인증/인가 흐름 (현재 운영 중)
+## 4) 인증/인가 흐름
 
 - Staff 보호 라우트
-    - `auth:sanctum`
-    - `abilities:actor:staff`
+  - `auth:sanctum`
+  - `abilities:actor:staff`
+  - `permission:common.access`
 - Hospital 보호 라우트
-    - `auth:sanctum`
-    - `abilities:actor:hospital`
+  - `auth:sanctum`
+  - `abilities:actor:hospital`
 - Beauty 보호 라우트
-    - `auth:sanctum`
-    - `abilities:actor:beauty`
-- User
-    - 현재 라우트 뼈대만 존재(추가 구현 예정)
----
+  - `auth:sanctum`
+  - `abilities:actor:beauty`
 
-## 5) 기능 구현 상태 (현재 코드 기준)
+## 5) 현재 주요 도메인
+
+- 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`
+- 파트너: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`
+- 콘텐츠: `HospitalTalk`, `HospitalTalkComment`, `Notice`
+- 공통: `Media`, `Category`, `AdminNote`
+
+## 6) 공지사항(Notice) 구조
+
+현재 Notice는 Staff API 기준으로 구현되어 있다.
+
+- 라우트: `app/Modules/Staff/routes/api_staff.php`
+- 컨트롤러: `app/Modules/Staff/Http/Controllers/Notice/NoticeForStaffController.php`
+- 도메인: `app/Domains/Notice/*`
+
+기능 범위:
+
+1. 공지 CRUD
+2. 채널/노출/상단고정/게시기간
+3. 첨부파일 업로드
+4. 에디터 이미지 업로드/정리
+5. 중요 공지(`is_important`) + 팝업 이미지
+6. 푸시 발송 요청(Queue 연동)
+
+## 7) 비동기 구조 연결
+
+비동기 처리는 API 계층과 분리되어 동작한다.
+
+1. API/Action에서 Job dispatch
+2. Redis Queue 적재
+3. Horizon 워커 처리
+
+운영 상세는 아래 문서 참고:
+
+- Queue: `./queue.md`
+- Scheduler: `./scheduler.md`
+
+## 8) 구현 상태 요약
 
 - Staff
-    - 인증, 프로필/비밀번호 수정
-    - 병원/뷰티/회원/의사/뷰티전문가 CRUD
-    - 영상요청(목록/상세/수정/삭제)
+  - 인증, 프로필/비밀번호 수정
+  - 병원/뷰티/회원/의사/전문가 CRUD
+  - 토크/토크댓글 관리
+  - 공지사항 관리 + 푸시 요청
 - Hospital
-    - 인증, 프로필/비밀번호 수정
-    - 영상요청(목록/상세/생성/수정/취소)
+  - 인증, 프로필/비밀번호 수정
+  - 영상요청 생성/조회/수정/취소
 - Beauty
-    - 인증, 프로필/비밀번호 수정
-    - 영상요청 라우트는 아직 미노출(추가 예정)
+  - 인증, 프로필/비밀번호 수정
+  - 파트너 기능 일부 추가 진행 중
 - User
-    - 모듈 경로만 존재, 실질 API는 미구현
----
+  - 모듈 경로 존재, API는 최소 구성
 
-## 6) 도메인 계층 원칙
+## 9) 체크리스트
 
-- 모델은 `app/Domains/{Domain}/Models`에 둔다.
-- 컨트롤러는 얇게 유지하고 복잡한 비즈니스 로직은 `Actions`/`Queries`로 이동한다.
-- Actor별 차이가 필요한 경우 `Actions/Staff`, `Actions/Hospital`, `Actions/Beauty`, `Actions/User`로 분리한다.
+- [ ] 새 API가 Actor 경계에 맞게 배치됐는가?
+- [ ] 컨트롤러가 얇게 유지되고 비즈니스 로직이 Domain으로 내려갔는가?
+- [ ] 정책/권한/시더가 함께 갱신됐는가?
+- [ ] 비동기 작업이 lane 정책(`critical`, `mail`, `sms`, `push` 등)에 맞게 라우팅됐는가?
 
----
-
-## 7) 체크리스트
-
-- [ ] 새 모델을 `Domains/*/Models`에 생성했는가?
-- [ ] 컨트롤러에 비즈니스 로직이 과도하게 들어가지 않았는가?
-- [ ] Permission/Policy 기준으로 접근 제어를 적용했는가?
-- [ ] 응답 포맷을 `ApiResponse`로 통일했는가?
-
----
-
-작성 기준: 2026-03-04 (코드 스냅샷 반영)
+작성 기준: 2026-03-12

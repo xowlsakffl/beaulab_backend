@@ -167,4 +167,17 @@
 
 ---
 
-작성 기준: 2026-03-04
+## 12. 비동기 오류 처리 범위
+
+이 문서의 포맷 규칙은 **HTTP API 응답**에 대한 기준이다.  
+Queue Job / Scheduler 오류는 아래 채널에서 별도로 확인한다.
+
+- Queue 실패: `failed_jobs` + Horizon 대시보드
+- Scheduler 실패/누락: `monitored_scheduled_tasks`, `monitored_scheduled_task_log_items`
+- 런타임 로그: `storage/logs/laravel.log`
+
+즉, API는 정상 200을 반환했더라도 비동기 후속 작업은 실패할 수 있으므로 운영 모니터링을 함께 봐야 한다.
+
+---
+
+작성 기준: 2026-03-12

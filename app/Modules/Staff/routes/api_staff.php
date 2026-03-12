@@ -8,6 +8,7 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalTalk\HospitalTalkForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalTalkComment\HospitalTalkCommentForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
@@ -157,4 +158,24 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('talk-comments.updateCommentForStaff');
     Route::delete('talk-comments/{comment}', [HospitalTalkCommentForStaffController::class, 'deleteCommentForStaff'])
         ->name('talk-comments.deleteCommentForStaff');
+
+    /**
+     * 공지사항
+     **/
+    Route::get('notices', [NoticeForStaffController::class, 'getNoticesForStaff'])
+        ->name('notices.getNoticesForStaff');
+    Route::get('notices/{notice}', [NoticeForStaffController::class, 'getNoticeForStaff'])
+        ->name('notices.getNoticeForStaff');
+    Route::post('notices', [NoticeForStaffController::class, 'storeNoticeForStaff'])
+        ->name('notices.storeNoticeForStaff');
+    Route::post('notices/editor-images', [NoticeForStaffController::class, 'uploadEditorImageForStaff'])
+        ->name('notices.uploadEditorImageForStaff');
+    Route::delete('notices/editor-images', [NoticeForStaffController::class, 'cleanupEditorImagesForStaff'])
+        ->name('notices.cleanupEditorImagesForStaff');
+    Route::match(['post', 'put', 'patch'], 'notices/{notice}', [NoticeForStaffController::class, 'updateNoticeForStaff'])
+        ->name('notices.updateNoticeForStaff');
+    Route::delete('notices/{notice}', [NoticeForStaffController::class, 'deleteNoticeForStaff'])
+        ->name('notices.deleteNoticeForStaff');
+    Route::post('notices/{notice}/push', [NoticeForStaffController::class, 'sendPushForStaff'])
+        ->name('notices.sendPushForStaff');
 });

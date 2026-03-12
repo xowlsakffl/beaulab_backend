@@ -40,6 +40,17 @@
   - traceId 기반 요청 추적
   - 인프라 및 런타임 운영 이벤트
 
+## 2.3 비동기 운영로그 (Queue / Scheduler)
+
+- Queue 실패/재시도 상태
+  - 저장소: `failed_jobs` 테이블 + Horizon 대시보드
+- Scheduler 실행 상태
+  - 저장소: `monitored_scheduled_tasks`, `monitored_scheduled_task_log_items`
+- 용도:
+  - 배치/정리 작업 누락 감지
+  - 특정 레인(`mail`, `push` 등) 적체/실패 추적
+  - 스케줄 실행 실패 원인 분석
+
 ---
 
 ## 3. 감사 대상 모델 변경 정책 (중요)
@@ -88,7 +99,8 @@
 - 감사로그는 보관 기간/정리 정책을 함께 운영한다.
 - 운영로그에는 민감정보(토큰, 주민번호, 전체 SQL 바인딩 등)를 남기지 않는다.
 - 장애 분석은 App Log 중심으로, 변경 추적/감사는 Audit Log 중심으로 수행한다.
+- 비동기 장애 분석 시 `laravel.log`만 보지 말고 `failed_jobs`, Horizon, schedule-monitor 로그를 함께 확인한다.
 
 ---
 
-작성 기준: 2026-02-26
+작성 기준: 2026-03-12

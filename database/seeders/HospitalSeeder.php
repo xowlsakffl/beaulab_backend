@@ -4,15 +4,12 @@ namespace Database\Seeders;
 
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Hospital\Models\Hospital;
-use Database\Factories\CategoryFactory;
 use Illuminate\Database\Seeder;
 
 final class HospitalSeeder extends Seeder
 {
     public function run(): void
     {
-        CategoryFactory::seedHospitalCategories();
-
         $approvedHospitals = Hospital::factory()
             ->count(10)
             ->approved()

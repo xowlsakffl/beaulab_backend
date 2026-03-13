@@ -4,15 +4,12 @@ namespace Database\Seeders;
 
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Models\Category\Category;
-use Database\Factories\CategoryFactory;
 use Illuminate\Database\Seeder;
 
 final class BeautySeeder extends Seeder
 {
     public function run(): void
     {
-        CategoryFactory::seedBeautyCategories();
-
         $approvedBeauties = Beauty::factory()
             ->count(10)
             ->approved()

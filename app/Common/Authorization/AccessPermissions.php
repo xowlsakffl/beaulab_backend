@@ -55,6 +55,10 @@ final class AccessPermissions
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
     public const BEAULAB_NOTICE_UPDATE = 'beaulab.notice.update';
     public const BEAULAB_NOTICE_DELETE = 'beaulab.notice.delete';
+    public const BEAULAB_FAQ_SHOW = 'beaulab.faq.show';
+    public const BEAULAB_FAQ_CREATE = 'beaulab.faq.create';
+    public const BEAULAB_FAQ_UPDATE = 'beaulab.faq.update';
+    public const BEAULAB_FAQ_DELETE = 'beaulab.faq.delete';
     public const BEAULAB_CATEGORY_MANAGE = 'beaulab.category.manage';
     // Hospital
     public const HOSPITAL_PROFILE_SHOW = 'hospital.profile.show';
@@ -194,6 +198,10 @@ final class AccessPermissions
             self::BEAULAB_NOTICE_CREATE,
             self::BEAULAB_NOTICE_UPDATE,
             self::BEAULAB_NOTICE_DELETE,
+            self::BEAULAB_FAQ_SHOW,
+            self::BEAULAB_FAQ_CREATE,
+            self::BEAULAB_FAQ_UPDATE,
+            self::BEAULAB_FAQ_DELETE,
 
             self::BEAULAB_CATEGORY_MANAGE,
 

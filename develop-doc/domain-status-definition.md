@@ -20,6 +20,7 @@
 | `BeautyBusinessRegistration` | 뷰티 사업자등록 | 뷰티 사업자등록 정보와 등록증 파일 |
 | `HospitalVideoRequest` | 병원 영상요청 | 병원이 등록/게시를 요청한 영상의 검수 상태 |
 | `Notice` | 공지사항 | 관리자 공지 콘텐츠(노출/게시기간/중요공지/조회수) |
+| `Faq` | FAQ | 관리자 FAQ 콘텐츠(카테고리/채널/조회수) |
 | `Media` | 공통 미디어 | 이미지/영상 파일 메타데이터(파일 경로, 크기, 정렬, 대표 여부) |
 
 ## 2) 도메인별 상태 정의
@@ -279,6 +280,42 @@
 - `EXPOSURE_HIDDEN`(숨김) -> `EXPOSURE_SCHEDULED`(게시 대기) -> `EXPOSURE_PUBLISHED`(게시중) -> `EXPOSURE_EXPIRED`(게시 종료)
 - `status=INACTIVE`면 게시기간과 무관하게 `EXPOSURE_HIDDEN`으로 처리
 - `publish_start_at` 미래 시각이면 `EXPOSURE_SCHEDULED`로 처리
+
+### 2.14 `Faq` (자주 묻는 질문)
+
+#### 채널 (`channel`)
+
+| 상수명 | 저장값 | 의미 |
+|---|---|---|
+| `CHANNEL_ALL` | `ALL` | 전체 대상 |
+| `CHANNEL_APP_WEB` | `APP_WEB` | 앱/웹 대상 |
+| `CHANNEL_HOSPITAL` | `HOSPITAL` | 병원 대상 |
+| `CHANNEL_BEAUTY` | `BEAUTY` | 뷰티 대상 |
+| `CHANNEL_INTERNAL` | `INTERNAL` | 내부용 |
+
+#### 운영 상태 (`status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `STATUS_ACTIVE` | `ACTIVE` | 활성 | 노출 가능한 상태 |
+| `STATUS_INACTIVE` | `INACTIVE` | 비활성 | 비노출 상태 |
+
+#### 주요 필드
+
+- `category_id`: 공통 카테고리(`Category.domain=FAQ`) 연결
+- `channel`: FAQ 채널
+- `question`: 질문
+- `content`: 에디터 HTML 답변 본문
+- `status`: FAQ 상태
+- `sort_order`: 노출 순서
+- `view_count`: 조회수
+
+기본값:
+
+- `channel`: `CHANNEL_ALL`
+- `status`: `STATUS_ACTIVE`
+- `sort_order`: `0`
+- `view_count`: `0`
 
 ## 4) 참고 파일
 

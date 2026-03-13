@@ -61,6 +61,7 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 - Talk: `beaulab.talk.show|create|update|delete`
 - Talk Comment: `beaulab.talk-comment.show|create|update|delete`
 - Notice: `beaulab.notice.show|create|update|delete`
+- FAQ: `beaulab.faq.show|create|update|delete`
 - Category: `beaulab.category.manage`
 
 ### 3.3 Hospital 전용
@@ -88,7 +89,7 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
   - common + beaulab 전체
 - `beaulab.staff`, `beaulab.dev`
   - common + 조회 중심 권한
-  - Notice는 기본적으로 `beaulab.notice.show`만 포함
+  - Notice/FAQ는 기본적으로 `beaulab.notice.show`, `beaulab.faq.show`만 포함
 
 - `hospital.owner`
   - common + hospital 전체
@@ -145,4 +146,4 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 php artisan db:seed --class=AuthorizationSeeder
 ```
 
-작성 기준: 2026-03-12
+작성 기준: 2026-03-13

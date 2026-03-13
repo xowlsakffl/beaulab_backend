@@ -14,6 +14,7 @@ final class DatabaseSeeder extends Seeder
         $this->call([
             AuthorizationSeeder::class,
             AccountStaffSeeder::class,
+            CategorySeeder::class,
             HospitalSeeder::class,
             BeautySeeder::class,
             AccountUserSeeder::class,

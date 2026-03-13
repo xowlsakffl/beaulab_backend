@@ -17,6 +17,7 @@
 - `HOSPITAL_COMMUNITY`
 - `BEAUTY`
 - `BEAUTY_COMMUNITY`
+- `FAQ`
 
 ## 3) `categories` 테이블
 
@@ -80,5 +81,4 @@
 ## 7) 구현 상태 메모
 
 - Staff 카테고리 API는 `domain` 요청값 필수
-  - 예: `/api/v1/staff/categories?domain=HOSPITAL`
-
+  - 예: `/api/v1/staff/categories?domain=FAQ`

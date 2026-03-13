@@ -30,6 +30,13 @@ final class CategoryFactory extends Factory
         ];
     }
 
+    public function faq(): static
+    {
+        return $this->state(fn (): array => [
+            'domain' => Category::DOMAIN_FAQ,
+        ]);
+    }
+
     public static function seedHospitalCategories(): void
     {
         DB::transaction(function (): void {
@@ -42,6 +49,13 @@ final class CategoryFactory extends Factory
     {
         DB::transaction(function (): void {
             self::seedDomainTree(Category::DOMAIN_BEAUTY, self::beautyTree());
+        });
+    }
+
+    public static function seedFaqCategories(): void
+    {
+        DB::transaction(function (): void {
+            self::seedDomainTree(Category::DOMAIN_FAQ, self::faqTree());
         });
     }
 
@@ -460,6 +474,22 @@ final class CategoryFactory extends Factory
                     ],
                 ],
             ],
+        ];
+    }
+
+    /**
+     * @return array<int, array{name:string, code:string}>
+     */
+    public static function faqTree(): array
+    {
+        return [
+            ['name' => '계정', 'code' => 'FAQ_ACCOUNT'],
+            ['name' => '예약', 'code' => 'FAQ_RESERVATION'],
+            ['name' => '결제', 'code' => 'FAQ_PAYMENT'],
+            ['name' => '리뷰', 'code' => 'FAQ_REVIEW'],
+            ['name' => '병원 이용', 'code' => 'FAQ_HOSPITAL'],
+            ['name' => '뷰티 이용', 'code' => 'FAQ_BEAUTY'],
+            ['name' => '서비스 정책', 'code' => 'FAQ_POLICY'],
         ];
     }
 }

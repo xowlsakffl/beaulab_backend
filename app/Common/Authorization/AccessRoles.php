@@ -105,6 +105,7 @@ final class AccessRoles
                     AccessPermissions::BEAULAB_TALK_SHOW,
                     AccessPermissions::BEAULAB_TALK_COMMENT_SHOW,
                     AccessPermissions::BEAULAB_NOTICE_SHOW,
+                    AccessPermissions::BEAULAB_FAQ_SHOW,
                 ]),
 
                 // 개발(현재는 staff 동일)
@@ -119,6 +120,7 @@ final class AccessRoles
                     AccessPermissions::BEAULAB_TALK_SHOW,
                     AccessPermissions::BEAULAB_TALK_COMMENT_SHOW,
                     AccessPermissions::BEAULAB_NOTICE_SHOW,
+                    AccessPermissions::BEAULAB_FAQ_SHOW,
                 ]),
             ],
 

@@ -24,6 +24,7 @@ final class Category extends Model
     public const DOMAIN_HOSPITAL_COMMUNITY = 'HOSPITAL_COMMUNITY';
     public const DOMAIN_BEAUTY = 'BEAUTY';
     public const DOMAIN_BEAUTY_COMMUNITY = 'BEAUTY_COMMUNITY';
+    public const DOMAIN_FAQ = 'FAQ';
 
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_INACTIVE = 'INACTIVE';
@@ -100,6 +101,7 @@ final class Category extends Model
             self::DOMAIN_HOSPITAL_COMMUNITY,
             self::DOMAIN_BEAUTY,
             self::DOMAIN_BEAUTY_COMMUNITY,
+            self::DOMAIN_FAQ,
         ];
     }
 

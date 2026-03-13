@@ -5,6 +5,7 @@ use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
 use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
 use App\Modules\Staff\Http\Controllers\Category\CategoryForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
+use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
@@ -176,4 +177,22 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('notices.updateNoticeForStaff');
     Route::delete('notices/{notice}', [NoticeForStaffController::class, 'deleteNoticeForStaff'])
         ->name('notices.deleteNoticeForStaff');
+
+    /**
+     * FAQ
+     **/
+    Route::get('faqs', [FaqForStaffController::class, 'getFaqsForStaff'])
+        ->name('faqs.getFaqsForStaff');
+    Route::get('faqs/{faq}', [FaqForStaffController::class, 'getFaqForStaff'])
+        ->name('faqs.getFaqForStaff');
+    Route::post('faqs', [FaqForStaffController::class, 'storeFaqForStaff'])
+        ->name('faqs.storeFaqForStaff');
+    Route::post('faqs/editor-images', [FaqForStaffController::class, 'uploadEditorImageForStaff'])
+        ->name('faqs.uploadEditorImageForStaff');
+    Route::delete('faqs/editor-images', [FaqForStaffController::class, 'cleanupEditorImagesForStaff'])
+        ->name('faqs.cleanupEditorImagesForStaff');
+    Route::match(['post', 'put', 'patch'], 'faqs/{faq}', [FaqForStaffController::class, 'updateFaqForStaff'])
+        ->name('faqs.updateFaqForStaff');
+    Route::delete('faqs/{faq}', [FaqForStaffController::class, 'deleteFaqForStaff'])
+        ->name('faqs.deleteFaqForStaff');
 });

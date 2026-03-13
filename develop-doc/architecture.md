@@ -49,16 +49,21 @@
 
 - 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`
 - 파트너: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`
-- 콘텐츠: `HospitalTalk`, `HospitalTalkComment`, `Notice`
+- 콘텐츠: `HospitalTalk`, `HospitalTalkComment`, `Notice`, `Faq`
 - 공통: `Media`, `Category`, `AdminNote`
 
-## 6) 공지사항(Notice) 구조
+## 6) 공지사항(Notice) / FAQ 구조
 
-현재 Notice는 Staff API 기준으로 구현되어 있다.
+현재 Notice / FAQ는 Staff API 기준으로 구현되어 있다.
 
 - 라우트: `app/Modules/Staff/routes/api_staff.php`
-- 컨트롤러: `app/Modules/Staff/Http/Controllers/Notice/NoticeForStaffController.php`
-- 도메인: `app/Domains/Notice/*`
+- 컨트롤러:
+  - `app/Modules/Staff/Http/Controllers/Notice/NoticeForStaffController.php`
+  - `app/Modules/Staff/Http/Controllers/Faq/FaqForStaffController.php`
+- 도메인:
+  - `app/Domains/Notice/*`
+  - `app/Domains/Faq/*`
+  - FAQ 카테고리는 공통 `Category` 도메인의 `FAQ` 분류 사용
 
 기능 범위:
 
@@ -67,6 +72,8 @@
 3. 첨부파일 업로드
 4. 에디터 이미지 업로드/정리
 5. 중요 공지(`is_important`)
+6. FAQ CRUD
+7. FAQ 에디터 이미지 업로드/정리
 
 ## 7) 비동기 구조 연결
 
@@ -88,6 +95,7 @@
   - 병원/뷰티/회원/의사/전문가 CRUD
   - 토크/토크댓글 관리
   - 공지사항 관리
+  - FAQ 관리
 - Hospital
   - 인증, 프로필/비밀번호 수정
   - 영상요청 생성/조회/수정/취소

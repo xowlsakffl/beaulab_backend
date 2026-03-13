@@ -2,7 +2,6 @@
 
 namespace App\Domains\AccountStaff\Models;
 
-use App\Common\Notifications\QueuedResetPasswordNotification;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use Database\Factories\AccountStaffFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -57,11 +56,6 @@ final class AccountStaff extends Authenticatable
     protected static function newFactory(): Factory
     {
         return AccountStaffFactory::new();
-    }
-
-    public function sendPasswordResetNotification($token): void
-    {
-        $this->notify(new QueuedResetPasswordNotification($token));
     }
 
     public function isActive(): bool

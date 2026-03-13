@@ -3,7 +3,6 @@
 namespace App\Domains\AccountUser\Models;
 
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Common\Notifications\QueuedResetPasswordNotification;
 use Database\Factories\AccountUserFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -61,10 +60,6 @@ final class AccountUser extends Authenticatable
         return AccountUserFactory::new();
     }
 
-    public function sendPasswordResetNotification($token): void
-    {
-        $this->notify(new QueuedResetPasswordNotification($token));
-    }
 
     public function isActive(): bool
     {

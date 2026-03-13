@@ -1,106 +1,179 @@
-# Logging 전략 (Audit Log / App Log 분리)
+# 로깅 정리 (App Log / Audit Log / Queue / Scheduler)
 
-이 문서는 Beaulab 프로젝트의 로그 전략을 정리한다.  
-핵심은 **감사로그(Audit Log)** 와 **운영로그(App Log)** 를 분리하고,  
-감사 대상 데이터의 변경 이력을 신뢰 가능하게 남기는 것이다.
+작성일: 2026-03-12
+
+## 1) 로그 종류와 저장 위치
+
+### 1-1. 앱 로그 (Laravel Log)
+- 저장: `storage/logs/laravel.log`
+- 설정: `config/logging.php`
+- 기본 채널: `LOG_CHANNEL=stack`, 실제 스택은 `LOG_STACK` 환경변수 사용
+- 현재 `.env`: `LOG_STACK=daily` (일 단위 분리 로그)
+
+핵심 파일:
+- `config/logging.php`
+- `app/Common/Http/Middleware/RequestId.php`
+- `bootstrap/app.php`
 
 ---
 
-## 1. 목적
+### 1-2. 감사 로그 (Audit Log, DB)
+- 저장 테이블: `activity_log`
+- 패키지: `spatie/laravel-activitylog`
+- 설정: `config/activitylog.php`
+- 주요 목적: 모델 생성/수정/삭제 및 권한 변경 이력 추적
 
-- 운영 이슈 추적(예외/장애 분석)과 변경 이력 추적(감사)을 분리
-- CUD 변경의 주체/대상/차이를 추적 가능하게 유지
-- 권한(Role/Permission) 변경 이력도 도메인 변경과 동일하게 기록
+핵심 파일:
+- `app/Domains/Common/Models/Concerns/HasAuditLogs.php`
+- `database/migrations/2026_01_21_052431_create_activity_log_table.php`
+- `database/migrations/2026_01_21_052432_add_event_column_to_activity_log_table.php`
+- `database/migrations/2026_01_21_052433_add_batch_uuid_column_to_activity_log_table.php`
 
 ---
 
-## 2. 로그 종류와 저장소
+### 1-3. 큐/호라이즌 운영 로그
+- 실패 작업 저장: `failed_jobs`
+- 배치 상태 저장: `job_batches`
+- Horizon 런타임 메타/메트릭: Redis (`config/horizon.php`의 `use`, `prefix`)
 
-## 2.1 감사로그 (Audit Log)
+핵심 파일:
+- `database/migrations/0001_01_01_000002_create_jobs_table.php`
+- `config/queue.php`
+- `config/horizon.php`
+- `routes/console.php` (`horizon:snapshot`, prune 스케줄)
 
-- 저장소: DB `activity_log` 테이블
-- 로거: `spatie/laravel-activitylog`
-- 용도: 데이터 변경 이력(누가/무엇을/어떻게)
-- 로그명: `audit`
+---
 
-현재 구현 기준:
-- 감사 대상 모델은 `HasAuditLogs` trait 사용
-- trait에서 아래 옵션을 고정한다.
+### 1-4. 스케줄 모니터 로그 (Spatie Schedule Monitor)
+- 작업 마스터: `monitored_scheduled_tasks`
+- 실행 로그: `monitored_scheduled_task_log_items`
+- 동기화 명령: `schedule-monitor:sync`
+
+핵심 파일:
+- `database/migrations/2026_01_21_051900_create_schedule_monitor_tables.php`
+- `routes/console.php`
+
+---
+
+### 1-5. 개발/디버그 관측 로그 (Telescope)
+- 저장 테이블: `telescope_entries`, `telescope_entries_tags`, `telescope_monitoring`
+- 설정: `config/telescope.php`
+- 목적: 요청/쿼리/잡/예외 등 디버깅 관측
+
+핵심 파일:
+- `database/migrations/2026_01_21_053322_create_telescope_entries_table.php`
+- `config/telescope.php`
+
+---
+
+## 2) Trace ID 흐름 (요청 추적)
+
+1. `RequestId` 미들웨어에서 `X-Request-Id` 헤더를 읽거나 UUID 생성
+2. request attribute `traceId`에 저장
+3. `Log::withContext(['traceId' => ...])`로 모든 로그 컨텍스트 주입
+4. 응답 헤더에 `X-Request-Id` 반환
+5. 예외 처리 시 `bootstrap/app.php`에서 context(`traceId`, `path`, `method`) 추가
+6. API 응답(`ApiResponse`)에도 `traceId` 포함
+
+관련 파일:
+- `app/Common/Http/Middleware/RequestId.php`
+- `bootstrap/app.php`
+- `app/Common/Http/Responses/ApiResponse.php`
+
+---
+
+## 3) 현재 코드에서 실제 기록되는 로그
+
+### 3-1. `Log::info(...)` 앱 로그 지점
+
+인증/계정:
+- Staff 로그인/로그아웃/프로필수정/비밀번호변경
+- Hospital 로그인/로그아웃/프로필수정/비밀번호변경
+- Beauty 로그인/로그아웃/프로필수정/비밀번호변경
+
+관리(Staff):
+- 병원/뷰티 생성·수정·삭제·목록 조회
+- 일반회원 목록/수정/삭제
+- 카테고리 목록/단건/생성/수정/삭제
+
+공지:
+- `SendNoticePushJob` 푸시 발송 지점 placeholder 로그
+
+---
+
+### 3-2. `activity('audit')` 직접 호출 지점
+- 파트너 오너 생성 후 role/permission 동기화 이력 기록 2건
+  - `HospitalOwnerCreateForStaffAction`
+  - `BeautyOwnerCreateForStaffAction`
+
+---
+
+### 3-3. `HasAuditLogs` trait 기반 자동 감사 로그
+- 다수 도메인 모델에 `HasAuditLogs` 적용
+- 기본 옵션:
   - `useLogName('audit')`
   - `logFillable()`
   - `logOnlyDirty()`
   - `dontSubmitEmptyLogs()`
 
-## 2.2 운영로그 (App Log)
-
-- 저장소: `storage/logs/laravel.log` (기본 channel)
-- 로거: Laravel Logging (Monolog)
-- 용도:
-  - 예외/경고/디버그 로그
-  - traceId 기반 요청 추적
-  - 인프라 및 런타임 운영 이벤트
-
-## 2.3 비동기 운영로그 (Queue / Scheduler)
-
-- Queue 실패/재시도 상태
-  - 저장소: `failed_jobs` 테이블 + Horizon 대시보드
-- Scheduler 실행 상태
-  - 저장소: `monitored_scheduled_tasks`, `monitored_scheduled_task_log_items`
-- 용도:
-  - 배치/정리 작업 누락 감지
-  - 특정 레인(`mail`, `push` 등) 적체/실패 추적
-  - 스케줄 실행 실패 원인 분석
+즉, fillable 변경이 실제로 있을 때만 `activity_log`에 기록됨.
 
 ---
 
-## 3. 감사 대상 모델 변경 정책 (중요)
+## 4) 스케줄로 관리되는 로그/정리 작업
 
-감사 대상 모델에서는 **벌크 update/delete를 금지**한다.
+`routes/console.php`
+- `schedule-monitor:sync` 매일 02:50
+- `notice:cleanup-temp-editor-images --hours=24` 매시간
+- `horizon:snapshot` 5분마다
+- `queue:prune-batches --hours=72 --unfinished=72 --cancelled=168` 매일 03:10
+- `queue:prune-failed --hours=168` 매일 03:20
 
-- 금지 예시
-  - `Model::query()->update([...])`
-  - `Model::where(...)->delete()`
-- 허용 예시
-  - 개별 모델을 조회 후 `save()`
-  - 개별 모델 인스턴스 `delete()`
-
-이유:
-- 감사로그는 Eloquent 모델 이벤트 기반으로 남는다.
-- 벌크 쿼리는 모델 이벤트를 우회할 수 있어 이력 누락 위험이 있다.
-
----
-
-## 4. 기본 기록 범위
-
-현 단계 운영 원칙:
-
-1. **웬만한 모든 도메인 CUD(Create/Update/Delete) 기록**  
-2. **모든 도메인 권한 변경사항 기록**
-   - Role 부여/회수
-   - Permission 부여/회수
-   - `syncRoles`, `syncPermissions` 등 동기화 작업
-
-권한 변경 로직은 되도록 Action 레이어로 모아 기록 포인트를 단일화한다.
+의미:
+- 모니터 대상 스케줄을 DB와 동기화
+- 임시 에디터 이미지 정리
+- Horizon 메트릭 스냅샷 누적
+- 오래된 배치/실패 큐 기록 정리
 
 ---
 
-## 5. 구현 체크리스트
+## 5) 운영 조회 명령 예시
 
-- [ ] 감사 대상 모델이 `HasAuditLogs`를 사용하고 있는가?
-- [ ] 해당 모델 변경에 bulk update/delete가 없는가?
-- [ ] CUD 시 변경 주체(causer)와 대상(subject) 식별이 가능한가?
-- [ ] 권한 변경 API/Action에서 감사로그를 남기고 있는가?
-- [ ] 운영로그에 traceId/path/method가 포함되는가?
+앱 로그:
+```bash
+tail -f storage/logs/laravel.log
+```
+
+실패 큐:
+```bash
+php artisan queue:failed
+php artisan queue:retry all
+php artisan queue:flush
+```
+
+스케줄 상태:
+```bash
+php artisan schedule:list
+php artisan schedule-monitor:list
+```
+
+감사 로그(예시 SQL):
+```sql
+SELECT id, log_name, event, description, created_at
+FROM activity_log
+ORDER BY id DESC
+LIMIT 50;
+```
 
 ---
 
-## 6. 운영 시 주의사항
+## 6) 운영 주의사항
 
-- 감사로그는 보관 기간/정리 정책을 함께 운영한다.
-- 운영로그에는 민감정보(토큰, 주민번호, 전체 SQL 바인딩 등)를 남기지 않는다.
-- 장애 분석은 App Log 중심으로, 변경 추적/감사는 Audit Log 중심으로 수행한다.
-- 비동기 장애 분석 시 `laravel.log`만 보지 말고 `failed_jobs`, Horizon, schedule-monitor 로그를 함께 확인한다.
+- 민감정보(비밀번호, 토큰, 주민번호 등)는 로그에 남기지 않는다.
+- `activity_log`는 데이터가 계속 증가하므로 주기적 정리 정책이 필요하다.
+- 큐/스케줄 장애 분석 시 `laravel.log`만 보지 말고 아래를 함께 본다.
+  - `failed_jobs`
+  - `job_batches`
+  - `monitored_scheduled_task_log_items`
+  - Horizon 대시보드
 
----
-
-작성 기준: 2026-03-12

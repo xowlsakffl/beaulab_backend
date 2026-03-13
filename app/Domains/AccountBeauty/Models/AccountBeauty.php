@@ -3,7 +3,6 @@
 namespace App\Domains\AccountBeauty\Models;
 
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Common\Notifications\QueuedResetPasswordNotification;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\AccountBeautyFactory;
@@ -81,14 +80,6 @@ class AccountBeauty extends Authenticatable
     protected static function newFactory(): Factory
     {
         return AccountBeautyFactory::new();
-    }
-
-    /**
-     * Force password reset email to be queued (Horizon/Redis).
-     */
-    public function sendPasswordResetNotification($token): void
-    {
-        $this->notify(new QueuedResetPasswordNotification($token));
     }
 
     public function beauty(): BelongsTo

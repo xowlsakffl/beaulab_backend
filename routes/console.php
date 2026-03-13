@@ -1,49 +1,34 @@
 <?php
 
+use App\Domains\Notice\Actions\Common\CleanupTempEditorImagesAction;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
-use Illuminate\Support\Facades\Storage;
 
+// 개발용 기본 예시 커맨드 (Laravel 기본 제공)
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// 공지 에디터 임시 이미지 정리 커맨드 (작성 취소/이탈 시 남은 파일 정리)
 Artisan::command('notice:cleanup-temp-editor-images {--hours=24}', function () {
     $hours = max(1, (int) $this->option('hours'));
-    $cutoff = now()->subHours($hours)->getTimestamp();
-    $disk = Storage::disk('public');
-    $dir = 'notice/editor-images/temp';
-
-    if (! $disk->exists($dir)) {
-        $this->info('No temp editor image directory exists.');
-
-        return;
-    }
-
-    $files = $disk->allFiles($dir);
-    $deleted = 0;
-
-    foreach ($files as $file) {
-        try {
-            $lastModified = $disk->lastModified($file);
-        } catch (\Throwable) {
-            continue;
-        }
-
-        if ($lastModified > $cutoff) {
-            continue;
-        }
-
-        $disk->delete($file);
-        $deleted++;
-    }
+    $deleted = app(CleanupTempEditorImagesAction::class)->execute($hours);
 
     $this->info("Deleted temp editor images: {$deleted}");
 })->purpose('Delete stale temporary notice editor images');
 
+// Schedule Monitor 대상 작업 동기화 (모니터링 대상/설정 갱신)
 Schedule::command('schedule-monitor:sync')->dailyAt('02:50');
+
+// 공지 에디터 임시 이미지 주기 정리 (스토리지 누수 방지)
 Schedule::command('notice:cleanup-temp-editor-images --hours=24')->hourly();
+
+// Horizon 메트릭 스냅샷 수집 (대시보드 그래프 데이터 유지)
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
+
+// 오래된 큐 배치 메타 정리 (job_batches 비대화 방지)
 Schedule::command('queue:prune-batches --hours=72 --unfinished=72 --cancelled=168')->dailyAt('03:10');
+
+// 오래된 실패 작업 기록 정리 (failed_jobs 비대화 방지)
 Schedule::command('queue:prune-failed --hours=168')->dailyAt('03:20');

@@ -3,7 +3,6 @@
 namespace App\Domains\AccountHospital\Models;
 
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Common\Notifications\QueuedResetPasswordNotification;
 use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\AccountHospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -80,14 +79,6 @@ class AccountHospital extends Authenticatable
     protected static function newFactory(): Factory
     {
         return AccountHospitalFactory::new();
-    }
-
-    /**
-     * Force password reset email to be queued (Horizon/Redis).
-     */
-    public function sendPasswordResetNotification($token): void
-    {
-        $this->notify(new QueuedResetPasswordNotification($token));
     }
 
     public function hospital(): BelongsTo

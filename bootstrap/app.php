@@ -2,6 +2,7 @@
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Common\Http\Middleware\EnsureHorizonIpAllowed;
 use App\Common\Http\Middleware\RequestId;
 use App\Common\Http\Responses\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -27,8 +28,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        // API-only
-        // web: __DIR__.'/../app/Modules/Admin/routes/web.php',
+        web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
@@ -45,6 +45,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // 요청 주체(staff/hospital/beauty/user)에 따라 각 로그인 라우트로 리다이렉트한다.
         // 라우트가 정의되어 있지 않으면 null을 반환해 401 JSON 응답을 유지한다.
         $middleware->redirectGuestsTo(function (Request $request): ?string {
+            if (($request->is('horizon') || $request->is('horizon/*')) && ! $request->is('horizon/api/*')) {
+                return route('horizon.login');
+            }
+
             $guards = ['staff', 'hospital', 'beauty', 'user'];
 
             foreach ($guards as $guard) {
@@ -66,6 +70,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'horizon.ip' => EnsureHorizonIpAllowed::class,
 
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
@@ -80,7 +85,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
 
         // API-only면 항상 JSON (web 남기면 api/*로 좁혀도 됨)
-        $exceptions->shouldRenderJsonWhen(fn (Request $request) => true);
+        $shouldRenderJson = static fn (Request $request): bool => $request->is('api/*') || $request->expectsJson();
+
+        $exceptions->shouldRenderJsonWhen($shouldRenderJson);
 
         // console에서도 안전한 context
         $exceptions->context(function () {
@@ -99,7 +106,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // 예외 → ApiResponse 매핑
-        $exceptions->render(function (Throwable $e, Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) use ($shouldRenderJson) {
+            if (! $shouldRenderJson($request)) {
+                return null;
+            }
+
             if ($e instanceof CustomException) {
                 return ApiResponse::errorCode(
                     $e->errorCode,

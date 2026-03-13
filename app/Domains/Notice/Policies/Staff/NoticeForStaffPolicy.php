@@ -32,9 +32,4 @@ final class NoticeForStaffPolicy
     {
         return $actor->can(AccessPermissions::BEAULAB_NOTICE_DELETE);
     }
-
-    public function push(AccountStaff $actor, Notice $notice): bool
-    {
-        return $actor->can(AccessPermissions::BEAULAB_NOTICE_PUSH);
-    }
 }

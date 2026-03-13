@@ -83,7 +83,7 @@ return [
     |
     */
 
-    'middleware' => ['web', 'auth:staff'],
+    'middleware' => ['web', 'internal_tool.ip', 'auth:tool_staff'],
 
     /*
     |--------------------------------------------------------------------------
@@ -101,7 +101,6 @@ return [
         'redis:mail' => 30,
         'redis:sms' => 30,
         'redis:chat' => 15,
-        'redis:push' => 60,
         'redis:default' => 60,
         'redis:maintenance' => 180,
     ],
@@ -255,19 +254,6 @@ return [
             'timeout' => 30,
             'nice' => 0,
         ],
-        'supervisor-push' => [
-            'connection' => 'redis',
-            'queue' => ['push'],
-            'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
-            'maxProcesses' => 2,
-            'maxTime' => 0,
-            'maxJobs' => 0,
-            'memory' => 192,
-            'tries' => 5,
-            'timeout' => 180,
-            'nice' => 0,
-        ],
         'supervisor-default' => [
             'connection' => 'redis',
             'queue' => ['default'],
@@ -318,11 +304,6 @@ return [
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
-            'supervisor-push' => [
-                'maxProcesses' => 20,
-                'balanceMaxShift' => 2,
-                'balanceCooldown' => 5,
-            ],
             'supervisor-default' => [
                 'maxProcesses' => 8,
                 'balanceMaxShift' => 1,
@@ -346,9 +327,6 @@ return [
                 'maxProcesses' => 2,
             ],
             'supervisor-chat' => [
-                'maxProcesses' => 2,
-            ],
-            'supervisor-push' => [
                 'maxProcesses' => 2,
             ],
             'supervisor-default' => [

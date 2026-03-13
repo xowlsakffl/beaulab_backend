@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Domains\AccountStaff\Models\AccountStaff;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Telescope\IncomingEntry;
 use Laravel\Telescope\Telescope;
@@ -9,6 +11,18 @@ use Laravel\Telescope\TelescopeApplicationServiceProvider;
 
 class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
 {
+    public function boot(): void
+    {
+        parent::boot();
+
+        Telescope::auth(function (Request $request): bool {
+            $user = $request->user('tool_staff');
+
+            return $user instanceof AccountStaff
+                && Gate::forUser($user)->allows('viewTool');
+        });
+    }
+
     /**
      * Register any application services.
      */
@@ -48,17 +62,8 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         ]);
     }
 
-    /**
-     * Register the Telescope gate.
-     *
-     * This gate determines who can access Telescope in non-local environments.
-     */
     protected function gate(): void
     {
-        Gate::define('viewTelescope', function ($user) {
-            return in_array($user->email, [
-                //
-            ]);
-        });
+        // InternalToolServiceProvider 에서 viewTool Gate를 공통 정의한다.
     }
 }

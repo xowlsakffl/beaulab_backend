@@ -14,7 +14,6 @@ final class NoticeGetForStaffAction
 
         $loaded = $notice->load([
             'attachments',
-            'popupImage',
             'creator:id,name,email',
             'updater:id,name,email',
         ]);

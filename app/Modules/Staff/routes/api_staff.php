@@ -176,6 +176,4 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('notices.updateNoticeForStaff');
     Route::delete('notices/{notice}', [NoticeForStaffController::class, 'deleteNoticeForStaff'])
         ->name('notices.deleteNoticeForStaff');
-    Route::post('notices/{notice}/push', [NoticeForStaffController::class, 'sendPushForStaff'])
-        ->name('notices.sendPushForStaff');
 });

@@ -15,14 +15,12 @@ final class NoticeListForStaffQuery
                 'id',
                 'channel',
                 'title',
-                'is_visible',
+                'status',
                 'is_pinned',
                 'pinned_order',
                 'is_publish_period_unlimited',
                 'publish_start_at',
                 'publish_end_at',
-                'is_push_enabled',
-                'push_sent_at',
                 'is_important',
                 'view_count',
                 'created_by_staff_id',
@@ -32,7 +30,6 @@ final class NoticeListForStaffQuery
             ])
             ->withCount([
                 'attachments',
-                'popupImage',
             ]);
 
         if (! empty($filters['q'])) {
@@ -47,8 +44,8 @@ final class NoticeListForStaffQuery
             $query->whereIn('channel', $filters['channel']);
         }
 
-        if (array_key_exists('is_visible', $filters) && $filters['is_visible'] !== null) {
-            $query->where('is_visible', (bool) $filters['is_visible']);
+        if (is_array($filters['status'] ?? null) && $filters['status'] !== []) {
+            $query->whereIn('status', $filters['status']);
         }
 
         if (array_key_exists('is_pinned', $filters) && $filters['is_pinned'] !== null) {
@@ -94,18 +91,18 @@ final class NoticeListForStaffQuery
             foreach ($statuses as $status) {
                 $builder->orWhere(function (Builder $inner) use ($status, $now): void {
                     match ($status) {
-                        Notice::EXPOSURE_HIDDEN => $inner->where('is_visible', false),
+                        Notice::EXPOSURE_HIDDEN => $inner->where('status', Notice::STATUS_INACTIVE),
                         Notice::EXPOSURE_SCHEDULED => $inner
-                            ->where('is_visible', true)
+                            ->where('status', Notice::STATUS_ACTIVE)
                             ->whereNotNull('publish_start_at')
                             ->where('publish_start_at', '>', $now),
                         Notice::EXPOSURE_EXPIRED => $inner
-                            ->where('is_visible', true)
+                            ->where('status', Notice::STATUS_ACTIVE)
                             ->where('is_publish_period_unlimited', false)
                             ->whereNotNull('publish_end_at')
                             ->where('publish_end_at', '<', $now),
                         default => $inner
-                            ->where('is_visible', true)
+                            ->where('status', Notice::STATUS_ACTIVE)
                             ->where(function (Builder $scope) use ($now): void {
                                 $scope->whereNull('publish_start_at')
                                     ->orWhere('publish_start_at', '<=', $now);

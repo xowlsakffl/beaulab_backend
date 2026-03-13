@@ -16,16 +16,13 @@ return new class extends Migration
             $table->string('title', 255)->comment('공지 제목');
             $table->longText('content')->comment('에디터 HTML 본문');
 
-            $table->boolean('is_visible')->default(true)->comment('노출 여부');
+            $table->string('status', 20)->default('ACTIVE')->comment('공지 상태(ACTIVE, INACTIVE)');
             $table->boolean('is_pinned')->default(false)->comment('상단 공지 여부');
             $table->unsignedInteger('pinned_order')->default(0)->comment('상단 공지 정렬 순서');
 
             $table->boolean('is_publish_period_unlimited')->default(true)->comment('게시기간 무제한 여부');
             $table->timestamp('publish_start_at')->nullable()->comment('게시 시작 일시');
             $table->timestamp('publish_end_at')->nullable()->comment('게시 종료 일시');
-
-            $table->boolean('is_push_enabled')->default(false)->comment('푸시 발송 사용 여부');
-            $table->timestamp('push_sent_at')->nullable()->comment('푸시 발송 일시');
 
             $table->boolean('is_important')->default(false)->comment('중요 공지 팝업 여부');
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
@@ -45,10 +42,10 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 일시');
 
-            $table->index(['channel', 'is_visible', 'created_at'], 'notices_channel_visible_created_idx');
+            $table->index(['channel', 'status', 'created_at'], 'notices_channel_status_created_idx');
             $table->index(['is_pinned', 'pinned_order', 'created_at'], 'notices_pinned_created_idx');
-            $table->index(['is_visible', 'publish_start_at', 'publish_end_at'], 'notices_publish_period_idx');
-            $table->index(['is_important', 'is_visible', 'created_at'], 'notices_important_visible_created_idx');
+            $table->index(['status', 'publish_start_at', 'publish_end_at'], 'notices_status_publish_period_idx');
+            $table->index(['is_important', 'status', 'created_at'], 'notices_important_status_created_idx');
         });
 
         DB::statement("ALTER TABLE notices COMMENT = '관리자 공지사항 관리 테이블'");

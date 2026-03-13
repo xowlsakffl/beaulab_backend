@@ -60,7 +60,7 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 - Video Request: `beaulab.video-request.show|update|delete`
 - Talk: `beaulab.talk.show|create|update|delete`
 - Talk Comment: `beaulab.talk-comment.show|create|update|delete`
-- Notice: `beaulab.notice.show|create|update|delete|push`
+- Notice: `beaulab.notice.show|create|update|delete`
 - Category: `beaulab.category.manage`
 
 ### 3.3 Hospital 전용
@@ -104,20 +104,8 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 - `beauty.staff`
   - common + 조회 중심
 
-## 5) Notice 권한/정책 포인트
 
-- 정책: `app/Domains/Notice/Policies/NoticePolicy.php`
-- Staff 정책: `app/Domains/Notice/Policies/Staff/NoticeForStaffPolicy.php`
-
-매핑:
-
-1. `viewAny`, `view` -> `beaulab.notice.show`
-2. `create` -> `beaulab.notice.create`
-3. `update` -> `beaulab.notice.update`
-4. `delete` -> `beaulab.notice.delete`
-5. `push` -> `beaulab.notice.push`
-
-## 6) 라우트 보호 정책
+## 5) 라우트 보호 정책
 
 - Staff 모듈
   - `auth:sanctum`
@@ -129,6 +117,23 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 - Beauty 모듈
   - `auth:sanctum`
   - `abilities:actor:beauty`
+
+## 6) 내부도구 권한 정책
+
+- 대상: Horizon, Telescope, Swagger 같은 웹 기반 운영 도구
+- 공용 Gate: `viewTool`
+- 공용 세션 가드: `tool_staff`
+- 공용 추가 보호: `internal_tool.ip`
+
+허용 기준:
+
+1. `ACTIVE` Staff 계정
+2. 역할이 `beaulab.super_admin` 또는 `beaulab.dev`
+3. `INTERNAL_TOOL_ALLOWED_EMAILS`가 설정된 경우 이메일도 허용 목록 일치
+
+즉, 내부도구는 API용 `staff` 토큰 가드와 별도로 웹 세션 가드 `tool_staff`를 사용한다.
+
+상세 구조와 로그인 흐름은 `develop-doc/internal-tools.md`를 본다.
 
 ## 7) 운영 규칙
 

@@ -9,7 +9,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -22,6 +21,9 @@ final class Notice extends Model
     public const CHANNEL_APP_WEB = 'APP_WEB';
     public const CHANNEL_HOSPITAL = 'HOSPITAL';
     public const CHANNEL_BEAUTY = 'BEAUTY';
+
+    public const STATUS_ACTIVE = 'ACTIVE';
+    public const STATUS_INACTIVE = 'INACTIVE';
 
     public const EXPOSURE_HIDDEN = 'HIDDEN';
     public const EXPOSURE_SCHEDULED = 'SCHEDULED';
@@ -37,14 +39,12 @@ final class Notice extends Model
         'channel',
         'title',
         'content',
-        'is_visible',
+        'status',
         'is_pinned',
         'pinned_order',
         'is_publish_period_unlimited',
         'publish_start_at',
         'publish_end_at',
-        'is_push_enabled',
-        'push_sent_at',
         'is_important',
         'view_count',
         'created_by_staff_id',
@@ -52,14 +52,11 @@ final class Notice extends Model
     ];
 
     protected $casts = [
-        'is_visible' => 'boolean',
         'is_pinned' => 'boolean',
         'pinned_order' => 'integer',
         'is_publish_period_unlimited' => 'boolean',
         'publish_start_at' => 'datetime',
         'publish_end_at' => 'datetime',
-        'is_push_enabled' => 'boolean',
-        'push_sent_at' => 'datetime',
         'is_important' => 'boolean',
         'view_count' => 'integer',
         'created_by_staff_id' => 'integer',
@@ -71,11 +68,10 @@ final class Notice extends Model
 
     protected $attributes = [
         'channel' => self::CHANNEL_ALL,
-        'is_visible' => true,
+        'status' => self::STATUS_ACTIVE,
         'is_pinned' => false,
         'pinned_order' => 0,
         'is_publish_period_unlimited' => true,
-        'is_push_enabled' => false,
         'is_important' => false,
         'view_count' => 0,
     ];
@@ -96,12 +92,6 @@ final class Notice extends Model
             ->orderBy('id');
     }
 
-    public function popupImage(): MorphOne
-    {
-        return $this->morphOne(Media::class, 'model')
-            ->where('collection', 'popup_image');
-    }
-
     public function creator(): BelongsTo
     {
         return $this->belongsTo(AccountStaff::class, 'created_by_staff_id');
@@ -117,7 +107,7 @@ final class Notice extends Model
         $at ??= now();
 
         return $query
-            ->where('is_visible', true)
+            ->where('status', self::STATUS_ACTIVE)
             ->where(function (Builder $q) use ($at): void {
                 $q->whereNull('publish_start_at')
                     ->orWhere('publish_start_at', '<=', $at);
@@ -138,7 +128,7 @@ final class Notice extends Model
     {
         $at ??= now();
 
-        if (! (bool) $this->is_visible) {
+        if ($this->status === self::STATUS_INACTIVE) {
             return self::EXPOSURE_HIDDEN;
         }
 
@@ -181,6 +171,17 @@ final class Notice extends Model
             self::EXPOSURE_SCHEDULED,
             self::EXPOSURE_PUBLISHED,
             self::EXPOSURE_EXPIRED,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_ACTIVE,
+            self::STATUS_INACTIVE,
         ];
     }
 }

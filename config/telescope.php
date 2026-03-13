@@ -94,6 +94,8 @@ return [
 
     'middleware' => [
         'web',
+        'internal_tool.ip',
+        'auth:tool_staff',
         Authorize::class,
     ],
 

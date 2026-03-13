@@ -19,7 +19,7 @@
 | `HospitalBusinessRegistration` | 병원 사업자등록 | 병원 사업자등록 정보와 등록증 파일 |
 | `BeautyBusinessRegistration` | 뷰티 사업자등록 | 뷰티 사업자등록 정보와 등록증 파일 |
 | `HospitalVideoRequest` | 병원 영상요청 | 병원이 등록/게시를 요청한 영상의 검수 상태 |
-| `Notice` | 공지사항 | 관리자 공지 콘텐츠(노출/게시기간/중요공지/푸시/조회수) |
+| `Notice` | 공지사항 | 관리자 공지 콘텐츠(노출/게시기간/중요공지/조회수) |
 | `Media` | 공통 미디어 | 이미지/영상 파일 메타데이터(파일 경로, 크기, 정렬, 대표 여부) |
 
 ## 2) 도메인별 상태 정의
@@ -204,7 +204,7 @@
 
 ### 2.13 `Notice` (공지사항)
 
-`Notice`는 별도 `STATUS_*` 상수 대신 노출 상태(`exposure_status`)를 계산해 사용한다.
+`Notice`는 운영 상태(`status`)와 계산 노출 상태(`exposure_status`)를 함께 사용한다.
 
 #### 채널 (`channel`)
 
@@ -215,35 +215,39 @@
 | `CHANNEL_HOSPITAL` | `HOSPITAL` | 병원 대상 |
 | `CHANNEL_BEAUTY` | `BEAUTY` | 뷰티 대상 |
 
+#### 운영 상태 (`status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `STATUS_ACTIVE` | `ACTIVE` | 활성 | 게시 가능 상태 |
+| `STATUS_INACTIVE` | `INACTIVE` | 비활성 | 숨김 상태 |
+
 #### 노출 상태 (`exposure_status`, 계산값)
 
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
-| `EXPOSURE_HIDDEN` | `HIDDEN` | 숨김 | `is_visible=false` |
+| `EXPOSURE_HIDDEN` | `HIDDEN` | 숨김 | `status=INACTIVE` |
 | `EXPOSURE_SCHEDULED` | `SCHEDULED` | 게시 대기 | `publish_start_at` 미래 시각 |
 | `EXPOSURE_PUBLISHED` | `PUBLISHED` | 게시중 | 노출 가능 기간 내 |
 | `EXPOSURE_EXPIRED` | `EXPIRED` | 게시 종료 | 게시 종료 시각 경과 |
 
 #### 주요 필드
 
-- `is_visible`: 노출 여부
+- `status`: 공지 상태
 - `is_pinned`: 상단 고정 여부
 - `pinned_order`: 상단 정렬 순서
 - `is_publish_period_unlimited`: 게시기간 무제한 여부
 - `publish_start_at`, `publish_end_at`: 게시 기간
-- `is_push_enabled`: 푸시 발송 사용 여부
-- `push_sent_at`: 푸시 발송 일시
 - `is_important`: 중요 공지(팝업) 여부
 - `view_count`: 조회수
 
 기본값:
 
 - `channel`: `CHANNEL_ALL`
-- `is_visible`: `true`
+- `status`: `STATUS_ACTIVE`
 - `is_pinned`: `false`
 - `pinned_order`: `0`
 - `is_publish_period_unlimited`: `true`
-- `is_push_enabled`: `false`
 - `is_important`: `false`
 - `view_count`: `0`
 
@@ -273,7 +277,7 @@
 ### 3.6 공지 노출 흐름
 
 - `EXPOSURE_HIDDEN`(숨김) -> `EXPOSURE_SCHEDULED`(게시 대기) -> `EXPOSURE_PUBLISHED`(게시중) -> `EXPOSURE_EXPIRED`(게시 종료)
-- `is_visible=false`면 게시기간과 무관하게 `EXPOSURE_HIDDEN`으로 처리
+- `status=INACTIVE`면 게시기간과 무관하게 `EXPOSURE_HIDDEN`으로 처리
 - `publish_start_at` 미래 시각이면 `EXPOSURE_SCHEDULED`로 처리
 
 ## 4) 참고 파일

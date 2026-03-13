@@ -47,6 +47,11 @@ return [
             'provider' => 'staff',
         ],
 
+        'tool_staff' => [
+            'driver' => 'session',
+            'provider' => 'staff',
+        ],
+
         'hospital' => [
             'driver' => 'sanctum',
             'provider' => 'hospitals',

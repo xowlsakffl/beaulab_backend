@@ -4,7 +4,6 @@ namespace App\Domains\Notice\Actions\Staff;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
-use App\Domains\Notice\Actions\Common\DispatchNoticePushAction;
 use App\Domains\Notice\Actions\Common\SyncNoticeEditorImagesAction;
 use App\Domains\Notice\Dto\Staff\NoticeForStaffDetailDto;
 use App\Domains\Notice\Models\Notice;
@@ -18,7 +17,6 @@ final class NoticeUpdateForStaffAction
     public function __construct(
         private readonly NoticeUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachDeleteAction,
-        private readonly DispatchNoticePushAction $dispatchNoticePushAction,
         private readonly SyncNoticeEditorImagesAction $syncNoticeEditorImagesAction,
     ) {}
 
@@ -35,25 +33,13 @@ final class NoticeUpdateForStaffAction
                 $this->replaceAttachments($saved, $normalized['attachments']);
             }
 
-            if (array_key_exists('popup_image', $normalized) || array_key_exists('remove_popup_image', $normalized) || array_key_exists('is_important', $normalized)) {
-                $this->replacePopupImage(
-                    $saved,
-                    $normalized['popup_image'] ?? null,
-                    $normalized['remove_popup_image'] ?? null,
-                    array_key_exists('is_important', $normalized) ? (bool) $normalized['is_important'] : null,
-                );
-            }
-
             $syncedContent = $this->syncNoticeEditorImagesAction->execute($saved, (string) $saved->content);
             if ($syncedContent !== (string) $saved->content) {
                 $saved->forceFill(['content' => $syncedContent])->save();
             }
 
-            $this->dispatchNoticePushAction->execute($saved);
-
             return $saved->fresh([
                 'attachments',
-                'popupImage',
                 'creator:id,name,email',
                 'updater:id,name,email',
             ]);
@@ -111,39 +97,6 @@ final class NoticeUpdateForStaffAction
             'notice',
             'attachments',
             false,
-        );
-    }
-
-    private function replacePopupImage(
-        Notice $notice,
-        mixed $popupImage,
-        mixed $removePopupImage,
-        ?bool $isImportant,
-    ): void {
-        $shouldDelete = (bool) ($removePopupImage ?? false);
-
-        if ($isImportant === false) {
-            $shouldDelete = true;
-        }
-
-        if ($shouldDelete) {
-            $this->mediaAttachDeleteAction->deleteCollectionMedia($notice, 'popup_image');
-
-            return;
-        }
-
-        if (! $popupImage instanceof UploadedFile) {
-            return;
-        }
-
-        $this->mediaAttachDeleteAction->deleteCollectionMedia($notice, 'popup_image');
-        $this->mediaAttachDeleteAction->attachOne(
-            $notice,
-            $popupImage,
-            'popup_image',
-            'notice',
-            'popup-image',
-            true,
         );
     }
 

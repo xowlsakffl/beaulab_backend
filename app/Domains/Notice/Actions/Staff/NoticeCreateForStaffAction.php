@@ -4,7 +4,6 @@ namespace App\Domains\Notice\Actions\Staff;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
-use App\Domains\Notice\Actions\Common\DispatchNoticePushAction;
 use App\Domains\Notice\Actions\Common\SyncNoticeEditorImagesAction;
 use App\Domains\Notice\Dto\Staff\NoticeForStaffDetailDto;
 use App\Domains\Notice\Models\Notice;
@@ -18,7 +17,6 @@ final class NoticeCreateForStaffAction
     public function __construct(
         private readonly NoticeCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachDeleteAction,
-        private readonly DispatchNoticePushAction $dispatchNoticePushAction,
         private readonly SyncNoticeEditorImagesAction $syncNoticeEditorImagesAction,
     ) {}
 
@@ -32,22 +30,14 @@ final class NoticeCreateForStaffAction
             $created = $this->query->create($normalized);
 
             $this->attachFiles($created, $normalized['attachments'] ?? []);
-            $this->replacePopupImage(
-                $created,
-                $normalized['popup_image'] ?? null,
-                (bool) ($normalized['is_important'] ?? false),
-            );
 
             $syncedContent = $this->syncNoticeEditorImagesAction->execute($created, (string) $created->content);
             if ($syncedContent !== (string) $created->content) {
                 $created->forceFill(['content' => $syncedContent])->save();
             }
 
-            $this->dispatchNoticePushAction->execute($created);
-
             return $created->fresh([
                 'attachments',
-                'popupImage',
                 'creator:id,name,email',
                 'updater:id,name,email',
             ]);
@@ -96,29 +86,6 @@ final class NoticeCreateForStaffAction
             'notice',
             'attachments',
             false,
-        );
-    }
-
-    private function replacePopupImage(Notice $notice, mixed $popupImage, bool $isImportant): void
-    {
-        if (! $isImportant) {
-            $this->mediaAttachDeleteAction->deleteCollectionMedia($notice, 'popup_image');
-
-            return;
-        }
-
-        if (! $popupImage instanceof UploadedFile) {
-            return;
-        }
-
-        $this->mediaAttachDeleteAction->deleteCollectionMedia($notice, 'popup_image');
-        $this->mediaAttachDeleteAction->attachOne(
-            $notice,
-            $popupImage,
-            'popup_image',
-            'notice',
-            'popup-image',
-            true,
         );
     }
 

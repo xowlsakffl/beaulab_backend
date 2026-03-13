@@ -12,6 +12,7 @@ final class NoticeListForStaffRequest extends FormRequest
     {
         $this->merge([
             'channel' => $this->normalizeToArray($this->input('channel')),
+            'status' => $this->normalizeToArray($this->input('status')),
             'exposure_status' => $this->normalizeToArray($this->input('exposure_status')),
         ]);
     }
@@ -27,12 +28,13 @@ final class NoticeListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'channel' => ['nullable', 'array'],
             'channel.*' => [Rule::in(Notice::channels())],
-            'is_visible' => ['nullable', 'boolean'],
+            'status' => ['nullable', 'array'],
+            'status.*' => [Rule::in(Notice::statuses())],
             'is_pinned' => ['nullable', 'boolean'],
             'is_important' => ['nullable', 'boolean'],
             'exposure_status' => ['nullable', 'array'],
             'exposure_status.*' => [Rule::in(Notice::exposureStatuses())],
-            'sort' => ['nullable', 'in:id,title,channel,is_visible,is_pinned,pinned_order,publish_start_at,publish_end_at,push_sent_at,is_important,view_count,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,title,channel,status,is_pinned,pinned_order,publish_start_at,publish_end_at,is_important,view_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -45,13 +47,34 @@ final class NoticeListForStaffRequest extends FormRequest
         return [
             'q' => $validated['q'] ?? null,
             'channel' => $validated['channel'] ?? null,
-            'is_visible' => $validated['is_visible'] ?? null,
+            'status' => $validated['status'] ?? null,
             'is_pinned' => $validated['is_pinned'] ?? null,
             'is_important' => $validated['is_important'] ?? null,
             'exposure_status' => $validated['exposure_status'] ?? null,
             'sort' => $validated['sort'] ?? null,
             'direction' => $validated['direction'] ?? 'desc',
             'per_page' => (int) ($validated['per_page'] ?? 15),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'q' => '검색어',
+            'channel' => '공지 채널 목록',
+            'channel.*' => '공지 채널',
+            'status' => '상태 목록',
+            'status.*' => '상태',
+            'is_pinned' => '상단 공지 여부',
+            'is_important' => '중요 공지 여부',
+            'exposure_status' => '노출 상태 목록',
+            'exposure_status.*' => '노출 상태',
+            'sort' => '정렬 기준',
+            'direction' => '정렬 방향',
+            'per_page' => '페이지당 개수',
         ];
     }
 

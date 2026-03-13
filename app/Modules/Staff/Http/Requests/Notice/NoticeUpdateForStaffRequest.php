@@ -19,13 +19,10 @@ final class NoticeUpdateForStaffRequest extends FormRequest
             'publish_start_at',
             'publish_end_at',
             'is_publish_period_unlimited',
-            'is_push_enabled',
-            'is_visible',
+            'status',
             'is_pinned',
             'pinned_order',
             'is_important',
-            'popup_image',
-            'remove_popup_image',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
                 $data[$nullableKey] = null;
@@ -46,18 +43,36 @@ final class NoticeUpdateForStaffRequest extends FormRequest
             'channel' => ['sometimes', Rule::in(Notice::channels())],
             'title' => ['sometimes', 'string', 'max:255'],
             'content' => ['sometimes', 'string'],
-            'is_visible' => ['sometimes', 'nullable', 'boolean'],
+            'status' => ['sometimes', 'string', Rule::in(Notice::statuses())],
             'is_pinned' => ['sometimes', 'nullable', 'boolean'],
             'pinned_order' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'is_publish_period_unlimited' => ['sometimes', 'nullable', 'boolean'],
             'publish_start_at' => ['sometimes', 'nullable', 'date'],
             'publish_end_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:publish_start_at'],
-            'is_push_enabled' => ['sometimes', 'nullable', 'boolean'],
             'is_important' => ['sometimes', 'nullable', 'boolean'],
-            'popup_image' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:10240'],
-            'remove_popup_image' => ['sometimes', 'nullable', 'boolean'],
             'attachments' => ['sometimes', 'array', 'max:10'],
             'attachments.*' => ['file', 'max:20480'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'channel' => '공지 채널',
+            'title' => '제목',
+            'content' => '내용',
+            'status' => '상태',
+            'is_pinned' => '상단 공지 여부',
+            'pinned_order' => '상단 정렬 순서',
+            'is_publish_period_unlimited' => '게시기간 무제한 여부',
+            'publish_start_at' => '게시 시작 일시',
+            'publish_end_at' => '게시 종료 일시',
+            'is_important' => '중요 공지 여부',
+            'attachments' => '첨부파일 목록',
+            'attachments.*' => '첨부파일',
         ];
     }
 }

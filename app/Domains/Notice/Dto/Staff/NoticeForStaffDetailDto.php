@@ -15,9 +15,6 @@ final readonly class NoticeForStaffDetailDto
         $data = NoticeForStaffDto::fromModel($notice)->toArray();
 
         $data['content'] = (string) $notice->content;
-        $data['popup_image'] = self::formatMedia(
-            $notice->relationLoaded('popupImage') ? $notice->popupImage : null,
-        );
         $data['attachments'] = self::resolveAttachments($notice)
             ->map(static fn (Media $media): array => [
                 'id' => (int) $media->id,
@@ -70,27 +67,5 @@ final readonly class NoticeForStaffDetailDto
         }
 
         return $notice->attachments;
-    }
-
-    private static function formatMedia(?Media $media): ?array
-    {
-        if (! $media) {
-            return null;
-        }
-
-        return [
-            'id' => (int) $media->id,
-            'collection' => (string) $media->collection,
-            'disk' => (string) $media->disk,
-            'path' => (string) $media->path,
-            'mime_type' => $media->mime_type,
-            'size' => $media->size,
-            'width' => $media->width,
-            'height' => $media->height,
-            'sort_order' => (int) $media->sort_order,
-            'is_primary' => (bool) $media->is_primary,
-            'created_at' => $media->created_at?->toISOString(),
-            'updated_at' => $media->updated_at?->toISOString(),
-        ];
     }
 }

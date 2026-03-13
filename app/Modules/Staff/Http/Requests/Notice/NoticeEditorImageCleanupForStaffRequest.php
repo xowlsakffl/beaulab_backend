@@ -39,4 +39,17 @@ final class NoticeEditorImageCleanupForStaffRequest extends FormRequest
             'urls.*' => ['string', 'max:2000'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'paths' => '임시 이미지 경로 목록',
+            'paths.*' => '임시 이미지 경로',
+            'urls' => '에디터 이미지 URL 목록',
+            'urls.*' => '에디터 이미지 URL',
+        ];
+    }
 }

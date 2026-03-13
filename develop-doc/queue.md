@@ -30,9 +30,8 @@ Horizon이 Redis 큐 워커를 관리한다.
 2. `mail`: 메일 발송
 3. `sms`: 문자 발송
 4. `chat`: 채팅 비동기 처리
-5. `push`: 푸시 발송
-6. `default`: 일반 비동기 작업
-7. `maintenance`: 정리/백필/유지보수 작업
+5. `default`: 일반 비동기 작업
+6. `maintenance`: 정리/백필/유지보수 작업
 
 레인별 대기 임계값(`waits`)을 분리해 정체를 빠르게 감지한다.
 
@@ -44,9 +43,8 @@ Horizon이 Redis 큐 워커를 관리한다.
 2. `supervisor-mail` -> `mail`
 3. `supervisor-sms` -> `sms`
 4. `supervisor-chat` -> `chat`
-5. `supervisor-push` -> `push`
-6. `supervisor-default` -> `default`
-7. `supervisor-maintenance` -> `maintenance`
+5. `supervisor-default` -> `default`
+6. `supervisor-maintenance` -> `maintenance`
 
 환경별(`production`, `local`)로 `maxProcesses`가 분리돼 있다.
 
@@ -64,20 +62,53 @@ Horizon이 Redis 큐 워커를 관리한다.
 - 실패한 큐 작업 저장
 - 재시도/원인분석/감사 용도
 
-## 6. 현재 실제 라우팅
-
-1. 공지 푸시 발송
-- 클래스: `app/Domains/Notice/Jobs/SendNoticePushJob.php`
-- 라우팅: `connection=redis`, `queue=push`
-
-## 7. Job 작성 규칙
+## 6. Job 작성 규칙
 
 1. `connection`, `queue`, `tries`, `timeout` 명시
 2. 멱등성 보장(중복 실행 안전)
 3. 레인 목적 혼합 금지
 4. Job 내부에서 외부 API 호출 시 재시도/백오프 정책 명시
 
-## 8. 운영 명령어
+### 6.1 디렉토리 구조 원칙
+
+현재 프로젝트는 도메인 중심 구조를 사용하므로 Job도 도메인 안에 둔다.
+
+배치 기준:
+
+1. 특정 도메인에만 속하는 Job
+- `app/Domains/{Domain}/Jobs`
+- 예: 도메인 전용 후처리 Job
+
+2. 여러 도메인에서 공통으로 쓰는 Job
+- `app/Domains/Common/Jobs`
+- 예: 공용 백필, 공용 정리 작업, 공용 알림 후처리
+
+3. 외부 시스템 연동이지만 비즈니스 주체가 분명한 Job
+- 연동 종류가 아니라 비즈니스 소유 도메인 기준으로 둔다
+- 예: 메일 발송이라도 "공지 발송 후속 작업"이면 Notice 도메인에 둔다
+
+즉, Job 폴더를 기술 종류별로 한 군데에 몰아넣기보다 "누가 이 Job의 소유자인가" 기준으로 나눈다.
+
+### 6.2 Queueable 트레이트 주의
+
+`Illuminate\Foundation\Queue\Queueable`은 내부적으로 이미 아래 속성을 가진다.
+
+1. `$connection`
+2. `$queue`
+3. `$delay`
+
+따라서 Job 클래스에서 같은 속성을 다시 선언하면 PHP trait 충돌이 날 수 있다.
+
+권장 방식:
+
+1. 생성자에서 `$this->onConnection('redis')`, `$this->onQueue('default')` 호출
+2. 또는 dispatch 시점에 `->onConnection(...)`, `->onQueue(...)` 지정
+
+비권장 방식:
+
+1. `use Queueable;`를 쓰는 Job에서 `$connection`, `$queue`를 다시 선언
+
+## 7. 운영 명령어
 
 ```bash
 php artisan horizon:status
@@ -88,7 +119,7 @@ php artisan queue:prune-failed --hours=168
 php artisan queue:prune-batches --hours=72 --unfinished=72 --cancelled=168
 ```
 
-## 9. 배포 체크리스트
+## 8. 배포 체크리스트
 
 1. 코드 배포
 2. `php artisan migrate --force`
@@ -96,7 +127,7 @@ php artisan queue:prune-batches --hours=72 --unfinished=72 --cancelled=168
 4. `php artisan horizon:terminate`로 워커 재기동
 5. `php artisan horizon:status` 확인
 
-## 10. 장애 대응
+## 9. 장애 대응
 
 ### 10.1 큐 적체
 
@@ -110,7 +141,7 @@ php artisan queue:prune-batches --hours=72 --unfinished=72 --cancelled=168
 2. 일시 장애면 재시도, 영구 오류면 코드 수정 후 재처리
 3. 실패 누적 과도 시 `queue:prune-failed` 정책 점검
 
-## 11. 운영 원칙
+## 10. 운영 원칙
 
 1. Horizon 운영 환경에서는 `queue:listen` 상시 실행을 지양한다.
 2. 큐 소비자는 Horizon 단일 체계로 운영한다.

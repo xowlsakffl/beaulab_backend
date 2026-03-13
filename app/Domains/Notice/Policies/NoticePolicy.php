@@ -33,11 +33,6 @@ final class NoticePolicy
         return $this->delegate($actor)->delete($actor, $notice);
     }
 
-    public function push(mixed $actor, Notice $notice): bool
-    {
-        return $this->delegate($actor)->push($actor, $notice);
-    }
-
     private function delegate(mixed $actor): object
     {
         return match (true) {
@@ -48,7 +43,6 @@ final class NoticePolicy
                 public function create(mixed $actor): bool { return false; }
                 public function update(mixed $actor, Notice $notice): bool { return false; }
                 public function delete(mixed $actor, Notice $notice): bool { return false; }
-                public function push(mixed $actor, Notice $notice): bool { return false; }
             },
         };
     }

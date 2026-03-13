@@ -10,7 +10,6 @@ use App\Domains\Notice\Actions\Staff\NoticeEditorImageCleanupForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeEditorImageUploadForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeGetForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeListForStaffAction;
-use App\Domains\Notice\Actions\Staff\NoticeSendPushForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeUpdateForStaffAction;
 use App\Domains\Notice\Models\Notice;
 use App\Modules\Staff\Http\Requests\Notice\NoticeCreateForStaffRequest;
@@ -91,15 +90,6 @@ final class NoticeForStaffController extends Controller
     public function deleteNoticeForStaff(
         Notice $notice,
         NoticeDeleteForStaffAction $action,
-    ) {
-        $result = $action->execute($notice);
-
-        return ApiResponse::success($result);
-    }
-
-    public function sendPushForStaff(
-        Notice $notice,
-        NoticeSendPushForStaffAction $action,
     ) {
         $result = $action->execute($notice);
 

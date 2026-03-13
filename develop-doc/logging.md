@@ -96,9 +96,6 @@
 - 일반회원 목록/수정/삭제
 - 카테고리 목록/단건/생성/수정/삭제
 
-공지:
-- `SendNoticePushJob` 푸시 발송 지점 placeholder 로그
-
 ---
 
 ### 3-2. `activity('audit')` 직접 호출 지점
@@ -176,4 +173,3 @@ LIMIT 50;
   - `job_batches`
   - `monitored_scheduled_task_log_items`
   - Horizon 대시보드
-

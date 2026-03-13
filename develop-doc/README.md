@@ -8,6 +8,7 @@
 - [아키텍처 & 흐름](./architecture.md)
 - [에러 / 예외 처리](./error-handling.md)
 - [권한 / 메뉴 설계 (Staff / Hospital / Beauty / User)](./authorization.md)
+- [내부도구 허브 운영 가이드](./internal-tools.md)
 - [로깅 전략 (감사로그 / 운영로그)](./logging.md)
 - [Queue 운영 가이드](./queue.md)
 - [Scheduler 운영 가이드](./scheduler.md)
@@ -18,7 +19,7 @@
 
 - API 엔드포인트는 Actor 기준(`staff`, `hospital`, `beauty`, `user`)으로 분리한다.
 - 비즈니스 로직은 `app/Domains/*`, API 진입점은 `app/Modules/*`에 둔다.
-- 공지사항 도메인은 현재 Staff API 기준으로 CRUD, 에디터 이미지, 첨부파일, 푸시 발송을 지원한다.
+- 공지사항 도메인은 현재 Staff API 기준으로 CRUD, 에디터 이미지, 첨부파일을 지원한다.
 - 권한 단일 소스는 `AccessPermissions` / `AccessRoles`이며 Seeder로 동기화한다.
 - Queue 표준 런타임은 Redis + Horizon이며, Scheduler/Monitor는 별도 문서로 분리 관리한다.
 - 모든 예외 응답은 공통 예외 핸들러/응답 포맷 규칙을 따른다.

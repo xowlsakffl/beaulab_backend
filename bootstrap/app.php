@@ -2,7 +2,7 @@
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Common\Http\Middleware\EnsureHorizonIpAllowed;
+use App\Common\Http\Middleware\EnsureInternalToolIpAllowed;
 use App\Common\Http\Middleware\RequestId;
 use App\Common\Http\Responses\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -45,8 +45,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // 요청 주체(staff/hospital/beauty/user)에 따라 각 로그인 라우트로 리다이렉트한다.
         // 라우트가 정의되어 있지 않으면 null을 반환해 401 JSON 응답을 유지한다.
         $middleware->redirectGuestsTo(function (Request $request): ?string {
+            if ($request->is('staff/tools') || $request->is('staff/tools/*')) {
+                return route('tool.login');
+            }
+
             if (($request->is('horizon') || $request->is('horizon/*')) && ! $request->is('horizon/api/*')) {
-                return route('horizon.login');
+                return route('tool.login');
+            }
+
+            if (($request->is('telescope') || $request->is('telescope/*')) && ! $request->is('telescope/telescope-api/*')) {
+                return route('tool.login');
             }
 
             $guards = ['staff', 'hospital', 'beauty', 'user'];
@@ -70,7 +78,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
-            'horizon.ip' => EnsureHorizonIpAllowed::class,
+            'internal_tool.ip' => EnsureInternalToolIpAllowed::class,
 
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,

@@ -53,6 +53,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 카테고리 관리
      **/
+    Route::get('categories/selector', [CategoryForStaffController::class, 'getCategorySelectorForStaff'])
+        ->name('categories.getCategorySelectorForStaff');
     Route::get('categories', [CategoryForStaffController::class, 'getCategoriesForStaff'])
         ->name('categories.getCategoriesForStaff');
     Route::get('categories/{category}', [CategoryForStaffController::class, 'getCategoryForStaff'])

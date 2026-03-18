@@ -4,7 +4,6 @@ namespace App\Domains\Common\Queries\Category\Staff;
 
 use App\Domains\Common\Models\Category\Category;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 final class CategoryListForStaffQuery
@@ -18,11 +17,6 @@ final class CategoryListForStaffQuery
             ->withQueryString();
     }
 
-    public function get(array $filters): Collection
-    {
-        return $this->buildQuery($filters)->get();
-    }
-
     private function buildQuery(array $filters): Builder
     {
         $domain = (string) $filters['domain'];
@@ -31,7 +25,6 @@ final class CategoryListForStaffQuery
         $include = $filters['include'] ?? [];
         $parentId = $filters['parent_id'] ?? null;
         $depth = $filters['depth'] ?? null;
-        $withoutPagination = (bool) ($filters['without_pagination'] ?? false);
         $isMenuVisible = $filters['is_menu_visible'] ?? null;
         $sort = $filters['sort'] ?? 'sort_order';
         $direction = $filters['direction'] ?? 'asc';
@@ -64,29 +57,27 @@ final class CategoryListForStaffQuery
             ) as has_children'
         );
 
-        if (! $withoutPagination) {
-            $builder->selectSub(
-                Category::query()
-                    ->from('categories as c2')
-                    ->selectRaw('COUNT(*)')
-                    ->whereColumn('c2.domain', 'categories.domain')
-                    ->whereColumn('c2.parent_id', 'categories.id')
-                    ->where('c2.depth', 2),
-                'middle_count',
-            );
+        $builder->selectSub(
+            Category::query()
+                ->from('categories as c2')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('c2.domain', 'categories.domain')
+                ->whereColumn('c2.parent_id', 'categories.id')
+                ->where('c2.depth', 2),
+            'middle_count',
+        );
 
-            $builder->selectSub(
-                Category::query()
-                    ->from('categories as c3')
-                    ->selectRaw('COUNT(*)')
-                    ->whereColumn('c3.domain', 'categories.domain')
-                    ->where('c3.depth', 3)
-                    ->whereRaw(
-                        "c3.full_path LIKE CONCAT(COALESCE(categories.full_path, categories.name), ' > %')"
-                    ),
-                'small_count',
-            );
-        }
+        $builder->selectSub(
+            Category::query()
+                ->from('categories as c3')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('c3.domain', 'categories.domain')
+                ->where('c3.depth', 3)
+                ->whereRaw(
+                    "c3.full_path LIKE CONCAT(COALESCE(categories.full_path, categories.name), ' > %')"
+                ),
+            'small_count',
+        );
 
         if ($q) {
             $builder->where(function ($w) use ($q): void {

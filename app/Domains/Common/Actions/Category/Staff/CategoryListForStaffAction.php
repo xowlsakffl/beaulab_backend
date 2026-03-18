@@ -6,7 +6,6 @@ use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Common\Queries\Category\Staff\CategoryListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 final class CategoryListForStaffAction
 {
@@ -17,24 +16,6 @@ final class CategoryListForStaffAction
     public function execute(array $filters): array
     {
         Gate::authorize('viewAny', Category::class);
-
-        Log::info('카테고리 목록 조회', [
-            'filters' => $filters,
-        ]);
-
-        $withoutPagination = (bool) ($filters['without_pagination'] ?? false);
-
-        if ($withoutPagination) {
-            $items = $this->query->get($filters)
-                ->map(fn (Category $category) => $this->toArray($category))
-                ->values()
-                ->all();
-
-            return [
-                'items' => $items,
-                'meta' => null,
-            ];
-        }
 
         $paginator = $this->query->paginate($filters);
 
@@ -89,7 +70,6 @@ final class CategoryListForStaffAction
 
         return $data;
     }
-
     private function toSimpleArray(Category $category): array
     {
         return [

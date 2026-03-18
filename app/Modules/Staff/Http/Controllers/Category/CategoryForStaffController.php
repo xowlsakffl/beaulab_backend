@@ -10,11 +10,13 @@ use App\Domains\Common\Actions\Category\Staff\CategoryCreateForStaffAction;
 use App\Domains\Common\Actions\Category\Staff\CategoryDeleteForStaffAction;
 use App\Domains\Common\Actions\Category\Staff\CategoryGetForStaffAction;
 use App\Domains\Common\Actions\Category\Staff\CategoryListForStaffAction;
+use App\Domains\Common\Actions\Category\Staff\CategorySelectorListForStaffAction;
 use App\Domains\Common\Actions\Category\Staff\CategoryUpdateForStaffAction;
 use App\Domains\Common\Models\Category\Category;
 use App\Modules\Staff\Http\Requests\Category\CategoryCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Category\CategoryGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Category\CategoryListForStaffRequest;
+use App\Modules\Staff\Http\Requests\Category\CategorySelectorListForStaffRequest;
 use App\Modules\Staff\Http\Requests\Category\CategoryUpdateForStaffRequest;
 
 final class CategoryForStaffController extends Controller
@@ -22,6 +24,15 @@ final class CategoryForStaffController extends Controller
     public function getCategoriesForStaff(
         CategoryListForStaffRequest $request,
         CategoryListForStaffAction $action,
+    ) {
+        $result = $action->execute($request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getCategorySelectorForStaff(
+        CategorySelectorListForStaffRequest $request,
+        CategorySelectorListForStaffAction $action,
     ) {
         $result = $action->execute($request->filters());
 

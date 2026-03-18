@@ -22,6 +22,20 @@ final class CategoryListForStaffAction
             'filters' => $filters,
         ]);
 
+        $withoutPagination = (bool) ($filters['without_pagination'] ?? false);
+
+        if ($withoutPagination) {
+            $items = $this->query->get($filters)
+                ->map(fn (Category $category) => $this->toArray($category))
+                ->values()
+                ->all();
+
+            return [
+                'items' => $items,
+                'meta' => null,
+            ];
+        }
+
         $paginator = $this->query->paginate($filters);
 
         $items = collect($paginator->items())
@@ -42,7 +56,7 @@ final class CategoryListForStaffAction
 
     private function toArray(Category $category): array
     {
-        return [
+        $data = [
             'id' => (int) $category->id,
             'domain' => (string) $category->domain,
             'parent_id' => $category->parent_id !== null ? (int) $category->parent_id : null,
@@ -53,8 +67,7 @@ final class CategoryListForStaffAction
             'sort_order' => (int) $category->sort_order,
             'status' => (string) $category->status,
             'is_menu_visible' => (bool) $category->is_menu_visible,
-            'middle_count' => (int) ($category->middle_count ?? 0),
-            'small_count' => (int) ($category->small_count ?? 0),
+            'has_children' => $this->hasChildren($category),
             'icon' => $this->formatMedia($category->relationLoaded('iconMedia') ? $category->iconMedia : null),
             'created_at' => optional($category->created_at)?->toISOString(),
             'updated_at' => optional($category->updated_at)?->toISOString(),
@@ -65,6 +78,16 @@ final class CategoryListForStaffAction
                 ? $category->children->map(fn (Category $child) => $this->toSimpleArray($child))->values()->all()
                 : [],
         ];
+
+        if (array_key_exists('middle_count', $category->getAttributes())) {
+            $data['middle_count'] = (int) ($category->middle_count ?? 0);
+        }
+
+        if (array_key_exists('small_count', $category->getAttributes())) {
+            $data['small_count'] = (int) ($category->small_count ?? 0);
+        }
+
+        return $data;
     }
 
     private function toSimpleArray(Category $category): array
@@ -80,6 +103,7 @@ final class CategoryListForStaffAction
             'sort_order' => (int) $category->sort_order,
             'status' => (string) $category->status,
             'is_menu_visible' => (bool) $category->is_menu_visible,
+            'has_children' => $this->hasChildren($category),
             'icon' => $this->formatMedia($category->relationLoaded('iconMedia') ? $category->iconMedia : null),
             'created_at' => optional($category->created_at)?->toISOString(),
             'updated_at' => optional($category->updated_at)?->toISOString(),
@@ -110,5 +134,28 @@ final class CategoryListForStaffAction
             'created_at' => optional($media->created_at)?->toISOString(),
             'updated_at' => optional($media->updated_at)?->toISOString(),
         ];
+    }
+
+    private function hasChildren(Category $category): bool
+    {
+        if (array_key_exists('has_children', $category->getAttributes())) {
+            return (bool) $category->getAttribute('has_children');
+        }
+
+        if ($category->relationLoaded('children')) {
+            return $category->children->isNotEmpty();
+        }
+
+        $depth = (int) $category->depth;
+
+        if ($depth === 1) {
+            return (int) ($category->middle_count ?? 0) > 0;
+        }
+
+        if ($depth === 2) {
+            return (int) ($category->small_count ?? 0) > 0;
+        }
+
+        return false;
     }
 }

@@ -35,6 +35,7 @@ return new class extends Migration
             $table->index('status');
             $table->index('is_menu_visible');
             $table->index(['domain', 'depth', 'sort_order'], 'categories_domain_depth_sort_index');
+            $table->index(['domain', 'parent_id', 'status', 'sort_order', 'id'], 'categories_domain_parent_status_sort_id_idx');
         });
 
         DB::statement("ALTER TABLE categories COMMENT = '카테고리 마스터 테이블(도메인 통합 + 3단계 계층 구조)'");

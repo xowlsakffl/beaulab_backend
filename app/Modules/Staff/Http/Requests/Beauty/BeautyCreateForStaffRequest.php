@@ -126,8 +126,8 @@ final class BeautyCreateForStaffRequest extends FormRequest
             'category_ids.*' => '카테고리',
 
             'logo' => '로고',
-            'gallery' => '갤러리 이미지',
-            'gallery.*' => '갤러리 이미지',
+            'gallery' => '대표/내부 이미지',
+            'gallery.*' => '대표/내부 이미지',
         ];
     }
 

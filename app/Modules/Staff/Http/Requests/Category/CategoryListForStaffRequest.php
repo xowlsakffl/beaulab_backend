@@ -13,11 +13,15 @@ final class CategoryListForStaffRequest extends FormRequest
         $status = $this->normalizeToArray($this->input('status'));
         $include = $this->normalizeToArray($this->input('include'));
         $domain = $this->input('domain');
+        $withoutPagination = $this->has('without_pagination')
+            ? $this->boolean('without_pagination')
+            : null;
 
         $this->merge([
             'status' => $status,
             'include' => $include,
             'domain' => is_string($domain) ? trim($domain) : $domain,
+            'without_pagination' => $withoutPagination,
         ]);
     }
 
@@ -40,6 +44,7 @@ final class CategoryListForStaffRequest extends FormRequest
             'is_menu_visible' => ['nullable', 'boolean'],
             'sort' => ['nullable', 'in:id,name,sort_order,depth,status,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
+            'without_pagination' => ['nullable', 'boolean'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -59,6 +64,7 @@ final class CategoryListForStaffRequest extends FormRequest
             'is_menu_visible' => $validated['is_menu_visible'] ?? null,
             'sort' => $validated['sort'] ?? 'sort_order',
             'direction' => $validated['direction'] ?? 'asc',
+            'without_pagination' => (bool) ($validated['without_pagination'] ?? false),
             'per_page' => (int) ($validated['per_page'] ?? 50),
         ];
     }
@@ -77,6 +83,7 @@ final class CategoryListForStaffRequest extends FormRequest
             'is_menu_visible' => '메뉴 노출 여부',
             'sort' => '정렬 기준',
             'direction' => '정렬 방향',
+            'without_pagination' => '비페이지네이션 여부',
             'page' => '페이지',
             'per_page' => '페이지당 개수',
         ];

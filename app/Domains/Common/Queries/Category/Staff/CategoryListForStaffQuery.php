@@ -3,11 +3,27 @@
 namespace App\Domains\Common\Queries\Category\Staff;
 
 use App\Domains\Common\Models\Category\Category;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 final class CategoryListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator
+    {
+        $perPage = $filters['per_page'] ?? 50;
+
+        return $this->buildQuery($filters)
+            ->paginate((int) $perPage)
+            ->withQueryString();
+    }
+
+    public function get(array $filters): Collection
+    {
+        return $this->buildQuery($filters)->get();
+    }
+
+    private function buildQuery(array $filters): Builder
     {
         $domain = (string) $filters['domain'];
         $q = $filters['q'] ?? null;
@@ -15,10 +31,10 @@ final class CategoryListForStaffQuery
         $include = $filters['include'] ?? [];
         $parentId = $filters['parent_id'] ?? null;
         $depth = $filters['depth'] ?? null;
+        $withoutPagination = (bool) ($filters['without_pagination'] ?? false);
         $isMenuVisible = $filters['is_menu_visible'] ?? null;
         $sort = $filters['sort'] ?? 'sort_order';
         $direction = $filters['direction'] ?? 'asc';
-        $perPage = $filters['per_page'] ?? 50;
 
         $builder = Category::query()
             ->domain($domain)
@@ -38,27 +54,39 @@ final class CategoryListForStaffQuery
             ])
             ->with('iconMedia');
 
-        $builder->selectSub(
-            Category::query()
-                ->from('categories as c2')
-                ->selectRaw('COUNT(*)')
-                ->whereColumn('c2.domain', 'categories.domain')
-                ->whereColumn('c2.parent_id', 'categories.id')
-                ->where('c2.depth', 2),
-            'middle_count',
+        $builder->selectRaw(
+            'EXISTS(
+                SELECT 1
+                FROM categories as c_children
+                WHERE c_children.domain = categories.domain
+                  AND c_children.parent_id = categories.id
+                LIMIT 1
+            ) as has_children'
         );
 
-        $builder->selectSub(
-            Category::query()
-                ->from('categories as c3')
-                ->selectRaw('COUNT(*)')
-                ->whereColumn('c3.domain', 'categories.domain')
-                ->where('c3.depth', 3)
-                ->whereRaw(
-                    "c3.full_path LIKE CONCAT(COALESCE(categories.full_path, categories.name), ' > %')"
-                ),
-            'small_count',
-        );
+        if (! $withoutPagination) {
+            $builder->selectSub(
+                Category::query()
+                    ->from('categories as c2')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('c2.domain', 'categories.domain')
+                    ->whereColumn('c2.parent_id', 'categories.id')
+                    ->where('c2.depth', 2),
+                'middle_count',
+            );
+
+            $builder->selectSub(
+                Category::query()
+                    ->from('categories as c3')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('c3.domain', 'categories.domain')
+                    ->where('c3.depth', 3)
+                    ->whereRaw(
+                        "c3.full_path LIKE CONCAT(COALESCE(categories.full_path, categories.name), ' > %')"
+                    ),
+                'small_count',
+            );
+        }
 
         if ($q) {
             $builder->where(function ($w) use ($q): void {
@@ -74,8 +102,8 @@ final class CategoryListForStaffQuery
 
         if ($depth !== null) {
             $builder->where('depth', (int) $depth);
-        } elseif ($parentId === null) {
-            $builder->where('depth', 1);
+        } elseif ($parentId === null && ! $q) {
+            $builder->whereNull('parent_id');
         }
 
         if (is_array($status) && $status !== []) {
@@ -131,8 +159,6 @@ final class CategoryListForStaffQuery
             $builder->orderBy('id');
         }
 
-        return $builder
-            ->paginate((int) $perPage)
-            ->withQueryString();
+        return $builder;
     }
 }

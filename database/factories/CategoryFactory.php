@@ -148,6 +148,7 @@ final class CategoryFactory extends Factory
                         'children' => [
                             ['name' => '앞트임', 'code' => 'HS_EYE_EPICANTHOPLASTY'],
                             ['name' => '뒤트임', 'code' => 'HS_EYE_LATERAL_CANTHOPLASTY'],
+                            ['name' => '밑트임', 'code' => 'HS_EYE_LOWER_CANTHOPLASTY'],
                         ],
                     ],
                 ],
@@ -162,6 +163,7 @@ final class CategoryFactory extends Factory
                         'children' => [
                             ['name' => '연골코끝성형', 'code' => 'HS_NOSE_TIP_CARTILAGE'],
                             ['name' => '비중격연장', 'code' => 'HS_NOSE_SEPTAL_EXTENSION'],
+                            ['name' => '복코교정', 'code' => 'HS_NOSE_TIP_BULBOUS'],
                         ],
                     ],
                     [
@@ -226,6 +228,50 @@ final class CategoryFactory extends Factory
                     ],
                 ],
             ],
+            [
+                'name' => '체형성형',
+                'code' => 'HS_BODY',
+                'children' => [
+                    [
+                        'name' => '지방흡입',
+                        'code' => 'HS_BODY_LIPOSUCTION',
+                        'children' => [
+                            ['name' => '복부지방흡입', 'code' => 'HS_BODY_LIPOSUCTION_ABDOMEN'],
+                            ['name' => '허벅지지방흡입', 'code' => 'HS_BODY_LIPOSUCTION_THIGH'],
+                        ],
+                    ],
+                    [
+                        'name' => '복부성형',
+                        'code' => 'HS_BODY_ABDOMINOPLASTY',
+                        'children' => [
+                            ['name' => '미니복부성형', 'code' => 'HS_BODY_ABDOMINOPLASTY_MINI'],
+                            ['name' => '전체복부성형', 'code' => 'HS_BODY_ABDOMINOPLASTY_FULL'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => '안티에이징',
+                'code' => 'HS_ANTI_AGING',
+                'children' => [
+                    [
+                        'name' => '이마·눈썹',
+                        'code' => 'HS_ANTI_AGING_FOREHEAD_BROW',
+                        'children' => [
+                            ['name' => '이마거상', 'code' => 'HS_ANTI_AGING_FOREHEAD_LIFT'],
+                            ['name' => '눈썹거상', 'code' => 'HS_ANTI_AGING_BROW_LIFT'],
+                        ],
+                    ],
+                    [
+                        'name' => '중안면·목',
+                        'code' => 'HS_ANTI_AGING_MIDFACE_NECK',
+                        'children' => [
+                            ['name' => '중안면거상', 'code' => 'HS_ANTI_AGING_MIDFACE_LIFT'],
+                            ['name' => '목거상', 'code' => 'HS_ANTI_AGING_NECK_LIFT'],
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -275,6 +321,7 @@ final class CategoryFactory extends Factory
                         'children' => [
                             ['name' => '사각턱보톡스', 'code' => 'HT_BOTOX_JAW'],
                             ['name' => '이마보톡스', 'code' => 'HT_BOTOX_FOREHEAD'],
+                            ['name' => '미간보톡스', 'code' => 'HT_BOTOX_GLABELLA'],
                         ],
                     ],
                     [
@@ -331,6 +378,50 @@ final class CategoryFactory extends Factory
                     ],
                 ],
             ],
+            [
+                'name' => '레이저토닝',
+                'code' => 'HT_LASER_TONING',
+                'children' => [
+                    [
+                        'name' => '색소레이저',
+                        'code' => 'HT_LASER_TONING_PIGMENT',
+                        'children' => [
+                            ['name' => '피코토닝', 'code' => 'HT_LASER_TONING_PICO'],
+                            ['name' => '레블라이트', 'code' => 'HT_LASER_TONING_REVLITE'],
+                        ],
+                    ],
+                    [
+                        'name' => '홍조레이저',
+                        'code' => 'HT_LASER_TONING_REDNESS',
+                        'children' => [
+                            ['name' => '브이빔', 'code' => 'HT_LASER_TONING_VBEAM'],
+                            ['name' => '제네시스', 'code' => 'HT_LASER_TONING_GENESIS'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => '제모',
+                'code' => 'HT_HAIR_REMOVAL',
+                'children' => [
+                    [
+                        'name' => '페이스 제모',
+                        'code' => 'HT_HAIR_REMOVAL_FACE',
+                        'children' => [
+                            ['name' => '인중제모', 'code' => 'HT_HAIR_REMOVAL_PHILTRUM'],
+                            ['name' => '헤어라인제모', 'code' => 'HT_HAIR_REMOVAL_HAIRLINE'],
+                        ],
+                    ],
+                    [
+                        'name' => '바디 제모',
+                        'code' => 'HT_HAIR_REMOVAL_BODY',
+                        'children' => [
+                            ['name' => '겨드랑이제모', 'code' => 'HT_HAIR_REMOVAL_AXILLA'],
+                            ['name' => '종아리제모', 'code' => 'HT_HAIR_REMOVAL_CALF'],
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -380,6 +471,7 @@ final class CategoryFactory extends Factory
                         'children' => [
                             ['name' => 'Nail Care', 'code' => 'BE_NAIL_BASIC_CARE'],
                             ['name' => 'One Color Gel', 'code' => 'BE_NAIL_BASIC_ONE_COLOR'],
+                            ['name' => 'Strengthening Care', 'code' => 'BE_NAIL_BASIC_STRENGTH'],
                         ],
                     ],
                     [
@@ -474,6 +566,72 @@ final class CategoryFactory extends Factory
                     ],
                 ],
             ],
+            [
+                'name' => '메이크업',
+                'code' => 'BE_MAKEUP',
+                'children' => [
+                    [
+                        'name' => '데일리 메이크업',
+                        'code' => 'BE_MAKEUP_DAILY',
+                        'children' => [
+                            ['name' => '면접 메이크업', 'code' => 'BE_MAKEUP_DAILY_INTERVIEW'],
+                            ['name' => '프로필 메이크업', 'code' => 'BE_MAKEUP_DAILY_PROFILE'],
+                        ],
+                    ],
+                    [
+                        'name' => '웨딩 메이크업',
+                        'code' => 'BE_MAKEUP_WEDDING',
+                        'children' => [
+                            ['name' => '신부 메이크업', 'code' => 'BE_MAKEUP_WEDDING_BRIDE'],
+                            ['name' => '혼주 메이크업', 'code' => 'BE_MAKEUP_WEDDING_FAMILY'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => '반영구',
+                'code' => 'BE_SEMI_PERMANENT',
+                'children' => [
+                    [
+                        'name' => '눈썹',
+                        'code' => 'BE_SEMI_PERMANENT_BROW',
+                        'children' => [
+                            ['name' => '자연눈썹', 'code' => 'BE_SEMI_PERMANENT_BROW_NATURAL'],
+                            ['name' => '콤보눈썹', 'code' => 'BE_SEMI_PERMANENT_BROW_COMBO'],
+                        ],
+                    ],
+                    [
+                        'name' => '아이라인',
+                        'code' => 'BE_SEMI_PERMANENT_EYELINE',
+                        'children' => [
+                            ['name' => '점막아이라인', 'code' => 'BE_SEMI_PERMANENT_EYELINE_FILL'],
+                            ['name' => '꼬리아이라인', 'code' => 'BE_SEMI_PERMANENT_EYELINE_TAIL'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => '두피케어',
+                'code' => 'BE_SCALP',
+                'children' => [
+                    [
+                        'name' => '두피 스케일링',
+                        'code' => 'BE_SCALP_SCALING',
+                        'children' => [
+                            ['name' => '지성 두피케어', 'code' => 'BE_SCALP_SCALING_OILY'],
+                            ['name' => '각질 케어', 'code' => 'BE_SCALP_SCALING_DEAD_SKIN'],
+                        ],
+                    ],
+                    [
+                        'name' => '헤드스파',
+                        'code' => 'BE_SCALP_HEADSPA',
+                        'children' => [
+                            ['name' => '아로마 헤드스파', 'code' => 'BE_SCALP_HEADSPA_AROMA'],
+                            ['name' => '탈모 케어', 'code' => 'BE_SCALP_HEADSPA_HAIR_LOSS'],
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -490,6 +648,7 @@ final class CategoryFactory extends Factory
             ['name' => '병원 이용', 'code' => 'FAQ_HOSPITAL'],
             ['name' => '뷰티 이용', 'code' => 'FAQ_BEAUTY'],
             ['name' => '서비스 정책', 'code' => 'FAQ_POLICY'],
+            ['name' => '커뮤니티', 'code' => 'FAQ_COMMUNITY'],
         ];
     }
 }

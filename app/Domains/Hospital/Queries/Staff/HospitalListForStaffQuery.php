@@ -5,6 +5,7 @@ namespace App\Domains\Hospital\Queries\Staff;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 final class HospitalListForStaffQuery
 {
@@ -13,9 +14,11 @@ final class HospitalListForStaffQuery
      */
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $q         = $filters['q'] ?? null;
+        $q         = is_string($filters['q'] ?? null) ? trim($filters['q']) : null;
         $startDate = $filters['start_date'] ?? null;
         $endDate   = $filters['end_date'] ?? null;
+        $updatedStartDate = $filters['updated_start_date'] ?? null;
+        $updatedEndDate   = $filters['updated_end_date'] ?? null;
         $status    = $filters['status'] ?? null;
         $allow     = $filters['allow_status'] ?? null;
         $categoryIds = $filters['category_ids'] ?? null;
@@ -29,6 +32,7 @@ final class HospitalListForStaffQuery
             'id',
             'name',
             'address',
+            'address_detail',
             'tel',
             'view_count',
             'allow_status',
@@ -36,6 +40,8 @@ final class HospitalListForStaffQuery
             'created_at',
             'updated_at',
         ]);
+
+        $builder->with('logoMedia');
 
         if (is_array($include) && in_array('categories', $include, true)) {
             $builder->with([
@@ -47,12 +53,18 @@ final class HospitalListForStaffQuery
             ]);
         }
 
-        // 검색: name / address / tel LIKE 검색
-        if ($q) {
-            $builder->where(function ($w) use ($q) {
+        // 검색: id exact match + name / address / tel LIKE 검색
+        if ($q !== null && $q !== '') {
+            $searchId = ctype_digit($q) ? (int) $q : null;
+
+            $builder->where(function (Builder $w) use ($q, $searchId) {
                 $w->where('name', 'like', "%{$q}%")
                     ->orWhere('address', 'like', "%{$q}%")
                     ->orWhere('tel', 'like', "%{$q}%");
+
+                if ($searchId !== null) {
+                    $w->orWhere('id', $searchId);
+                }
             });
         }
 
@@ -64,6 +76,16 @@ final class HospitalListForStaffQuery
             $builder->whereDate('created_at', '>=', $startDate);
         } elseif ($endDate) {
             $builder->whereDate('created_at', '<=', $endDate);
+        }
+
+        // 수정일(updated_at) 기간 필터
+        if ($updatedStartDate && $updatedEndDate) {
+            $builder->whereDate('updated_at', '>=', $updatedStartDate)
+                ->whereDate('updated_at', '<=', $updatedEndDate);
+        } elseif ($updatedStartDate) {
+            $builder->whereDate('updated_at', '>=', $updatedStartDate);
+        } elseif ($updatedEndDate) {
+            $builder->whereDate('updated_at', '<=', $updatedEndDate);
         }
 
         // 필터(status, allow_status)

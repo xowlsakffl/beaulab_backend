@@ -79,7 +79,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'business_registration_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'business_address' => ['nullable', 'string', 'max:255'],
             'business_address_detail' => ['nullable', 'string', 'max:255'],
-            'issued_at' => ['date'],
+            'issued_at' => ['nullable', 'date'],
 
             // 카테고리(단일 입력)
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],

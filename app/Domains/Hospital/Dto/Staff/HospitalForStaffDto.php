@@ -3,6 +3,7 @@
 namespace App\Domains\Hospital\Dto\Staff;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
 
 final readonly class HospitalForStaffDto
@@ -11,12 +12,14 @@ final readonly class HospitalForStaffDto
         public int $id,
         public string $name,
         public ?string $address,
+        public ?string $addressDetail,
         public ?string $tel,
         public int $viewCount,
         public string $allowStatus,
         public string $status,
         public string $createdAt,
         public string $updatedAt,
+        public ?array $logo,
         public ?array $categories = null,
     ) {}
 
@@ -26,12 +29,14 @@ final readonly class HospitalForStaffDto
             id: $hospital->id,
             name: $hospital->name,
             address: $hospital->address,
+            addressDetail: $hospital->address_detail,
             tel: $hospital->tel,
             viewCount: (int) $hospital->view_count,
             allowStatus: $hospital->allow_status,
             status: $hospital->status,
             createdAt: $hospital->created_at?->toISOString() ?? '',
             updatedAt: $hospital->updated_at?->toISOString() ?? '',
+            logo: self::formatMedia($hospital->relationLoaded('logoMedia') ? $hospital->logoMedia : null),
             categories: $hospital->relationLoaded('categories')
                 ? $hospital->categories
                     ->map(fn (Category $category): array => [
@@ -49,12 +54,14 @@ final readonly class HospitalForStaffDto
             'id'           => $this->id,
             'name'         => $this->name,
             'address'      => $this->address,
+            'address_detail' => $this->addressDetail,
             'tel'          => $this->tel,
             'view_count'   => $this->viewCount,
             'allow_status' => $this->allowStatus,
             'status'       => $this->status,
             'created_at'   => $this->createdAt,
             'updated_at'   => $this->updatedAt,
+            'logo'         => $this->logo,
         ];
 
         if ($this->categories !== null) {
@@ -62,5 +69,28 @@ final readonly class HospitalForStaffDto
         }
 
         return $data;
+    }
+
+    private static function formatMedia(?Media $media): ?array
+    {
+        if (! $media) {
+            return null;
+        }
+
+        return [
+            'id' => $media->id,
+            'collection' => $media->collection,
+            'disk' => $media->disk,
+            'path' => $media->path,
+            'mime_type' => $media->mime_type,
+            'size' => $media->size,
+            'width' => $media->width,
+            'height' => $media->height,
+            'sort_order' => $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
+            'created_at' => $media->created_at?->toISOString(),
+            'updated_at' => $media->updated_at?->toISOString(),
+        ];
     }
 }

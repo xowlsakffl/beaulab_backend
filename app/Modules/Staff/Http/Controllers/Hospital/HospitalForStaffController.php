@@ -12,10 +12,15 @@ use App\Domains\Hospital\Actions\Staff\HospitalGetForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalListForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Hospital\Queries\Staff\HospitalBusinessNumberExistsForStaffQuery;
+use App\Domains\Hospital\Queries\Staff\HospitalNameExistsForStaffQuery;
+use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckBusinessNumberForStaffRequest;
+use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckNameForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalListForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalUpdateForStaffRequest;
+use Illuminate\Support\Facades\Gate;
 
 final class HospitalForStaffController extends Controller
 {
@@ -57,6 +62,45 @@ final class HospitalForStaffController extends Controller
         $result = $action->execute($request->validated());
 
         return ApiResponse::success($result['hospital'] ?? $result);
+    }
+
+    /**
+     * POST /api/v1/staff/hospitals/check-name
+     * (Beaulab) Staff 전용 병의원명 중복 확인
+     */
+    public function checkHospitalNameDuplicateForStaff(
+        HospitalCheckNameForStaffRequest $request,
+        HospitalNameExistsForStaffQuery $query,
+    ) {
+        Gate::authorize('create', Hospital::class);
+
+        $payload = $request->validated();
+        $exists = $query->exists($payload['name']);
+
+        return ApiResponse::success([
+            'exists' => $exists,
+            'available' => ! $exists,
+        ]);
+    }
+
+    /**
+     * POST /api/v1/staff/hospitals/check-business-number
+     * (Beaulab) Staff 전용 병의원 사업자등록번호 중복 확인
+     */
+    public function checkHospitalBusinessNumberDuplicateForStaff(
+        HospitalCheckBusinessNumberForStaffRequest $request,
+        HospitalBusinessNumberExistsForStaffQuery $query,
+    ) {
+        Gate::authorize('create', Hospital::class);
+
+        $payload = $request->validated();
+        $exists = $query->exists($payload['business_number']);
+
+        return ApiResponse::success([
+            'exists' => $exists,
+            'available' => ! $exists,
+            'business_number' => $payload['business_number'],
+        ]);
     }
 
     /**

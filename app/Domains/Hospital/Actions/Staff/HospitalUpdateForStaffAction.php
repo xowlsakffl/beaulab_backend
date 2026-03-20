@@ -67,7 +67,12 @@ final class HospitalUpdateForStaffAction
             if ($galleryFiles !== []) {
                 $this->deleteCollectionMedia($hospital, 'gallery');
                 $this->mediaAttachAction->attachMany($hospital, $galleryFiles, 'gallery', 'hospital', 'gallery', true);
+                return;
             }
+        }
+
+        if (array_key_exists('existing_gallery_ids', $payload) && is_array($payload['existing_gallery_ids'])) {
+            $this->syncExistingGallery($hospital, $payload['existing_gallery_ids']);
         }
     }
 
@@ -87,6 +92,7 @@ final class HospitalUpdateForStaffAction
                      'business_item',
                      'business_address',
                      'business_address_detail',
+                     'issued_at',
                  ] as $field) {
             if (array_key_exists($field, $payload)) {
                 $updates[$field] = $payload[$field];
@@ -118,6 +124,47 @@ final class HospitalUpdateForStaffAction
                 Storage::disk($media->disk)->delete($media->path);
                 $media->delete();
             });
+    }
+
+    /**
+     * @param array<int, int|string> $mediaIds
+     */
+    private function syncExistingGallery(Hospital $hospital, array $mediaIds): void
+    {
+        $galleryMedia = Media::query()
+            ->for($hospital)
+            ->collection('gallery')
+            ->ordered()
+            ->get()
+            ->keyBy(static fn (Media $media): int => (int) $media->id);
+
+        $orderedMediaIds = collect($mediaIds)
+            ->map(static fn (int|string $mediaId): int => (int) $mediaId)
+            ->filter(static fn (int $mediaId): bool => $mediaId > 0 && $galleryMedia->has($mediaId))
+            ->values();
+
+        $deletedMediaIds = $galleryMedia->keys()->diff($orderedMediaIds);
+
+        if ($deletedMediaIds->isNotEmpty()) {
+            Media::query()
+                ->whereIn('id', $deletedMediaIds->all())
+                ->get()
+                ->each(function (Media $media): void {
+                    Storage::disk($media->disk)->delete($media->path);
+                    $media->delete();
+                });
+        }
+
+        $orderedMediaIds->each(function (int $mediaId, int $index) use ($galleryMedia): void {
+            $media = $galleryMedia->get($mediaId);
+
+            if (! $media) {
+                return;
+            }
+
+            $media->setSortOrder($index);
+            $media->setPrimary($index === 0);
+        });
     }
 
     /**

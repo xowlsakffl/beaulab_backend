@@ -25,6 +25,8 @@ final class HospitalUpdateForStaffQuery
                 : $hospital->longitude,
             'tel' => array_key_exists('tel', $filter) ? $filter['tel'] : $hospital->tel,
             'email' => array_key_exists('email', $filter) ? $filter['email'] : $hospital->email,
+            'allow_status' => array_key_exists('allow_status', $filter) ? $filter['allow_status'] : $hospital->allow_status,
+            'status' => array_key_exists('status', $filter) ? $filter['status'] : $hospital->status,
             'consulting_hours' => array_key_exists('consulting_hours', $filter) ? $filter['consulting_hours'] : $hospital->consulting_hours,
             'direction' => array_key_exists('direction', $filter) ? $filter['direction'] : $hospital->direction,
         ]);

@@ -4,6 +4,7 @@
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -66,6 +67,8 @@ final class HospitalCreateForStaffRequest extends FormRequest
             // 연락처
             'tel' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
+            'allow_status' => ['required', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
+            'status' => ['required', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
 
             /**
              * 사업자 정보
@@ -111,6 +114,8 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'longitude' => '경도',
             'tel' => '대표 번호',
             'email' => '대표 이메일',
+            'allow_status' => '검수 상태',
+            'status' => '운영 상태',
 
             'business_number' => '사업자 등록번호',
             'company_name' => '상호명',

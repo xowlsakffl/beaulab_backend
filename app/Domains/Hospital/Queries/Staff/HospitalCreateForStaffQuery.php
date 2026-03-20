@@ -31,8 +31,8 @@ final class HospitalCreateForStaffQuery
 
             // 생성 시 정책 기본값
             'view_count'       => 0,
-            'allow_status'     => 'PENDING',
-            'status'           => 'SUSPENDED',
+            'allow_status'     => $data['allow_status'] ?? Hospital::ALLOW_PENDING,
+            'status'           => $data['status'] ?? Hospital::STATUS_SUSPENDED,
         ]);
     }
 }

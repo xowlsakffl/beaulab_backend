@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,6 +24,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'longitude',
             'tel',
             'email',
+            'allow_status',
+            'status',
             'business_number',
             'company_name',
             'ceo_name',
@@ -30,6 +33,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'business_item',
             'business_address',
             'business_address_detail',
+            'issued_at',
         ];
 
         foreach ($nullableKeys as $key) {
@@ -49,6 +53,10 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
         if (array_key_exists('category_ids', $data)) {
             $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
+        }
+
+        if (array_key_exists('existing_gallery_ids', $data)) {
+            $data['existing_gallery_ids'] = $this->normalizeIdList($data['existing_gallery_ids']);
         }
 
         $this->replace($data);
@@ -77,6 +85,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
             'tel' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
+            'allow_status' => ['nullable', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
+            'status' => ['nullable', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
             'business_number' => [
                 'nullable',
                 'string',
@@ -87,6 +97,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'ceo_name' => ['nullable', 'string', 'max:100'],
             'business_type' => ['nullable', 'string', 'max:100'],
             'business_item' => ['nullable', 'string', 'max:100'],
+            'issued_at' => ['nullable', 'date'],
             'business_registration_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'business_address' => ['nullable', 'string', 'max:255'],
             'business_address_detail' => ['nullable', 'string', 'max:255'],
@@ -97,6 +108,30 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
                     ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
                     ->where('status', Category::STATUS_ACTIVE)),
+            ],
+            'existing_gallery_ids' => ['sometimes', 'array', 'max:12'],
+            'existing_gallery_ids.*' => [
+                'integer',
+                'distinct',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $hospital = $this->route('hospital');
+
+                    if (! $hospital instanceof Hospital) {
+                        $fail('병의원 정보를 확인할 수 없습니다.');
+                        return;
+                    }
+
+                    $exists = Media::query()
+                        ->whereKey((int) $value)
+                        ->where('model_type', Hospital::class)
+                        ->where('model_id', $hospital->getKey())
+                        ->where('collection', 'gallery')
+                        ->exists();
+
+                    if (! $exists) {
+                        $fail('선택한 대표/내부 이미지 정보가 올바르지 않습니다.');
+                    }
+                },
             ],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'gallery' => ['nullable', 'array', 'min:1', 'max:12'],
@@ -117,6 +152,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'longitude' => '경도',
             'tel' => '대표 번호',
             'email' => '대표 이메일',
+            'allow_status' => '검수 상태',
+            'status' => '운영 상태',
 
             'business_number' => '사업자 등록번호',
             'company_name' => '상호명',
@@ -129,6 +166,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'issued_at' => '사업자 등록일',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
+            'existing_gallery_ids' => '대표/내부 이미지 목록',
+            'existing_gallery_ids.*' => '대표/내부 이미지',
 
             'logo' => '로고',
             'gallery' => '대표/내부 이미지',

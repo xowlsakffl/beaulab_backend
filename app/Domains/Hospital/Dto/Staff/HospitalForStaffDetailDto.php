@@ -5,6 +5,7 @@ namespace App\Domains\Hospital\Dto\Staff;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
+use App\Domains\HospitalFeature\Models\HospitalFeature;
 use Illuminate\Support\Collection;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
@@ -45,6 +46,16 @@ final readonly class HospitalForStaffDetailDto
                     'id' => (int) $category->id,
                     'name' => (string) $category->name,
                     'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+                ])
+                ->values()
+                ->all(),
+            'features' => self::resolveFeatures($hospital)
+                ->map(fn (HospitalFeature $feature): array => [
+                    'id' => (int) $feature->id,
+                    'code' => (string) $feature->code,
+                    'name' => (string) $feature->name,
+                    'sort_order' => (int) $feature->sort_order,
+                    'status' => (string) $feature->status,
                 ])
                 ->values()
                 ->all(),
@@ -158,5 +169,17 @@ final readonly class HospitalForStaffDetailDto
         }
 
         return $hospital->categories;
+    }
+
+    /**
+     * @return Collection<int, HospitalFeature>
+     */
+    private static function resolveFeatures(Hospital $hospital): Collection
+    {
+        if (! $hospital->relationLoaded('features')) {
+            return collect();
+        }
+
+        return $hospital->features;
     }
 }

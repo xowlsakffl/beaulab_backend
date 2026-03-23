@@ -9,6 +9,7 @@ use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
 use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalTalk\HospitalTalkForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalTalkComment\HospitalTalkCommentForStaffController;
@@ -39,6 +40,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 병원 관리
      **/
+    Route::get('hospital-features', [HospitalFeatureForStaffController::class, 'getHospitalFeaturesForStaff'])
+        ->name('hospital-features.getHospitalFeaturesForStaff');
     Route::get('hospitals', [HospitalForStaffController::class, 'getHospitalsForStaff'])
         ->name('hospitals.getHospitalsForStaff');
     Route::post('hospitals/check-name', [HospitalForStaffController::class, 'checkHospitalNameDuplicateForStaff'])

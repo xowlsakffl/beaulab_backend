@@ -53,6 +53,15 @@ final class HospitalListForStaffQuery
             ]);
         }
 
+        if (is_array($include) && in_array('features', $include, true)) {
+            $builder->with([
+                'features' => fn ($query) => $query
+                    ->select(['hospital_features.id', 'hospital_features.code', 'hospital_features.name', 'hospital_features.sort_order', 'hospital_features.status'])
+                    ->orderBy('hospital_features.sort_order')
+                    ->orderBy('hospital_features.id'),
+            ]);
+        }
+
         // 검색: id exact match + name / address / tel LIKE 검색
         if ($q !== null && $q !== '') {
             $searchId = ctype_digit($q) ? (int) $q : null;

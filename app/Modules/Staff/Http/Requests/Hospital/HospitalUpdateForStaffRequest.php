@@ -5,6 +5,7 @@ namespace App\Modules\Staff\Http\Requests\Hospital;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalFeature\Models\HospitalFeature;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -55,6 +56,10 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
         }
 
+        if (array_key_exists('feature_ids', $data)) {
+            $data['feature_ids'] = $this->normalizeIdList($data['feature_ids']);
+        }
+
         if (array_key_exists('existing_gallery_ids', $data)) {
             $data['existing_gallery_ids'] = $this->normalizeIdList($data['existing_gallery_ids']);
         }
@@ -70,19 +75,13 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // name은 변경 불가(수정 입력에서 제외)
-
             'description' => ['nullable', 'string', 'max:5000'],
             'consulting_hours' => ['nullable', 'string', 'max:5000'],
             'direction' => ['nullable', 'string', 'max:5000'],
-
             'address' => ['nullable', 'string', 'max:255'],
             'address_detail' => ['nullable', 'string', 'max:255'],
-
-            // 좌표 (DB는 string이지만 입력은 숫자 형태를 강제)
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-
             'tel' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
             'allow_status' => ['nullable', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
@@ -108,6 +107,13 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
                     ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
                     ->where('status', Category::STATUS_ACTIVE)),
+            ],
+            'feature_ids' => ['sometimes', 'array', 'max:100'],
+            'feature_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('hospital_features', 'id')->where(static fn ($query) => $query
+                    ->where('status', HospitalFeature::STATUS_ACTIVE)),
             ],
             'existing_gallery_ids' => ['sometimes', 'array', 'max:12'],
             'existing_gallery_ids.*' => [
@@ -142,8 +148,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => '병원명',
-            'description' => '병원 소개',
+            'name' => '병의원명',
+            'description' => '병의원 소개',
             'consulting_hours' => '상담 가능 시간',
             'direction' => '찾아오는 길',
             'address' => '주소',
@@ -154,8 +160,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'email' => '대표 이메일',
             'allow_status' => '검수 상태',
             'status' => '운영 상태',
-
-            'business_number' => '사업자 등록번호',
+            'business_number' => '사업자등록번호',
             'company_name' => '상호명',
             'ceo_name' => '대표자',
             'business_type' => '업태',
@@ -163,12 +168,13 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'business_registration_file' => '사업자등록증 파일',
             'business_address' => '사업장 주소',
             'business_address_detail' => '사업장 상세 주소',
-            'issued_at' => '사업자 등록일',
+            'issued_at' => '사업자등록일',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
+            'feature_ids' => '병원 특징 목록',
+            'feature_ids.*' => '병원 특징',
             'existing_gallery_ids' => '대표/내부 이미지 목록',
             'existing_gallery_ids.*' => '대표/내부 이미지',
-
             'logo' => '로고',
             'gallery' => '대표/내부 이미지',
             'gallery.*' => '대표/내부 이미지',
@@ -178,9 +184,11 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     private function businessRegistrationId(): ?int
     {
         $hospital = $this->route('hospital');
+
         if (! $hospital instanceof Hospital) {
             return null;
         }
+
         return $hospital->businessRegistration()->value('id');
     }
 

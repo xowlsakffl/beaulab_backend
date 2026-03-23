@@ -47,7 +47,7 @@ final class HospitalListForStaffRequest extends FormRequest
                     ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])),
             ],
             'include' => ['nullable', 'array'],
-            'include.*' => ['in:categories'],
+            'include.*' => ['in:categories,features'],
 
             'sort'         => ['nullable', 'in:id,name,view_count,allow_status,status,created_at,updated_at'],
             'direction'    => ['nullable', 'in:asc,desc'],

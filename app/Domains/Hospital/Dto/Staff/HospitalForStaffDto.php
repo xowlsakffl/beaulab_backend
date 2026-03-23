@@ -5,6 +5,7 @@ namespace App\Domains\Hospital\Dto\Staff;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalFeature\Models\HospitalFeature;
 
 final readonly class HospitalForStaffDto
 {
@@ -21,6 +22,7 @@ final readonly class HospitalForStaffDto
         public string $updatedAt,
         public ?array $logo,
         public ?array $categories = null,
+        public ?array $features = null,
     ) {}
 
     public static function fromModel(Hospital $hospital): self
@@ -41,6 +43,15 @@ final readonly class HospitalForStaffDto
                 ? $hospital->categories
                     ->map(fn (Category $category): array => [
                         'name' => (string) $category->name,
+                    ])
+                    ->values()
+                    ->all()
+                : null,
+            features: $hospital->relationLoaded('features')
+                ? $hospital->features
+                    ->map(fn (HospitalFeature $feature): array => [
+                        'code' => (string) $feature->code,
+                        'name' => (string) $feature->name,
                     ])
                     ->values()
                     ->all()
@@ -66,6 +77,10 @@ final readonly class HospitalForStaffDto
 
         if ($this->categories !== null) {
             $data['categories'] = $this->categories;
+        }
+
+        if ($this->features !== null) {
+            $data['features'] = $this->features;
         }
 
         return $data;

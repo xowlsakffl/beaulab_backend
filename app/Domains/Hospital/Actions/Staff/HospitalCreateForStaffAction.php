@@ -41,13 +41,14 @@ final class HospitalCreateForStaffAction
 
             $this->businessRegistrationCreateAction->execute($hospital, $filters);
             $this->syncCategories($hospital, $filters['category_ids'] ?? []);
+            $this->syncFeatures($hospital, $filters['feature_ids'] ?? []);
 
             return $hospital->fresh();
         });
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
-                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories']),
+                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features']),
                 ['business_registration'],
             )->toArray(),
         ];
@@ -76,5 +77,28 @@ final class HospitalCreateForStaffAction
         }
 
         $hospital->categories()->sync($payload);
+    }
+
+    /**
+     * @param array<int, int|string> $featureIds
+     */
+    private function syncFeatures(Hospital $hospital, array $featureIds): void
+    {
+        if ($featureIds === []) {
+            return;
+        }
+
+        $payload = collect($featureIds)
+            ->map(static fn (int|string $featureId): int => (int) $featureId)
+            ->filter(static fn (int $featureId): bool => $featureId > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($payload === []) {
+            return;
+        }
+
+        $hospital->features()->sync($payload);
     }
 }

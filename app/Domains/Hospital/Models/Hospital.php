@@ -10,10 +10,12 @@ use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
+use App\Domains\HospitalFeature\Models\HospitalFeature;
 use Database\Factories\HospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -104,6 +106,14 @@ final class Hospital extends Model
         return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')
             ->withPivot('is_primary')
             ->withTimestamps();
+    }
+
+    public function features(): BelongsToMany
+    {
+        return $this->belongsToMany(HospitalFeature::class, 'hospital_feature_assignments', 'hospital_id', 'hospital_feature_id')
+            ->withTimestamps()
+            ->orderBy('hospital_features.sort_order')
+            ->orderBy('hospital_features.id');
     }
 
     public function isApproved(): bool

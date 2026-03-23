@@ -17,7 +17,7 @@ final class HospitalGetForStaffAction
     {
         Gate::authorize('view', $hospital);
 
-        $relations = ['logoMedia', 'galleryMedia', 'categories'];
+        $relations = ['logoMedia', 'galleryMedia', 'categories', 'features'];
 
         if (in_array('business_registration', $include, true)) {
             $relations[] = 'businessRegistration.certificateMedia';

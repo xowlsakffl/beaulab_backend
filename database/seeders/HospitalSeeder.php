@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalFeature\Models\HospitalFeature;
 use Illuminate\Database\Seeder;
 
 final class HospitalSeeder extends Seeder
@@ -18,6 +19,7 @@ final class HospitalSeeder extends Seeder
             ->withAccountHospital()
             ->create();
         $this->attachRandomCategories($approvedHospitals);
+        $this->attachRandomFeatures($approvedHospitals);
 
         $mixedHospitals = Hospital::factory()
             ->count(5)
@@ -25,6 +27,7 @@ final class HospitalSeeder extends Seeder
             ->withAccountHospital()
             ->create();
         $this->attachRandomCategories($mixedHospitals);
+        $this->attachRandomFeatures($mixedHospitals);
     }
 
     private function attachRandomCategories(iterable $hospitals): void
@@ -57,6 +60,34 @@ final class HospitalSeeder extends Seeder
             }
 
             $hospital->categories()->syncWithoutDetaching($payload);
+        }
+    }
+
+    private function attachRandomFeatures(iterable $hospitals): void
+    {
+        $featureIds = HospitalFeature::query()
+            ->active()
+            ->orderBy('sort_order')
+            ->pluck('id')
+            ->all();
+
+        if ($featureIds === []) {
+            return;
+        }
+
+        $maxAvailable = count($featureIds);
+        $minAssignCount = min(2, $maxAvailable);
+        $maxAssignCount = min(6, $maxAvailable);
+
+        foreach ($hospitals as $hospital) {
+            $assignCount = random_int($minAssignCount, $maxAssignCount);
+            $selectedFeatureIds = collect($featureIds)
+                ->shuffle()
+                ->take($assignCount)
+                ->values()
+                ->all();
+
+            $hospital->features()->sync($selectedFeatureIds);
         }
     }
 }

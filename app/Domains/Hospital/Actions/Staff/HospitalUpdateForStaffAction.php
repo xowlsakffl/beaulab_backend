@@ -39,13 +39,16 @@ final class HospitalUpdateForStaffAction
             if (array_key_exists('category_ids', $payload) && is_array($payload['category_ids'])) {
                 $this->syncCategories($updatedHospital, $payload['category_ids']);
             }
+            if (array_key_exists('feature_ids', $payload) && is_array($payload['feature_ids'])) {
+                $this->syncFeatures($updatedHospital, $payload['feature_ids']);
+            }
 
             return $updatedHospital->fresh();
         });
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
-                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories']),
+                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features']),
                 ['business_registration'],
             )->toArray(),
         ];
@@ -183,5 +186,20 @@ final class HospitalUpdateForStaffAction
             ->all();
 
         $hospital->categories()->sync($payload);
+    }
+
+    /**
+     * @param array<int, int|string> $featureIds
+     */
+    private function syncFeatures(Hospital $hospital, array $featureIds): void
+    {
+        $payload = collect($featureIds)
+            ->map(static fn (int|string $featureId): int => (int) $featureId)
+            ->filter(static fn (int $featureId): bool => $featureId > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $hospital->features()->sync($payload);
     }
 }

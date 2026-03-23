@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedInteger('sort_order')->default(0)->comment('의사 노출 순서');
 
             $table->string('name')->comment('의사 이름');
-            $table->string('gender', 20)->nullable()->comment('의사 성별');
+            $table->string('gender', 20)->nullable()->comment('의사 성별(남, 여)');
             $table->string('position', 50)->nullable()->comment('의사 직책(대표원장, 원장, 기타)');
 
             $table->date('career_started_at')->nullable()->comment('총 경력 시작일(누적 산정)');

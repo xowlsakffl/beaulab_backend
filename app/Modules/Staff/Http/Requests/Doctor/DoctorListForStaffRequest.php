@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Doctor;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,6 +14,7 @@ final class DoctorListForStaffRequest extends FormRequest
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
             'allow_status' => $this->normalizeToArray($this->input('allow_status')),
+            'position' => $this->normalizeToArray($this->input('position')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
             'include' => $this->normalizeToArray($this->input('include')),
         ]);
@@ -32,6 +34,16 @@ final class DoctorListForStaffRequest extends FormRequest
             'status.*' => ['in:ACTIVE,SUSPENDED,INACTIVE'],
             'allow_status' => ['nullable', 'array'],
             'allow_status.*' => ['in:PENDING,APPROVED,REJECTED'],
+            'position' => ['nullable', 'array'],
+            'position.*' => [Rule::in([
+                HospitalDoctor::POSITION_HEAD_DIRECTOR,
+                HospitalDoctor::POSITION_DIRECTOR,
+                HospitalDoctor::POSITION_ETC,
+            ])],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+            'updated_start_date' => ['nullable', 'date'],
+            'updated_end_date' => ['nullable', 'date'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -58,6 +70,11 @@ final class DoctorListForStaffRequest extends FormRequest
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
             'allow_status' => $validated['allow_status'] ?? null,
+            'position' => $validated['position'] ?? null,
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+            'updated_start_date' => $validated['updated_start_date'] ?? null,
+            'updated_end_date' => $validated['updated_end_date'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'include' => $validated['include'] ?? [],
             'is_specialist' => array_key_exists('is_specialist', $validated)
@@ -114,6 +131,12 @@ final class DoctorListForStaffRequest extends FormRequest
             'status.*' => '상태',
             'allow_status' => '승인 상태',
             'allow_status.*' => '승인 상태',
+            'position' => '직책',
+            'position.*' => '직책',
+            'start_date' => '등록 시작일',
+            'end_date' => '등록 종료일',
+            'updated_start_date' => '수정 시작일',
+            'updated_end_date' => '수정 종료일',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'include' => '포함 항목',

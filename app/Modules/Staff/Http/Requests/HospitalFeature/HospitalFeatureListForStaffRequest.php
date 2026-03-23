@@ -25,7 +25,10 @@ final class HospitalFeatureListForStaffRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
-            'status.*' => [Rule::in(HospitalFeature::statuses())],
+            'status.*' => [Rule::in([
+                HospitalFeature::STATUS_ACTIVE,
+                HospitalFeature::STATUS_INACTIVE,
+            ])],
             'sort' => ['nullable', 'in:id,code,name,sort_order,status'],
             'direction' => ['nullable', 'in:asc,desc'],
         ];
@@ -46,11 +49,11 @@ final class HospitalFeatureListForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'q' => 'search query',
-            'status' => 'feature status',
-            'status.*' => 'feature status',
-            'sort' => 'sort field',
-            'direction' => 'sort direction',
+            'q' => '검색어',
+            'status' => '병원 정보 상태',
+            'status.*' => '병원 정보 상태',
+            'sort' => '정렬 기준',
+            'direction' => '정렬 방향',
         ];
     }
 

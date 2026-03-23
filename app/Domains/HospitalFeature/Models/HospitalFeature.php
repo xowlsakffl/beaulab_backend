@@ -37,15 +37,4 @@ final class HospitalFeature extends Model
     {
         return $query->where('status', self::STATUS_ACTIVE);
     }
-
-    /**
-     * @return array<int, string>
-     */
-    public static function statuses(): array
-    {
-        return [
-            self::STATUS_ACTIVE,
-            self::STATUS_INACTIVE,
-        ];
-    }
 }

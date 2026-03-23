@@ -15,7 +15,7 @@ final class HospitalDoctorListForStaffQuery
 
         $builder = HospitalDoctor::query()->select([
             'id', 'hospital_id', 'name', 'position', 'is_specialist', 'sort_order',
-            'gender', 'careers', 'allow_status', 'status', 'view_count', 'created_at', 'updated_at',
+            'gender', 'career_started_at', 'allow_status', 'status', 'view_count', 'created_at', 'updated_at',
         ]);
 
         $builder->with([
@@ -53,6 +53,26 @@ final class HospitalDoctorListForStaffQuery
 
         if (is_array($filters['allow_status'] ?? null) && $filters['allow_status'] !== []) {
             $builder->whereIn('allow_status', $filters['allow_status']);
+        }
+
+        if (is_array($filters['position'] ?? null) && $filters['position'] !== []) {
+            $builder->whereIn('position', $filters['position']);
+        }
+
+        if (! empty($filters['start_date'])) {
+            $builder->whereDate('created_at', '>=', (string) $filters['start_date']);
+        }
+
+        if (! empty($filters['end_date'])) {
+            $builder->whereDate('created_at', '<=', (string) $filters['end_date']);
+        }
+
+        if (! empty($filters['updated_start_date'])) {
+            $builder->whereDate('updated_at', '>=', (string) $filters['updated_start_date']);
+        }
+
+        if (! empty($filters['updated_end_date'])) {
+            $builder->whereDate('updated_at', '<=', (string) $filters['updated_end_date']);
         }
 
         if (array_key_exists('is_specialist', $filters) && $filters['is_specialist'] !== null) {

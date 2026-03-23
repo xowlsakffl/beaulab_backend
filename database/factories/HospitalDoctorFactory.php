@@ -25,8 +25,15 @@ final class HospitalDoctorFactory extends Factory
             'hospital_id' => Hospital::factory(),
             'sort_order' => $this->faker->numberBetween(0, 20),
             'name' => $this->faker->name(),
-            'gender' => $this->faker->randomElement(['M', 'F']),
-            'position' => $this->faker->randomElement(['대표원장', '원장', '전문의', '상담의']),
+            'gender' => $this->faker->randomElement([
+                HospitalDoctor::GENDER_MALE,
+                HospitalDoctor::GENDER_FEMALE,
+            ]),
+            'position' => $this->faker->randomElement([
+                HospitalDoctor::POSITION_HEAD_DIRECTOR,
+                HospitalDoctor::POSITION_DIRECTOR,
+                HospitalDoctor::POSITION_ETC,
+            ]),
             'career_started_at' => $this->faker->dateTimeBetween('-15 years', '-1 year')->format('Y-m-d'),
             'license_number' => strtoupper($this->faker->bothify('DOC-########')),
             'is_specialist' => $this->faker->boolean(60),

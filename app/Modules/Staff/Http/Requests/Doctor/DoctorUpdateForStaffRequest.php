@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Doctor;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,6 +17,14 @@ final class DoctorUpdateForStaffRequest extends FormRequest
             if (array_key_exists($key, $data) && $data[$key] === '') {
                 $data[$key] = null;
             }
+        }
+
+        if (array_key_exists('position', $data)) {
+            $data['position'] = HospitalDoctor::normalizePosition($data['position']);
+        }
+
+        if (array_key_exists('gender', $data)) {
+            $data['gender'] = HospitalDoctor::normalizeGender($data['gender']);
         }
 
         foreach (['educations', 'careers', 'etc_contents'] as $key) {
@@ -44,8 +53,12 @@ final class DoctorUpdateForStaffRequest extends FormRequest
         return [
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'name' => ['nullable', 'string', 'max:255'],
-            'gender' => ['nullable', 'string', 'max:20'],
-            'position' => ['nullable', 'string', 'max:50'],
+            'gender' => ['nullable', Rule::in([HospitalDoctor::GENDER_MALE, HospitalDoctor::GENDER_FEMALE])],
+            'position' => ['nullable', Rule::in([
+                HospitalDoctor::POSITION_HEAD_DIRECTOR,
+                HospitalDoctor::POSITION_DIRECTOR,
+                HospitalDoctor::POSITION_ETC,
+            ])],
             'career_started_at' => ['nullable', 'date'],
             'license_number' => ['nullable', 'string', 'max:100'],
             'is_specialist' => ['nullable', 'boolean'],
@@ -129,4 +142,5 @@ final class DoctorUpdateForStaffRequest extends FormRequest
             ->values()
             ->all();
     }
+
 }

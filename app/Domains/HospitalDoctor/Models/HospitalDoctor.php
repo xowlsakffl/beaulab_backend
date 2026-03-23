@@ -22,6 +22,13 @@ final class HospitalDoctor extends Model
 {
     use HasFactory, SoftDeletes, HasAuditLogs;
 
+    public const GENDER_MALE = '남';
+    public const GENDER_FEMALE = '여';
+
+    public const POSITION_HEAD_DIRECTOR = '대표원장';
+    public const POSITION_DIRECTOR = '원장';
+    public const POSITION_ETC = '기타';
+
     public const ALLOW_PENDING  = 'PENDING';
     public const ALLOW_APPROVED = 'APPROVED';
     public const ALLOW_REJECTED = 'REJECTED';
@@ -67,6 +74,38 @@ final class HospitalDoctor extends Model
     protected static function newFactory(): Factory
     {
         return HospitalDoctorFactory::new();
+    }
+
+    public static function normalizeGender(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $normalized = mb_strtoupper(trim($value), 'UTF-8');
+
+        return match ($normalized) {
+            'M', 'MALE', 'MAN', self::GENDER_MALE => self::GENDER_MALE,
+            'F', 'FEMALE', 'WOMAN', self::GENDER_FEMALE => self::GENDER_FEMALE,
+            default => trim($value),
+        };
+    }
+
+    public static function normalizePosition(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        return trim($value);
     }
 
     public function hospital(): BelongsTo

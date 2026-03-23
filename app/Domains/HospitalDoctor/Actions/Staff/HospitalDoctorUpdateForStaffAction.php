@@ -34,6 +34,7 @@ final class HospitalDoctorUpdateForStaffAction
 
         return [
             'doctor' => HospitalDoctorForStaffDetailDto::fromModel($doctor->load([
+                'hospital.businessRegistration',
                 'profileImage',
                 'licenseImage',
                 'specialistCertificateImages',
@@ -56,9 +57,9 @@ final class HospitalDoctorUpdateForStaffAction
             $this->mediaAttachAction->attachOne($doctor, $payload['license_image'], 'license_image', 'doctor', 'license-image');
         }
 
-        if (array_key_exists('specialist_certificate_image', $payload) && is_array($payload['specialist_certificate_image'])) {
+        if (($payload['specialist_certificate_image'] ?? null) instanceof UploadedFile) {
             $this->deleteCollectionMedia($doctor, 'specialist_certificate_image');
-            $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['specialist_certificate_image']), 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
+            $this->mediaAttachAction->attachOne($doctor, $payload['specialist_certificate_image'], 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
         }
 
         if (array_key_exists('education_certificate_image', $payload) && is_array($payload['education_certificate_image'])) {

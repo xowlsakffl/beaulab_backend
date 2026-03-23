@@ -32,6 +32,7 @@ final class HospitalDoctorCreateForStaffAction
 
         return [
             'doctor' => HospitalDoctorForStaffDetailDto::fromModel($doctor->load([
+                'hospital.businessRegistration',
                 'profileImage',
                 'licenseImage',
                 'specialistCertificateImages',
@@ -46,8 +47,7 @@ final class HospitalDoctorCreateForStaffAction
     {
         $this->mediaAttachAction->attachOne($doctor, $payload['profile_image'] ?? null, 'profile_image', 'doctor', 'profile-image');
         $this->mediaAttachAction->attachOne($doctor, $payload['license_image'] ?? null, 'license_image', 'doctor', 'license-image');
-
-        $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['specialist_certificate_image'] ?? null), 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
+        $this->mediaAttachAction->attachOne($doctor, $payload['specialist_certificate_image'] ?? null, 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
 
         $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['education_certificate_image'] ?? null), 'education_certificate_image', 'doctor', 'education-certificate-image');
 

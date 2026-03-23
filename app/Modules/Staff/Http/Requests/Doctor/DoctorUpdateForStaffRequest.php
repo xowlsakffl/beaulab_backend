@@ -62,9 +62,9 @@ final class DoctorUpdateForStaffRequest extends FormRequest
             'career_started_at' => ['nullable', 'date'],
             'license_number' => ['nullable', 'string', 'max:100'],
             'is_specialist' => ['nullable', 'boolean'],
-            'educations' => ['nullable', 'array'],
-            'careers' => ['nullable', 'array'],
-            'etc_contents' => ['nullable', 'array'],
+            'educations' => ['nullable', 'array', 'max:10'],
+            'careers' => ['nullable', 'array', 'max:10'],
+            'etc_contents' => ['nullable', 'array', 'max:10'],
             'category_ids' => ['sometimes', 'array', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -78,11 +78,10 @@ final class DoctorUpdateForStaffRequest extends FormRequest
 
             'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'license_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'specialist_certificate_image' => ['nullable', 'array', 'max:12'],
-            'specialist_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'education_certificate_image' => ['nullable', 'array', 'max:12'],
+            'specialist_certificate_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+            'education_certificate_image' => ['nullable', 'array', 'max:5'],
             'education_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'etc_certificate_image' => ['nullable', 'array', 'max:12'],
+            'etc_certificate_image' => ['nullable', 'array', 'max:5'],
             'etc_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ];
     }
@@ -110,7 +109,6 @@ final class DoctorUpdateForStaffRequest extends FormRequest
             'license_image' => '면허증 이미지',
 
             'specialist_certificate_image' => '전문의 면허증 이미지',
-            'specialist_certificate_image.*' => '전문의 면허증 이미지',
             'education_certificate_image' => '학력 증명서 이미지',
             'education_certificate_image.*' => '학력 증명서 이미지',
             'etc_certificate_image' => '기타 증명서 이미지',

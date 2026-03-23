@@ -18,6 +18,8 @@ final readonly class HospitalDoctorForStaffDetailDto
         return new self([
             'id' => $doctor->id,
             'hospital_id' => $doctor->hospital_id,
+            'hospital_name' => $doctor->hospital?->name,
+            'hospital_business_number' => $doctor->hospital?->businessRegistration?->business_number,
             'sort_order' => (int) $doctor->sort_order,
             'name' => $doctor->name,
             'gender' => $doctor->gender,
@@ -32,7 +34,7 @@ final readonly class HospitalDoctorForStaffDetailDto
             'allow_status' => $doctor->allow_status,
             'profile_image' => self::formatMedia($doctor->profileImage),
             'license_image' => self::formatMedia($doctor->licenseImage),
-            'specialist_certificate_image' => self::formatMediaList($doctor->specialistCertificateImages),
+            'specialist_certificate_image' => self::formatMedia($doctor->specialistCertificateImages->first()),
             'education_certificate_image' => self::formatMediaList($doctor->educationCertificateImages),
             'etc_certificate_image' => self::formatMediaList($doctor->etcCertificateImages),
             'categories' => self::resolveCategories($doctor)

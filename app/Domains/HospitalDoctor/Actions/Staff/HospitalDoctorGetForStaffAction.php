@@ -13,6 +13,7 @@ final class HospitalDoctorGetForStaffAction
         Gate::authorize('view', $doctor);
 
         $doctor->load([
+            'hospital.businessRegistration',
             'profileImage',
             'licenseImage',
             'specialistCertificateImages',

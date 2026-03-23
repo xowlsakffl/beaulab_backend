@@ -20,8 +20,8 @@ final class HospitalDoctorCreateForStaffQuery
             'educations' => $data['educations'] ?? null,
             'careers' => $data['careers'] ?? null,
             'etc_contents' => $data['etc_contents'] ?? null,
-            'status' => 'SUSPENDED',
-            'allow_status' => 'PENDING',
+            'status' => $data['status'] ?? HospitalDoctor::STATUS_SUSPENDED,
+            'allow_status' => $data['allow_status'] ?? HospitalDoctor::ALLOW_PENDING,
         ]);
     }
 }

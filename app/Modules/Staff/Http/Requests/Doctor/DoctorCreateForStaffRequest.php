@@ -63,9 +63,11 @@ final class DoctorCreateForStaffRequest extends FormRequest
             'career_started_at' => ['nullable', 'date'],
             'license_number' => ['nullable', 'string', 'max:100'],
             'is_specialist' => ['nullable', 'boolean'],
-            'educations' => ['nullable', 'array'],
-            'careers' => ['nullable', 'array'],
-            'etc_contents' => ['nullable', 'array'],
+            'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],
+            'allow_status' => ['nullable', 'in:PENDING,APPROVED,REJECTED'],
+            'educations' => ['nullable', 'array', 'max:10'],
+            'careers' => ['nullable', 'array', 'max:10'],
+            'etc_contents' => ['nullable', 'array', 'max:10'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -76,13 +78,12 @@ final class DoctorCreateForStaffRequest extends FormRequest
             ],
 
             'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
-            'license_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+            'license_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
 
-            'specialist_certificate_image' => ['nullable', 'array', 'max:12'],
-            'specialist_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'education_certificate_image' => ['nullable', 'array', 'max:12'],
+            'specialist_certificate_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+            'education_certificate_image' => ['nullable', 'array', 'max:5'],
             'education_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'etc_certificate_image' => ['nullable', 'array', 'max:12'],
+            'etc_certificate_image' => ['nullable', 'array', 'max:5'],
             'etc_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ];
     }
@@ -98,6 +99,8 @@ final class DoctorCreateForStaffRequest extends FormRequest
             'career_started_at' => '경력 시작일',
             'license_number' => '면허증 번호',
             'is_specialist' => "전문의 여부",
+            'status' => '운영상태',
+            'allow_status' => '검수상태',
             'educations' => '학력 사항',
             'careers' => '경력 사항',
             'etc_contents' => '기타 사항',
@@ -108,7 +111,6 @@ final class DoctorCreateForStaffRequest extends FormRequest
             'license_image' => '면허증 이미지',
 
             'specialist_certificate_image' => '전문의 면허증 이미지',
-            'specialist_certificate_image.*' => '전문의 면허증 이미지',
             'education_certificate_image' => '학력 증명서 이미지',
             'education_certificate_image.*' => '학력 증명서 이미지',
             'etc_certificate_image' => '기타 증명서 이미지',

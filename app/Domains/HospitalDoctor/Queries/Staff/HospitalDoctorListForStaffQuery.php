@@ -15,7 +15,12 @@ final class HospitalDoctorListForStaffQuery
 
         $builder = HospitalDoctor::query()->select([
             'id', 'hospital_id', 'name', 'position', 'is_specialist', 'sort_order',
-            'allow_status', 'status', 'created_at', 'updated_at',
+            'gender', 'careers', 'allow_status', 'status', 'view_count', 'created_at', 'updated_at',
+        ]);
+
+        $builder->with([
+            'hospital:id,name',
+            'profileImage',
         ]);
 
         if (is_array($include) && in_array('categories', $include, true)) {
@@ -37,7 +42,8 @@ final class HospitalDoctorListForStaffQuery
             $builder->where(function ($query) use ($q): void {
                 $query->where('name', 'like', "%{$q}%")
                     ->orWhere('position', 'like', "%{$q}%")
-                    ->orWhere('license_number', 'like', "%{$q}%");
+                    ->orWhere('license_number', 'like', "%{$q}%")
+                    ->orWhereHas('hospital', fn ($hospitalQuery) => $hospitalQuery->where('name', 'like', "%{$q}%"));
             });
         }
 

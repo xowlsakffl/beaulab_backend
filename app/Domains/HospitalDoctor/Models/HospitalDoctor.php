@@ -8,6 +8,9 @@ use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
+use Database\Factories\HospitalDoctorFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -17,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalDoctor extends Model
 {
-    use SoftDeletes, HasAuditLogs;
+    use HasFactory, SoftDeletes, HasAuditLogs;
 
     public const ALLOW_PENDING  = 'PENDING';
     public const ALLOW_APPROVED = 'APPROVED';
@@ -44,16 +47,27 @@ final class HospitalDoctor extends Model
         'etc_contents',
         'status',
         'allow_status',
+        'view_count',
     ];
 
     protected $casts = [
         'sort_order' => 'integer',
         'is_specialist' => 'boolean',
+        'view_count' => 'integer',
         'educations' => 'array',
         'careers' => 'array',
         'etc_contents' => 'array',
         'career_started_at' => 'date',
     ];
+
+    protected $attributes = [
+        'view_count' => 0,
+    ];
+
+    protected static function newFactory(): Factory
+    {
+        return HospitalDoctorFactory::new();
+    }
 
     public function hospital(): BelongsTo
     {

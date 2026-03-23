@@ -60,7 +60,7 @@ final class DoctorUpdateForStaffRequest extends FormRequest
                     ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
-            'status' => ['nullable', 'in:ACTIVE,SUSPENDED,WITHDRAWN'],
+            'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],
             'allow_status' => ['nullable', 'in:PENDING,APPROVED,REJECTED'],
 
             'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],

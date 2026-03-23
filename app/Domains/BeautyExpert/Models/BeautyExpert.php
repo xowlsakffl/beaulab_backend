@@ -8,6 +8,9 @@ use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
+use Database\Factories\BeautyExpertFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -17,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class BeautyExpert extends Model
 {
-    use SoftDeletes, HasAuditLogs;
+    use HasFactory, SoftDeletes, HasAuditLogs;
 
     public const ALLOW_PENDING  = 'PENDING';
     public const ALLOW_APPROVED = 'APPROVED';
@@ -50,6 +53,11 @@ final class BeautyExpert extends Model
         'etc_contents' => 'array',
         'career_started_at' => 'date',
     ];
+
+    protected static function newFactory(): Factory
+    {
+        return BeautyExpertFactory::new();
+    }
 
     public function beauty(): BelongsTo
     {

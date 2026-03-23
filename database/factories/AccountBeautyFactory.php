@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\Beauty\Models\Beauty;
-use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 
@@ -38,6 +37,29 @@ final class AccountBeautyFactory extends Factory
     {
         return $this->state(fn () => [
             'password' => Hash::make($password),
+        ]);
+    }
+
+    public function forBeauty(Beauty|int $beauty): self
+    {
+        return $this->state(fn () => [
+            'beauty_id' => $beauty instanceof Beauty ? $beauty->getKey() : $beauty,
+        ]);
+    }
+
+    public function withIdentity(string $name, string $nickname, string $email): self
+    {
+        return $this->state(fn () => [
+            'name' => $name,
+            'nickname' => $nickname,
+            'email' => $email,
+        ]);
+    }
+
+    public function active(): self
+    {
+        return $this->state(fn () => [
+            'status' => AccountBeauty::STATUS_ACTIVE,
         ]);
     }
 

@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
+use Database\Factories\Support\SeedMediaFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -14,6 +15,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 final class HospitalFactory extends Factory
 {
+    private const MANAGER_SEED_COUNT = 1;
+    private const STAFF_SEED_COUNT = 2;
+
     protected $model = Hospital::class;
 
     public function definition(): array
@@ -64,7 +68,7 @@ final class HospitalFactory extends Factory
                 1
             );
 
-            for ($i = 1; $i <= 3; $i++) {
+            for ($i = 1; $i <= self::MANAGER_SEED_COUNT; $i++) {
                 $this->createAccountHospital(
                     $hospital,
                     $seedKey,
@@ -75,7 +79,7 @@ final class HospitalFactory extends Factory
                 );
             }
 
-            for ($i = 1; $i <= 10; $i++) {
+            for ($i = 1; $i <= self::STAFF_SEED_COUNT; $i++) {
                 $this->createAccountHospital(
                     $hospital,
                     $seedKey,
@@ -83,6 +87,42 @@ final class HospitalFactory extends Factory
                     '병원 직원',
                     AccessRoles::HOSPITAL_STAFF,
                     $i
+                );
+            }
+        });
+    }
+
+    public function withSeedMedia(int $galleryCount = 3): self
+    {
+        return $this->afterCreating(function (Hospital $hospital) use ($galleryCount): void {
+            $mediaAttachAction = app(MediaAttachDeleteAction::class);
+
+            $mediaAttachAction->attachOne(
+                $hospital,
+                SeedMediaFactory::image("hospital-logo-{$hospital->id}"),
+                'logo',
+                'hospital',
+                'logo',
+            );
+
+            $mediaAttachAction->attachMany(
+                $hospital,
+                SeedMediaFactory::images("hospital-gallery-{$hospital->id}", max(1, $galleryCount)),
+                'gallery',
+                'hospital',
+                'gallery',
+                true,
+            );
+
+            $businessRegistration = $hospital->businessRegistration()->first();
+
+            if ($businessRegistration instanceof HospitalBusinessRegistration) {
+                $mediaAttachAction->attachOne(
+                    $businessRegistration,
+                    SeedMediaFactory::image("hospital-business-registration-{$hospital->id}"),
+                    'business_registration_file',
+                    'hospital',
+                    'business-registration',
                 );
             }
         });
@@ -129,21 +169,19 @@ final class HospitalFactory extends Factory
             ? "{$nameLabel} {$seedKey}"
             : "{$nameLabel} {$seedKey}-{$suffix}";
 
-        $accountHospital = AccountHospital::factory()->create([
-            'email'        => $email,
-            'nickname'     => $nickname,
-            'name'         => $name,
-            'hospital_id'  => $hospital->id,
-            'status'       => AccountHospital::STATUS_ACTIVE,
-            'password'     => $rawPassword,
-        ]);
+        $accountHospitalFactory = AccountHospital::factory()
+            ->forHospital($hospital)
+            ->withIdentity($name, $nickname, $email)
+            ->active();
+
+        if ($rawPassword !== '') {
+            $accountHospitalFactory = $accountHospitalFactory->withPassword($rawPassword);
+        }
+
+        $accountHospital = $accountHospitalFactory->create();
 
         $accountHospital->syncRoles([$role]);
 
-        $accountHospital->syncPermissions([
-            ...AccessPermissions::common(),
-            ...AccessRoles::map()[$role],
-        ]);
     }
 
     public function approved(): self

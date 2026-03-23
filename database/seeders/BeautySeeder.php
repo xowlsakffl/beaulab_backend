@@ -14,13 +14,17 @@ final class BeautySeeder extends Seeder
             ->count(10)
             ->approved()
             ->active()
+            ->withBusinessRegistration()
             ->withAccountBeauty()
+            ->withSeedMedia()
             ->create();
         $this->attachRandomCategories($approvedBeauties);
 
         $mixedBeauties = Beauty::factory()
             ->count(5)
+            ->withBusinessRegistration()
             ->withAccountBeauty()
+            ->withSeedMedia()
             ->create();
         $this->attachRandomCategories($mixedBeauties);
     }

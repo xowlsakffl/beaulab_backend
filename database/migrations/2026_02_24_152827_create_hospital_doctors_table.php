@@ -38,6 +38,7 @@ return new class extends Migration
 
             $table->string('status', 20)->default('SUSPENDED')->comment('의사 상태(정상, 정지, 비활성)');
             $table->string('allow_status', 20)->default('PENDING')->comment('의사 검수 상태(검수 신청, 검수 완료, 반려 등)');
+            $table->unsignedBigInteger('view_count')->default(0)->comment('의사 조회수');
 
             $table->timestamps();
             $table->softDeletes()->comment('의사 비활성/삭제 시각');
@@ -45,6 +46,7 @@ return new class extends Migration
             $table->index(['hospital_id', 'sort_order']);
             $table->index('status');
             $table->index('allow_status');
+            $table->index('view_count');
             $table->index('is_specialist');
         });
 

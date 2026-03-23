@@ -12,19 +12,21 @@ final class HospitalSeeder extends Seeder
     public function run(): void
     {
         $approvedHospitals = Hospital::factory()
-            ->count(10)
+            ->count(15)
             ->approved()
             ->active()
             ->withBusinessRegistration()
             ->withAccountHospital()
+            ->withSeedMedia()
             ->create();
         $this->attachRandomCategories($approvedHospitals);
         $this->attachRandomFeatures($approvedHospitals);
 
         $mixedHospitals = Hospital::factory()
-            ->count(5)
+            ->count(10)
             ->withBusinessRegistration()
             ->withAccountHospital()
+            ->withSeedMedia()
             ->create();
         $this->attachRandomCategories($mixedHospitals);
         $this->attachRandomFeatures($mixedHospitals);

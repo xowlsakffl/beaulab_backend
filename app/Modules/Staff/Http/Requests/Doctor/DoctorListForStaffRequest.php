@@ -29,7 +29,7 @@ final class DoctorListForStaffRequest extends FormRequest
             'hospital_id' => ['nullable', 'integer', 'exists:hospitals,id'],
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
-            'status.*' => ['in:ACTIVE,SUSPENDED,WITHDRAWN'],
+            'status.*' => ['in:ACTIVE,SUSPENDED,INACTIVE'],
             'allow_status' => ['nullable', 'array'],
             'allow_status.*' => ['in:PENDING,APPROVED,REJECTED'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
@@ -43,7 +43,7 @@ final class DoctorListForStaffRequest extends FormRequest
             'include' => ['nullable', 'array'],
             'include.*' => ['in:categories'],
             'is_specialist' => ['nullable', 'boolean'],
-            'sort' => ['nullable', 'in:id,name,sort_order,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,name,gender,position,is_specialist,status,allow_status,sort_order,created_at,updated_at,view_count'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];

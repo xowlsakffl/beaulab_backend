@@ -136,10 +136,16 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 동영상등록 관리
      **/
+    Route::get('videos/hospital-options', [HospitalVideoForStaffController::class, 'getVideoHospitalOptionsForStaff'])
+        ->name('videos.getVideoHospitalOptionsForStaff');
+    Route::get('videos/doctor-options', [HospitalVideoForStaffController::class, 'getVideoDoctorOptionsForStaff'])
+        ->name('videos.getVideoDoctorOptionsForStaff');
     Route::get('videos', [HospitalVideoForStaffController::class, 'getVideosForStaff'])
         ->name('videos.getVideosForStaff');
     Route::get('videos/{video}', [HospitalVideoForStaffController::class, 'getVideoForStaff'])
         ->name('videos.getVideoForStaff');
+    Route::get('videos/{video}/edit', [HospitalVideoForStaffController::class, 'getVideoForEditForStaff'])
+        ->name('videos.getVideoForEditForStaff');
     Route::post('videos', [HospitalVideoForStaffController::class, 'storeVideoForStaff'])
         ->name('videos.storeVideoForStaff');
     Route::match(['post', 'put', 'patch'], 'videos/{video}', [HospitalVideoForStaffController::class, 'updateVideoForStaff'])

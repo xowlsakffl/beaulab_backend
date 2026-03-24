@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Domains\HospitalDoctor\Actions\Staff;
+namespace App\Domains\HospitalVideo\Actions\Staff;
 
-use App\Domains\HospitalDoctor\Queries\Staff\DoctorHospitalOptionListForStaffQuery;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalVideo\Queries\Staff\HospitalVideoHospitalOptionListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
 
-final class DoctorHospitalOptionListForStaffAction
+final class HospitalVideoHospitalOptionListForStaffAction
 {
     public function __construct(
-        private readonly DoctorHospitalOptionListForStaffQuery $query,
+        private readonly HospitalVideoHospitalOptionListForStaffQuery $query,
     ) {}
 
     public function execute(array $filters): array

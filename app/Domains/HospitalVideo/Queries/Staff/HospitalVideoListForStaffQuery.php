@@ -33,6 +33,7 @@ final class HospitalVideoListForStaffQuery
             ->with([
                 'hospital:id,name',
                 'doctor:id,name',
+                'thumbnailMedia',
                 'categories' => fn ($query) => $query
                     ->select(['categories.id', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')

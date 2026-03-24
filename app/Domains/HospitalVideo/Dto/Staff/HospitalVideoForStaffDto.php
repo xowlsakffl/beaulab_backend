@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalVideo\Dto\Staff;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Support\Collection;
 
@@ -15,6 +16,7 @@ final readonly class HospitalVideoForStaffDto
         public ?int $doctorId,
         public ?string $doctorName,
         public string $title,
+        public ?array $thumbnailFile,
         public string $activityScope,
         public string $distributionChannel,
         public ?string $externalVideoId,
@@ -42,6 +44,7 @@ final readonly class HospitalVideoForStaffDto
             doctorId: $video->doctor_id,
             doctorName: $video->doctor?->name,
             title: $video->title,
+            thumbnailFile: self::formatMedia($video->relationLoaded('thumbnailMedia') ? $video->thumbnailMedia : null),
             activityScope: self::resolveActivityScope($video),
             distributionChannel: $video->distribution_channel,
             externalVideoId: $video->external_video_id,
@@ -80,6 +83,7 @@ final readonly class HospitalVideoForStaffDto
             'doctor_id' => $this->doctorId,
             'doctor_name' => $this->doctorName,
             'title' => $this->title,
+            'thumbnail_file' => $this->thumbnailFile,
             'activity_scope' => $this->activityScope,
             'distribution_channel' => $this->distributionChannel,
             'external_video_id' => $this->externalVideoId,
@@ -130,5 +134,28 @@ final readonly class HospitalVideoForStaffDto
             ->unique()
             ->values()
             ->implode(', ');
+    }
+
+    private static function formatMedia(?Media $media): ?array
+    {
+        if (! $media) {
+            return null;
+        }
+
+        return [
+            'id' => $media->id,
+            'collection' => $media->collection,
+            'disk' => $media->disk,
+            'path' => $media->path,
+            'mime_type' => $media->mime_type,
+            'size' => $media->size,
+            'width' => $media->width,
+            'height' => $media->height,
+            'sort_order' => $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
+            'created_at' => $media->created_at?->toISOString(),
+            'updated_at' => $media->updated_at?->toISOString(),
+        ];
     }
 }

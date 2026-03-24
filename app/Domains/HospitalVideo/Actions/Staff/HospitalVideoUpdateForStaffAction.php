@@ -44,7 +44,13 @@ final class HospitalVideoUpdateForStaffAction
                 $this->syncCategories($updated, $normalized['category_ids']);
             }
 
-            return $updated->fresh(['thumbnailMedia', 'videoFileMedia', 'categories']);
+            return $updated->fresh([
+                'hospital',
+                'doctor',
+                'thumbnailMedia',
+                'videoFileMedia',
+                'categories',
+            ]);
         });
 
         return [

@@ -88,7 +88,7 @@ class AccountBeauty extends Authenticatable
     }
 
     /**
-     * 상태 헬퍼
+     * 운영 상태 헬퍼
      */
     public function isActive(): bool
     {

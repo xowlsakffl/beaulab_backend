@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('full_path', 255)->nullable()->comment('카테고리 전체 경로(예: 눈 > 쌍꺼풀 > 자연유착)');
 
             $table->unsignedInteger('sort_order')->default(0)->comment('노출 순서');
-            $table->string('status', 20)->default('ACTIVE')->comment('카테고리 상태(ACTIVE, INACTIVE)');
+            $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(ACTIVE, INACTIVE)');
             $table->boolean('is_menu_visible')->default(true)->comment('앱 메뉴 노출 여부');
 
             $table->timestamps();

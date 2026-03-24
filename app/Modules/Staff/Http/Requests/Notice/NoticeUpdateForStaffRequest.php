@@ -64,7 +64,7 @@ final class NoticeUpdateForStaffRequest extends FormRequest
             'channel' => '공지 채널',
             'title' => '제목',
             'content' => '내용',
-            'status' => '상태',
+            'status' => '운영 상태',
             'is_pinned' => '상단 공지 여부',
             'pinned_order' => '상단 정렬 순서',
             'is_publish_period_unlimited' => '게시기간 무제한 여부',

@@ -38,7 +38,7 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
     {
         return [
             'name' => '이름',
-            'status' => '상태',
+            'status' => '운영 상태',
         ];
     }
 

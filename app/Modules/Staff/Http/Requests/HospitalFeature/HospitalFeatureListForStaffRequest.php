@@ -50,8 +50,8 @@ final class HospitalFeatureListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
-            'status' => '병원 정보 상태',
-            'status.*' => '병원 정보 상태',
+            'status' => '운영 상태',
+            'status.*' => '운영 상태',
             'sort' => '정렬 기준',
             'direction' => '정렬 방향',
         ];

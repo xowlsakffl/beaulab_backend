@@ -40,9 +40,10 @@ final class AccessPermissions
     public const BEAULAB_EXPERT_UPDATE = 'beaulab.expert.update';
     public const BEAULAB_EXPERT_DELETE = 'beaulab.expert.delete';
 
-    public const BEAULAB_VIDEO_REQUEST_SHOW = 'beaulab.video-request.show';
-    public const BEAULAB_VIDEO_REQUEST_UPDATE = 'beaulab.video-request.update';
-    public const BEAULAB_VIDEO_REQUEST_DELETE = 'beaulab.video-request.delete';
+    public const BEAULAB_VIDEO_SHOW = 'beaulab.video.show';
+    public const BEAULAB_VIDEO_CREATE = 'beaulab.video.create';
+    public const BEAULAB_VIDEO_UPDATE = 'beaulab.video.update';
+    public const BEAULAB_VIDEO_DELETE = 'beaulab.video.delete';
     public const BEAULAB_TALK_SHOW = 'beaulab.talk.show';
     public const BEAULAB_TALK_CREATE = 'beaulab.talk.create';
     public const BEAULAB_TALK_UPDATE = 'beaulab.talk.update';
@@ -66,10 +67,10 @@ final class AccessPermissions
     public const HOSPITAL_PROFILE_DELETE = 'hospital.profile.delete';
     public const HOSPITAL_MEMBERS_MANAGE = 'hospital.members.manage';
 
-    public const HOSPITAL_VIDEO_REQUEST_SHOW = 'hospital.video-request.show';
-    public const HOSPITAL_VIDEO_REQUEST_CREATE = 'hospital.video-request.create';
-    public const HOSPITAL_VIDEO_REQUEST_UPDATE = 'hospital.video-request.update';
-    public const HOSPITAL_VIDEO_REQUEST_CANCEL = 'hospital.video-request.cancel';
+    public const HOSPITAL_VIDEO_SHOW = 'hospital.video.show';
+    public const HOSPITAL_VIDEO_CREATE = 'hospital.video.create';
+    public const HOSPITAL_VIDEO_UPDATE = 'hospital.video.update';
+    public const HOSPITAL_VIDEO_CANCEL = 'hospital.video.cancel';
 
     // Beauty
     public const BEAUTY_PROFILE_SHOW = 'beauty.profile.show';
@@ -77,10 +78,10 @@ final class AccessPermissions
     public const BEAUTY_PROFILE_DELETE = 'beauty.profile.delete';
     public const BEAUTY_MEMBERS_MANAGE = 'beauty.members.manage';
 
-    public const BEAUTY_VIDEO_REQUEST_SHOW = 'beauty.video-request.show';
-    public const BEAUTY_VIDEO_REQUEST_CREATE = 'beauty.video-request.create';
-    public const BEAUTY_VIDEO_REQUEST_UPDATE = 'beauty.video-request.update';
-    public const BEAUTY_VIDEO_REQUEST_CANCEL = 'beauty.video-request.cancel';
+    public const BEAUTY_VIDEO_SHOW = 'beauty.video.show';
+    public const BEAUTY_VIDEO_CREATE = 'beauty.video.create';
+    public const BEAUTY_VIDEO_UPDATE = 'beauty.video.update';
+    public const BEAUTY_VIDEO_CANCEL = 'beauty.video.cancel';
 
     // User
     public const USER_PROFILE_SHOW = 'user.profile.show';
@@ -183,9 +184,10 @@ final class AccessPermissions
             self::BEAULAB_EXPERT_UPDATE,
             self::BEAULAB_EXPERT_DELETE,
 
-            self::BEAULAB_VIDEO_REQUEST_SHOW,
-            self::BEAULAB_VIDEO_REQUEST_UPDATE,
-            self::BEAULAB_VIDEO_REQUEST_DELETE,
+            self::BEAULAB_VIDEO_SHOW,
+            self::BEAULAB_VIDEO_CREATE,
+            self::BEAULAB_VIDEO_UPDATE,
+            self::BEAULAB_VIDEO_DELETE,
             self::BEAULAB_TALK_SHOW,
             self::BEAULAB_TALK_CREATE,
             self::BEAULAB_TALK_UPDATE,
@@ -228,10 +230,10 @@ final class AccessPermissions
             self::HOSPITAL_PROFILE_UPDATE,
             self::HOSPITAL_PROFILE_DELETE,
             self::HOSPITAL_MEMBERS_MANAGE,
-            self::HOSPITAL_VIDEO_REQUEST_SHOW,
-            self::HOSPITAL_VIDEO_REQUEST_CREATE,
-            self::HOSPITAL_VIDEO_REQUEST_UPDATE,
-            self::HOSPITAL_VIDEO_REQUEST_CANCEL,
+            self::HOSPITAL_VIDEO_SHOW,
+            self::HOSPITAL_VIDEO_CREATE,
+            self::HOSPITAL_VIDEO_UPDATE,
+            self::HOSPITAL_VIDEO_CANCEL,
         ];
     }
 
@@ -245,10 +247,10 @@ final class AccessPermissions
             self::BEAUTY_PROFILE_UPDATE,
             self::BEAUTY_PROFILE_DELETE,
             self::BEAUTY_MEMBERS_MANAGE,
-            self::BEAUTY_VIDEO_REQUEST_SHOW,
-            self::BEAUTY_VIDEO_REQUEST_CREATE,
-            self::BEAUTY_VIDEO_REQUEST_UPDATE,
-            self::BEAUTY_VIDEO_REQUEST_CANCEL,
+            self::BEAUTY_VIDEO_SHOW,
+            self::BEAUTY_VIDEO_CREATE,
+            self::BEAUTY_VIDEO_UPDATE,
+            self::BEAUTY_VIDEO_CANCEL,
         ];
     }
 

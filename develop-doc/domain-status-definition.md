@@ -71,13 +71,13 @@
 
 ### 2.5 `Hospital` (병원)
 
-#### 승인 상태 (`allow_status`)
+#### 검수 상태 (`allow_status`)
 
-| 상수명 | 저장값 | 상태명 | 의미 |
-|---|---|---|---|
-| `ALLOW_PENDING` | `PENDING` | 승인 대기 | 검수 신청 후 결과 대기 |
-| `ALLOW_APPROVED` | `APPROVED` | 승인 완료 | 검수 통과 |
-| `ALLOW_REJECTED` | `REJECTED` | 승인 거절 | 검수 반려 |
+| 상수명 | 저장값 | 상태명   | 의미 |
+|---|---|-------|---|
+| `ALLOW_PENDING` | `PENDING` | 검수 대기 | 검수 신청 후 결과 대기 |
+| `ALLOW_APPROVED` | `APPROVED` | 검수 완료 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 검수 거절 | 검수 반려 |
 
 #### 운영 상태 (`status`)
 
@@ -88,18 +88,18 @@
 | `STATUS_WITHDRAWN` | `WITHDRAWN` | 탈퇴/종료 | 운영 종료 상태 |
 
 기본값:
-- `allow_status`: `ALLOW_PENDING` (승인 대기)
+- `allow_status`: `ALLOW_PENDING` (검수 대기)
 - `status`: `STATUS_SUSPENDED` (운영정지)
 
 ### 2.6 `Beauty` (뷰티 업체)
 
-#### 승인 상태 (`allow_status`)
+#### 검수 상태 (`allow_status`)
 
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
-| `ALLOW_PENDING` | `PENDING` | 승인 대기 | 검수 신청 후 결과 대기 |
-| `ALLOW_APPROVED` | `APPROVED` | 승인 완료 | 검수 통과 |
-| `ALLOW_REJECTED` | `REJECTED` | 승인 거절 | 검수 반려 |
+| `ALLOW_PENDING` | `PENDING` | 검수 대기 | 검수 신청 후 결과 대기 |
+| `ALLOW_APPROVED` | `APPROVED` | 검수 완료 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 검수 거절 | 검수 반려 |
 
 #### 운영 상태 (`status`)
 
@@ -110,18 +110,18 @@
 | `STATUS_WITHDRAWN` | `WITHDRAWN` | 탈퇴/종료 | 운영 종료 상태 |
 
 기본값:
-- `allow_status`: `ALLOW_PENDING` (승인 대기)
+- `allow_status`: `ALLOW_PENDING` (검수 대기)
 - `status`: `STATUS_SUSPENDED` (운영정지)
 
 ### 2.7 `HospitalDoctor` (병원 의사)
 
-#### 승인 상태 (`allow_status`)
+#### 검수 상태 (`allow_status`)
 
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
-| `ALLOW_PENDING` | `PENDING` | 승인 대기 | 프로필/서류 검수 대기 |
-| `ALLOW_APPROVED` | `APPROVED` | 승인 완료 | 검수 통과 |
-| `ALLOW_REJECTED` | `REJECTED` | 승인 거절 | 검수 반려 |
+| `ALLOW_PENDING` | `PENDING` | 검수 대기 | 프로필/서류 검수 대기 |
+| `ALLOW_APPROVED` | `APPROVED` | 검수 완료 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 검수 거절 | 검수 반려 |
 
 #### 운영 상태 (`status`)
 
@@ -132,18 +132,18 @@
 | `STATUS_INACTIVE` | `INACTIVE` | 비활성 | 노출/활동 비활성 |
 
 기본값:
-- `allow_status`: `ALLOW_PENDING` (승인 대기)
+- `allow_status`: `ALLOW_PENDING` (검수 대기)
 - `status`: `STATUS_SUSPENDED` (정지)
 
 ### 2.8 `BeautyExpert` (뷰티 전문가)
 
-#### 승인 상태 (`allow_status`)
+#### 검수 상태 (`allow_status`)
 
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
-| `ALLOW_PENDING` | `PENDING` | 승인 대기 | 프로필/서류 검수 대기 |
-| `ALLOW_APPROVED` | `APPROVED` | 승인 완료 | 검수 통과 |
-| `ALLOW_REJECTED` | `REJECTED` | 승인 거절 | 검수 반려 |
+| `ALLOW_PENDING` | `PENDING` | 검수 대기 | 프로필/서류 검수 대기 |
+| `ALLOW_APPROVED` | `APPROVED` | 검수 완료 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 검수 거절 | 검수 반려 |
 
 #### 운영 상태 (`status`)
 
@@ -154,7 +154,7 @@
 | `STATUS_INACTIVE` | `INACTIVE` | 비활성 | 노출/활동 비활성 |
 
 기본값:
-- `allow_status`: `ALLOW_PENDING` (승인 대기)
+- `allow_status`: `ALLOW_PENDING` (검수 대기)
 - `status`: `STATUS_SUSPENDED` (정지)
 
 ### 2.9 `HospitalBusinessRegistration` (병원 사업자등록)
@@ -185,7 +185,7 @@
 |---|---|---|---|
 | `REVIEW_STATUS_APPLYING` | `APPLYING` | 신청중 | 파트너가 요청을 올린 직후 상태 |
 | `REVIEW_STATUS_IN_REVIEW` | `IN_REVIEW` | 검토중 | 운영팀 검토 진행 상태 |
-| `REVIEW_STATUS_APPROVED` | `APPROVED` | 승인 | 게시 가능 승인 완료 |
+| `REVIEW_STATUS_APPROVED` | `APPROVED` | 검수 | 게시 가능 검수 완료 |
 | `REVIEW_STATUS_REJECTED` | `REJECTED` | 반려 | 검토 결과 거절 |
 | `REVIEW_STATUS_PARTNER_CANCELED` | `PARTNER_CANCELED` | 파트너 취소 | 요청자가 직접 취소 |
 
@@ -256,23 +256,23 @@
 
 ### 3.1 병원 검수 흐름
 
-- `ALLOW_PENDING`(승인 대기) -> `ALLOW_APPROVED`(승인 완료) 또는 `ALLOW_REJECTED`(승인 거절)
+- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
 
 ### 3.2 뷰티 검수 흐름
 
-- `ALLOW_PENDING`(승인 대기) -> `ALLOW_APPROVED`(승인 완료) 또는 `ALLOW_REJECTED`(승인 거절)
+- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
 
 ### 3.3 병원 의사 검수 흐름
 
-- `ALLOW_PENDING`(승인 대기) -> `ALLOW_APPROVED`(승인 완료) 또는 `ALLOW_REJECTED`(승인 거절)
+- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
 
 ### 3.4 뷰티 전문가 검수 흐름
 
-- `ALLOW_PENDING`(승인 대기) -> `ALLOW_APPROVED`(승인 완료) 또는 `ALLOW_REJECTED`(승인 거절)
+- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
 
 ### 3.5 영상요청 검토 흐름
 
-- `REVIEW_STATUS_APPLYING`(신청중) -> `REVIEW_STATUS_IN_REVIEW`(검토중) -> `REVIEW_STATUS_APPROVED`(승인) 또는 `REVIEW_STATUS_REJECTED`(반려)
+- `REVIEW_STATUS_APPLYING`(신청중) -> `REVIEW_STATUS_IN_REVIEW`(검토중) -> `REVIEW_STATUS_APPROVED`(검수) 또는 `REVIEW_STATUS_REJECTED`(반려)
 - 신청중 단계에서는 파트너가 `REVIEW_STATUS_PARTNER_CANCELED`(파트너 취소)로 종료 가능
 
 ### 3.6 공지 노출 흐름

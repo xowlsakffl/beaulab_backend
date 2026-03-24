@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('title', 255)->comment('게시글 제목');
             $table->longText('content')->comment('게시글 내용');
 
-            $table->string('status', 20)->default('ACTIVE')->comment('게시글 상태(ACTIVE, INACTIVE)');
+            $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(ACTIVE, INACTIVE)');
             $table->boolean('is_visible')->default(true)->comment('노출 여부');
             $table->string('author_ip', 45)->nullable()->comment('작성자 IP(v4/v6)');
 

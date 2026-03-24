@@ -63,7 +63,7 @@ final class HospitalTalkCommentCreateForStaffRequest extends FormRequest
             'parent_id' => '부모 댓글',
             'author_id' => '작성자',
             'content' => '내용',
-            'status' => '상태',
+            'status' => '운영 상태',
             'is_visible' => '노출 여부',
             'admin_note' => '관리자 메모',
             'mentions' => '멘션',

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title', 255)->comment('공지 제목');
             $table->longText('content')->comment('에디터 HTML 본문');
 
-            $table->string('status', 20)->default('ACTIVE')->comment('공지 상태(ACTIVE, INACTIVE)');
+            $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(ACTIVE, INACTIVE)');
             $table->boolean('is_pinned')->default(false)->comment('상단 공지 여부');
             $table->unsignedInteger('pinned_order')->default(0)->comment('상단 공지 정렬 순서');
 

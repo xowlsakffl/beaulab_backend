@@ -60,8 +60,8 @@ final class HospitalTalkListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
-            'status' => '상태 목록',
-            'status.*' => '상태',
+            'status' => '운영 상태',
+            'status.*' => '운영 상태',
             'is_visible' => '노출 여부',
             'author_id' => '작성자',
             'category_id' => '카테고리',

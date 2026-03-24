@@ -52,7 +52,7 @@ final class FaqCreateForStaffRequest extends FormRequest
             'channel' => 'FAQ 채널',
             'question' => '질문',
             'content' => '답변 내용',
-            'status' => '상태',
+            'status' => '운영 상태',
             'sort_order' => '노출 순서',
         ];
     }

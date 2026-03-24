@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -58,7 +59,10 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'doctor_id' => ['sometimes', 'nullable', 'integer', 'exists:hospital_doctors,id'],
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
-            'distribution_channel' => ['sometimes', 'nullable', 'in:YOUTUBE_APP'],
+            'distribution_channel' => ['sometimes', 'nullable', 'in:'.implode(',', [
+                HospitalVideo::DISTRIBUTION_CHANNEL_YOUTUBE_APP,
+                HospitalVideo::DISTRIBUTION_CHANNEL_APP,
+            ])],
             'external_video_id' => ['sometimes', 'nullable', 'string', 'max:191'],
             'external_video_url' => ['sometimes', 'nullable', 'url', 'max:1024'],
             'duration_seconds' => ['sometimes', 'nullable', 'integer', 'min:0'],
@@ -90,7 +94,7 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'external_video_id' => '외부 영상 ID',
             'external_video_url' => '외부 영상 URL',
             'duration_seconds' => '재생 시간(초)',
-            'status' => '상태',
+            'status' => '운영 상태',
             'allow_status' => '검수 상태',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',

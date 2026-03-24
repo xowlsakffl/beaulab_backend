@@ -17,12 +17,13 @@ final class HospitalVideo extends Model
 {
     use SoftDeletes, HasAuditLogs;
 
-    public const DISTRIBUTION_CHANNEL_YOUTUBE = 'YOUTUBE';
+    public const DISTRIBUTION_CHANNEL_YOUTUBE_APP = 'YOUTUBE_APP';
+    public const DISTRIBUTION_CHANNEL_APP = 'APP';
 
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    public const ALLOW_STATUS_SUBMITTED = 'SUMITTED';
+    public const ALLOW_STATUS_SUBMITTED = 'SUBMITTED';
     public const ALLOW_STATUS_IN_REVIEW = 'IN_REVIEW';
     public const ALLOW_STATUS_APPROVED = 'APPROVED';
     public const ALLOW_STATUS_REJECTED = 'REJECTED';
@@ -68,9 +69,9 @@ final class HospitalVideo extends Model
     ];
 
     protected $attributes = [
-        'distribution_channel' => self::DISTRIBUTION_CHANNEL_YOUTUBE,
+        'distribution_channel' => self::DISTRIBUTION_CHANNEL_YOUTUBE_APP,
         'duration_seconds' => 0,
-        'status' => self::STATUS_ACTIVE,
+        'status' => self::STATUS_INACTIVE,
         'view_count' => 0,
         'like_count' => 0,
         'is_usage_consented' => false,
@@ -92,6 +93,12 @@ final class HospitalVideo extends Model
     {
         return $this->morphOne(Media::class, 'model')
             ->where('collection', 'thumbnail_file');
+    }
+
+    public function videoFileMedia(): MorphOne
+    {
+        return $this->morphOne(Media::class, 'model')
+            ->where('collection', 'video_file');
     }
 
     public function categories(): MorphToMany

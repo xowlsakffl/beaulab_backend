@@ -52,6 +52,20 @@ final class HospitalForStaffController extends Controller
     }
 
     /**
+     * GET /api/v1/staff/hospitals/{hospital}/edit
+     * (Beaulab) Staff 전용 병원 수정용 단건 조회
+     */
+    public function getHospitalForEditForStaff(
+        Hospital $hospital,
+        HospitalGetForStaffRequest $request,
+        HospitalGetForStaffAction $action,
+    ) {
+        $result = $action->execute($hospital, $request->filters()['include'], 'update');
+
+        return ApiResponse::success($result['hospital'] ?? $result);
+    }
+
+    /**
      * POST /api/v1/staff/hospitals
      * (Beaulab) Staff 전용 병원 생성
      */

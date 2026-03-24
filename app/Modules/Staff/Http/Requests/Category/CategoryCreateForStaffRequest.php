@@ -55,7 +55,7 @@ final class CategoryCreateForStaffRequest extends FormRequest
             'code' => '카테고리 코드',
             'icon' => '카테고리 아이콘',
             'sort_order' => '정렬 순서',
-            'status' => '카테고리 상태',
+            'status' => '운영 상태',
             'is_menu_visible' => '메뉴 노출 여부',
         ];
     }

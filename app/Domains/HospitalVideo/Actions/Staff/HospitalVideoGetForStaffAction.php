@@ -15,6 +15,7 @@ final class HospitalVideoGetForStaffAction
         return [
             'video' => HospitalVideoForStaffDetailDto::fromModel($video->load([
                 'thumbnailMedia',
+                'videoFileMedia',
                 'categories',
             ]))->toArray(),
         ];

@@ -21,6 +21,7 @@ final class HospitalVideoDeleteForStaffAction
 
         return DB::transaction(function () use ($video) {
             $this->mediaAttachAction->deleteCollectionMedia($video, 'thumbnail_file');
+            $this->mediaAttachAction->deleteCollectionMedia($video, 'video_file');
             $video->categories()->sync([]);
 
             $this->query->softDelete($video);

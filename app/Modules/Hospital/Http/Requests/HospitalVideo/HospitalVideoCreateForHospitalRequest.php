@@ -1,27 +1,24 @@
 <?php
 
-namespace App\Modules\Staff\Http\Requests\HospitalTalk;
+namespace App\Modules\Hospital\Http\Requests\HospitalVideo;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-final class HospitalTalkUpdateForStaffRequest extends FormRequest
+final class HospitalVideoCreateForHospitalRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
         $data = $this->all();
 
         foreach ([
-            'author_id',
-            'title',
-            'content',
-            'status',
-            'is_visible',
-            'author_ip',
-            'is_pinned',
-            'pinned_order',
-            'admin_note',
+            'doctor_id',
+            'description',
+            'distribution_channel',
+            'publish_start_at',
+            'publish_end_at',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
                 $data[$nullableKey] = null;
@@ -43,47 +40,43 @@ final class HospitalTalkUpdateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'author_id' => ['sometimes', 'nullable', 'integer', 'exists:account_users,id'],
-            'title' => ['sometimes', 'string', 'max:255'],
-            'content' => ['sometimes', 'string'],
-            'status' => ['sometimes', 'nullable', 'in:ACTIVE,INACTIVE'],
-            'is_visible' => ['sometimes', 'nullable', 'boolean'],
-            'author_ip' => ['sometimes', 'nullable', 'ip'],
-            'is_pinned' => ['sometimes', 'nullable', 'boolean'],
-            'pinned_order' => ['sometimes', 'nullable', 'integer', 'min:0'],
-            'category_ids' => ['sometimes', 'array', 'max:100'],
+            'doctor_id' => ['nullable', 'integer', 'exists:hospital_doctors,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'is_usage_consented' => ['required', 'in:1'],
+            'category_ids' => ['required', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
+                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
-            'images' => ['sometimes', 'array', 'max:20'],
-            'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
-            'admin_note' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'distribution_channel' => ['nullable', 'in:'.implode(',', [
+                HospitalVideo::DISTRIBUTION_CHANNEL_YOUTUBE_APP,
+                HospitalVideo::DISTRIBUTION_CHANNEL_APP,
+            ])],
+            'publish_start_at' => ['nullable', 'date'],
+            'publish_end_at' => ['nullable', 'date', 'after_or_equal:publish_start_at'],
+            'thumbnail_file' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'video_file' => ['required', 'file', 'mimes:mp4,mov,avi,mkv,webm,m4v', 'max:512000'],
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
     public function attributes(): array
     {
         return [
-            'author_id' => '작성자',
+            'doctor_id' => '의사',
             'title' => '제목',
-            'content' => '내용',
-            'status' => '운영 상태',
-            'is_visible' => '노출 여부',
-            'author_ip' => '작성자 IP',
-            'is_pinned' => '상단 고정 여부',
-            'pinned_order' => '고정 정렬 순서',
+            'description' => '설명',
+            'is_usage_consented' => '영상 사용 동의 여부',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
-            'images' => '이미지 목록',
-            'images.*' => '이미지',
-            'admin_note' => '관리자 메모',
+            'distribution_channel' => '배포 채널',
+            'publish_start_at' => '게시 시작 시각',
+            'publish_end_at' => '게시 종료 시각',
+            'thumbnail_file' => '썸네일 파일',
+            'video_file' => '동영상 파일',
         ];
     }
 

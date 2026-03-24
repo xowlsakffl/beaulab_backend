@@ -30,8 +30,8 @@ return new class extends Migration
 
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
 
-            $table->string('allow_status', 20)->default('PENDING')->comment('병원 검수 상태(검수 신청, 검수 완료, 검수 반려 등)');
-            $table->string('status', 20)->default('SUSPENDED')->comment('병원 상태(정상, 정지, 탈퇴)');
+            $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(검수 신청, 검수 완료, 검수 반려 등)');
+            $table->string('status', 20)->default('SUSPENDED')->comment('운영 상태(정상, 정지, 탈퇴)');
 
             $table->timestamps();
             $table->softDeletes()->comment('병원 비활성/삭제 시각');

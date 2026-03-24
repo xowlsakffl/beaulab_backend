@@ -13,7 +13,7 @@ final class HospitalVideoCreateForStaffQuery
             'doctor_id' => $payload['doctor_id'] ?? null,
             'title' => $payload['title'],
             'description' => $payload['description'] ?? null,
-            'distribution_channel' => $payload['distribution_channel'] ?? HospitalVideo::DISTRIBUTION_CHANNEL_YOUTUBE,
+            'distribution_channel' => $payload['distribution_channel'] ?? HospitalVideo::DISTRIBUTION_CHANNEL_YOUTUBE_APP,
             'external_video_id' => $payload['external_video_id'] ?? null,
             'external_video_url' => $payload['external_video_url'] ?? null,
             'duration_seconds' => (int) ($payload['duration_seconds'] ?? 0),

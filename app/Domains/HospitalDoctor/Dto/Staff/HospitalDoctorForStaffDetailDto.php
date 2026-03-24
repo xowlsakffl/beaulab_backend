@@ -27,6 +27,7 @@ final readonly class HospitalDoctorForStaffDetailDto
             'career_started_at' => $doctor->career_started_at?->toDateString(),
             'license_number' => $doctor->license_number,
             'is_specialist' => (bool) $doctor->is_specialist,
+            'view_count' => (int) $doctor->view_count,
             'educations' => $doctor->educations ?? [],
             'careers' => $doctor->careers ?? [],
             'etc_contents' => $doctor->etc_contents ?? [],
@@ -40,7 +41,9 @@ final readonly class HospitalDoctorForStaffDetailDto
             'categories' => self::resolveCategories($doctor)
                 ->map(fn (Category $category): array => [
                     'id' => (int) $category->id,
+                    'domain' => (string) $category->domain,
                     'name' => (string) $category->name,
+                    'full_path' => (string) ($category->full_path ?: $category->name),
                     'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
                 ])
                 ->values()

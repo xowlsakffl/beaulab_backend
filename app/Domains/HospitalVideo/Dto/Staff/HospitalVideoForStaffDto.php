@@ -11,8 +11,11 @@ final readonly class HospitalVideoForStaffDto
     public function __construct(
         public int $id,
         public int $hospitalId,
+        public string $hospitalName,
         public ?int $doctorId,
+        public ?string $doctorName,
         public string $title,
+        public string $activityScope,
         public string $distributionChannel,
         public ?string $externalVideoId,
         public ?string $externalVideoUrl,
@@ -21,6 +24,7 @@ final readonly class HospitalVideoForStaffDto
         public string $allowStatus,
         public int $viewCount,
         public int $likeCount,
+        public ?string $allowedAt,
         public ?string $publishStartAt,
         public ?string $publishEndAt,
         public bool $isPublishPeriodUnlimited,
@@ -34,8 +38,11 @@ final readonly class HospitalVideoForStaffDto
         return new self(
             id: $video->id,
             hospitalId: (int) $video->hospital_id,
+            hospitalName: (string) ($video->hospital?->name ?? '-'),
             doctorId: $video->doctor_id,
+            doctorName: $video->doctor?->name,
             title: $video->title,
+            activityScope: self::resolveActivityScope($video),
             distributionChannel: $video->distribution_channel,
             externalVideoId: $video->external_video_id,
             externalVideoUrl: $video->external_video_url,
@@ -44,6 +51,7 @@ final readonly class HospitalVideoForStaffDto
             allowStatus: $video->allow_status,
             viewCount: (int) $video->view_count,
             likeCount: (int) $video->like_count,
+            allowedAt: $video->allowed_at?->toISOString(),
             publishStartAt: $video->publish_start_at?->toISOString(),
             publishEndAt: $video->publish_end_at?->toISOString(),
             isPublishPeriodUnlimited: (bool) $video->is_publish_period_unlimited,
@@ -52,6 +60,7 @@ final readonly class HospitalVideoForStaffDto
                     ->map(fn (Category $category): array => [
                         'id' => (int) $category->id,
                         'name' => (string) $category->name,
+                        'full_path' => (string) ($category->full_path ?? ''),
                         'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
                     ])
                     ->values()
@@ -67,8 +76,11 @@ final readonly class HospitalVideoForStaffDto
         $data = [
             'id' => $this->id,
             'hospital_id' => $this->hospitalId,
+            'hospital_name' => $this->hospitalName,
             'doctor_id' => $this->doctorId,
+            'doctor_name' => $this->doctorName,
             'title' => $this->title,
+            'activity_scope' => $this->activityScope,
             'distribution_channel' => $this->distributionChannel,
             'external_video_id' => $this->externalVideoId,
             'external_video_url' => $this->externalVideoUrl,
@@ -77,6 +89,7 @@ final readonly class HospitalVideoForStaffDto
             'allow_status' => $this->allowStatus,
             'view_count' => $this->viewCount,
             'like_count' => $this->likeCount,
+            'allowed_at' => $this->allowedAt,
             'publish_start_at' => $this->publishStartAt,
             'publish_end_at' => $this->publishEndAt,
             'is_publish_period_unlimited' => $this->isPublishPeriodUnlimited,
@@ -101,5 +114,21 @@ final readonly class HospitalVideoForStaffDto
         }
 
         return $video->categories;
+    }
+
+    private static function resolveActivityScope(HospitalVideo $video): string
+    {
+        $categories = self::resolveCategories($video);
+
+        if ($categories->isEmpty()) {
+            return '-';
+        }
+
+        return $categories
+            ->map(static fn (Category $category): string => trim((string) ($category->full_path ?: $category->name)))
+            ->filter(static fn (string $label): bool => $label !== '')
+            ->unique()
+            ->values()
+            ->implode(', ');
     }
 }

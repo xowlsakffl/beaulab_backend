@@ -70,7 +70,7 @@ final class HospitalTalkCreateForStaffRequest extends FormRequest
             'author_id' => '작성자',
             'title' => '제목',
             'content' => '내용',
-            'status' => '상태',
+            'status' => '운영 상태',
             'is_visible' => '노출 여부',
             'is_pinned' => '상단 고정 여부',
             'pinned_order' => '고정 정렬 순서',

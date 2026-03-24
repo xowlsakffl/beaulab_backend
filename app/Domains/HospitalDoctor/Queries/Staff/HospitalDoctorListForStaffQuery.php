@@ -42,7 +42,6 @@ final class HospitalDoctorListForStaffQuery
             $builder->where(function ($query) use ($q): void {
                 $query->where('name', 'like', "%{$q}%")
                     ->orWhere('position', 'like', "%{$q}%")
-                    ->orWhere('license_number', 'like', "%{$q}%")
                     ->orWhereHas('hospital', fn ($hospitalQuery) => $hospitalQuery->where('name', 'like', "%{$q}%"));
             });
         }

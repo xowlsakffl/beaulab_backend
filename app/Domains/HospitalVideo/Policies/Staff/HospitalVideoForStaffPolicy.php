@@ -10,26 +10,31 @@ final class HospitalVideoForStaffPolicy
 {
     public function viewAny(AccountStaff $actor): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_VIDEO_REQUEST_SHOW);
+        return $actor->can(AccessPermissions::BEAULAB_VIDEO_SHOW);
     }
 
     public function view(AccountStaff $actor, HospitalVideo $video): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_VIDEO_REQUEST_SHOW);
+        return $actor->can(AccessPermissions::BEAULAB_VIDEO_SHOW);
     }
 
     public function create(AccountStaff $actor): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_VIDEO_REQUEST_UPDATE);
+        return $actor->can(AccessPermissions::BEAULAB_VIDEO_CREATE);
     }
 
     public function update(AccountStaff $actor, HospitalVideo $video): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_VIDEO_REQUEST_UPDATE);
+        return $actor->can(AccessPermissions::BEAULAB_VIDEO_UPDATE);
     }
 
     public function delete(AccountStaff $actor, HospitalVideo $video): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_VIDEO_REQUEST_DELETE);
+        return $actor->can(AccessPermissions::BEAULAB_VIDEO_DELETE);
+    }
+
+    public function cancel(AccountStaff $actor, HospitalVideo $video): bool
+    {
+        return false;
     }
 }

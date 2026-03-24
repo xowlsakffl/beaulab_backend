@@ -44,7 +44,9 @@ final readonly class HospitalForStaffDetailDto
             'categories' => self::resolveCategories($hospital)
                 ->map(fn (Category $category): array => [
                     'id' => (int) $category->id,
+                    'domain' => (string) $category->domain,
                     'name' => (string) $category->name,
+                    'full_path' => (string) ($category->full_path ?: $category->name),
                     'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
                 ])
                 ->values()

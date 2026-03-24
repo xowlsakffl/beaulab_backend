@@ -102,8 +102,8 @@ final class DoctorUpdateForStaffRequest extends FormRequest
             'etc_contents' => '기타 사항',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
-            'status' => '상태',
-            'allow_status' => '노출 승인 상태',
+            'status' => '운영 상태',
+            'allow_status' => '검수 상태',
 
             'profile_image' => '프로필 이미지',
             'license_image' => '면허증 이미지',

@@ -32,8 +32,8 @@ return new class extends Migration
             // - education_certificate_image
             // - etc_certificate_image
 
-            $table->string('status', 20)->default('SUSPENDED')->comment('뷰티전문가 상태(정상, 정지, 비활성)');
-            $table->string('allow_status', 20)->default('PENDING')->comment('뷰티전문가 검수 상태(검수 신청, 검수 완료, 반려 등)');
+            $table->string('status', 20)->default('SUSPENDED')->comment('운영 상태(정상, 정지, 비활성)');
+            $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(검수 신청, 검수 완료, 반려 등)');
 
             $table->timestamps();
             $table->softDeletes()->comment('뷰티전문가 비활성/삭제 시각');

@@ -1,7 +1,6 @@
 <?php
 
 use App\Modules\Beauty\Http\Controllers\Auth\AuthForBeautyController;
-use App\Modules\Beauty\Http\Controllers\VideoRequest\VideoRequestForBeautyController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {

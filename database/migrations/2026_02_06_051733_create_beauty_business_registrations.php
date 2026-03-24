@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->date('issued_at')->nullable()->comment('사업자 등록일');
 
-            $table->string('status', 20)->default('ACTIVE')->comment('등록증 상태(ACTIVE, EXPIRED, REVOKED)');
+            $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(ACTIVE, EXPIRED, REVOKED)');
 
             $table->timestamps();
 

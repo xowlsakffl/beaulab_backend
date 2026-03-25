@@ -50,26 +50,42 @@ final class HospitalDoctorUpdateForStaffAction
         if (($payload['profile_image'] ?? null) instanceof UploadedFile) {
             $this->deleteCollectionMedia($doctor, 'profile_image');
             $this->mediaAttachAction->attachOne($doctor, $payload['profile_image'], 'profile_image', 'doctor', 'profile-image');
+        } elseif (array_key_exists('existing_profile_image_id', $payload) && empty($payload['existing_profile_image_id'])) {
+            $this->deleteCollectionMedia($doctor, 'profile_image');
         }
 
         if (($payload['license_image'] ?? null) instanceof UploadedFile) {
             $this->deleteCollectionMedia($doctor, 'license_image');
             $this->mediaAttachAction->attachOne($doctor, $payload['license_image'], 'license_image', 'doctor', 'license-image');
+        } elseif (array_key_exists('existing_license_image_id', $payload) && empty($payload['existing_license_image_id'])) {
+            $this->deleteCollectionMedia($doctor, 'license_image');
         }
 
         if (($payload['specialist_certificate_image'] ?? null) instanceof UploadedFile) {
             $this->deleteCollectionMedia($doctor, 'specialist_certificate_image');
             $this->mediaAttachAction->attachOne($doctor, $payload['specialist_certificate_image'], 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
+        } elseif (array_key_exists('existing_specialist_certificate_image_id', $payload) && empty($payload['existing_specialist_certificate_image_id'])) {
+            $this->deleteCollectionMedia($doctor, 'specialist_certificate_image');
         }
 
-        if (array_key_exists('education_certificate_image', $payload) && is_array($payload['education_certificate_image'])) {
-            $this->deleteCollectionMedia($doctor, 'education_certificate_image');
-            $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['education_certificate_image']), 'education_certificate_image', 'doctor', 'education-certificate-image');
+        if (array_key_exists('existing_education_certificate_image_ids', $payload) || array_key_exists('education_certificate_image', $payload)) {
+            $this->syncMediaCollection(
+                $doctor,
+                'education_certificate_image',
+                'education-certificate-image',
+                $payload['existing_education_certificate_image_ids'] ?? [],
+                $this->onlyFiles($payload['education_certificate_image'] ?? []),
+            );
         }
 
-        if (array_key_exists('etc_certificate_image', $payload) && is_array($payload['etc_certificate_image'])) {
-            $this->deleteCollectionMedia($doctor, 'etc_certificate_image');
-            $this->mediaAttachAction->attachMany($doctor, $this->onlyFiles($payload['etc_certificate_image']), 'etc_certificate_image', 'doctor', 'etc-certificate-image');
+        if (array_key_exists('existing_etc_certificate_image_ids', $payload) || array_key_exists('etc_certificate_image', $payload)) {
+            $this->syncMediaCollection(
+                $doctor,
+                'etc_certificate_image',
+                'etc-certificate-image',
+                $payload['existing_etc_certificate_image_ids'] ?? [],
+                $this->onlyFiles($payload['etc_certificate_image'] ?? []),
+            );
         }
     }
 
@@ -84,6 +100,66 @@ final class HospitalDoctorUpdateForStaffAction
     private function onlyFiles(array $files): array
     {
         return array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
+    }
+
+    /**
+     * @param array<int, int|string> $existingMediaIds
+     * @param array<int, UploadedFile> $newFiles
+     */
+    private function syncMediaCollection(
+        HospitalDoctor $doctor,
+        string $collection,
+        string $dirName,
+        array $existingMediaIds,
+        array $newFiles,
+    ): void {
+        $currentMedia = Media::query()
+            ->for($doctor)
+            ->collection($collection)
+            ->ordered()
+            ->get()
+            ->keyBy(static fn (Media $media): int => (int) $media->id);
+
+        $keptMediaIds = collect($existingMediaIds)
+            ->map(static fn (int|string $mediaId): int => (int) $mediaId)
+            ->filter(static fn (int $mediaId): bool => $mediaId > 0 && $currentMedia->has($mediaId))
+            ->unique()
+            ->values();
+
+        $deletedMediaIds = $currentMedia->keys()->diff($keptMediaIds);
+
+        if ($deletedMediaIds->isNotEmpty()) {
+            Media::query()
+                ->whereIn('id', $deletedMediaIds->all())
+                ->get()
+                ->each(function (Media $media): void {
+                    Storage::disk($media->disk)->delete($media->path);
+                    $media->delete();
+                });
+        }
+
+        $keptMediaIds->each(function (int $mediaId, int $index) use ($currentMedia): void {
+            $media = $currentMedia->get($mediaId);
+
+            if (! $media) {
+                return;
+            }
+
+            $media->setSortOrder($index);
+        });
+
+        $baseSortOrder = $keptMediaIds->count();
+        foreach (array_values($newFiles) as $index => $file) {
+            $this->mediaAttachAction->attachOne(
+                $doctor,
+                $file,
+                $collection,
+                'doctor',
+                $dirName,
+                false,
+                $baseSortOrder + $index,
+            );
+        }
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,6 +28,7 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'publish_start_at',
             'publish_end_at',
             'is_publish_period_unlimited',
+            'existing_thumbnail_file_id',
             'remove_video_file',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
@@ -74,7 +76,7 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'external_video_url' => ['sometimes', 'nullable', 'url', 'max:1024'],
             'duration_seconds' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'status' => ['sometimes', 'nullable', 'in:ACTIVE,INACTIVE'],
-            'allow_status' => ['sometimes', 'nullable', 'in:SUBMITTED,IN_REVIEW,APPROVED,REJECTED,EXCLUDED,PARTNER_CANCELED'],
+            'allow_status' => ['sometimes', 'nullable', 'in:SUBMITTED,IN_REVIEW,APPROVED,REJECTED,EXCLUDED'],
             'category_ids' => ['sometimes', 'array', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -86,6 +88,7 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'publish_start_at' => ['sometimes', 'nullable', 'date'],
             'publish_end_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:publish_start_at'],
             'is_publish_period_unlimited' => ['sometimes', 'nullable', 'boolean'],
+            'existing_thumbnail_file_id' => ['sometimes', 'nullable', 'integer', $this->mediaBelongsToVideoRule('thumbnail_file')],
             'remove_video_file' => ['sometimes', 'nullable', 'boolean'],
             'thumbnail_file' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ];
@@ -109,9 +112,37 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'publish_start_at' => '게시 시작 시각',
             'publish_end_at' => '게시 종료 시각',
             'is_publish_period_unlimited' => '무기한 게시 여부',
+            'existing_thumbnail_file_id' => '기존 썸네일 파일',
             'remove_video_file' => '원본 동영상 파일 삭제 여부',
             'thumbnail_file' => '썸네일 파일',
         ];
+    }
+
+    private function mediaBelongsToVideoRule(string $collection): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) use ($collection): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            $video = $this->route('video');
+
+            if (! $video instanceof HospitalVideo) {
+                $fail('동영상 정보를 확인할 수 없습니다.');
+                return;
+            }
+
+            $exists = Media::query()
+                ->whereKey((int) $value)
+                ->where('model_type', HospitalVideo::class)
+                ->where('model_id', $video->getKey())
+                ->where('collection', $collection)
+                ->exists();
+
+            if (! $exists) {
+                $fail('선택한 기존 파일 정보가 올바르지 않습니다.');
+            }
+        };
     }
 
     /**

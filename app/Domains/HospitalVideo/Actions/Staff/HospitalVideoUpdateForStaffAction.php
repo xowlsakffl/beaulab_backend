@@ -38,6 +38,8 @@ final class HospitalVideoUpdateForStaffAction
                     'hospital-video',
                     'thumbnail',
                 );
+            } elseif (array_key_exists('existing_thumbnail_file_id', $normalized) && empty($normalized['existing_thumbnail_file_id'])) {
+                $this->mediaAttachAction->deleteCollectionMedia($updated, 'thumbnail_file');
             }
 
             if (($normalized['remove_video_file'] ?? false) === true) {

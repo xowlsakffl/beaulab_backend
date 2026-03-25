@@ -59,23 +59,22 @@ final class HospitalUpdateForStaffAction
         if (isset($payload['logo']) && $payload['logo'] instanceof UploadedFile) {
             $this->deleteCollectionMedia($hospital, 'logo');
             $this->mediaAttachAction->attachOne($hospital, $payload['logo'], 'logo', 'hospital', 'logo');
+        } elseif (array_key_exists('existing_logo_id', $payload) && empty($payload['existing_logo_id'])) {
+            $this->deleteCollectionMedia($hospital, 'logo');
         }
 
-        if (isset($payload['gallery']) && is_array($payload['gallery'])) {
-            $galleryFiles = array_values(array_filter(
-                $payload['gallery'],
-                static fn ($file): bool => $file instanceof UploadedFile,
-            ));
-
-            if ($galleryFiles !== []) {
-                $this->deleteCollectionMedia($hospital, 'gallery');
-                $this->mediaAttachAction->attachMany($hospital, $galleryFiles, 'gallery', 'hospital', 'gallery', true);
-                return;
-            }
-        }
-
-        if (array_key_exists('existing_gallery_ids', $payload) && is_array($payload['existing_gallery_ids'])) {
-            $this->syncExistingGallery($hospital, $payload['existing_gallery_ids']);
+        if (array_key_exists('gallery_order', $payload)) {
+            $this->syncGalleryByOrder(
+                $hospital,
+                $payload['gallery_order'] ?? [],
+                $this->onlyFiles($payload['gallery'] ?? []),
+            );
+        } elseif (array_key_exists('existing_gallery_ids', $payload) || array_key_exists('gallery', $payload)) {
+            $this->syncGallery(
+                $hospital,
+                $payload['existing_gallery_ids'] ?? [],
+                $this->onlyFiles($payload['gallery'] ?? []),
+            );
         }
     }
 
@@ -114,6 +113,12 @@ final class HospitalUpdateForStaffAction
             }
 
             $this->mediaAttachAction->attachOne($businessRegistration, $payload['business_registration_file'], 'business_registration_file', 'hospital', 'business-registration');
+        } elseif (array_key_exists('existing_business_registration_file_id', $payload) && empty($payload['existing_business_registration_file_id'])) {
+            $existingCertificate = $businessRegistration->certificateMedia()->first();
+            if ($existingCertificate) {
+                Storage::disk($existingCertificate->disk)->delete($existingCertificate->path);
+                $existingCertificate->delete();
+            }
         }
     }
 
@@ -130,9 +135,10 @@ final class HospitalUpdateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $mediaIds
+     * @param array<int, int|string> $existingMediaIds
+     * @param array<int, UploadedFile> $newFiles
      */
-    private function syncExistingGallery(Hospital $hospital, array $mediaIds): void
+    private function syncGallery(Hospital $hospital, array $existingMediaIds, array $newFiles): void
     {
         $galleryMedia = Media::query()
             ->for($hospital)
@@ -141,9 +147,10 @@ final class HospitalUpdateForStaffAction
             ->get()
             ->keyBy(static fn (Media $media): int => (int) $media->id);
 
-        $orderedMediaIds = collect($mediaIds)
+        $orderedMediaIds = collect($existingMediaIds)
             ->map(static fn (int|string $mediaId): int => (int) $mediaId)
             ->filter(static fn (int $mediaId): bool => $mediaId > 0 && $galleryMedia->has($mediaId))
+            ->unique()
             ->values();
 
         $deletedMediaIds = $galleryMedia->keys()->diff($orderedMediaIds);
@@ -166,8 +173,139 @@ final class HospitalUpdateForStaffAction
             }
 
             $media->setSortOrder($index);
-            $media->setPrimary($index === 0);
         });
+
+        $baseSortOrder = $orderedMediaIds->count();
+        foreach (array_values($newFiles) as $index => $file) {
+            $this->mediaAttachAction->attachOne(
+                $hospital,
+                $file,
+                'gallery',
+                'hospital',
+                'gallery',
+                false,
+                $baseSortOrder + $index,
+            );
+        }
+
+        Media::query()
+            ->for($hospital)
+            ->collection('gallery')
+            ->ordered()
+            ->get()
+            ->values()
+            ->each(function (Media $media, int $index): void {
+                $media->setSortOrder($index);
+                $media->setPrimary($index === 0);
+            });
+    }
+
+    /**
+     * @param array<int, string> $galleryOrder
+     * @param array<int, UploadedFile> $newFiles
+     */
+    private function syncGalleryByOrder(Hospital $hospital, array $galleryOrder, array $newFiles): void
+    {
+        $galleryMedia = Media::query()
+            ->for($hospital)
+            ->collection('gallery')
+            ->ordered()
+            ->get()
+            ->keyBy(static fn (Media $media): int => (int) $media->id);
+
+        $orderedEntries = [];
+        $keptExistingIds = [];
+
+        foreach ($galleryOrder as $token) {
+            if (! is_string($token) || ! preg_match('/^(existing|new):(\d+)$/', $token, $matches)) {
+                continue;
+            }
+
+            $entryType = $matches[1];
+            $entryValue = (int) $matches[2];
+
+            if ($entryType === 'existing') {
+                $media = $galleryMedia->get($entryValue);
+                if (! $media) {
+                    continue;
+                }
+
+                $keptExistingIds[] = $entryValue;
+                $orderedEntries[] = [
+                    'type' => 'existing',
+                    'media' => $media,
+                ];
+                continue;
+            }
+
+            $file = $newFiles[$entryValue] ?? null;
+            if (! $file instanceof UploadedFile) {
+                continue;
+            }
+
+            $orderedEntries[] = [
+                'type' => 'new',
+                'file' => $file,
+            ];
+        }
+
+        $deletedMediaIds = $galleryMedia->keys()->diff($keptExistingIds);
+
+        if ($deletedMediaIds->isNotEmpty()) {
+            Media::query()
+                ->whereIn('id', $deletedMediaIds->all())
+                ->get()
+                ->each(function (Media $media): void {
+                    Storage::disk($media->disk)->delete($media->path);
+                    $media->delete();
+                });
+        }
+
+        foreach ($orderedEntries as $index => $entry) {
+            if ($entry['type'] === 'existing') {
+                /** @var Media $media */
+                $media = $entry['media'];
+                $media->setSortOrder($index);
+                $media->setPrimary($index === 0);
+                continue;
+            }
+
+            /** @var UploadedFile $file */
+            $file = $entry['file'];
+            $this->mediaAttachAction->attachOne(
+                $hospital,
+                $file,
+                'gallery',
+                'hospital',
+                'gallery',
+                $index === 0,
+                $index,
+            );
+        }
+
+        Media::query()
+            ->for($hospital)
+            ->collection('gallery')
+            ->ordered()
+            ->get()
+            ->values()
+            ->each(function (Media $media, int $index): void {
+                $media->setSortOrder($index);
+                $media->setPrimary($index === 0);
+            });
+    }
+
+    /**
+     * @param mixed $files
+     * @return array<int, UploadedFile>
+     */
+    private function onlyFiles(mixed $files): array
+    {
+        if (! is_array($files)) {
+            return [];
+        }
+
+        return array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
     }
 
     /**

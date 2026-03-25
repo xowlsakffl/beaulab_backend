@@ -5,6 +5,7 @@ namespace App\Modules\Staff\Http\Controllers\HospitalVideo;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoCreateForStaffAction;
+use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoDownloadVideoFileForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoDoctorOptionListForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoHospitalOptionListForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoDeleteForStaffAction;
@@ -57,6 +58,11 @@ final class HospitalVideoForStaffController extends Controller
         $result = $action->execute($video, 'update');
 
         return ApiResponse::success($result['video'] ?? $result);
+    }
+
+    public function downloadVideoFileForStaff(HospitalVideo $video, HospitalVideoDownloadVideoFileForStaffAction $action)
+    {
+        return $action->execute($video);
     }
 
     public function storeVideoForStaff(HospitalVideoCreateForStaffRequest $request, HospitalVideoCreateForStaffAction $action)

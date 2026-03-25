@@ -64,7 +64,7 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             'external_video_url' => ['nullable', 'url', 'max:1024', 'required_without:external_video_id'],
             'duration_seconds' => ['nullable', 'integer', 'min:0'],
             'status' => ['nullable', 'in:ACTIVE,INACTIVE'],
-            'allow_status' => ['sometimes', 'in:SUBMITTED,IN_REVIEW,APPROVED,REJECTED,EXCLUDED,PARTNER_CANCELED'],
+            'allow_status' => ['sometimes', 'in:SUBMITTED,IN_REVIEW,APPROVED,REJECTED,EXCLUDED'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',

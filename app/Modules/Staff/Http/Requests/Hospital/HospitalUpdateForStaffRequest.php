@@ -5,6 +5,7 @@ namespace App\Modules\Staff\Http\Requests\Hospital;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -64,6 +65,16 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             $data['existing_gallery_ids'] = $this->normalizeIdList($data['existing_gallery_ids']);
         }
 
+        if (array_key_exists('gallery_order', $data)) {
+            $data['gallery_order'] = $this->normalizeStringList($data['gallery_order']);
+        }
+
+        foreach (['existing_logo_id', 'existing_business_registration_file_id'] as $key) {
+            if (array_key_exists($key, $data) && $data[$key] === '') {
+                $data[$key] = null;
+            }
+        }
+
         $this->replace($data);
     }
 
@@ -115,6 +126,34 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                 Rule::exists('hospital_features', 'id')->where(static fn ($query) => $query
                     ->where('status', HospitalFeature::STATUS_ACTIVE)),
             ],
+            'existing_logo_id' => [
+                'sometimes',
+                'nullable',
+                'integer',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+
+                    $hospital = $this->route('hospital');
+
+                    if (! $hospital instanceof Hospital) {
+                        $fail('병의원 정보를 확인할 수 없습니다.');
+                        return;
+                    }
+
+                    $exists = Media::query()
+                        ->whereKey((int) $value)
+                        ->where('model_type', Hospital::class)
+                        ->where('model_id', $hospital->getKey())
+                        ->where('collection', 'logo')
+                        ->exists();
+
+                    if (! $exists) {
+                        $fail('선택한 로고 정보가 올바르지 않습니다.');
+                    }
+                },
+            ],
             'existing_gallery_ids' => ['sometimes', 'array', 'max:12'],
             'existing_gallery_ids.*' => [
                 'integer',
@@ -139,10 +178,116 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                     }
                 },
             ],
+            'gallery_order' => ['sometimes', 'array', 'max:12'],
+            'gallery_order.*' => [
+                'string',
+                'distinct',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_string($value) || ! preg_match('/^(existing|new):(\d+)$/', $value, $matches)) {
+                        $fail('대표/내부 이미지 순서 정보가 올바르지 않습니다.');
+                        return;
+                    }
+
+                    if ($matches[1] !== 'existing') {
+                        return;
+                    }
+
+                    $hospital = $this->route('hospital');
+
+                    if (! $hospital instanceof Hospital) {
+                        $fail('병의원 정보를 확인할 수 없습니다.');
+                        return;
+                    }
+
+                    $exists = Media::query()
+                        ->whereKey((int) $matches[2])
+                        ->where('model_type', Hospital::class)
+                        ->where('model_id', $hospital->getKey())
+                        ->where('collection', 'gallery')
+                        ->exists();
+
+                    if (! $exists) {
+                        $fail('선택한 대표/내부 이미지 정보가 올바르지 않습니다.');
+                    }
+                },
+            ],
+            'existing_business_registration_file_id' => [
+                'sometimes',
+                'nullable',
+                'integer',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+
+                    $hospital = $this->route('hospital');
+
+                    if (! $hospital instanceof Hospital) {
+                        $fail('병의원 정보를 확인할 수 없습니다.');
+                        return;
+                    }
+
+                    $businessRegistrationId = $hospital->businessRegistration()->value('id');
+
+                    if (! $businessRegistrationId) {
+                        $fail('사업자등록 정보를 확인할 수 없습니다.');
+                        return;
+                    }
+
+                    $exists = Media::query()
+                        ->whereKey((int) $value)
+                        ->where('model_type', HospitalBusinessRegistration::class)
+                        ->where('model_id', $businessRegistrationId)
+                        ->where('collection', 'business_registration_file')
+                        ->exists();
+
+                    if (! $exists) {
+                        $fail('선택한 사업자등록증 파일 정보가 올바르지 않습니다.');
+                    }
+                },
+            ],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'gallery' => ['nullable', 'array', 'min:1', 'max:12'],
             'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ];
+    }
+
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator): void {
+            $galleryOrder = $this->input('gallery_order');
+            $uploadedGalleryFiles = $this->normalizeUploadedFiles($this->file('gallery'));
+
+            if (is_array($galleryOrder)) {
+                $parsedGalleryOrder = $this->parseGalleryOrder($galleryOrder);
+                $newIndexes = $parsedGalleryOrder['new_indexes'];
+
+                foreach ($newIndexes as $newIndex) {
+                    if (! array_key_exists($newIndex, $uploadedGalleryFiles)) {
+                        $validator->errors()->add('gallery', '새로 업로드한 이미지 순서 정보가 올바르지 않습니다.');
+                        return;
+                    }
+                }
+
+                if (count($newIndexes) !== count($uploadedGalleryFiles)) {
+                    $validator->errors()->add('gallery', '새로 업로드한 대표/내부 이미지 순서 정보가 누락되었습니다.');
+                    return;
+                }
+
+                if (count($parsedGalleryOrder['existing_ids']) + count($newIndexes) > 12) {
+                    $validator->errors()->add('gallery', '대표/내부 이미지는 최대 12장까지 등록할 수 있습니다.');
+                }
+
+                return;
+            }
+
+            $keptGalleryCount = count($this->input('existing_gallery_ids', []));
+            $newGalleryCount = count($uploadedGalleryFiles);
+
+            if ($keptGalleryCount + $newGalleryCount > 12) {
+                $validator->errors()->add('gallery', '대표/내부 이미지는 최대 12장까지 등록할 수 있습니다.');
+            }
+        });
     }
 
     public function attributes(): array
@@ -173,8 +318,12 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'category_ids.*' => '카테고리',
             'feature_ids' => '병원 특징 목록',
             'feature_ids.*' => '병원 특징',
+            'existing_logo_id' => '기존 로고',
             'existing_gallery_ids' => '대표/내부 이미지 목록',
             'existing_gallery_ids.*' => '대표/내부 이미지',
+            'gallery_order' => '대표/내부 이미지 순서',
+            'gallery_order.*' => '대표/내부 이미지 순서',
+            'existing_business_registration_file_id' => '기존 사업자등록증 파일',
             'logo' => '로고',
             'gallery' => '대표/내부 이미지',
             'gallery.*' => '대표/내부 이미지',
@@ -215,5 +364,74 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             ->filter(static fn (int $item): bool => $item > 0)
             ->values()
             ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function normalizeStringList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->filter(static fn ($item): bool => is_string($item) && trim($item) !== '')
+            ->map(static fn (string $item): string => trim($item))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, UploadedFile>
+     */
+    private function normalizeUploadedFiles(mixed $files): array
+    {
+        if ($files === null) {
+            return [];
+        }
+
+        if ($files instanceof \Illuminate\Http\UploadedFile) {
+            return [$files];
+        }
+
+        if (! is_array($files)) {
+            return [];
+        }
+
+        return array_values(array_filter($files, static fn ($file): bool => $file instanceof \Illuminate\Http\UploadedFile));
+    }
+
+    /**
+     * @param array<int, string> $galleryOrder
+     * @return array{existing_ids: array<int, int>, new_indexes: array<int, int>}
+     */
+    private function parseGalleryOrder(array $galleryOrder): array
+    {
+        $existingIds = [];
+        $newIndexes = [];
+
+        foreach ($galleryOrder as $token) {
+            if (! preg_match('/^(existing|new):(\d+)$/', $token, $matches)) {
+                continue;
+            }
+
+            $parsedValue = (int) $matches[2];
+            if ($matches[1] === 'existing') {
+                $existingIds[] = $parsedValue;
+                continue;
+            }
+
+            $newIndexes[] = $parsedValue;
+        }
+
+        return [
+            'existing_ids' => $existingIds,
+            'new_indexes' => $newIndexes,
+        ];
     }
 }

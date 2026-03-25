@@ -27,6 +27,7 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'publish_start_at',
             'publish_end_at',
             'is_publish_period_unlimited',
+            'remove_video_file',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
                 $data[$nullableKey] = null;
@@ -42,6 +43,12 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
 
         if (array_key_exists('category_ids', $data)) {
             $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
+        }
+
+        foreach (['is_publish_period_unlimited', 'remove_video_file'] as $booleanKey) {
+            if (array_key_exists($booleanKey, $data) && $data[$booleanKey] !== null) {
+                $data[$booleanKey] = filter_var($data[$booleanKey], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            }
         }
 
         $this->replace($data);
@@ -79,6 +86,7 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'publish_start_at' => ['sometimes', 'nullable', 'date'],
             'publish_end_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:publish_start_at'],
             'is_publish_period_unlimited' => ['sometimes', 'nullable', 'boolean'],
+            'remove_video_file' => ['sometimes', 'nullable', 'boolean'],
             'thumbnail_file' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ];
     }
@@ -101,6 +109,7 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'publish_start_at' => '게시 시작 시각',
             'publish_end_at' => '게시 종료 시각',
             'is_publish_period_unlimited' => '무기한 게시 여부',
+            'remove_video_file' => '원본 동영상 파일 삭제 여부',
             'thumbnail_file' => '썸네일 파일',
         ];
     }

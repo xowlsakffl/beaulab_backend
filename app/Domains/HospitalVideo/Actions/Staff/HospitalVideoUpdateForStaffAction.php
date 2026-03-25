@@ -40,6 +40,10 @@ final class HospitalVideoUpdateForStaffAction
                 );
             }
 
+            if (($normalized['remove_video_file'] ?? false) === true) {
+                $this->mediaAttachAction->deleteCollectionMedia($updated, 'video_file');
+            }
+
             if (array_key_exists('category_ids', $normalized) && is_array($normalized['category_ids'])) {
                 $this->syncCategories($updated, $normalized['category_ids']);
             }

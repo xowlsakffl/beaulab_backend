@@ -75,7 +75,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
                     ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
-            'feature_ids' => ['nullable', 'array', 'max:100'],
+            'feature_ids' => ['required', 'array', 'min:1', 'max:100'],
             'feature_ids.*' => [
                 'integer',
                 'distinct',

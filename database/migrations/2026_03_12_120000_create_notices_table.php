@@ -18,6 +18,7 @@ return new class extends Migration
 
             $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(ACTIVE, INACTIVE)');
             $table->boolean('is_pinned')->default(false)->comment('상단 공지 여부');
+            //$table->unsignedInteger('pinned_order')->default(0)->comment('상단 공지 정렬 순서');
 
             $table->boolean('is_publish_period_unlimited')->default(true)->comment('게시기간 무제한 여부');
             $table->timestamp('publish_start_at')->nullable()->comment('게시 시작 일시');

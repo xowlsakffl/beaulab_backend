@@ -30,12 +30,12 @@ final class HospitalVideoListForStaffRequest extends FormRequest
             'status.*' => ['in:'.implode(',', [HospitalVideo::STATUS_ACTIVE, HospitalVideo::STATUS_INACTIVE])],
             'allow_status' => ['nullable', 'array'],
             'allow_status.*' => ['in:'.implode(',', [
-                HospitalVideo::ALLOW_STATUS_SUBMITTED,
-                HospitalVideo::ALLOW_STATUS_IN_REVIEW,
-                HospitalVideo::ALLOW_STATUS_APPROVED,
-                HospitalVideo::ALLOW_STATUS_REJECTED,
-                HospitalVideo::ALLOW_STATUS_EXCLUDED,
-                HospitalVideo::ALLOW_STATUS_PARTNER_CANCELED,
+                HospitalVideo::ALLOW_SUBMITTED,
+                HospitalVideo::ALLOW_IN_REVIEW,
+                HospitalVideo::ALLOW_APPROVED,
+                HospitalVideo::ALLOW_REJECTED,
+                HospitalVideo::ALLOW_EXCLUDED,
+                HospitalVideo::ALLOW_PARTNER_CANCELED,
             ])],
             'distribution_channel' => ['nullable', 'array'],
             'distribution_channel.*' => ['in:'.implode(',', [

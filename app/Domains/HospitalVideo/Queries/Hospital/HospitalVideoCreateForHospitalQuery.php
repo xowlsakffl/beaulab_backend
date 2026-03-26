@@ -17,7 +17,7 @@ final class HospitalVideoCreateForHospitalQuery
             'is_usage_consented' => true,
             'distribution_channel' => $payload['distribution_channel'] ?? HospitalVideo::DISTRIBUTION_CHANNEL_YOUTUBE_APP,
             'status' => HospitalVideo::STATUS_INACTIVE,
-            'allow_status' => HospitalVideo::ALLOW_STATUS_SUBMITTED,
+            'allow_status' => HospitalVideo::ALLOW_SUBMITTED,
             'publish_start_at' => $payload['publish_start_at'] ?? null,
             'publish_end_at' => $payload['publish_end_at'] ?? null,
             'is_publish_period_unlimited' => false,

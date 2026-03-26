@@ -10,7 +10,7 @@ final class HospitalVideoCancelForHospitalQuery
     {
         $video->fill([
             'status' => HospitalVideo::STATUS_INACTIVE,
-            'allow_status' => HospitalVideo::ALLOW_STATUS_PARTNER_CANCELED,
+            'allow_status' => HospitalVideo::ALLOW_PARTNER_CANCELED,
         ]);
 
         if ($video->isDirty()) {

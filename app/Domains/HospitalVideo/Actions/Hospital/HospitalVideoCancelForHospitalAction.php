@@ -21,8 +21,8 @@ final class HospitalVideoCancelForHospitalAction
         Gate::authorize('cancel', $video);
 
         if (! in_array($video->allow_status, [
-            HospitalVideo::ALLOW_STATUS_SUBMITTED,
-            HospitalVideo::ALLOW_STATUS_IN_REVIEW,
+            HospitalVideo::ALLOW_SUBMITTED,
+            HospitalVideo::ALLOW_IN_REVIEW,
         ], true)) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '아직 처리 중인 게시 신청만 취소할 수 있습니다.');
         }

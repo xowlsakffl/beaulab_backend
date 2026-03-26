@@ -17,7 +17,7 @@ return new class extends Migration
             $table->longText('content')->comment('에디터 HTML 답변 본문');
 
             $table->string('status', 20)->default('ACTIVE')->comment('FAQ 상태(ACTIVE, INACTIVE)');
-            $table->unsignedInteger('sort_order')->default(0)->comment('노출 순서');
+            //$table->unsignedInteger('sort_order')->default(0)->comment('노출 순서');
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
 
             $table->foreignId('created_by_staff_id')

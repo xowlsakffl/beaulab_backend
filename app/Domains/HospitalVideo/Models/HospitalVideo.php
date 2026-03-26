@@ -23,12 +23,12 @@ final class HospitalVideo extends Model
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    public const ALLOW_STATUS_SUBMITTED = 'SUBMITTED';
-    public const ALLOW_STATUS_IN_REVIEW = 'IN_REVIEW';
-    public const ALLOW_STATUS_APPROVED = 'APPROVED';
-    public const ALLOW_STATUS_REJECTED = 'REJECTED';
-    public const ALLOW_STATUS_EXCLUDED = 'EXCLUDED';
-    public const ALLOW_STATUS_PARTNER_CANCELED = 'PARTNER_CANCELED';
+    public const ALLOW_SUBMITTED = 'SUBMITTED';
+    public const ALLOW_IN_REVIEW = 'IN_REVIEW';
+    public const ALLOW_APPROVED = 'APPROVED';
+    public const ALLOW_REJECTED = 'REJECTED';
+    public const ALLOW_EXCLUDED = 'EXCLUDED';
+    public const ALLOW_PARTNER_CANCELED = 'PARTNER_CANCELED';
 
     protected $table = 'hospital_videos';
 
@@ -76,7 +76,7 @@ final class HospitalVideo extends Model
         'like_count' => 0,
         'is_usage_consented' => false,
         'is_publish_period_unlimited' => false,
-        'allow_status' => self::ALLOW_STATUS_SUBMITTED,
+        'allow_status' => self::ALLOW_SUBMITTED,
     ];
 
     public function hospital(): BelongsTo

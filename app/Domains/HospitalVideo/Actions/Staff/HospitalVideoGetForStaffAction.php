@@ -8,21 +8,18 @@ use Illuminate\Support\Facades\Gate;
 
 final class HospitalVideoGetForStaffAction
 {
-    public function execute(HospitalVideo $video, string $ability = 'view'): array
+    public function execute(HospitalVideo $video): array
     {
-        Gate::authorize($ability, $video);
+        Gate::authorize('view', $video);
 
         $relations = [
             'hospital',
+            'hospital.businessRegistration',
             'doctor',
             'thumbnailMedia',
             'videoFileMedia',
             'categories',
         ];
-
-        if ($ability === 'update') {
-            $relations[] = 'hospital.businessRegistration';
-        }
 
         return [
             'video' => HospitalVideoForStaffDetailDto::fromModel($video->load($relations))->toArray(),

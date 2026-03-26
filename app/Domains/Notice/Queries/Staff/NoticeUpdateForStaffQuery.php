@@ -14,7 +14,6 @@ final class NoticeUpdateForStaffQuery
             'content' => array_key_exists('content', $payload) ? (string) $payload['content'] : $notice->content,
             'status' => array_key_exists('status', $payload) ? (string) $payload['status'] : $notice->status,
             'is_pinned' => array_key_exists('is_pinned', $payload) ? (bool) $payload['is_pinned'] : $notice->is_pinned,
-            'pinned_order' => array_key_exists('pinned_order', $payload) ? (int) $payload['pinned_order'] : $notice->pinned_order,
             'is_publish_period_unlimited' => array_key_exists('is_publish_period_unlimited', $payload)
                 ? (bool) $payload['is_publish_period_unlimited']
                 : $notice->is_publish_period_unlimited,

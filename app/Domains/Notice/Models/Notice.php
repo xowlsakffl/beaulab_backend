@@ -41,7 +41,6 @@ final class Notice extends Model
         'content',
         'status',
         'is_pinned',
-        'pinned_order',
         'is_publish_period_unlimited',
         'publish_start_at',
         'publish_end_at',
@@ -53,7 +52,6 @@ final class Notice extends Model
 
     protected $casts = [
         'is_pinned' => 'boolean',
-        'pinned_order' => 'integer',
         'is_publish_period_unlimited' => 'boolean',
         'publish_start_at' => 'datetime',
         'publish_end_at' => 'datetime',
@@ -70,7 +68,6 @@ final class Notice extends Model
         'channel' => self::CHANNEL_ALL,
         'status' => self::STATUS_ACTIVE,
         'is_pinned' => false,
-        'pinned_order' => 0,
         'is_publish_period_unlimited' => true,
         'is_important' => false,
         'view_count' => 0,

@@ -13,9 +13,9 @@ final class HospitalGetForStaffAction
      * @param array<int, string> $include
      * @return array{hospital: array}
      */
-    public function execute(Hospital $hospital, array $include = [], string $ability = 'view'): array
+    public function execute(Hospital $hospital, array $include = []): array
     {
-        Gate::authorize($ability, $hospital);
+        Gate::authorize('view', $hospital);
 
         $relations = ['logoMedia', 'galleryMedia', 'categories', 'features'];
 

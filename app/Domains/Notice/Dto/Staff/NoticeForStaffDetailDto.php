@@ -33,22 +33,6 @@ final readonly class NoticeForStaffDetailDto
             ->values()
             ->all();
 
-        $data['creator'] = $notice->relationLoaded('creator') && $notice->creator
-            ? [
-                'id' => (int) $notice->creator->id,
-                'name' => (string) $notice->creator->name,
-                'email' => (string) $notice->creator->email,
-            ]
-            : null;
-
-        $data['updater'] = $notice->relationLoaded('updater') && $notice->updater
-            ? [
-                'id' => (int) $notice->updater->id,
-                'name' => (string) $notice->updater->name,
-                'email' => (string) $notice->updater->email,
-            ]
-            : null;
-
         return new self($data);
     }
 

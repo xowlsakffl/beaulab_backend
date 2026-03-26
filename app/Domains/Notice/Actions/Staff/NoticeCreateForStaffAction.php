@@ -60,10 +60,6 @@ final class NoticeCreateForStaffAction
             $payload['publish_end_at'] = null;
         }
 
-        if (! (bool) ($payload['is_pinned'] ?? false)) {
-            $payload['pinned_order'] = 0;
-        }
-
         $payload['created_by_staff_id'] = $staffId;
         $payload['updated_by_staff_id'] = $staffId;
 

@@ -32,7 +32,6 @@ final class NoticeForStaffController extends Controller
 
     public function getNoticeForStaff(
         Notice $notice,
-        NoticeGetForStaffRequest $request,
         NoticeGetForStaffAction $action,
     ) {
         $result = $action->execute($notice);

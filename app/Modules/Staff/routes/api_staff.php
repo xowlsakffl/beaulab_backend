@@ -48,8 +48,6 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospitals.checkHospitalNameDuplicateForStaff');
     Route::post('hospitals/check-business-number', [HospitalForStaffController::class, 'checkHospitalBusinessNumberDuplicateForStaff'])
         ->name('hospitals.checkHospitalBusinessNumberDuplicateForStaff');
-    Route::get('hospitals/{hospital}/edit', [HospitalForStaffController::class, 'getHospitalForEditForStaff'])
-        ->name('hospitals.getHospitalForEditForStaff');
     Route::get('hospitals/{hospital}', [HospitalForStaffController::class, 'getHospitalForStaff'])
         ->name('hospitals.getHospitalForStaff');
     Route::post('hospitals', [HospitalForStaffController::class, 'storeHospitalForStaff'])
@@ -108,8 +106,6 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('doctors.getDoctorHospitalOptionsForStaff');
     Route::get('doctors', [DoctorForStaffController::class, 'getDoctorsForStaff'])
         ->name('doctors.getDoctorsForStaff');
-    Route::get('doctors/{doctor}/edit', [DoctorForStaffController::class, 'getDoctorForEditForStaff'])
-        ->name('doctors.getDoctorForEditForStaff');
     Route::get('doctors/{doctor}', [DoctorForStaffController::class, 'getDoctorForStaff'])
         ->name('doctors.getDoctorForStaff');
     Route::post('doctors', [DoctorForStaffController::class, 'storeDoctorForStaff'])
@@ -146,8 +142,6 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('videos.downloadVideoFileForStaff');
     Route::get('videos/{video}', [HospitalVideoForStaffController::class, 'getVideoForStaff'])
         ->name('videos.getVideoForStaff');
-    Route::get('videos/{video}/edit', [HospitalVideoForStaffController::class, 'getVideoForEditForStaff'])
-        ->name('videos.getVideoForEditForStaff');
     Route::post('videos', [HospitalVideoForStaffController::class, 'storeVideoForStaff'])
         ->name('videos.storeVideoForStaff');
     Route::match(['post', 'put', 'patch'], 'videos/{video}', [HospitalVideoForStaffController::class, 'updateVideoForStaff'])

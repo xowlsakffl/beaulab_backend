@@ -14,7 +14,6 @@ final class NoticeCreateForStaffQuery
             'content' => (string) $payload['content'],
             'status' => (string) ($payload['status'] ?? Notice::STATUS_ACTIVE),
             'is_pinned' => (bool) ($payload['is_pinned'] ?? false),
-            'pinned_order' => (int) ($payload['pinned_order'] ?? 0),
             'is_publish_period_unlimited' => (bool) ($payload['is_publish_period_unlimited'] ?? true),
             'publish_start_at' => $payload['publish_start_at'] ?? null,
             'publish_end_at' => $payload['publish_end_at'] ?? null,

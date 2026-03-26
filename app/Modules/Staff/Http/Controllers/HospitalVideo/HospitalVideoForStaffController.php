@@ -53,13 +53,6 @@ final class HospitalVideoForStaffController extends Controller
         return ApiResponse::success($result['video'] ?? $result);
     }
 
-    public function getVideoForEditForStaff(HospitalVideo $video, HospitalVideoGetForStaffAction $action)
-    {
-        $result = $action->execute($video, 'update');
-
-        return ApiResponse::success($result['video'] ?? $result);
-    }
-
     public function downloadVideoFileForStaff(HospitalVideo $video, HospitalVideoDownloadVideoFileForStaffAction $action)
     {
         return $action->execute($video);

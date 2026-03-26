@@ -19,7 +19,7 @@
 | `HospitalBusinessRegistration` | 병원 사업자등록 | 병원 사업자등록 정보와 등록증 파일 |
 | `BeautyBusinessRegistration` | 뷰티 사업자등록 | 뷰티 사업자등록 정보와 등록증 파일 |
 | `HospitalVideoRequest` | 병원 영상요청 | 병원이 등록/게시를 요청한 영상의 검수 상태 |
-| `Notice` | 공지사항 | 관리자 공지 콘텐츠(노출/게시기간/중요공지/조회수) |
+| `Notice` | 공지사항 | 관리자 공지 콘텐츠(노출/게시기간/관리자 메인 팝업/조회수) |
 | `Faq` | FAQ | 관리자 FAQ 콘텐츠(카테고리/채널/조회수) |
 | `Media` | 공통 미디어 | 이미지/영상 파일 메타데이터(파일 경로, 크기, 정렬, 대표 여부) |
 
@@ -236,10 +236,9 @@
 
 - `status`: 공지 상태
 - `is_pinned`: 상단 고정 여부
-- `pinned_order`: 상단 정렬 순서
 - `is_publish_period_unlimited`: 게시기간 무제한 여부
 - `publish_start_at`, `publish_end_at`: 게시 기간
-- `is_important`: 중요 공지(팝업) 여부
+- `is_important`: 관리자 메인 팝업 여부
 - `view_count`: 조회수
 
 기본값:
@@ -247,7 +246,6 @@
 - `channel`: `CHANNEL_ALL`
 - `status`: `STATUS_ACTIVE`
 - `is_pinned`: `false`
-- `pinned_order`: `0`
 - `is_publish_period_unlimited`: `true`
 - `is_important`: `false`
 - `view_count`: `0`

@@ -17,7 +17,6 @@ final class NoticeListForStaffQuery
                 'title',
                 'status',
                 'is_pinned',
-                'pinned_order',
                 'is_publish_period_unlimited',
                 'publish_start_at',
                 'publish_end_at',
@@ -27,6 +26,9 @@ final class NoticeListForStaffQuery
                 'updated_by_staff_id',
                 'created_at',
                 'updated_at',
+            ])
+            ->with([
+                'creator:id,name',
             ])
             ->withCount([
                 'attachments',
@@ -48,16 +50,28 @@ final class NoticeListForStaffQuery
             $query->whereIn('status', $filters['status']);
         }
 
+        if (! empty($filters['start_date'])) {
+            $query->whereDate('created_at', '>=', $filters['start_date']);
+        }
+
+        if (! empty($filters['end_date'])) {
+            $query->whereDate('created_at', '<=', $filters['end_date']);
+        }
+
+        if (! empty($filters['updated_start_date'])) {
+            $query->whereDate('updated_at', '>=', $filters['updated_start_date']);
+        }
+
+        if (! empty($filters['updated_end_date'])) {
+            $query->whereDate('updated_at', '<=', $filters['updated_end_date']);
+        }
+
         if (array_key_exists('is_pinned', $filters) && $filters['is_pinned'] !== null) {
             $query->where('is_pinned', (bool) $filters['is_pinned']);
         }
 
         if (array_key_exists('is_important', $filters) && $filters['is_important'] !== null) {
             $query->where('is_important', (bool) $filters['is_important']);
-        }
-
-        if (is_array($filters['exposure_status'] ?? null) && $filters['exposure_status'] !== []) {
-            $this->applyExposureStatusFilter($query, $filters['exposure_status']);
         }
 
         $sort = $filters['sort'] ?? null;
@@ -70,7 +84,6 @@ final class NoticeListForStaffQuery
             }
         } else {
             $query->orderByDesc('is_pinned')
-                ->orderBy('pinned_order')
                 ->orderByDesc('publish_start_at')
                 ->orderByDesc('id');
         }
@@ -78,43 +91,5 @@ final class NoticeListForStaffQuery
         return $query
             ->paginate((int) ($filters['per_page'] ?? 15))
             ->withQueryString();
-    }
-
-    /**
-     * @param array<int, string> $statuses
-     */
-    private function applyExposureStatusFilter(Builder $query, array $statuses): void
-    {
-        $now = now();
-
-        $query->where(function (Builder $builder) use ($statuses, $now): void {
-            foreach ($statuses as $status) {
-                $builder->orWhere(function (Builder $inner) use ($status, $now): void {
-                    match ($status) {
-                        Notice::EXPOSURE_HIDDEN => $inner->where('status', Notice::STATUS_INACTIVE),
-                        Notice::EXPOSURE_SCHEDULED => $inner
-                            ->where('status', Notice::STATUS_ACTIVE)
-                            ->whereNotNull('publish_start_at')
-                            ->where('publish_start_at', '>', $now),
-                        Notice::EXPOSURE_EXPIRED => $inner
-                            ->where('status', Notice::STATUS_ACTIVE)
-                            ->where('is_publish_period_unlimited', false)
-                            ->whereNotNull('publish_end_at')
-                            ->where('publish_end_at', '<', $now),
-                        default => $inner
-                            ->where('status', Notice::STATUS_ACTIVE)
-                            ->where(function (Builder $scope) use ($now): void {
-                                $scope->whereNull('publish_start_at')
-                                    ->orWhere('publish_start_at', '<=', $now);
-                            })
-                            ->where(function (Builder $scope) use ($now): void {
-                                $scope->where('is_publish_period_unlimited', true)
-                                    ->orWhereNull('publish_end_at')
-                                    ->orWhere('publish_end_at', '>=', $now);
-                            }),
-                    };
-                });
-            }
-        });
     }
 }

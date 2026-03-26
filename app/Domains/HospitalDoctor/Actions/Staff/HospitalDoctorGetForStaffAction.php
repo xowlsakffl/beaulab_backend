@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Gate;
 
 final class HospitalDoctorGetForStaffAction
 {
-    public function execute(HospitalDoctor $doctor, string $ability = 'view'): array
+    public function execute(HospitalDoctor $doctor): array
     {
-        Gate::authorize($ability, $doctor);
+        Gate::authorize('view', $doctor);
 
         $doctor->load([
             'hospital.businessRegistration',

@@ -102,6 +102,23 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
         ];
     }
 
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $validator): void {
+            if ($this->boolean('is_publish_period_unlimited')) {
+                return;
+            }
+
+            if (! $this->filled('publish_start_at')) {
+                $validator->errors()->add('publish_start_at', '게시 시작 시각을 입력해 주세요.');
+            }
+
+            if (! $this->filled('publish_end_at')) {
+                $validator->errors()->add('publish_end_at', '게시 종료 시각을 입력해 주세요.');
+            }
+        });
+    }
+
     /**
      * @return array<int, int>
      */

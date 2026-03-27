@@ -91,11 +91,13 @@ final class AccountStaffFactory extends Factory
      */
     private function seedPayload(): array
     {
+        $seedConfig = config('seeding.staff', []);
+
         return [
-            'email' => (string) env('SEED_STAFF_EMAIL', ''),
-            'name' => (string) env('SEED_STAFF_NAME', ''),
-            'nickname' => (string) env('SEED_STAFF_NICKNAME', ''),
-            'password' => (string) env('SEED_STAFF_PASSWORD', ''),
+            'email' => trim((string) ($seedConfig['email'] ?? '')),
+            'name' => trim((string) ($seedConfig['name'] ?? '관리자')),
+            'nickname' => trim((string) ($seedConfig['nickname'] ?? 'admin')),
+            'password' => (string) ($seedConfig['password'] ?? ''),
         ];
     }
 

@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Carbon;
 
 final class Notice extends Model
 {
@@ -24,11 +23,6 @@ final class Notice extends Model
 
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_INACTIVE = 'INACTIVE';
-
-    public const EXPOSURE_HIDDEN = 'HIDDEN';
-    public const EXPOSURE_SCHEDULED = 'SCHEDULED';
-    public const EXPOSURE_PUBLISHED = 'PUBLISHED';
-    public const EXPOSURE_EXPIRED = 'EXPIRED';
 
     protected $table = 'notices';
 
@@ -121,30 +115,6 @@ final class Notice extends Model
         return $query->whereIn('channel', [self::CHANNEL_ALL, $channel]);
     }
 
-    public function exposureStatus(?CarbonInterface $at = null): string
-    {
-        $at ??= now();
-
-        if ($this->status === self::STATUS_INACTIVE) {
-            return self::EXPOSURE_HIDDEN;
-        }
-
-        $publishStartAt = $this->publish_start_at;
-        if ($publishStartAt instanceof Carbon && $publishStartAt->gt($at)) {
-            return self::EXPOSURE_SCHEDULED;
-        }
-
-        if (
-            ! (bool) $this->is_publish_period_unlimited
-            && $this->publish_end_at instanceof Carbon
-            && $this->publish_end_at->lt($at)
-        ) {
-            return self::EXPOSURE_EXPIRED;
-        }
-
-        return self::EXPOSURE_PUBLISHED;
-    }
-
     /**
      * @return array<int, string>
      */
@@ -155,19 +125,6 @@ final class Notice extends Model
             self::CHANNEL_APP_WEB,
             self::CHANNEL_HOSPITAL,
             self::CHANNEL_BEAUTY,
-        ];
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    public static function exposureStatuses(): array
-    {
-        return [
-            self::EXPOSURE_HIDDEN,
-            self::EXPOSURE_SCHEDULED,
-            self::EXPOSURE_PUBLISHED,
-            self::EXPOSURE_EXPIRED,
         ];
     }
 

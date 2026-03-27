@@ -6,6 +6,7 @@ use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
 use App\Modules\Staff\Http\Controllers\Category\CategoryForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
+use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
@@ -72,6 +73,20 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('categories.updateCategoryForStaff');
     Route::delete('categories/{category}', [CategoryForStaffController::class, 'deleteCategoryForStaff'])
         ->name('categories.deleteCategoryForStaff');
+
+    /**
+     * 해시태그 관리
+     **/
+    Route::get('hashtags', [HashtagForStaffController::class, 'getHashtagsForStaff'])
+        ->name('hashtags.getHashtagsForStaff');
+    Route::get('hashtags/{hashtag}', [HashtagForStaffController::class, 'getHashtagForStaff'])
+        ->name('hashtags.getHashtagForStaff');
+    Route::post('hashtags', [HashtagForStaffController::class, 'storeHashtagForStaff'])
+        ->name('hashtags.storeHashtagForStaff');
+    Route::match(['post', 'put', 'patch'], 'hashtags/{hashtag}', [HashtagForStaffController::class, 'updateHashtagForStaff'])
+        ->name('hashtags.updateHashtagForStaff');
+    Route::delete('hashtags/{hashtag}', [HashtagForStaffController::class, 'deleteHashtagForStaff'])
+        ->name('hashtags.deleteHashtagForStaff');
 
     /**
      * 뷰티 관리

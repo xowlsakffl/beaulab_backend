@@ -22,7 +22,6 @@ final readonly class NoticeForStaffDto
             'is_important' => (bool) $notice->is_important,
             'view_count' => (int) $notice->view_count,
             'attachments_count' => (int) ($notice->attachments_count ?? 0),
-            'exposure_status' => $notice->exposureStatus(),
             'created_by_staff_id' => $notice->created_by_staff_id ? (int) $notice->created_by_staff_id : null,
             'creator_name' => $notice->relationLoaded('creator') && $notice->creator
                 ? (string) $notice->creator->name

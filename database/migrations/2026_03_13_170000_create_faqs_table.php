@@ -35,8 +35,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 일시');
 
-            $table->index(['channel', 'status', 'sort_order', 'id'], 'faqs_channel_status_sort_idx');
-            $table->index(['status', 'sort_order', 'id'], 'faqs_status_sort_idx');
+            $table->index(['channel', 'status', 'id'], 'faqs_channel_status_sort_idx');
+            $table->index(['status', 'id'], 'faqs_status_sort_idx');
         });
 
         DB::statement("ALTER TABLE faqs COMMENT = '관리자 FAQ 관리 테이블'");

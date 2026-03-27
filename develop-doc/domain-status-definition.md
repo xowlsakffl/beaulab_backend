@@ -205,7 +205,7 @@
 
 ### 2.13 `Notice` (공지사항)
 
-`Notice`는 운영 상태(`status`)와 계산 노출 상태(`exposure_status`)를 함께 사용한다.
+`Notice`는 운영 상태(`status`)를 기준으로 관리한다.
 
 #### 채널 (`channel`)
 
@@ -221,16 +221,7 @@
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
 | `STATUS_ACTIVE` | `ACTIVE` | 활성 | 게시 가능 상태 |
-| `STATUS_INACTIVE` | `INACTIVE` | 비활성 | 숨김 상태 |
-
-#### 노출 상태 (`exposure_status`, 계산값)
-
-| 상수명 | 저장값 | 상태명 | 의미 |
-|---|---|---|---|
-| `EXPOSURE_HIDDEN` | `HIDDEN` | 숨김 | `status=INACTIVE` |
-| `EXPOSURE_SCHEDULED` | `SCHEDULED` | 게시 대기 | `publish_start_at` 미래 시각 |
-| `EXPOSURE_PUBLISHED` | `PUBLISHED` | 게시중 | 노출 가능 기간 내 |
-| `EXPOSURE_EXPIRED` | `EXPIRED` | 게시 종료 | 게시 종료 시각 경과 |
+| `STATUS_INACTIVE` | `INACTIVE` | 비활성 | 게시 불가 상태 |
 
 #### 주요 필드
 
@@ -275,9 +266,8 @@
 
 ### 3.6 공지 노출 흐름
 
-- `EXPOSURE_HIDDEN`(숨김) -> `EXPOSURE_SCHEDULED`(게시 대기) -> `EXPOSURE_PUBLISHED`(게시중) -> `EXPOSURE_EXPIRED`(게시 종료)
-- `status=INACTIVE`면 게시기간과 무관하게 `EXPOSURE_HIDDEN`으로 처리
-- `publish_start_at` 미래 시각이면 `EXPOSURE_SCHEDULED`로 처리
+- `STATUS_ACTIVE`(활성) -> `STATUS_INACTIVE`(비활성)
+- 게시 시작/종료 시각은 기간 제어용 필드이며 별도 노출 상태 enum으로 관리하지 않음
 
 ### 2.14 `Faq` (자주 묻는 질문)
 

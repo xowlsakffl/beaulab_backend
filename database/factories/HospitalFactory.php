@@ -154,7 +154,7 @@ final class HospitalFactory extends Factory
         string $role,
         int $index
     ): void {
-        $rawPassword = (string) env('SEED_STAFF_PASSWORD', '');
+        $rawPassword = (string) config('seeding.staff.password', '');
         $suffix = $type === 'owner' ? '' : str_pad((string) $index, 2, '0', STR_PAD_LEFT);
 
         $email = $type === 'owner'

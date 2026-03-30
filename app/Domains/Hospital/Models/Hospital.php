@@ -6,6 +6,7 @@ namespace App\Domains\Hospital\Models;
 
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Models\Concerns\HasAdminNotes;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class Hospital extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes;
 
     // allow_status
     public const ALLOW_PENDING  = 'PENDING';

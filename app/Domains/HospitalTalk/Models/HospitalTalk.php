@@ -3,7 +3,7 @@
 namespace App\Domains\HospitalTalk\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Models\AdminNote\AdminNote;
+use App\Domains\Common\Models\Concerns\HasAdminNotes;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
@@ -13,13 +13,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalTalk extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes;
 
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_INACTIVE = 'INACTIVE';
@@ -89,12 +88,6 @@ final class HospitalTalk extends Model
         return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')
             ->withPivot('is_primary')
             ->withTimestamps();
-    }
-
-    public function adminNotes(): MorphMany
-    {
-        return $this->morphMany(AdminNote::class, 'target', 'target_type', 'target_id')
-            ->latest('id');
     }
 
     protected static function newFactory(): Factory

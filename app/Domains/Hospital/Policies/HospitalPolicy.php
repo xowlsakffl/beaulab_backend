@@ -2,8 +2,10 @@
 
 namespace App\Domains\Hospital\Policies;
 
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Hospital\Policies\Hospital\HospitalForHospitalPolicy;
 use App\Domains\Hospital\Policies\Staff\HospitalForStaffPolicy;
 
 final class HospitalPolicy
@@ -37,7 +39,7 @@ final class HospitalPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff   => app(HospitalForStaffPolicy::class),
-            //$actor instanceof AccountPartner => app(HospitalForPartnerPolicy::class),
+            $actor instanceof AccountHospital => app(HospitalForHospitalPolicy::class),
             //$actor instanceof AccountUser    => app(HospitalForUserPolicy::class),
             default => new class {
                 public function viewAny(mixed $actor): bool { return false; }

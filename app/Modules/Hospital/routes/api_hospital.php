@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Hospital\Http\Controllers\Auth\AuthForHospitalController;
+use App\Modules\Hospital\Http\Controllers\AdminNote\AdminNoteForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,9 @@ Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function 
     Route::get('/profile', [AuthForHospitalController::class, 'getMyProfile'])->name('profile');
     Route::match(['put', 'patch'], '/profile', [AuthForHospitalController::class, 'updateMyProfile'])->name('profile.update');
     Route::match(['put', 'patch'], '/password', [AuthForHospitalController::class, 'updateMyPassword'])->name('password.update')->middleware('throttle:6,1');
+    Route::get('/notes', [AdminNoteForHospitalController::class, 'getAdminNotesForHospital'])->name('notes.getAdminNotesForHospital');
+    Route::post('/notes', [AdminNoteForHospitalController::class, 'storeAdminNoteForHospital'])->name('notes.storeAdminNoteForHospital');
+    Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForHospitalController::class, 'updateAdminNoteForHospital'])->name('notes.updateAdminNoteForHospital');
 
     /**
      * 동영상 게시 요청

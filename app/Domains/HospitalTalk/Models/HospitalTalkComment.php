@@ -3,7 +3,7 @@
 namespace App\Domains\HospitalTalk\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Models\AdminNote\AdminNote;
+use App\Domains\Common\Models\Concerns\HasAdminNotes;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use Database\Factories\HospitalTalkCommentFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -11,13 +11,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalTalkComment extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes;
 
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_INACTIVE = 'INACTIVE';
@@ -81,12 +80,6 @@ final class HospitalTalkComment extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(AccountUser::class, 'author_id');
-    }
-
-    public function adminNotes(): MorphMany
-    {
-        return $this->morphMany(AdminNote::class, 'target', 'target_type', 'target_id')
-            ->latest('id');
     }
 
     public function mentions(): HasMany

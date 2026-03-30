@@ -2,7 +2,9 @@
 
 namespace App\Domains\Beauty\Policies;
 
+use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\Beauty\Models\Beauty;
+use App\Domains\Beauty\Policies\Beauty\BeautyForBeautyPolicy;
 use App\Domains\Beauty\Policies\Staff\BeautyForStaffPolicy;
 use App\Domains\AccountStaff\Models\AccountStaff;
 
@@ -38,6 +40,7 @@ final class BeautyPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff   => app(BeautyForStaffPolicy::class),
+            $actor instanceof AccountBeauty  => app(BeautyForBeautyPolicy::class),
 
             default => new class {
                 public function viewAny(mixed $actor): bool { return false; }

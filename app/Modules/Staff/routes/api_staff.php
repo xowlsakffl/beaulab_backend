@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController;
+use App\Modules\Staff\Http\Controllers\AdminNote\AdminNoteForStaffController;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
 use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
 use App\Modules\Staff\Http\Controllers\Category\CategoryForStaffController;
@@ -33,6 +34,13 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     Route::match(['put', 'patch'], '/profile', [AuthForStaffController::class, 'updateMyProfile'])->name('profile.update');
     Route::match(['put', 'patch'], '/password', [AuthForStaffController::class, 'updateMyPassword'])->name('password.update')
         ->middleware('throttle:6,1');
+
+    Route::get('/notes', [AdminNoteForStaffController::class, 'getAdminNotesForStaff'])
+        ->name('notes.getAdminNotesForStaff');
+    Route::post('/notes', [AdminNoteForStaffController::class, 'storeAdminNoteForStaff'])
+        ->name('notes.storeAdminNoteForStaff');
+    Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForStaffController::class, 'updateAdminNoteForStaff'])
+        ->name('notes.updateAdminNoteForStaff');
 
     // 대시보드
     Route::get('/dashboard', [DashboardForStaffController::class, 'getDashboardForStaff'])

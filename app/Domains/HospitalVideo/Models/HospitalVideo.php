@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalVideo\Models;
 
+use App\Domains\Common\Models\Concerns\HasAdminNotes;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalVideo extends Model
 {
-    use SoftDeletes, HasAuditLogs;
+    use SoftDeletes, HasAuditLogs, HasAdminNotes;
 
     public const DISTRIBUTION_CHANNEL_YOUTUBE_APP = 'YOUTUBE_APP';
     public const DISTRIBUTION_CHANNEL_APP = 'APP';

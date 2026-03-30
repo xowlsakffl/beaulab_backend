@@ -2,11 +2,10 @@
 
 namespace App\Domains\Common\Models\AdminNote;
 
-use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Support\AdminNote\AdminNoteActorRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -24,13 +23,14 @@ final class AdminNote extends Model
         'target_id',
         'note',
         'is_internal',
-        'created_by_staff_id',
+        'creator_type',
+        'creator_id',
     ];
 
     protected $casts = [
         'target_id' => 'integer',
         'is_internal' => 'boolean',
-        'created_by_staff_id' => 'integer',
+        'creator_id' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -41,9 +41,9 @@ final class AdminNote extends Model
         return $this->morphTo('target', 'target_type', 'target_id');
     }
 
-    public function creator(): BelongsTo
+    public function creator(): MorphTo
     {
-        return $this->belongsTo(AccountStaff::class, 'created_by_staff_id');
+        return $this->morphTo('creator', 'creator_type', 'creator_id');
     }
 
     public function scopeForTarget(Builder $query, Model $target): Builder
@@ -51,5 +51,14 @@ final class AdminNote extends Model
         return $query
             ->where('target_type', $target::class)
             ->where('target_id', $target->getKey());
+    }
+
+    public function scopeVisibleTo(Builder $query, mixed $actor): Builder
+    {
+        if (AdminNoteActorRegistry::isStaffActor($actor)) {
+            return $query;
+        }
+
+        return $query->where('is_internal', false);
     }
 }

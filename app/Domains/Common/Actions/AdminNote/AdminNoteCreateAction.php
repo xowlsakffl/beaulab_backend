@@ -15,7 +15,7 @@ final class AdminNoteCreateAction
     public function execute(
         Model $target,
         string $note,
-        ?int $createdByStaffId = null,
+        ?Model $creator = null,
         bool $isInternal = true,
     ): AdminNote {
         return $this->query->create([
@@ -23,7 +23,8 @@ final class AdminNoteCreateAction
             'target_id' => (int) $target->getKey(),
             'note' => trim($note),
             'is_internal' => $isInternal,
-            'created_by_staff_id' => $createdByStaffId,
+            'creator_type' => $creator?->getMorphClass(),
+            'creator_id' => $creator ? (int) $creator->getKey() : null,
         ]);
     }
 }

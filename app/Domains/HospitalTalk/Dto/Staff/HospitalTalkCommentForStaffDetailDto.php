@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalTalk\Dto\Staff;
 
+use App\Domains\Common\Dto\AdminNote\AdminNoteData;
 use App\Domains\Common\Models\AdminNote\AdminNote;
 use App\Domains\HospitalTalk\Models\HospitalTalkComment;
 use App\Domains\HospitalTalk\Models\HospitalTalkCommentMention;
@@ -43,17 +44,7 @@ final readonly class HospitalTalkCommentForStaffDetailDto
             'like_count' => (int) $comment->like_count,
             'mention_count' => (int) ($comment->mentions_count ?? $comment->mentions()->count()),
             'admin_notes' => self::resolveAdminNotes($comment)
-                ->map(fn (AdminNote $note): array => [
-                    'id' => (int) $note->id,
-                    'note' => (string) $note->note,
-                    'is_internal' => (bool) $note->is_internal,
-                    'created_by_staff_id' => $note->created_by_staff_id ? (int) $note->created_by_staff_id : null,
-                    'created_by_staff_name' => $note->relationLoaded('creator') && $note->creator
-                        ? (string) $note->creator->name
-                        : null,
-                    'created_at' => $note->created_at?->toISOString(),
-                    'updated_at' => $note->updated_at?->toISOString(),
-                ])
+                ->map(fn (AdminNote $note): array => AdminNoteData::fromModel($note)->toArray())
                 ->values()
                 ->all(),
             'created_at' => $comment->created_at?->toISOString(),

@@ -67,9 +67,13 @@ final class HospitalTalkCommentUpdateForStaffAction
         }
 
         $actor = auth()->user();
-        $createdByStaffId = $actor instanceof AccountStaff ? (int) $actor->id : null;
 
-        $this->adminNoteCreateAction->execute($comment, $note, $createdByStaffId, true);
+        $this->adminNoteCreateAction->execute(
+            $comment,
+            $note,
+            $actor instanceof AccountStaff ? $actor : null,
+            true,
+        );
     }
 
     /**

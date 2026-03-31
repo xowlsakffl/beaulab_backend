@@ -12,6 +12,7 @@ final readonly class HospitalTalkForStaffDto
         public int $id,
         public ?int $authorId,
         public string $title,
+        public string $content,
         public string $status,
         public bool $isVisible,
         public bool $isPinned,
@@ -31,6 +32,7 @@ final readonly class HospitalTalkForStaffDto
             id: (int) $talk->id,
             authorId: $talk->author_id ? (int) $talk->author_id : null,
             title: (string) $talk->title,
+            content: (string) $talk->content,
             status: (string) $talk->status,
             isVisible: (bool) $talk->is_visible,
             isPinned: (bool) $talk->is_pinned,
@@ -44,6 +46,7 @@ final readonly class HospitalTalkForStaffDto
                 ? [
                     'id' => (int) $talk->author->id,
                     'name' => (string) $talk->author->name,
+                    'nickname' => (string) $talk->author->name,
                     'email' => (string) $talk->author->email,
                 ]
                 : null,
@@ -66,6 +69,7 @@ final readonly class HospitalTalkForStaffDto
             'id' => $this->id,
             'author_id' => $this->authorId,
             'title' => $this->title,
+            'content' => $this->content,
             'status' => $this->status,
             'is_visible' => $this->isVisible,
             'is_pinned' => $this->isPinned,

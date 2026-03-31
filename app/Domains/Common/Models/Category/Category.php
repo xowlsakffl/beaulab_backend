@@ -22,6 +22,7 @@ final class Category extends Model
     public const DOMAIN_HOSPITAL_SURGERY = 'HOSPITAL_SURGERY';
     public const DOMAIN_HOSPITAL_TREATMENT = 'HOSPITAL_TREATMENT';
     public const DOMAIN_HOSPITAL_COMMUNITY = 'HOSPITAL_COMMUNITY';
+
     public const DOMAIN_BEAUTY = 'BEAUTY';
     public const DOMAIN_BEAUTY_COMMUNITY = 'BEAUTY_COMMUNITY';
     public const DOMAIN_FAQ = 'FAQ';

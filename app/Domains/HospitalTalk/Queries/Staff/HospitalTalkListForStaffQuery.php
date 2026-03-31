@@ -16,6 +16,7 @@ final class HospitalTalkListForStaffQuery
                 'id',
                 'author_id',
                 'title',
+                'content',
                 'status',
                 'is_visible',
                 'is_pinned',
@@ -66,6 +67,14 @@ final class HospitalTalkListForStaffQuery
         if (! empty($filters['category_id'])) {
             $categoryId = (int) $filters['category_id'];
             $builder->whereHas('categories', fn ($query) => $query->where('categories.id', $categoryId));
+        }
+
+        if (! empty($filters['start_date'])) {
+            $builder->whereDate('created_at', '>=', $filters['start_date']);
+        }
+
+        if (! empty($filters['end_date'])) {
+            $builder->whereDate('created_at', '<=', $filters['end_date']);
         }
 
         $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');

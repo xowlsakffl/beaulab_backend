@@ -69,8 +69,9 @@ final class HospitalTalkSeeder extends Seeder
         );
 
         $children = [
-            ['name' => '자유 토크', 'code' => 'HOSPITAL_COMMUNITY_FREE', 'sort_order' => 1],
+            ['name' => '성형/쁘띠', 'code' => 'HOSPITAL_COMMUNITY_FREE', 'sort_order' => 1],
             ['name' => '시술 후기', 'code' => 'HOSPITAL_COMMUNITY_REVIEW', 'sort_order' => 2],
+            ['name' => '질문/답변', 'code' => 'HOSPITAL_COMMUNITY_QNA', 'sort_order' => 3],
             ['name' => '질문/답변', 'code' => 'HOSPITAL_COMMUNITY_QNA', 'sort_order' => 3],
         ];
 

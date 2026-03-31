@@ -48,10 +48,6 @@ final class AccessPermissions
     public const BEAULAB_TALK_CREATE = 'beaulab.talk.create';
     public const BEAULAB_TALK_UPDATE = 'beaulab.talk.update';
     public const BEAULAB_TALK_DELETE = 'beaulab.talk.delete';
-    public const BEAULAB_TALK_COMMENT_SHOW = 'beaulab.talk-comment.show';
-    public const BEAULAB_TALK_COMMENT_CREATE = 'beaulab.talk-comment.create';
-    public const BEAULAB_TALK_COMMENT_UPDATE = 'beaulab.talk-comment.update';
-    public const BEAULAB_TALK_COMMENT_DELETE = 'beaulab.talk-comment.delete';
     public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
     public const BEAULAB_NOTICE_UPDATE = 'beaulab.notice.update';
@@ -193,10 +189,6 @@ final class AccessPermissions
             self::BEAULAB_TALK_CREATE,
             self::BEAULAB_TALK_UPDATE,
             self::BEAULAB_TALK_DELETE,
-            self::BEAULAB_TALK_COMMENT_SHOW,
-            self::BEAULAB_TALK_COMMENT_CREATE,
-            self::BEAULAB_TALK_COMMENT_UPDATE,
-            self::BEAULAB_TALK_COMMENT_DELETE,
             self::BEAULAB_NOTICE_SHOW,
             self::BEAULAB_NOTICE_CREATE,
             self::BEAULAB_NOTICE_UPDATE,

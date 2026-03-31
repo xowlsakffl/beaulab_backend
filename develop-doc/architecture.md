@@ -49,7 +49,7 @@
 
 - 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`
 - 파트너: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`
-- 콘텐츠: `HospitalTalk`, `HospitalTalkComment`, `Notice`, `Faq`
+- 콘텐츠: `Talk`, `TalkComment`, `Notice`, `Faq`
 - 공통: `Media`, `Category`, `AdminNote`
 
 ## 6) 공지사항(Notice) / FAQ 구조

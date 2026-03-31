@@ -59,7 +59,7 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 - Expert: `beaulab.expert.show|create|update|delete`
 - Video Request: `beaulab.video-request.show|update|delete`
 - Talk: `beaulab.talk.show|create|update|delete`
-- Talk Comment: `beaulab.talk-comment.show|create|update|delete`
+- Talk Comment: 별도 권한 없음 (Talk 권한 `beaulab.talk.show|create|update|delete` 사용)
 - Notice: `beaulab.notice.show|create|update|delete`
 - FAQ: `beaulab.faq.show|create|update|delete`
 - Category: `beaulab.category.manage`

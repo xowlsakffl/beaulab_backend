@@ -6,9 +6,9 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\HospitalTalk\Models\HospitalTalk;
-use App\Domains\HospitalTalk\Models\HospitalTalkComment;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
+use App\Domains\Talk\Models\Talk;
+use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Model;
 
 final class AdminNoteTargetRegistry
@@ -26,8 +26,8 @@ final class AdminNoteTargetRegistry
         self::ALIAS_HOSPITAL => Hospital::class,
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
-        self::ALIAS_HOSPITAL_TALK => HospitalTalk::class,
-        self::ALIAS_HOSPITAL_TALK_COMMENT => HospitalTalkComment::class,
+        self::ALIAS_HOSPITAL_TALK => Talk::class,
+        self::ALIAS_HOSPITAL_TALK_COMMENT => TalkComment::class,
     ];
 
     /**

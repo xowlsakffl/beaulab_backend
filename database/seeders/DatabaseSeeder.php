@@ -21,7 +21,7 @@ final class DatabaseSeeder extends Seeder
             BeautySeeder::class,
             BeautyExpertSeeder::class,
             AccountUserSeeder::class,
-            HospitalTalkSeeder::class,
+            TalkSeeder::class,
         ]);
     }
 }

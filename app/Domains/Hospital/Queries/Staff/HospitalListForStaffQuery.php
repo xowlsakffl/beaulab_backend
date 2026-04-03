@@ -31,8 +31,6 @@ final class HospitalListForStaffQuery
         $builder = Hospital::query()->select([
             'id',
             'name',
-            'address',
-            'address_detail',
             'tel',
             'view_count',
             'allow_status',
@@ -62,13 +60,12 @@ final class HospitalListForStaffQuery
             ]);
         }
 
-        // 검색: id exact match + name / address / tel LIKE 검색
+        // 검색: id exact match + name / tel LIKE 검색
         if ($q !== null && $q !== '') {
             $searchId = ctype_digit($q) ? (int) $q : null;
 
             $builder->where(function (Builder $w) use ($q, $searchId) {
                 $w->where('name', 'like', "%{$q}%")
-                    ->orWhere('address', 'like', "%{$q}%")
                     ->orWhere('tel', 'like', "%{$q}%");
 
                 if ($searchId !== null) {

@@ -12,8 +12,6 @@ final readonly class HospitalForStaffDto
     public function __construct(
         public int $id,
         public string $name,
-        public ?string $address,
-        public ?string $addressDetail,
         public ?string $tel,
         public int $viewCount,
         public string $allowStatus,
@@ -30,8 +28,6 @@ final readonly class HospitalForStaffDto
         return new self(
             id: $hospital->id,
             name: $hospital->name,
-            address: $hospital->address,
-            addressDetail: $hospital->address_detail,
             tel: $hospital->tel,
             viewCount: (int) $hospital->view_count,
             allowStatus: $hospital->allow_status,
@@ -64,8 +60,6 @@ final readonly class HospitalForStaffDto
         $data = [
             'id'           => $this->id,
             'name'         => $this->name,
-            'address'      => $this->address,
-            'address_detail' => $this->addressDetail,
             'tel'          => $this->tel,
             'view_count'   => $this->viewCount,
             'allow_status' => $this->allowStatus,

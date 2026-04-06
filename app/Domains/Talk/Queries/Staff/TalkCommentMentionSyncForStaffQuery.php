@@ -29,7 +29,7 @@ final class TalkCommentMentionSyncForStaffQuery
 
         TalkCommentMention::query()->updateOrCreate(
             [
-                'hospital_talk_comment_id' => (int) $comment->id,
+                'talk_comment_id' => (int) $comment->id,
             ],
             [
                 'mentioned_user_id' => (int) $normalized['user_id'],

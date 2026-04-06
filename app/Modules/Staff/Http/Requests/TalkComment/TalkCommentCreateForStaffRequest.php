@@ -40,8 +40,8 @@ final class TalkCommentCreateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'hospital_talk_id' => ['required', 'integer', 'exists:hospital_talks,id'],
-            'parent_id' => ['nullable', 'integer', 'exists:hospital_talk_comments,id'],
+            'talk_id' => ['required', 'integer', 'exists:talks,id'],
+            'parent_id' => ['nullable', 'integer', 'exists:talk_comments,id'],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'content' => ['required', 'string'],
             'status' => ['nullable', 'in:ACTIVE,INACTIVE'],
@@ -59,7 +59,7 @@ final class TalkCommentCreateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_talk_id' => '게시글',
+            'talk_id' => '게시글',
             'parent_id' => '부모 댓글',
             'author_id' => '작성자',
             'content' => '내용',

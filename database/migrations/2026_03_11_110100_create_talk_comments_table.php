@@ -9,18 +9,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hospital_talk_comments', function (Blueprint $table) {
-            $table->id()->comment('병원 토크 댓글 ID');
+        Schema::create('talk_comments', function (Blueprint $table) {
+            $table->id()->comment('토크 댓글 ID');
 
-            $table->foreignId('hospital_talk_id')
-                ->comment('병원 토크 게시글 ID')
-                ->constrained('hospital_talks')
+            $table->foreignId('talk_id')
+                ->comment('토크 게시글 ID')
+                ->constrained('talks')
                 ->cascadeOnDelete();
 
             $table->foreignId('parent_id')
                 ->nullable()
                 ->comment('부모 댓글 ID(대댓글용)')
-                ->constrained('hospital_talk_comments')
+                ->constrained('talk_comments')
                 ->cascadeOnDelete();
 
             $table->foreignId('author_id')
@@ -39,16 +39,16 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['hospital_talk_id', 'parent_id'], 'hospital_talk_comments_post_parent_idx');
-            $table->index(['status', 'is_visible', 'created_at'], 'hospital_talk_comments_status_visible_created_idx');
-            $table->index(['author_id', 'created_at'], 'hospital_talk_comments_author_created_idx');
+            $table->index(['talk_id', 'parent_id'], 'talk_comments_post_parent_idx');
+            $table->index(['status', 'is_visible', 'created_at'], 'talk_comments_status_visible_created_idx');
+            $table->index(['author_id', 'created_at'], 'talk_comments_author_created_idx');
         });
 
-        DB::statement("ALTER TABLE hospital_talk_comments COMMENT = '병원 토크 댓글'");
+        DB::statement("ALTER TABLE talk_comments COMMENT = '토크 댓글'");
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hospital_talk_comments');
+        Schema::dropIfExists('talk_comments');
     }
 };

@@ -11,13 +11,13 @@ final class TalkCommentMention extends Model
 {
     use HasAuditLogs;
 
-    protected $table = 'hospital_talk_comment_mentions';
+    protected $table = 'talk_comment_mentions';
 
     /**
      * @var list<string>
      */
     protected $fillable = [
-        'hospital_talk_comment_id',
+        'talk_comment_id',
         'mentioned_user_id',
         'mentioned_by_user_id',
         'mention_text',
@@ -26,7 +26,7 @@ final class TalkCommentMention extends Model
     ];
 
     protected $casts = [
-        'hospital_talk_comment_id' => 'integer',
+        'talk_comment_id' => 'integer',
         'mentioned_user_id' => 'integer',
         'mentioned_by_user_id' => 'integer',
         'start_offset' => 'integer',
@@ -37,7 +37,7 @@ final class TalkCommentMention extends Model
 
     public function comment(): BelongsTo
     {
-        return $this->belongsTo(TalkComment::class, 'hospital_talk_comment_id');
+        return $this->belongsTo(TalkComment::class, 'talk_comment_id');
     }
 
     public function mentionedUser(): BelongsTo

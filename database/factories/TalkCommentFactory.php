@@ -16,7 +16,7 @@ final class TalkCommentFactory extends Factory
     public function definition(): array
     {
         return [
-            'hospital_talk_id' => null,
+            'talk_id' => null,
             'parent_id' => null,
             'author_id' => $this->randomAuthorId(),
             'content' => $this->faker->sentence(18),

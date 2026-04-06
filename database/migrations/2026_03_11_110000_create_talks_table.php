@@ -9,8 +9,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hospital_talks', function (Blueprint $table) {
-            $table->id()->comment('병원 토크 게시글 ID');
+        Schema::create('talks', function (Blueprint $table) {
+            $table->id()->comment('토크 게시글 ID');
 
             $table->foreignId('author_id')
                 ->nullable()
@@ -35,16 +35,16 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['status', 'is_visible', 'created_at'], 'hospital_talks_status_visible_created_idx');
-            $table->index(['is_pinned', 'pinned_order', 'created_at'], 'hospital_talks_pinned_created_idx');
-            $table->index(['author_id', 'created_at'], 'hospital_talks_author_created_idx');
+            $table->index(['status', 'is_visible', 'created_at'], 'talks_status_visible_created_idx');
+            $table->index(['is_pinned', 'pinned_order', 'created_at'], 'talks_pinned_created_idx');
+            $table->index(['author_id', 'created_at'], 'talks_author_created_idx');
         });
 
-        DB::statement("ALTER TABLE hospital_talks COMMENT = '병원 커뮤니티 토크 게시글'");
+        DB::statement("ALTER TABLE talks COMMENT = '커뮤니티 토크 게시글'");
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hospital_talks');
+        Schema::dropIfExists('talks');
     }
 };

@@ -24,7 +24,7 @@ final class Talk extends Model
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    protected $table = 'hospital_talks';
+    protected $table = 'talks';
 
     /**
      * @var list<string>
@@ -73,7 +73,7 @@ final class Talk extends Model
 
     public function comments(): HasMany
     {
-        return $this->hasMany(TalkComment::class, 'hospital_talk_id')
+        return $this->hasMany(TalkComment::class, 'talk_id')
             ->orderBy('id');
     }
 

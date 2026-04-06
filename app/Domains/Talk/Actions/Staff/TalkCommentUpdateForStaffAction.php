@@ -26,7 +26,7 @@ final class TalkCommentUpdateForStaffAction
         Gate::authorize('update', $comment);
 
         $parentId = array_key_exists('parent_id', $payload) ? $payload['parent_id'] : $comment->parent_id;
-        $this->assertParentBelongsToTalk((int) $comment->hospital_talk_id, $parentId);
+        $this->assertParentBelongsToTalk((int) $comment->talk_id, $parentId);
         $this->assertMentionsAllowed($parentId, $payload);
 
         $comment = DB::transaction(function () use ($comment, $payload) {
@@ -47,14 +47,14 @@ final class TalkCommentUpdateForStaffAction
         ];
     }
 
-    private function assertParentBelongsToTalk(int $hospitalTalkId, ?int $parentId): void
+    private function assertParentBelongsToTalk(int $talkId, ?int $parentId): void
     {
         if ($parentId === null) {
             return;
         }
 
         $parent = TalkComment::query()->find($parentId);
-        if (! $parent || (int) $parent->hospital_talk_id !== $hospitalTalkId) {
+        if (! $parent || (int) $parent->talk_id !== $talkId) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '부모 댓글과 게시글이 일치하지 않습니다.');
         }
     }

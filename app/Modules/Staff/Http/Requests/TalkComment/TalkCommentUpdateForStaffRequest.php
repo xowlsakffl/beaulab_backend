@@ -41,7 +41,7 @@ final class TalkCommentUpdateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'parent_id' => ['sometimes', 'nullable', 'integer', 'exists:hospital_talk_comments,id'],
+            'parent_id' => ['sometimes', 'nullable', 'integer', 'exists:talk_comments,id'],
             'author_id' => ['sometimes', 'nullable', 'integer', 'exists:account_users,id'],
             'content' => ['sometimes', 'string'],
             'status' => ['sometimes', 'nullable', 'in:ACTIVE,INACTIVE'],

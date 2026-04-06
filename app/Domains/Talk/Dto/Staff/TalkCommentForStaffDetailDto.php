@@ -20,7 +20,7 @@ final readonly class TalkCommentForStaffDetailDto
     {
         $data = [
             'id' => (int) $comment->id,
-            'hospital_talk_id' => (int) $comment->hospital_talk_id,
+            'talk_id' => (int) $comment->talk_id,
             'parent_id' => $comment->parent_id ? (int) $comment->parent_id : null,
             'is_reply' => $comment->isReply(),
             'author_id' => $comment->author_id ? (int) $comment->author_id : null,

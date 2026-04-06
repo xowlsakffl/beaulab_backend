@@ -16,8 +16,8 @@ final class AdminNoteTargetRegistry
     public const string ALIAS_HOSPITAL = 'hospital';
     public const string ALIAS_BEAUTY = 'beauty';
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
-    public const string ALIAS_HOSPITAL_TALK = 'hospital_talk';
-    public const string ALIAS_HOSPITAL_TALK_COMMENT = 'hospital_talk_comment';
+    public const string ALIAS_TALK = 'talk';
+    public const string ALIAS_TALK_COMMENT = 'talk_comment';
 
     /**
      * @var array<string, class-string<Model>>
@@ -26,8 +26,8 @@ final class AdminNoteTargetRegistry
         self::ALIAS_HOSPITAL => Hospital::class,
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
-        self::ALIAS_HOSPITAL_TALK => Talk::class,
-        self::ALIAS_HOSPITAL_TALK_COMMENT => TalkComment::class,
+        self::ALIAS_TALK => Talk::class,
+        self::ALIAS_TALK_COMMENT => TalkComment::class,
     ];
 
     /**

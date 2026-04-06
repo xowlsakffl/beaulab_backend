@@ -10,7 +10,7 @@ final readonly class TalkCommentForStaffDto
 {
     public function __construct(
         public int $id,
-        public int $hospitalTalkId,
+        public int $talkId,
         public ?int $parentId,
         public bool $isReply,
         public ?int $authorId,
@@ -30,7 +30,7 @@ final readonly class TalkCommentForStaffDto
     {
         return new self(
             id: (int) $comment->id,
-            hospitalTalkId: (int) $comment->hospital_talk_id,
+            talkId: (int) $comment->talk_id,
             parentId: $comment->parent_id ? (int) $comment->parent_id : null,
             isReply: $comment->isReply(),
             authorId: $comment->author_id ? (int) $comment->author_id : null,
@@ -76,7 +76,7 @@ final readonly class TalkCommentForStaffDto
     {
         $data = [
             'id' => $this->id,
-            'hospital_talk_id' => $this->hospitalTalkId,
+            'talk_id' => $this->talkId,
             'parent_id' => $this->parentId,
             'is_reply' => $this->isReply,
             'author_id' => $this->authorId,

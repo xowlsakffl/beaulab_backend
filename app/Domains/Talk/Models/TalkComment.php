@@ -21,13 +21,13 @@ final class TalkComment extends Model
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    protected $table = 'hospital_talk_comments';
+    protected $table = 'talk_comments';
 
     /**
      * @var list<string>
      */
     protected $fillable = [
-        'hospital_talk_id',
+        'talk_id',
         'parent_id',
         'author_id',
         'content',
@@ -38,7 +38,7 @@ final class TalkComment extends Model
     ];
 
     protected $casts = [
-        'hospital_talk_id' => 'integer',
+        'talk_id' => 'integer',
         'parent_id' => 'integer',
         'author_id' => 'integer',
         'is_visible' => 'boolean',
@@ -63,7 +63,7 @@ final class TalkComment extends Model
 
     public function talk(): BelongsTo
     {
-        return $this->belongsTo(Talk::class, 'hospital_talk_id');
+        return $this->belongsTo(Talk::class, 'talk_id');
     }
 
     public function parent(): BelongsTo
@@ -84,7 +84,7 @@ final class TalkComment extends Model
 
     public function mentions(): HasMany
     {
-        return $this->hasMany(TalkCommentMention::class, 'hospital_talk_comment_id')
+        return $this->hasMany(TalkCommentMention::class, 'talk_comment_id')
             ->orderBy('id');
     }
 
@@ -92,8 +92,8 @@ final class TalkComment extends Model
     {
         return $this->belongsToMany(
             AccountUser::class,
-            'hospital_talk_comment_mentions',
-            'hospital_talk_comment_id',
+            'talk_comment_mentions',
+            'talk_comment_id',
             'mentioned_user_id'
         )->withPivot(['mentioned_by_user_id', 'mention_text', 'start_offset', 'end_offset'])
             ->withTimestamps();

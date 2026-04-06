@@ -20,16 +20,16 @@ final class TalkCommentDeleteForStaffAction
         Gate::authorize('delete', $comment);
 
         return DB::transaction(function () use ($comment) {
-            $hospitalTalkId = (int) $comment->hospital_talk_id;
+            $talkId = (int) $comment->talk_id;
             $commentIds = $comment->children()->pluck('id')->prepend($comment->id)->all();
 
             TalkCommentMention::query()
-                ->whereIn('hospital_talk_comment_id', $commentIds)
+                ->whereIn('talk_comment_id', $commentIds)
                 ->delete();
 
             $this->query->softDelete($comment);
             $comment->refresh();
-            $this->refreshTalkCommentCount($hospitalTalkId);
+            $this->refreshTalkCommentCount($talkId);
 
             return [
                 'deleted_id' => (int) $comment->id,
@@ -38,9 +38,9 @@ final class TalkCommentDeleteForStaffAction
         });
     }
 
-    private function refreshTalkCommentCount(int $hospitalTalkId): void
+    private function refreshTalkCommentCount(int $talkId): void
     {
-        $talk = Talk::query()->find($hospitalTalkId);
+        $talk = Talk::query()->find($talkId);
         if (! $talk) {
             return;
         }

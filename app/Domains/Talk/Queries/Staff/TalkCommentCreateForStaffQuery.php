@@ -9,7 +9,7 @@ final class TalkCommentCreateForStaffQuery
     public function create(array $payload): TalkComment
     {
         return TalkComment::create([
-            'hospital_talk_id' => (int) $payload['hospital_talk_id'],
+            'talk_id' => (int) $payload['talk_id'],
             'parent_id' => $payload['parent_id'] ?? null,
             'author_id' => $payload['author_id'] ?? null,
             'content' => $payload['content'],

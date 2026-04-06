@@ -120,7 +120,7 @@ final class TalkSeeder extends Seeder
                 ->count($topLevelCount)
                 ->active()
                 ->create([
-                    'hospital_talk_id' => $talk->id,
+                    'talk_id' => $talk->id,
                     'author_id' => fn () => $authorIds[array_rand($authorIds)],
                     'parent_id' => null,
                 ]);
@@ -135,7 +135,7 @@ final class TalkSeeder extends Seeder
                     ->count($replyCount)
                     ->active()
                     ->create([
-                        'hospital_talk_id' => $talk->id,
+                        'talk_id' => $talk->id,
                         'author_id' => fn () => $authorIds[array_rand($authorIds)],
                         'parent_id' => $comment->id,
                     ]);
@@ -143,7 +143,7 @@ final class TalkSeeder extends Seeder
 
             $talk->forceFill([
                 'comment_count' => (int) TalkComment::query()
-                    ->where('hospital_talk_id', $talk->id)
+                    ->where('talk_id', $talk->id)
                     ->count(),
             ])->save();
         }

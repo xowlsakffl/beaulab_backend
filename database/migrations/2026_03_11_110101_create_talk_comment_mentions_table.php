@@ -9,12 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hospital_talk_comment_mentions', function (Blueprint $table) {
+        Schema::create('talk_comment_mentions', function (Blueprint $table) {
             $table->id()->comment('토크 댓글 멘션 ID');
 
-            $table->foreignId('hospital_talk_comment_id')
+            $table->foreignId('talk_comment_id')
                 ->comment('토크 댓글 ID')
-                ->constrained('hospital_talk_comments')
+                ->constrained('talk_comments')
                 ->cascadeOnDelete();
 
             $table->foreignId('mentioned_user_id')
@@ -34,16 +34,16 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique('hospital_talk_comment_id', 'talk_comment_mentions_comment_unique');
+            $table->unique('talk_comment_id', 'talk_comment_mentions_comment_unique');
             $table->index(['mentioned_user_id', 'created_at'], 'talk_comment_mentions_user_created_idx');
             $table->index(['mentioned_by_user_id', 'created_at'], 'talk_comment_mentions_by_user_created_idx');
         });
 
-        DB::statement("ALTER TABLE hospital_talk_comment_mentions COMMENT = '토크 댓글 멘션 매핑'");
+        DB::statement("ALTER TABLE talk_comment_mentions COMMENT = '토크 댓글 멘션 매핑'");
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hospital_talk_comment_mentions');
+        Schema::dropIfExists('talk_comment_mentions');
     }
 };

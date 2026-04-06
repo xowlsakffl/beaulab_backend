@@ -22,7 +22,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'hospital_talk_id' => ['nullable', 'integer', 'exists:hospital_talks,id'],
+            'talk_id' => ['nullable', 'integer', 'exists:talks,id'],
             'parent_id' => ['nullable', 'integer', 'min:0'],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'q' => ['nullable', 'string', 'max:100'],
@@ -42,7 +42,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
         $validated = $this->validated();
 
         return [
-            'hospital_talk_id' => $validated['hospital_talk_id'] ?? null,
+            'talk_id' => $validated['talk_id'] ?? null,
             'parent_id' => $validated['parent_id'] ?? null,
             'author_id' => $validated['author_id'] ?? null,
             'q' => $validated['q'] ?? null,
@@ -61,7 +61,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_talk_id' => '게시글',
+            'talk_id' => '게시글',
             'parent_id' => '부모 댓글',
             'author_id' => '작성자',
             'q' => '검색어',

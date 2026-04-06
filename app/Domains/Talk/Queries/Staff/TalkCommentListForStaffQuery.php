@@ -14,7 +14,7 @@ final class TalkCommentListForStaffQuery
         $builder = TalkComment::query()
             ->select([
                 'id',
-                'hospital_talk_id',
+                'talk_id',
                 'parent_id',
                 'author_id',
                 'content',
@@ -39,7 +39,7 @@ final class TalkCommentListForStaffQuery
                 'mentions' => fn ($query) => $query
                     ->select([
                         'id',
-                        'hospital_talk_comment_id',
+                        'talk_comment_id',
                         'mentioned_user_id',
                         'mentioned_by_user_id',
                         'mention_text',
@@ -50,8 +50,8 @@ final class TalkCommentListForStaffQuery
             ]);
         }
 
-        if (! empty($filters['hospital_talk_id'])) {
-            $builder->where('hospital_talk_id', (int) $filters['hospital_talk_id']);
+        if (! empty($filters['talk_id'])) {
+            $builder->where('talk_id', (int) $filters['talk_id']);
         }
 
         if (array_key_exists('parent_id', $filters) && $filters['parent_id'] !== null) {

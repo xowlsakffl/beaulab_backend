@@ -1,0 +1,139 @@
+# 채팅 설계
+
+이 문서는 현재 기준의 채팅 기능 설계를 정리한다.  
+기준일은 `2026-04-10`이며, 현재 스코프는 `앱 유저간 1:1 채팅`이다.
+
+## 1. 현재 범위
+
+- 구현 대상
+  - `account_users` 간 1:1 채팅
+  - 채팅방별 알림 on/off
+  - 읽음 상태
+  - 모바일 앱 기준 실시간 메시지 전달
+
+## 2. 기술 선택
+
+- 백엔드: Laravel
+- 영속 저장: MySQL
+- 비동기 처리: Redis + Horizon
+- 실시간 전달: WebSocket 계층
+- 파일 첨부: 기존 공용 `Media` 재사용
+
+현재는 `NoSQL`, `Kafka`, `별도 채팅 마이크로서비스`, `HTTP Polling 주력`으로 가지 않는다.  
+이 스코프에서는 복잡도만 늘고 실익이 적다.
+
+## 3. 핵심 원칙
+
+### 3.1 메시지는 항상 DB에 먼저 저장한다
+
+실시간 전송보다 메시지 저장이 우선이다.
+
+1. 메시지 DB 저장
+2. 채팅방 마지막 메시지 갱신
+3. 큐 Job 발행
+4. WebSocket 전달 또는 후속 처리
+
+### 3.2 유저 1:1 채팅은 유저쌍당 채팅방 1개만 유지한다
+
+중복 채팅방 생성을 막기 위해 `chats.match_key`를 사용한다.
+
+- 형식 예시: `12:48`
+- 규칙: 두 사용자 ID를 정렬한 뒤 `min:max` 문자열로 저장
+- 제약: `unique`
+
+따라서 같은 두 사용자는 동시에 두 개의 채팅방을 가질 수 없다.
+
+## 4. 테이블 구조
+
+### 4.1 chats
+
+채팅방 헤더 테이블이다.
+
+- `status`
+  - `ACTIVE`, `SUSPENDED`, `CLOSED`
+- `match_key`
+  - 정렬된 두 사용자 ID 기반 유니크 키
+- `created_by_user_id`
+  - 채팅 생성 사용자
+- `last_message_id`, `last_message_at`
+  - 목록 조회 성능을 위한 역정규화 값
+- `closed_at`
+  - 종료 시각
+
+관련 파일: `database/migrations/2026_04_10_110000_create_chats_table.php`
+
+### 4.2 chat_participants
+
+채팅방 참여자 및 개인 상태 테이블이다.
+
+- `chat_id`
+- `account_user_id`
+- `last_read_message_id`
+- `last_read_at`
+- `notifications_enabled`
+
+참여자는 현재 스코프상 정확히 2명이어야 한다.  
+이 규칙은 DB만으로 완전하게 막기 어렵기 때문에 서비스 로직에서 강제한다.
+
+관련 파일: `database/migrations/2026_04_10_110100_create_chat_participants_table.php`
+
+### 4.3 chat_messages
+
+실제 메시지 저장 테이블이다.
+
+- `chat_id`
+- `sender_user_id`
+- `client_message_id`
+  - 앱 재전송 시 중복 저장 방지용 멱등 키
+- `message_type`
+  - `TEXT`, `IMAGE`, `FILE`
+- `body`
+- `reply_to_message_id`
+- `metadata`
+
+관련 파일: `database/migrations/2026_04_10_110200_create_chat_messages_table.php`
+
+## 5. 서비스 로직 불변식
+
+아래 규칙은 서비스 계층에서 강제해야 한다.
+
+1. 채팅 생성 시 participant는 정확히 2명만 생성한다.
+2. participant 2명은 서로 다른 사용자여야 한다.
+3. 메시지 발신자는 해당 채팅의 participant여야 한다.
+4. `last_message_id`는 같은 `chat_id`의 메시지여야 한다.
+5. `last_read_message_id`는 같은 `chat_id`의 메시지여야 한다.
+6. 채팅 종료 후 다시 대화할 때는 새 채팅방을 만들지 않고 기존 채팅방을 재활성화한다.
+
+## 6. 처리 흐름
+
+### 6.1 채팅방 생성
+
+1. 두 유저 ID를 정렬해 `match_key` 생성
+2. 같은 `match_key` 채팅방 조회
+3. 있으면 재사용 또는 재활성화
+4. 없으면 `chats` 생성
+5. `chat_participants` 2건 생성
+
+### 6.2 메시지 발송
+
+1. 발신자가 participant인지 검증
+2. `chat_messages` 저장
+3. `chats.last_message_id`, `last_message_at` 갱신
+4. 큐 Job 발행
+5. 접속 중이면 WebSocket 전달
+
+### 6.3 읽음 처리
+
+1. 사용자가 participant인지 검증
+2. `chat_participants.last_read_message_id`, `last_read_at` 갱신
+3. 필요 시 클라이언트에 읽음 상태 이벤트 전송
+
+## 7. 향후 확장 포인트
+
+병원계정 ↔ 직원관리자 채팅이 실제 구현 대상이 되면 그때 아래를 추가한다.
+
+- `support_chats` 같은 확장 테이블
+- 담당자 배정
+- 운영 메모 연결
+- 상태 전이 세분화
+- 웹 전용 실시간 정책

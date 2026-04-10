@@ -13,7 +13,8 @@
 - [Queue 운영 가이드](./queue.md)
 - [Scheduler 운영 가이드](./scheduler.md)
 - [도메인 & 상태 정의서](./domain-status-definition.md)
-- [카테고리 ERD 정의서 (비개발자용)](./category-erd-definition.md)
+- [채팅 설계](./chat.md)
+- [알림 설계](./notification.md)
 
 ## 현재 기준 핵심 요약
 
@@ -26,6 +27,4 @@
 - 모든 예외 응답은 공통 예외 핸들러/응답 포맷 규칙을 따른다.
 
 작성 기준: 2026-03-13
-
-
 

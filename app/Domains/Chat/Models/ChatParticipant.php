@@ -6,6 +6,10 @@ use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * 채팅방 참여자별 상태 모델.
+ * 읽음 위치와 채팅방별 알림 on/off처럼 사용자마다 달라지는 값을 저장한다.
+ */
 final class ChatParticipant extends Model
 {
     protected $table = 'chat_participants';

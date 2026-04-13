@@ -6,6 +6,10 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Notification\Models\NotificationInbox;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 알림 읽음 상태 저장 Query.
+ * 읽음 처리는 알림 정렬용 updated_at을 흔들지 않도록 timestamps를 끈다.
+ */
 final class NotificationReadForUserQuery
 {
     public function read(NotificationInbox $notification): NotificationInbox

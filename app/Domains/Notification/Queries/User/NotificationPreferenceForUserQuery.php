@@ -7,6 +7,10 @@ use App\Domains\Notification\Models\NotificationInbox;
 use App\Domains\Notification\Models\NotificationPreference;
 use Illuminate\Support\Collection;
 
+/**
+ * 이벤트별 알림 설정 Query.
+ * owner_type/owner_id/event_type 조합을 기준으로 사용자별 설정을 관리한다.
+ */
 final class NotificationPreferenceForUserQuery
 {
     /**

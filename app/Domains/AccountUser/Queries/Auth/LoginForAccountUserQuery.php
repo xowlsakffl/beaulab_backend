@@ -8,6 +8,10 @@ use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * 앱 사용자 로그인 Query.
+ * 이메일/비밀번호/계정 상태를 검증하고 Sanctum actor:user 토큰을 발급한다.
+ */
 final class LoginForAccountUserQuery
 {
     /**

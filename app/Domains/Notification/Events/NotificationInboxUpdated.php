@@ -9,6 +9,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * 사용자별 private 채널로 알림함 변경을 전달하는 Reverb 이벤트.
+ * 현재는 USER 수신자만 broadcast 대상으로 허용한다.
+ */
 final class NotificationInboxUpdated implements ShouldBroadcast
 {
     use Dispatchable;

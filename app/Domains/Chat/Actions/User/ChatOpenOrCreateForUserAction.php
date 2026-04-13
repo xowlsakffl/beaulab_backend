@@ -9,6 +9,10 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Queries\User\ChatOpenOrCreateForUserQuery;
 use App\Domains\Chat\Support\ChatMatchKey;
 
+/**
+ * 앱 사용자 1:1 채팅방 열기 유스케이스.
+ * 자기 자신과의 채팅 금지, 상대 활성 상태 검증, match_key 생성을 담당하고 DB 처리는 Query에 위임한다.
+ */
 final class ChatOpenOrCreateForUserAction
 {
     public function __construct(

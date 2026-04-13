@@ -6,6 +6,10 @@ use App\Domains\AccountBeauty\Dto\Auth\AuthForAccountBeautyDto;
 use App\Domains\AccountBeauty\Queries\Auth\LoginForAccountBeautyQuery;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 뷰티 계정 로그인 유스케이스.
+ * 인증/토큰 발급은 Query에 위임하고 API 응답 DTO를 구성한다.
+ */
 final class LoginForAccountBeautyAction
 {
     public function __construct(

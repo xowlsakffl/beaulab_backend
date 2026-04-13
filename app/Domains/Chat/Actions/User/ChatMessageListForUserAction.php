@@ -9,6 +9,10 @@ use App\Domains\Chat\Dto\User\ChatMessageForUserDto;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Queries\User\ChatMessageListForUserQuery;
 
+/**
+ * 채팅 메시지 목록 조회 유스케이스.
+ * 참여자만 조회할 수 있도록 검증한 뒤 cursor 방식 목록 조회를 Query에 위임한다.
+ */
 final class ChatMessageListForUserAction
 {
     public function __construct(

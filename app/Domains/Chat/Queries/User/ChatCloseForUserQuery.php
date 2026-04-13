@@ -8,6 +8,10 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Models\Chat;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 채팅방 종료 상태 전이를 담당한다.
+ * participant 검증 후 채팅방 자체를 CLOSED로 바꿔 양쪽 모두 종료 상태가 되게 한다.
+ */
 final class ChatCloseForUserQuery
 {
     public function close(Chat $chat, AccountUser $user): Chat

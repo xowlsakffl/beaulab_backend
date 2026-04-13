@@ -9,6 +9,10 @@ use App\Domains\AccountUser\Queries\Auth\UpdatePasswordForAccountUserQuery;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 앱 사용자 비밀번호 변경 유스케이스.
+ * 현재 비밀번호 검증 후 새 비밀번호 저장과 기존 토큰 만료를 Query에 위임한다.
+ */
 final class UpdatePasswordForAccountUserAction
 {
     public function __construct(

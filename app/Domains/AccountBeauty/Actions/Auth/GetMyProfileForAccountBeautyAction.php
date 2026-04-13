@@ -6,6 +6,10 @@ use App\Domains\AccountBeauty\Dto\Auth\ProfileForAccountBeautyDto;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\AccountBeauty\Queries\Auth\ProfileForAccountBeautyQuery;
 
+/**
+ * 뷰티 계정 내 프로필 조회 유스케이스.
+ * 프로필과 현재 role/permission 스냅샷을 함께 반환한다.
+ */
 final class GetMyProfileForAccountBeautyAction
 {
     public function __construct(

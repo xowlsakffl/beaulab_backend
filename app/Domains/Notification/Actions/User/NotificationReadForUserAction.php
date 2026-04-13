@@ -9,6 +9,10 @@ use App\Domains\Notification\Dto\NotificationInboxDto;
 use App\Domains\Notification\Models\NotificationInbox;
 use App\Domains\Notification\Queries\User\NotificationReadForUserQuery;
 
+/**
+ * 알림 단건 읽음 처리 유스케이스.
+ * 본인 알림인지 확인한 뒤 unread 집계 버킷을 닫는다.
+ */
 final class NotificationReadForUserAction
 {
     public function __construct(

@@ -8,6 +8,10 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Models\Chat;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 채팅 participant 단위 알림 설정 저장을 담당한다.
+ * 같은 채팅방의 참여자만 자신의 notifications_enabled 값을 바꿀 수 있다.
+ */
 final class ChatNotificationUpdateForUserQuery
 {
     public function update(Chat $chat, AccountUser $user, bool $notificationsEnabled): Chat

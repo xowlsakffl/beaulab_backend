@@ -7,6 +7,10 @@ use App\Domains\Notification\Dto\NotificationPreferenceDto;
 use App\Domains\Notification\Models\NotificationPreference;
 use App\Domains\Notification\Queries\User\NotificationPreferenceForUserQuery;
 
+/**
+ * 이벤트별 알림 설정 목록 조회 유스케이스.
+ * 저장된 설정이 없어도 기본 이벤트 타입은 기본값으로 내려준다.
+ */
 final class NotificationPreferenceListForUserAction
 {
     public function __construct(

@@ -6,6 +6,10 @@ use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatParticipant;
 use Illuminate\Support\Collection;
 
+/**
+ * 앱 채팅방 응답 DTO.
+ * 현재 사용자 기준 상대방 정보, 알림 설정, 읽음 상태, 미읽음 수를 함께 내려준다.
+ */
 final readonly class ChatForUserDto
 {
     public static function fromModel(Chat $chat, int $currentUserId): array

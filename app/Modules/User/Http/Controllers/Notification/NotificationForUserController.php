@@ -21,6 +21,10 @@ use App\Modules\User\Http\Requests\Notification\NotificationDeviceRevokeForUserR
 use App\Modules\User\Http\Requests\Notification\NotificationListForUserRequest;
 use App\Modules\User\Http\Requests\Notification\NotificationPreferenceUpdateForUserRequest;
 
+/**
+ * 앱 사용자 알림 API 컨트롤러.
+ * 인앱 알림 목록/읽음/푸시 디바이스/이벤트별 수신 설정을 Domain Action에 위임한다.
+ */
 final class NotificationForUserController extends Controller
 {
     public function getNotificationsForUser(
@@ -85,6 +89,7 @@ final class NotificationForUserController extends Controller
     {
         $user = auth()->user();
 
+        // 알림 API는 앱 사용자 계정만 접근 가능해야 다른 actor 토큰과 섞이지 않는다.
         if (! $user instanceof AccountUser) {
             throw new CustomException(ErrorCode::UNAUTHORIZED);
         }

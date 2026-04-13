@@ -22,6 +22,10 @@ use App\Modules\User\Http\Requests\Chat\ChatNotificationUpdateForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatOpenForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatReadForUserRequest;
 
+/**
+ * 앱 사용자 채팅 API 컨트롤러.
+ * auth:sanctum 사용자 검증 후 채팅 도메인 Action으로 유스케이스를 위임한다.
+ */
 final class ChatForUserController extends Controller
 {
     public function getChatsForUser(ChatListForUserRequest $request, ChatListForUserAction $action)
@@ -90,6 +94,7 @@ final class ChatForUserController extends Controller
     {
         $user = auth()->user();
 
+        // User 모듈 API에서는 Sanctum 토큰 ability와 실제 모델 타입이 모두 맞아야 한다.
         if (! $user instanceof AccountUser) {
             throw new CustomException(ErrorCode::UNAUTHORIZED);
         }

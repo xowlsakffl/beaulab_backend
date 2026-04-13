@@ -5,6 +5,10 @@ namespace App\Domains\Notification\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * 도메인 공통 인앱 알림함 모델.
+ * aggregation_key/open_aggregation_key로 unread 알림 묶음을 관리한다.
+ */
 final class NotificationInbox extends Model
 {
     public const RECIPIENT_USER = 'USER';

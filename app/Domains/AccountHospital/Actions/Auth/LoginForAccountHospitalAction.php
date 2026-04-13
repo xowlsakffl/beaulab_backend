@@ -6,6 +6,10 @@ use App\Domains\AccountHospital\Dto\Auth\AuthForAccountHospitalDto;
 use App\Domains\AccountHospital\Queries\Auth\LoginForAccountHospitalQuery;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 병원 계정 로그인 유스케이스.
+ * 인증/토큰 발급은 Query에 위임하고 API 응답 DTO를 구성한다.
+ */
 final class LoginForAccountHospitalAction
 {
     public function __construct(

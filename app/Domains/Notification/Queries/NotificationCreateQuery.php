@@ -9,6 +9,10 @@ use App\Domains\Notification\Models\NotificationPreference;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 알림 생성/집계 저장 Query.
+ * unread 상태의 같은 aggregation_key가 있으면 insert 대신 event_count를 증가시킨다.
+ */
 final class NotificationCreateQuery
 {
     public function store(array $data): NotificationInbox
@@ -38,6 +42,7 @@ final class NotificationCreateQuery
         return DB::transaction(function () use ($data): NotificationInbox {
             $notification = null;
 
+            // open_aggregation_key는 unread 집계 버킷을 유니크하게 잠그기 위한 키다.
             if ($data['open_aggregation_key'] !== null) {
                 $notification = NotificationInbox::query()
                     ->where('recipient_type', $data['recipient_type'])
@@ -84,6 +89,7 @@ final class NotificationCreateQuery
                 && $this->isPushEnabled($data['recipient_type'], $data['recipient_id'], $data['event_type'])
                 && $this->hasActivePushDevice($data['recipient_type'], $data['recipient_id'])
             ) {
+                // 실제 FCM/APNs 발송 워커가 가져갈 수 있도록 delivery만 PENDING으로 남긴다.
                 $this->syncDelivery($notification, NotificationDelivery::CHANNEL_PUSH);
             }
 

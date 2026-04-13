@@ -6,6 +6,10 @@ use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use Illuminate\Support\Collection;
 
+/**
+ * 채팅 메시지 cursor 조회 쿼리.
+ * after_id는 정방향, before_id 또는 기본 조회는 역방향으로 가져온다.
+ */
 final class ChatMessageListForUserQuery
 {
     /**

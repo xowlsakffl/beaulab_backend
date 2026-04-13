@@ -5,6 +5,10 @@ namespace App\Domains\Notification\Actions\User;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Notification\Queries\User\NotificationReadForUserQuery;
 
+/**
+ * 내 알림 전체 읽음 처리 유스케이스.
+ * 모든 unread 알림의 open_aggregation_key를 비워 다음 이벤트가 새 묶음으로 생성되게 한다.
+ */
 final class NotificationReadAllForUserAction
 {
     public function __construct(

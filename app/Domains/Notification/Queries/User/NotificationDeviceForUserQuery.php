@@ -7,6 +7,10 @@ use App\Domains\Notification\Models\NotificationDevice;
 use App\Domains\Notification\Models\NotificationInbox;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 푸시 디바이스 저장/폐기 Query.
+ * 긴 Web Push endpoint를 고려해 원문 token 대신 hash로 unique 처리를 한다.
+ */
 final class NotificationDeviceForUserQuery
 {
     public function register(AccountUser $user, array $payload): NotificationDevice

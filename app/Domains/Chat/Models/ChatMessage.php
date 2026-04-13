@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * 채팅 메시지 모델.
+ * 현재 API는 TEXT만 허용하지만, Media 연동을 위해 IMAGE/FILE 타입 확장 포인트를 남겨둔다.
+ */
 final class ChatMessage extends Model
 {
     use SoftDeletes;

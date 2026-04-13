@@ -12,6 +12,10 @@ use App\Domains\Notification\Actions\CreateNotificationAction;
 use App\Domains\Notification\Models\NotificationDelivery;
 use App\Domains\Notification\Models\NotificationInbox;
 
+/**
+ * 앱 사용자 메시지 발송 유스케이스.
+ * 저장은 Query에 위임하고, 새 메시지일 때만 Reverb 브로드캐스트와 공통 알림 생성을 연결한다.
+ */
 final class ChatMessageSendForUserAction
 {
     public function __construct(
@@ -45,6 +49,7 @@ final class ChatMessageSendForUserAction
     {
         $recipientIds = $this->query->notificationRecipientIds($message, $sender);
 
+        // 현재 1:1 채팅이지만, 수신자 계산은 participant 기반으로 둬 확장 가능성을 남긴다.
         foreach ($recipientIds as $recipientId) {
             $this->createNotificationAction->execute([
                 'recipient_type' => NotificationInbox::RECIPIENT_USER,

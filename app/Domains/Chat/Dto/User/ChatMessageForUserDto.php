@@ -4,6 +4,10 @@ namespace App\Domains\Chat\Dto\User;
 
 use App\Domains\Chat\Models\ChatMessage;
 
+/**
+ * 앱 채팅 메시지 응답 DTO.
+ * API 응답에서는 현재 사용자 기준 is_mine을 계산하지만, broadcast payload에는 이 값을 넣지 않는다.
+ */
 final readonly class ChatMessageForUserDto
 {
     public static function fromModel(ChatMessage $message, int $currentUserId): array

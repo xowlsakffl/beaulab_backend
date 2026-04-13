@@ -5,6 +5,10 @@ namespace App\Domains\Chat\Queries\User;
 use App\Domains\Chat\Models\Chat;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
+/**
+ * 내 채팅방 목록 조회 쿼리.
+ * 마지막 메시지와 상대 사용자 정보를 함께 로드하고, 현재 사용자 기준 미읽음 수를 계산한다.
+ */
 final class ChatListForUserQuery
 {
     public function paginate(int $userId, array $filters): LengthAwarePaginator

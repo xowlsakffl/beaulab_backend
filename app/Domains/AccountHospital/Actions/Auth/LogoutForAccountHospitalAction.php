@@ -6,6 +6,10 @@ use App\Domains\AccountHospital\Queries\Auth\LogoutForAccountHospitalQuery;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 병원 계정 로그아웃 유스케이스.
+ * 현재 요청에 사용된 access token만 삭제한다.
+ */
 final class LogoutForAccountHospitalAction
 {
     public function __construct(

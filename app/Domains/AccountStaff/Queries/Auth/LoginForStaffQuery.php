@@ -8,6 +8,10 @@ use App\Domains\AccountStaff\Models\AccountStaff;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * 스태프 로그인 Query.
+ * nickname/password/계정 상태를 검증하고 Sanctum actor:staff 토큰을 발급한다.
+ */
 final class LoginForStaffQuery
 {
     /**

@@ -8,6 +8,10 @@ use App\Domains\AccountHospital\Models\AccountHospital;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * 병원 계정 로그인 Query.
+ * nickname/password/계정 상태를 검증하고 Sanctum actor:hospital 토큰을 발급한다.
+ */
 final class LoginForAccountHospitalQuery
 {
     /**

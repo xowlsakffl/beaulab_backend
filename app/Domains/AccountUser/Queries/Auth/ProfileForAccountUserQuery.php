@@ -4,6 +4,10 @@ namespace App\Domains\AccountUser\Queries\Auth;
 
 use App\Domains\AccountUser\Models\AccountUser;
 
+/**
+ * 앱 사용자 권한 정보 조회 Query.
+ * Spatie role/permission 값을 API 응답에 필요한 단순 배열로 정리한다.
+ */
 final class ProfileForAccountUserQuery
 {
     /**

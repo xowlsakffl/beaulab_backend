@@ -8,6 +8,10 @@ use App\Domains\AccountBeauty\Models\AccountBeauty;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * 뷰티 계정 로그인 Query.
+ * nickname/password/계정 상태를 검증하고 Sanctum actor:beauty 토큰을 발급한다.
+ */
 final class LoginForAccountBeautyQuery
 {
     /**

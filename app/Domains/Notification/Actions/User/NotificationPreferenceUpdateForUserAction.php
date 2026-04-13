@@ -6,6 +6,10 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Notification\Dto\NotificationPreferenceDto;
 use App\Domains\Notification\Queries\User\NotificationPreferenceForUserQuery;
 
+/**
+ * 이벤트별 알림 채널 설정 변경 유스케이스.
+ * in_app, push, email 중 요청에 포함된 값만 변경한다.
+ */
 final class NotificationPreferenceUpdateForUserAction
 {
     public function __construct(

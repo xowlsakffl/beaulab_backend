@@ -5,6 +5,10 @@ namespace App\Domains\Notification\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * 알림 채널별 발송 이력 모델.
+ * IN_APP은 즉시 SENT로 기록하고 PUSH는 실제 provider 워커가 처리할 PENDING 상태로 남긴다.
+ */
 final class NotificationDelivery extends Model
 {
     public const CHANNEL_IN_APP = 'IN_APP';

@@ -6,6 +6,10 @@ use App\Domains\AccountUser\Queries\Auth\LogoutForAccountUserQuery;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 앱 사용자 로그아웃 유스케이스.
+ * 현재 access token만 삭제해 다른 기기 세션은 유지한다.
+ */
 final class LogoutForAccountUserAction
 {
     public function __construct(

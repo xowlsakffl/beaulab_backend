@@ -5,6 +5,10 @@ namespace App\Domains\Notification\Queries\User;
 use App\Domains\Notification\Models\NotificationInbox;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
+/**
+ * 앱 사용자 알림 목록 Query.
+ * unread, event_type, target 필터를 적용하고 최근 갱신된 알림 묶음부터 정렬한다.
+ */
 final class NotificationListForUserQuery
 {
     public function paginate(int $userId, array $filters): LengthAwarePaginator

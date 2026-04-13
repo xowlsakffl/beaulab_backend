@@ -9,6 +9,10 @@ use App\Domains\AccountBeauty\Queries\Auth\UpdatePasswordForAccountBeautyQuery;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 뷰티 계정 비밀번호 변경 유스케이스.
+ * 현재 비밀번호를 검증한 뒤 저장과 기존 토큰 만료를 Query에 위임한다.
+ */
 final class UpdatePasswordForAccountBeautyAction
 {
     public function __construct(

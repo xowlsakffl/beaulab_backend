@@ -4,6 +4,10 @@ namespace App\Domains\Notification\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * 사용자별 이벤트 알림 수신 설정 모델.
+ * event_type 단위로 in_app, push, email 채널 수신 여부를 관리한다.
+ */
 final class NotificationPreference extends Model
 {
     public const DEFAULT_EVENT_TYPES = [

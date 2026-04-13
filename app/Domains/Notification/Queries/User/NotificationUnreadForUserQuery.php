@@ -5,6 +5,10 @@ namespace App\Domains\Notification\Queries\User;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Notification\Models\NotificationInbox;
 
+/**
+ * 앱 사용자 unread 알림 카운트 Query.
+ * unread_count는 알림 묶음 수, unread_event_count는 묶음 안의 실제 이벤트 수 합계다.
+ */
 final class NotificationUnreadForUserQuery
 {
     /**

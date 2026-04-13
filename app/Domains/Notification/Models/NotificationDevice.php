@@ -4,6 +4,10 @@ namespace App\Domains\Notification\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * 푸시/웹 알림 디바이스 토큰 모델.
+ * 긴 토큰 원문은 text로 저장하고 중복 제약은 push_token_hash로 처리한다.
+ */
 final class NotificationDevice extends Model
 {
     public const PLATFORM_IOS = 'IOS';

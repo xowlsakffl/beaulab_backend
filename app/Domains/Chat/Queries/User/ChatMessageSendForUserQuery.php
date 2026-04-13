@@ -11,6 +11,10 @@ use App\Domains\Chat\Models\ChatParticipant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 메시지 저장 트랜잭션과 발송 가능성 검증을 담당한다.
+ * client_message_id가 있으면 앱 재시도에 대해 멱등성을 보장한다.
+ */
 final class ChatMessageSendForUserQuery
 {
     public function store(Chat $chat, AccountUser $user, array $payload): array
@@ -25,6 +29,7 @@ final class ChatMessageSendForUserQuery
 
             $clientMessageId = $this->normalizeNullableString($payload['client_message_id'] ?? null);
             if ($clientMessageId !== null) {
+                // 모바일 네트워크 재시도로 같은 메시지가 다시 들어와도 중복 저장하지 않는다.
                 $existingMessage = ChatMessage::query()
                     ->where('chat_id', $lockedChat->id)
                     ->where('sender_user_id', $user->id)

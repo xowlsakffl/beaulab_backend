@@ -4,6 +4,10 @@ namespace App\Domains\Notification\Dto;
 
 use App\Domains\Notification\Models\NotificationInbox;
 
+/**
+ * 앱 알림함 응답 DTO.
+ * event_count에서 additional_count를 계산해 "외 N건" 표시를 쉽게 만든다.
+ */
 final readonly class NotificationInboxDto
 {
     public static function fromModel(NotificationInbox $notification): array

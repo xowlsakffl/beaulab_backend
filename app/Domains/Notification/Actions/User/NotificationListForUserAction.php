@@ -6,6 +6,10 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Notification\Dto\NotificationInboxDto;
 use App\Domains\Notification\Queries\User\NotificationListForUserQuery;
 
+/**
+ * 앱 사용자 알림 목록 조회 유스케이스.
+ * Query의 페이징 결과를 앱 응답 DTO로 변환한다.
+ */
 final class NotificationListForUserAction
 {
     public function __construct(

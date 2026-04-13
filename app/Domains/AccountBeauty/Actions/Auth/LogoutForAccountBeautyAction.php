@@ -6,6 +6,10 @@ use App\Domains\AccountBeauty\Queries\Auth\LogoutForAccountBeautyQuery;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 뷰티 계정 로그아웃 유스케이스.
+ * 현재 요청에 사용된 access token만 삭제한다.
+ */
 final class LogoutForAccountBeautyAction
 {
     public function __construct(

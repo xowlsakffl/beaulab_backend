@@ -7,6 +7,10 @@ use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\AccountBeauty\Queries\Auth\UpdateProfileForAccountBeautyQuery;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 뷰티 계정 프로필 수정 유스케이스.
+ * 저장은 Query에 위임하고 변경된 프로필 DTO를 반환한다.
+ */
 final class UpdateProfileForAccountBeautyAction
 {
     public function __construct(

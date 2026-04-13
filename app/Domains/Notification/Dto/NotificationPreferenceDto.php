@@ -4,6 +4,10 @@ namespace App\Domains\Notification\Dto;
 
 use App\Domains\Notification\Models\NotificationPreference;
 
+/**
+ * 이벤트별 알림 설정 응답 DTO.
+ * DB row가 없는 기본 이벤트도 default 응답으로 내려줄 수 있게 분리한다.
+ */
 final readonly class NotificationPreferenceDto
 {
     public static function fromModel(NotificationPreference $preference): array

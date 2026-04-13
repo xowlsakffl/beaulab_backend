@@ -13,6 +13,10 @@ use App\Modules\User\Http\Requests\Auth\UpdatePasswordForAccountUserRequest;
 use App\Modules\User\Http\Requests\Auth\UpdateProfileForAccountUserRequest;
 use Illuminate\Http\Request;
 
+/**
+ * 앱 사용자 인증 API 컨트롤러.
+ * 요청 검증은 FormRequest, 실제 비즈니스 흐름은 Domain Action에 위임한다.
+ */
 final class AuthForUserController
 {
     public function login(LoginForAccountUserRequest $request, LoginForAccountUserAction $action)

@@ -7,6 +7,10 @@ use App\Domains\Notification\Models\NotificationDelivery;
 use App\Domains\Notification\Models\NotificationInbox;
 use App\Domains\Notification\Queries\NotificationCreateQuery;
 
+/**
+ * 공통 알림 생성 유스케이스.
+ * payload를 표준 형태로 정규화하고, 저장 후 실시간 알림 이벤트를 발행한다.
+ */
 final class CreateNotificationAction
 {
     public function __construct(
@@ -40,6 +44,7 @@ final class CreateNotificationAction
         $aggregationKey = $this->normalizeNullableString($payload['aggregation_key'] ?? null);
         $aggregate = (bool) ($payload['aggregate'] ?? true);
 
+        // aggregation_key가 있는 unread 알림은 하나의 row로 묶어 "외 N건" 표시가 가능하게 한다.
         if ($recipientId < 1) {
             throw new \InvalidArgumentException('Notification payload contains an invalid recipient id.');
         }

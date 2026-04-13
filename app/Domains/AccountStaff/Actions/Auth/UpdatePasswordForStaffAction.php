@@ -9,6 +9,10 @@ use App\Domains\AccountStaff\Queries\Auth\UpdatePasswordForStaffQuery;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * 스태프 비밀번호 변경 유스케이스.
+ * 현재 비밀번호를 검증한 뒤 저장과 기존 토큰 만료를 Query에 위임한다.
+ */
 final class UpdatePasswordForStaffAction
 {
     public function __construct(

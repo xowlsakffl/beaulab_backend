@@ -9,6 +9,10 @@ use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 채팅 읽음 상태 저장을 담당한다.
+ * 명시 메시지 ID가 없으면 현재 채팅방의 마지막 메시지까지 읽은 것으로 처리한다.
+ */
 final class ChatReadForUserQuery
 {
     public function read(Chat $chat, AccountUser $user, array $payload): Chat

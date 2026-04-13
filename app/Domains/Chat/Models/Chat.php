@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * 1:1 채팅방 헤더 모델.
+ * match_key로 사용자 쌍당 채팅방 1개 정책을 유지하고 마지막 메시지를 역정규화한다.
+ */
 final class Chat extends Model
 {
     use SoftDeletes;

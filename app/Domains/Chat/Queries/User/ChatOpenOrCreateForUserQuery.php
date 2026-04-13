@@ -9,6 +9,10 @@ use App\Domains\Chat\Models\Chat;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 채팅방 생성/재활성화에 필요한 DB 작업을 담당한다.
+ * match_key unique 충돌은 동시 생성 경쟁으로 보고 한 번 재시도한다.
+ */
 final class ChatOpenOrCreateForUserQuery
 {
     public function findActivePeer(int $peerUserId): AccountUser
@@ -42,6 +46,7 @@ final class ChatOpenOrCreateForUserQuery
     private function openOrCreateInTransaction(AccountUser $user, AccountUser $peer, string $matchKey): Chat
     {
         return DB::transaction(function () use ($user, $peer, $matchKey): Chat {
+            // 같은 두 사용자 사이의 채팅방은 match_key 기준으로 하나만 유지한다.
             $chat = Chat::withTrashed()
                 ->where('match_key', $matchKey)
                 ->lockForUpdate()

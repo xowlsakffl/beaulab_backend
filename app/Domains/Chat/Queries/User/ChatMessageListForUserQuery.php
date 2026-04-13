@@ -23,7 +23,7 @@ final class ChatMessageListForUserQuery
 
         $builder = ChatMessage::query()
             ->where('chat_id', $chat->id)
-            ->with('sender:id,name,email');
+            ->with(['sender:id,name,email', 'attachments']);
 
         if ($afterId > 0) {
             $builder->where('id', '>', $afterId)->orderBy('id');

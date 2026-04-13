@@ -7,9 +7,10 @@
 
 - 구현 대상
   - `account_users` 간 1:1 채팅
-  - 텍스트 메시지 발송
+  - 텍스트/이미지/파일 메시지 발송
   - 채팅방별 알림 on/off
   - 읽음 상태
+  - 읽음 상태 실시간 전달
   - 모바일 앱 기준 실시간 메시지 전달
 
 ## 2. 기술 선택
@@ -87,8 +88,8 @@
 - `client_message_id`
   - 앱 재전송 시 중복 저장 방지용 멱등 키
 - `message_type`
-  - 현재 API 허용값은 `TEXT`
-  - `IMAGE`, `FILE`은 공용 `Media` 연결을 붙일 때 확장한다
+  - `TEXT`, `IMAGE`, `FILE`
+  - `IMAGE`, `FILE` 첨부는 공용 `Media` 테이블을 `ChatMessage`에 연결한다
 - `body`
 - `reply_to_message_id`
 - `metadata`
@@ -120,15 +121,16 @@
 
 1. 발신자가 participant인지 검증
 2. `chat_messages` 저장
-3. `chats.last_message_id`, `last_message_at` 갱신
-4. 큐 Job 발행
-5. 접속 중이면 WebSocket 전달
+3. 이미지/파일 메시지면 공용 `media`에 첨부 저장
+4. `chats.last_message_id`, `last_message_at` 갱신
+5. 큐 Job 발행
+6. 접속 중이면 WebSocket 전달
 
 ### 6.3 읽음 처리
 
 1. 사용자가 participant인지 검증
 2. `chat_participants.last_read_message_id`, `last_read_at` 갱신
-3. 필요 시 클라이언트에 읽음 상태 이벤트 전송
+3. `chat.read.updated` 이벤트로 클라이언트에 읽음 상태 전송
 
 ## 7. User API
 
@@ -159,11 +161,16 @@
   - 이벤트명: `.chat.message.created`
   - payload의 `message`에는 `is_mine`을 넣지 않는다.
   - 앱은 `sender_user_id`와 현재 로그인 유저 ID를 비교해서 내 메시지 여부를 판단한다.
+- 읽음 이벤트
+  - 이벤트명: `.chat.read.updated`
+  - payload: `chat_id`, `reader_user_id`, `last_read_message_id`, `last_read_at`
 
 ## 9. 현재 구현 상태
 
 - 채팅방 생성/목록/메시지 조회/메시지 발송/읽음 처리/알림 on-off/채팅 종료 API 구현 완료
 - 메시지 발송 후 Reverb 브로드캐스트 이벤트 발행
+- 읽음 처리 후 Reverb 브로드캐스트 이벤트 발행
+- 이미지/파일 메시지는 공용 `Media` 테이블에 첨부 저장
 - `client_message_id` 재시도 시 기존 메시지를 반환하고 브로드캐스트/알림은 중복 발행하지 않음
 - 상대 participant의 `notifications_enabled`가 켜져 있으면 공통 알림 모듈에 `chat.message.created` 알림 생성
 

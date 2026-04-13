@@ -12,15 +12,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 final class NotificationDelivery extends Model
 {
     public const CHANNEL_IN_APP = 'IN_APP';
+
     public const CHANNEL_PUSH = 'PUSH';
+
     public const CHANNEL_EMAIL = 'EMAIL';
+
     public const CHANNEL_WEB = 'WEB';
 
     public const STATUS_PENDING = 'PENDING';
+
     public const STATUS_SENT = 'SENT';
+
     public const STATUS_FAILED = 'FAILED';
 
     public const PROVIDER_REVERB = 'REVERB';
+
+    public const PROVIDER_FCM = 'FCM';
+
+    public const PROVIDER_APNS = 'APNS';
+
+    public const PROVIDER_MIXED = 'MIXED';
 
     protected $table = 'notification_deliveries';
 

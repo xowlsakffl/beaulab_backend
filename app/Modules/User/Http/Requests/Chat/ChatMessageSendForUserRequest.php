@@ -24,6 +24,8 @@ final class ChatMessageSendForUserRequest extends FormRequest
 
         if (empty($data['message_type'])) {
             $data['message_type'] = ChatMessage::TYPE_TEXT;
+        } else {
+            $data['message_type'] = mb_strtoupper((string) $data['message_type']);
         }
 
         $this->replace($data);
@@ -41,13 +43,43 @@ final class ChatMessageSendForUserRequest extends FormRequest
                 'nullable',
                 Rule::in([
                     ChatMessage::TYPE_TEXT,
+                    ChatMessage::TYPE_IMAGE,
+                    ChatMessage::TYPE_FILE,
                 ]),
             ],
-            'body' => ['required', 'string', 'max:10000'],
+            'body' => ['required_if:message_type,'.ChatMessage::TYPE_TEXT, 'nullable', 'string', 'max:10000'],
             'client_message_id' => ['nullable', 'string', 'max:64'],
             'reply_to_message_id' => ['nullable', 'integer', 'min:1', 'exists:chat_messages,id'],
             'metadata' => ['nullable', 'array'],
+            'attachments' => ['required_if:message_type,'.ChatMessage::TYPE_IMAGE, 'required_if:message_type,'.ChatMessage::TYPE_FILE, 'nullable', 'array', 'max:10'],
+            'attachments.*' => ['file', 'max:51200'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            $messageType = (string) $this->input('message_type', ChatMessage::TYPE_TEXT);
+            $attachments = $this->file('attachments', []);
+
+            if (! is_array($attachments)) {
+                $attachments = $attachments ? [$attachments] : [];
+            }
+
+            if (in_array($messageType, [ChatMessage::TYPE_IMAGE, ChatMessage::TYPE_FILE], true) && $attachments === []) {
+                $validator->errors()->add('attachments', '이미지/파일 메시지는 첨부파일이 필요합니다.');
+            }
+
+            if ($messageType !== ChatMessage::TYPE_IMAGE) {
+                return;
+            }
+
+            foreach ($attachments as $index => $file) {
+                if (! $file || ! str_starts_with((string) $file->getMimeType(), 'image/')) {
+                    $validator->errors()->add("attachments.{$index}", '이미지 메시지는 이미지 파일만 첨부할 수 있습니다.');
+                }
+            }
+        });
     }
 
     public function attributes(): array
@@ -58,6 +90,8 @@ final class ChatMessageSendForUserRequest extends FormRequest
             'client_message_id' => '클라이언트 메시지 ID',
             'reply_to_message_id' => '답장 대상 메시지',
             'metadata' => '메시지 메타데이터',
+            'attachments' => '첨부파일',
+            'attachments.*' => '첨부파일',
         ];
     }
 }

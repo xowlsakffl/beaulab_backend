@@ -235,4 +235,6 @@
 - Push
   - 디바이스 토큰 저장과 `PUSH` delivery 이력 생성 구조는 준비됨
   - 긴 Web Push endpoint까지 고려해 원문 토큰은 `text`, 중복 제약은 `push_token_hash`로 처리
-  - 실제 FCM/APNs 발송 워커는 아직 별도 구현 대상임
+  - `PUSH` delivery 생성 시 `SendPushNotificationDeliveryJob`이 `notifications` 큐에서 실제 provider로 발송함
+  - 기본 provider는 FCM이며, iOS 원시 APNs 토큰은 `PUSH_IOS_PROVIDER=apns`로 분기 가능
+  - credentials가 없거나 `PUSH_ENABLED=false`이면 delivery를 `FAILED`로 기록해 운영자가 원인을 볼 수 있게 함

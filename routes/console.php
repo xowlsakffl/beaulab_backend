@@ -1,6 +1,8 @@
 <?php
 
 use App\Domains\Notice\Actions\Common\CleanupTempEditorImagesAction;
+use App\Domains\Notification\Jobs\SendPushNotificationDeliveryJob;
+use App\Domains\Notification\Models\NotificationDelivery;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -17,6 +19,24 @@ Artisan::command('notice:cleanup-temp-editor-images {--hours=24}', function () {
 
     $this->info("Deleted temp editor images: {$deleted}");
 })->purpose('Delete stale temporary notice editor images');
+
+// 장애/재배포로 dispatch를 놓친 PUSH delivery를 재큐잉한다.
+Artisan::command('notifications:send-pending-push {--limit=100}', function () {
+    $limit = max(1, min((int) $this->option('limit'), 1000));
+
+    $ids = NotificationDelivery::query()
+        ->where('channel', NotificationDelivery::CHANNEL_PUSH)
+        ->where('status', NotificationDelivery::STATUS_PENDING)
+        ->orderBy('id')
+        ->limit($limit)
+        ->pluck('id');
+
+    foreach ($ids as $id) {
+        SendPushNotificationDeliveryJob::dispatch((int) $id);
+    }
+
+    $this->info("Queued pending push deliveries: {$ids->count()}");
+})->purpose('Queue pending push notification deliveries');
 
 // Schedule Monitor 대상 작업 동기화 (모니터링 대상/설정 갱신)
 Schedule::command('schedule-monitor:sync')->dailyAt('02:50');

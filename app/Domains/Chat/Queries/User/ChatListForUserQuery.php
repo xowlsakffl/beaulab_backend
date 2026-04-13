@@ -20,6 +20,7 @@ final class ChatListForUserQuery
             ->whereHas('participants', fn ($query) => $query->where('account_user_id', $userId))
             ->with([
                 'lastMessage.sender:id,name,email',
+                'lastMessage.attachments',
                 'participants.accountUser:id,name,email',
             ])
             ->withCount([

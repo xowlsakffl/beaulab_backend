@@ -3,8 +3,10 @@
 namespace App\Domains\Chat\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\Models\Media\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -16,8 +18,12 @@ final class ChatMessage extends Model
     use SoftDeletes;
 
     public const TYPE_TEXT = 'TEXT';
+
     public const TYPE_IMAGE = 'IMAGE';
+
     public const TYPE_FILE = 'FILE';
+
+    public const MEDIA_COLLECTION_ATTACHMENTS = 'attachments';
 
     protected $table = 'chat_messages';
 
@@ -63,5 +69,12 @@ final class ChatMessage extends Model
     public function replyToMessage(): BelongsTo
     {
         return $this->belongsTo(self::class, 'reply_to_message_id');
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'model')
+            ->where('collection', self::MEDIA_COLLECTION_ATTACHMENTS)
+            ->ordered();
     }
 }

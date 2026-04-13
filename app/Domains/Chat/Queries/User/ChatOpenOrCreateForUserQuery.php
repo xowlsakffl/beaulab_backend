@@ -85,6 +85,7 @@ final class ChatOpenOrCreateForUserQuery
 
             return $chat->fresh([
                 'lastMessage.sender:id,name,email',
+                'lastMessage.attachments',
                 'participants.accountUser:id,name,email',
             ]);
         });

@@ -8,8 +8,12 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Models\ChatParticipant;
+use App\Domains\Common\Models\Media\Media;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * 메시지 저장 트랜잭션과 발송 가능성 검증을 담당한다.
@@ -20,6 +24,8 @@ final class ChatMessageSendForUserQuery
     public function store(Chat $chat, AccountUser $user, array $payload): array
     {
         return DB::transaction(function () use ($chat, $user, $payload): array {
+            $attachments = $this->attachments($payload['attachments'] ?? []);
+
             $lockedChat = Chat::query()
                 ->whereKey($chat->id)
                 ->lockForUpdate()
@@ -34,7 +40,7 @@ final class ChatMessageSendForUserQuery
                     ->where('chat_id', $lockedChat->id)
                     ->where('sender_user_id', $user->id)
                     ->where('client_message_id', $clientMessageId)
-                    ->with('sender:id,name,email')
+                    ->with(['sender:id,name,email', 'attachments'])
                     ->first();
 
                 if ($existingMessage instanceof ChatMessage) {
@@ -67,6 +73,8 @@ final class ChatMessageSendForUserQuery
                 'metadata' => $payload['metadata'] ?? null,
             ]);
 
+            $this->storeAttachments($message, $attachments);
+
             $lockedChat->forceFill([
                 'last_message_id' => $message->id,
                 'last_message_at' => $message->created_at,
@@ -80,7 +88,7 @@ final class ChatMessageSendForUserQuery
                 ]);
 
             return [
-                'message' => $message->load('sender:id,name,email'),
+                'message' => $message->load(['sender:id,name,email', 'attachments']),
                 'created' => true,
             ];
         });
@@ -122,5 +130,95 @@ final class ChatMessageSendForUserQuery
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
+    }
+
+    /**
+     * @return list<UploadedFile>
+     */
+    private function attachments(mixed $value): array
+    {
+        if ($value instanceof UploadedFile) {
+            return [$value];
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $value,
+            static fn (mixed $file): bool => $file instanceof UploadedFile
+        ));
+    }
+
+    /**
+     * @param  list<UploadedFile>  $attachments
+     */
+    private function storeAttachments(ChatMessage $message, array $attachments): void
+    {
+        if ($attachments === []) {
+            return;
+        }
+
+        $disk = 'public';
+        $dir = "chat/messages/{$message->id}/attachments";
+        $storedPaths = [];
+
+        try {
+            foreach ($attachments as $index => $file) {
+                $path = Storage::disk($disk)->putFile($dir, $file);
+
+                if (! is_string($path) || $path === '') {
+                    throw new \RuntimeException('채팅 첨부파일 저장에 실패했습니다.');
+                }
+
+                $storedPaths[] = $path;
+                [$width, $height] = $this->imageSize($file);
+
+                Media::create([
+                    'model_type' => ChatMessage::class,
+                    'model_id' => $message->id,
+                    'collection' => ChatMessage::MEDIA_COLLECTION_ATTACHMENTS,
+                    'disk' => $disk,
+                    'path' => $path,
+                    'mime_type' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                    'width' => $width,
+                    'height' => $height,
+                    'sort_order' => $index,
+                    'is_primary' => $index === 0,
+                    'metadata' => [
+                        'original_name' => $file->getClientOriginalName(),
+                        'extension' => $file->getClientOriginalExtension(),
+                    ],
+                ]);
+            }
+        } catch (Throwable $exception) {
+            foreach ($storedPaths as $path) {
+                Storage::disk($disk)->delete($path);
+            }
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * @return array{0:int|null,1:int|null}
+     */
+    private function imageSize(UploadedFile $file): array
+    {
+        $mimeType = (string) $file->getMimeType();
+
+        if (! str_starts_with($mimeType, 'image/')) {
+            return [null, null];
+        }
+
+        $info = @getimagesize($file->getRealPath());
+
+        if (! $info) {
+            return [null, null];
+        }
+
+        return [(int) $info[0], (int) $info[1]];
     }
 }

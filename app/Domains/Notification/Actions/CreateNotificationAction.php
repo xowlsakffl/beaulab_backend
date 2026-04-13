@@ -3,6 +3,7 @@
 namespace App\Domains\Notification\Actions;
 
 use App\Domains\Notification\Events\NotificationInboxUpdated;
+use App\Domains\Notification\Jobs\SendPushNotificationDeliveryJob;
 use App\Domains\Notification\Models\NotificationDelivery;
 use App\Domains\Notification\Models\NotificationInbox;
 use App\Domains\Notification\Queries\NotificationCreateQuery;
@@ -33,7 +34,21 @@ final class CreateNotificationAction
             (int) $notification->recipient_id,
         );
 
+        $this->dispatchPushDelivery($notification);
+
         return $notification;
+    }
+
+    private function dispatchPushDelivery(NotificationInbox $notification): void
+    {
+        $pushDelivery = $notification->deliveries()
+            ->where('channel', NotificationDelivery::CHANNEL_PUSH)
+            ->where('status', NotificationDelivery::STATUS_PENDING)
+            ->first();
+
+        if ($pushDelivery instanceof NotificationDelivery) {
+            SendPushNotificationDeliveryJob::dispatch((int) $pushDelivery->id);
+        }
     }
 
     private function normalizePayload(array $payload): array

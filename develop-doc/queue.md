@@ -117,6 +117,7 @@ php artisan queue:failed
 php artisan queue:retry all
 php artisan queue:prune-failed --hours=168
 php artisan queue:prune-batches --hours=72 --unfinished=72 --cancelled=168
+php artisan notifications:send-pending-push --limit=100
 ```
 
 ## 8. 배포 체크리스트

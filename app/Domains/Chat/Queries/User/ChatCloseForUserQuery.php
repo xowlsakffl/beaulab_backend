@@ -43,6 +43,7 @@ final class ChatCloseForUserQuery
 
             return $lockedChat->fresh([
                 'lastMessage.sender:id,name,email',
+                'lastMessage.attachments',
                 'participants.accountUser:id,name,email',
             ]);
         });

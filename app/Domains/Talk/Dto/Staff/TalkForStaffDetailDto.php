@@ -10,6 +10,10 @@ use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Support\Collection;
 
+/**
+ * TalkForStaffDetailDto 역할 정의.
+ * 토크 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ */
 final readonly class TalkForStaffDetailDto
 {
     public function __construct(public array $talk) {}

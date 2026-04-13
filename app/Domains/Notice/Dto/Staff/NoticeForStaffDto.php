@@ -4,6 +4,10 @@ namespace App\Domains\Notice\Dto\Staff;
 
 use App\Domains\Notice\Models\Notice;
 
+/**
+ * NoticeForStaffDto 역할 정의.
+ * 공지사항 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ */
 final readonly class NoticeForStaffDto
 {
     public function __construct(public array $notice) {}

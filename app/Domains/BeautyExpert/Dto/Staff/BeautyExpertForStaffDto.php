@@ -5,6 +5,10 @@ namespace App\Domains\BeautyExpert\Dto\Staff;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 
+/**
+ * BeautyExpertForStaffDto 역할 정의.
+ * 뷰티 전문가 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ */
 final readonly class BeautyExpertForStaffDto
 {
     public function __construct(

@@ -6,6 +6,10 @@ use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 
+/**
+ * HospitalDoctorForStaffDto 역할 정의.
+ * 병원 의사 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ */
 final readonly class HospitalDoctorForStaffDto
 {
     public function __construct(

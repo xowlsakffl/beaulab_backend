@@ -18,6 +18,10 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * BeautyExpert 역할 정의.
+ * 뷰티 전문가 도메인의 Eloquent 모델로, 테이블 매핑, 관계, 스코프, 상태 상수를 한곳에 모아 도메인 데이터 접근 기준을 제공한다.
+ */
 final class BeautyExpert extends Model
 {
     use HasFactory, SoftDeletes, HasAuditLogs;

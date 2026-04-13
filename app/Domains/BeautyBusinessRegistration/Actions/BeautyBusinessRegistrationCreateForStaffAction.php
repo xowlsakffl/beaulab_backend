@@ -7,6 +7,10 @@ use App\Domains\BeautyBusinessRegistration\Queries\BeautyBusinessRegistrationCre
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * BeautyBusinessRegistrationCreateForStaffAction 역할 정의.
+ * 뷰티 사업자 등록 도메인의 Action 계층으로, 컨트롤러에서 넘어온 검증된 입력을 받아 권한 확인, 도메인 흐름 조합, Query 호출을 담당한다.
+ */
 final class BeautyBusinessRegistrationCreateForStaffAction
 {
     public function __construct(

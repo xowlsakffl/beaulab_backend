@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * 스태프 백오피스 API 라우트 파일.
+ * 인증/권한 미들웨어와 컨트롤러 매핑만 두고 비즈니스 로직은 컨트롤러와 Action 계층으로 위임한다.
+ */
+
 use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController;
 use App\Modules\Staff\Http\Controllers\AdminNote\AdminNoteForStaffController;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;

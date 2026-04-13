@@ -7,6 +7,10 @@ use App\Domains\Common\Models\Category\Category;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * HospitalListForStaffRequest 역할 정의.
+ * 병원 도메인의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
+ */
 final class HospitalListForStaffRequest extends FormRequest
 {
 

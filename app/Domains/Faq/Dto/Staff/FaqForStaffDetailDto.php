@@ -4,6 +4,10 @@ namespace App\Domains\Faq\Dto\Staff;
 
 use App\Domains\Faq\Models\Faq;
 
+/**
+ * FaqForStaffDetailDto 역할 정의.
+ * FAQ 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ */
 final readonly class FaqForStaffDetailDto
 {
     public function __construct(public array $faq) {}

@@ -5,6 +5,10 @@ namespace App\Modules\User\Http\Requests\Notification;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
+/**
+ * NotificationPreferenceUpdateForUserRequest 역할 정의.
+ * 알림 도메인의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
+ */
 final class NotificationPreferenceUpdateForUserRequest extends FormRequest
 {
     protected function prepareForValidation(): void

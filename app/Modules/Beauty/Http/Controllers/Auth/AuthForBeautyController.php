@@ -13,6 +13,10 @@ use App\Modules\Beauty\Http\Requests\Auth\UpdatePasswordForAccountBeautyRequest;
 use App\Modules\Beauty\Http\Requests\Auth\UpdateProfileForAccountBeautyRequest;
 use Illuminate\Http\Request;
 
+/**
+ * AuthForBeautyController 역할 정의.
+ * 뷰티 도메인의 HTTP 컨트롤러로, 라우트 요청을 받아 Request 검증 결과와 Action 실행 결과를 API 응답으로 연결한다.
+ */
 final class AuthForBeautyController
 {
     public function login(

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * 앱 사용자 API 라우트 파일.
+ * 인증/권한 미들웨어와 컨트롤러 매핑만 두고 비즈니스 로직은 컨트롤러와 Action 계층으로 위임한다.
+ */
+
 use App\Modules\User\Http\Controllers\Auth\AuthForUserController;
 use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;

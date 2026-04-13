@@ -4,6 +4,10 @@ namespace App\Modules\Staff\Http\Requests\Category;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * CategoryGetForStaffRequest 역할 정의.
+ * 스태프 모듈의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
+ */
 final class CategoryGetForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void

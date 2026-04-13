@@ -6,6 +6,10 @@ namespace App\Modules\Staff\Http\Requests\Beauty;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * BeautyGetForStaffRequest 역할 정의.
+ * 뷰티 도메인의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
+ */
 final class BeautyGetForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void

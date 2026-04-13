@@ -4,6 +4,10 @@ namespace App\Domains\AccountUser\Dto\Auth;
 
 use App\Domains\AccountUser\Models\AccountUser;
 
+/**
+ * ProfileForAccountUserDto 역할 정의.
+ * 일반 회원 계정 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ */
 final readonly class ProfileForAccountUserDto
 {
     public function __construct(

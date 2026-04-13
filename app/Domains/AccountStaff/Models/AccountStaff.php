@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * AccountStaff 역할 정의.
+ * 스태프 계정 도메인의 Eloquent 모델로, 테이블 매핑, 관계, 스코프, 상태 상수를 한곳에 모아 도메인 데이터 접근 기준을 제공한다.
+ */
 final class AccountStaff extends Authenticatable
 {
     use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes, HasAuditLogs;

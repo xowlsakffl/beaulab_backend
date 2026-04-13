@@ -6,6 +6,10 @@ use App\Domains\Common\Models\Media\Media;
 use App\Domains\Notice\Models\Notice;
 use Illuminate\Support\Collection;
 
+/**
+ * NoticeForStaffDetailDto 역할 정의.
+ * 공지사항 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ */
 final readonly class NoticeForStaffDetailDto
 {
     public function __construct(public array $notice) {}

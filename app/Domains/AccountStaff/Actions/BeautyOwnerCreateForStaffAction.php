@@ -9,6 +9,10 @@ use App\Domains\AccountStaff\Queries\BeautyOwnerCreateForStaffQuery;
 use App\Domains\Beauty\Models\Beauty;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * BeautyOwnerCreateForStaffAction 역할 정의.
+ * 스태프 계정 도메인의 Action 계층으로, 컨트롤러에서 넘어온 검증된 입력을 받아 권한 확인, 도메인 흐름 조합, Query 호출을 담당한다.
+ */
 final class BeautyOwnerCreateForStaffAction
 {
     public function __construct(

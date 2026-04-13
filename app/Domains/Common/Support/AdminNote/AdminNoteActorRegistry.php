@@ -8,6 +8,10 @@ use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Models\AdminNote\AdminNote;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * AdminNoteActorRegistry 역할 정의.
+ * 공통 도메인의 지원 유틸리티로, 여러 계층에서 반복되는 계산이나 매핑 규칙을 분리해 재사용한다.
+ */
 final class AdminNoteActorRegistry
 {
     public const string ALIAS_STAFF = 'staff';

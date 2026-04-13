@@ -12,6 +12,10 @@ use App\Modules\Staff\Http\Requests\AdminNote\AdminNoteListForStaffRequest;
 use App\Modules\Staff\Http\Requests\AdminNote\AdminNoteStoreForStaffRequest;
 use App\Modules\Staff\Http\Requests\AdminNote\AdminNoteUpdateForStaffRequest;
 
+/**
+ * AdminNoteForStaffController 역할 정의.
+ * 스태프 모듈의 HTTP 컨트롤러로, 라우트 요청을 받아 Request 검증 결과와 Action 실행 결과를 API 응답으로 연결한다.
+ */
 final class AdminNoteForStaffController extends Controller
 {
     public function getAdminNotesForStaff(

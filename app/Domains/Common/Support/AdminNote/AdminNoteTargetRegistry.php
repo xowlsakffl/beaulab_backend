@@ -11,6 +11,10 @@ use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * AdminNoteTargetRegistry 역할 정의.
+ * 공통 도메인의 지원 유틸리티로, 여러 계층에서 반복되는 계산이나 매핑 규칙을 분리해 재사용한다.
+ */
 final class AdminNoteTargetRegistry
 {
     public const string ALIAS_HOSPITAL = 'hospital';

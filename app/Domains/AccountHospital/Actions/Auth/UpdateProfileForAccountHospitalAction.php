@@ -4,11 +4,15 @@ namespace App\Domains\AccountHospital\Actions\Auth;
 
 use App\Domains\AccountHospital\Dto\Auth\ProfileForAccountHospitalDto;
 use App\Domains\AccountHospital\Models\AccountHospital;
-use Illuminate\Support\Facades\DB;
+use App\Domains\AccountHospital\Queries\Auth\UpdateProfileForAccountHospitalQuery;
 use Illuminate\Support\Facades\Log;
 
 final class UpdateProfileForAccountHospitalAction
 {
+    public function __construct(
+        private readonly UpdateProfileForAccountHospitalQuery $query,
+    ) {}
+
     /**
      * @param array{name?:string,email?:string} $filters
      * @return array{profile: array}
@@ -20,11 +24,7 @@ final class UpdateProfileForAccountHospitalAction
             'keys' => array_keys($filters),
         ]);
 
-        $hospital = DB::transaction(function () use ($hospital, $filters) {
-            $hospital->fill($filters)->save();
-
-            return $hospital->fresh();
-        });
+        $hospital = $this->query->update($hospital, $filters);
 
         return [
             'profile' => ProfileForAccountHospitalDto::fromModel($hospital)->toArray(),

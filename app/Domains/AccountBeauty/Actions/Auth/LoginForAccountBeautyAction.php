@@ -4,7 +4,6 @@ namespace App\Domains\AccountBeauty\Actions\Auth;
 
 use App\Domains\AccountBeauty\Dto\Auth\AuthForAccountBeautyDto;
 use App\Domains\AccountBeauty\Queries\Auth\LoginForAccountBeautyQuery;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 final class LoginForAccountBeautyAction
@@ -23,7 +22,7 @@ final class LoginForAccountBeautyAction
             'nickname' => $filters['nickname'] ?? null,
         ]);
 
-        $result = DB::transaction(fn () => $this->query->login($filters));
+        $result = $this->query->login($filters);
 
         return [
             'token' => $result['token'],

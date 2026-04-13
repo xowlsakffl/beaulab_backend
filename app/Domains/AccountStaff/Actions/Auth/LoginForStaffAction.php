@@ -3,9 +3,7 @@
 namespace App\Domains\AccountStaff\Actions\Auth;
 
 use App\Domains\AccountStaff\Dto\Auth\AuthForStaffDto;
-use App\Domains\AccountStaff\Dto\Auth\StaffLoginDto;
 use App\Domains\AccountStaff\Queries\Auth\LoginForStaffQuery;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 final class LoginForStaffAction
@@ -24,9 +22,7 @@ final class LoginForStaffAction
             'nickname' => $filters['nickname'] ?? null,
         ]);
 
-        $result = DB::transaction(function () use ($filters) {
-            return $this->query->login($filters);
-        });
+        $result = $this->query->login($filters);
 
         return [
             'token' => $result['token'],

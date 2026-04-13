@@ -5,12 +5,16 @@ namespace App\Domains\AccountHospital\Actions\Auth;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
-use Illuminate\Support\Facades\DB;
+use App\Domains\AccountHospital\Queries\Auth\UpdatePasswordForAccountHospitalQuery;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 final class UpdatePasswordForAccountHospitalAction
 {
+    public function __construct(
+        private readonly UpdatePasswordForAccountHospitalQuery $query,
+    ) {}
+
     /**
      * @param array{current_password:string,password:string} $filters
      * @return array{message:string}
@@ -29,10 +33,7 @@ final class UpdatePasswordForAccountHospitalAction
             'hospital_id' => $hospital->id,
         ]);
 
-        DB::transaction(function () use ($hospital, $filters) {
-            $hospital->forceFill(['password' => $filters['password']])->save();
-            $hospital->tokens()->delete();
-        });
+        $this->query->update($hospital, (string) $filters['password']);
 
         return [
             'message' => 'Password updated',

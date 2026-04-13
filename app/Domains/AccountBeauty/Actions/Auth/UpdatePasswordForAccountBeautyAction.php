@@ -5,12 +5,16 @@ namespace App\Domains\AccountBeauty\Actions\Auth;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
-use Illuminate\Support\Facades\DB;
+use App\Domains\AccountBeauty\Queries\Auth\UpdatePasswordForAccountBeautyQuery;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 final class UpdatePasswordForAccountBeautyAction
 {
+    public function __construct(
+        private readonly UpdatePasswordForAccountBeautyQuery $query,
+    ) {}
+
     /**
      * @param array{current_password:string,password:string} $filters
      * @return array{message:string}
@@ -29,10 +33,7 @@ final class UpdatePasswordForAccountBeautyAction
             'beauty_id' => $beauty->id,
         ]);
 
-        DB::transaction(function () use ($beauty, $filters) {
-            $beauty->forceFill(['password' => $filters['password']])->save();
-            $beauty->tokens()->delete();
-        });
+        $this->query->update($beauty, (string) $filters['password']);
 
         return [
             'message' => '비밀번호가 변경되었습니다.',

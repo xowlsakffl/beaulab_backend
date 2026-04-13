@@ -5,6 +5,7 @@ namespace App\Domains\AccountBeauty\Queries\Auth;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 final class LoginForAccountBeautyQuery
@@ -14,6 +15,15 @@ final class LoginForAccountBeautyQuery
      * @return array{token:string, beauty: AccountBeauty, roles: list<string>, permissions: list<string>}
      */
     public function login(array $data): array
+    {
+        return DB::transaction(fn (): array => $this->loginInTransaction($data));
+    }
+
+    /**
+     * @param array{nickname:string,password:string,device_name?:string|null} $data
+     * @return array{token:string, beauty: AccountBeauty, roles: list<string>, permissions: list<string>}
+     */
+    private function loginInTransaction(array $data): array
     {
         $beauty = AccountBeauty::query()
             ->where('nickname', $data['nickname'])

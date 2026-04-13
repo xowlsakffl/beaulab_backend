@@ -4,11 +4,15 @@ namespace App\Domains\AccountBeauty\Actions\Auth;
 
 use App\Domains\AccountBeauty\Dto\Auth\ProfileForAccountBeautyDto;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
-use Illuminate\Support\Facades\DB;
+use App\Domains\AccountBeauty\Queries\Auth\UpdateProfileForAccountBeautyQuery;
 use Illuminate\Support\Facades\Log;
 
 final class UpdateProfileForAccountBeautyAction
 {
+    public function __construct(
+        private readonly UpdateProfileForAccountBeautyQuery $query,
+    ) {}
+
     /**
      * @param array{name?:string,email?:string} $filters
      * @return array{profile: array}
@@ -20,11 +24,7 @@ final class UpdateProfileForAccountBeautyAction
             'keys' => array_keys($filters),
         ]);
 
-        $beauty = DB::transaction(function () use ($beauty, $filters) {
-            $beauty->fill($filters)->save();
-
-            return $beauty->fresh();
-        });
+        $beauty = $this->query->update($beauty, $filters);
 
         return [
             'profile' => ProfileForAccountBeautyDto::fromModel($beauty)->toArray(),

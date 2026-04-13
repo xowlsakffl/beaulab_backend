@@ -5,6 +5,7 @@ namespace App\Domains\AccountHospital\Queries\Auth;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 final class LoginForAccountHospitalQuery
@@ -14,6 +15,15 @@ final class LoginForAccountHospitalQuery
      * @return array{token:string, hospital: AccountHospital, roles: list<string>, permissions: list<string>}
      */
     public function login(array $data): array
+    {
+        return DB::transaction(fn (): array => $this->loginInTransaction($data));
+    }
+
+    /**
+     * @param array{nickname:string,password:string,device_name?:string|null} $data
+     * @return array{token:string, hospital: AccountHospital, roles: list<string>, permissions: list<string>}
+     */
+    private function loginInTransaction(array $data): array
     {
         $hospital = AccountHospital::query()
             ->where('nickname', $data['nickname'])

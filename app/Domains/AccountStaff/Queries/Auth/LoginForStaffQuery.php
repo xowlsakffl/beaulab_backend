@@ -5,6 +5,7 @@ namespace App\Domains\AccountStaff\Queries\Auth;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 final class LoginForStaffQuery
@@ -14,6 +15,15 @@ final class LoginForStaffQuery
      * @return array{token:string, staff: AccountStaff, roles: list<string>, permissions: list<string>}
      */
     public function login(array $data): array
+    {
+        return DB::transaction(fn (): array => $this->loginInTransaction($data));
+    }
+
+    /**
+     * @param array{nickname:string,password:string} $data
+     * @return array{token:string, staff: AccountStaff, roles: list<string>, permissions: list<string>}
+     */
+    private function loginInTransaction(array $data): array
     {
         $staff = AccountStaff::query()
             ->where('nickname', $data['nickname'])

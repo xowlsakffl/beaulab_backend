@@ -4,7 +4,6 @@ namespace App\Domains\AccountHospital\Actions\Auth;
 
 use App\Domains\AccountHospital\Dto\Auth\AuthForAccountHospitalDto;
 use App\Domains\AccountHospital\Queries\Auth\LoginForAccountHospitalQuery;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 final class LoginForAccountHospitalAction
@@ -23,7 +22,7 @@ final class LoginForAccountHospitalAction
             'nickname' => $filters['nickname'] ?? null,
         ]);
 
-        $result = DB::transaction(fn () => $this->query->login($filters));
+        $result = $this->query->login($filters);
 
         return [
             'token' => $result['token'],

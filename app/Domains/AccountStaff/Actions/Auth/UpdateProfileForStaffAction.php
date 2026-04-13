@@ -4,11 +4,15 @@ namespace App\Domains\AccountStaff\Actions\Auth;
 
 use App\Domains\AccountStaff\Dto\Auth\ProfileForStaffDto;
 use App\Domains\AccountStaff\Models\AccountStaff;
-use Illuminate\Support\Facades\DB;
+use App\Domains\AccountStaff\Queries\Auth\UpdateProfileForStaffQuery;
 use Illuminate\Support\Facades\Log;
 
 final class UpdateProfileForStaffAction
 {
+    public function __construct(
+        private readonly UpdateProfileForStaffQuery $query,
+    ) {}
+
     /**
      * @return array{profile: array}
      */
@@ -19,10 +23,7 @@ final class UpdateProfileForStaffAction
             'keys' => array_keys($filters),
         ]);
 
-        $staff = DB::transaction(function () use ($staff, $filters) {
-            $staff->fill($filters)->save();
-            return $staff->fresh();
-        });
+        $staff = $this->query->update($staff, $filters);
 
         return [
             'profile' => ProfileForStaffDto::fromModel($staff)->toArray(),

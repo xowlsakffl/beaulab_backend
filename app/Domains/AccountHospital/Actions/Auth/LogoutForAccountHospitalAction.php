@@ -2,11 +2,16 @@
 
 namespace App\Domains\AccountHospital\Actions\Auth;
 
+use App\Domains\AccountHospital\Queries\Auth\LogoutForAccountHospitalQuery;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
 final class LogoutForAccountHospitalAction
 {
+    public function __construct(
+        private readonly LogoutForAccountHospitalQuery $query,
+    ) {}
+
     /**
      * @return array{message:string}
      */
@@ -17,7 +22,7 @@ final class LogoutForAccountHospitalAction
             'actor_id' => $actor->getAuthIdentifier(),
         ]);
 
-        $actor->currentAccessToken()?->delete();
+        $this->query->deleteCurrentToken($actor);
 
         return [
             'message' => '로그아웃됨',

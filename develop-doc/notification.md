@@ -21,7 +21,7 @@
 
 - 알림 원장 저장: 관계형 DB
 - 비동기 처리: Redis + Horizon
-- 실시간 인앱 전달: WebSocket 계층
+- 실시간 인앱 전달: Laravel Reverb
 - 앱 오프라인 전달: FCM / APNs
 
 현재는 별도 알림 서비스나 Kafka를 도입하지 않는다.  
@@ -187,3 +187,52 @@
 - 집계형 알림 요구를 수용할 수 있다
 - 인앱, 푸시, 이메일 이력을 분리해 운영 추적이 쉽다
 - 나중에 정책이 늘어나도 채팅 도메인 코드를 오염시키지 않는다
+
+## 9. User API
+
+- `GET /api/v1/user/notifications`
+  - 내 알림 목록
+  - 필터: `per_page`, `unread_only`, `event_type`, `target_type`, `target_id`
+- `GET /api/v1/user/notifications/unread-count`
+  - 안읽은 알림 묶음 수와 집계 이벤트 수
+- `POST /api/v1/user/notifications/{notificationInbox}/read`
+  - 단건 읽음 처리
+- `POST /api/v1/user/notifications/read-all`
+  - 전체 읽음 처리
+- `POST /api/v1/user/notifications/devices`
+  - 앱/웹 푸시 토큰 등록
+- `POST /api/v1/user/notifications/devices/revoke`
+  - 푸시 토큰 폐기
+- `GET /api/v1/user/notifications/preferences`
+  - 이벤트별 알림 설정 조회
+- `PUT|PATCH /api/v1/user/notifications/preferences`
+  - 이벤트별 알림 설정 변경
+
+## 10. 실시간 채널
+
+- 유저 알림 채널
+  - `private-user.{userId}`
+  - 본인 유저 ID만 구독 가능
+- 알림 이벤트
+  - 이벤트명: `.notification.inbox.updated`
+  - payload: `notification`
+
+## 11. 현재 구현 상태
+
+- 공통 도메인 모델
+  - `NotificationInbox`
+  - `NotificationDelivery`
+  - `NotificationDevice`
+  - `NotificationPreference`
+- 공통 생성 액션
+  - `CreateNotificationAction`
+  - 동일 수신자/동일 이벤트/동일 대상의 unread 알림은 `aggregation_key` 기준으로 1건만 유지
+  - 새 이벤트가 들어오면 `event_count` 증가
+  - 읽음 처리 시 `open_aggregation_key`를 `null`로 바꿔 다음 이벤트가 새 묶음으로 생성될 수 있게 함
+- 채팅 연동
+  - `chat.message.created` 이벤트는 `chat_id` 기준으로 집계
+  - `client_message_id` 재시도는 알림을 중복 생성하지 않음
+- Push
+  - 디바이스 토큰 저장과 `PUSH` delivery 이력 생성 구조는 준비됨
+  - 긴 Web Push endpoint까지 고려해 원문 토큰은 `text`, 중복 제약은 `push_token_hash`로 처리
+  - 실제 FCM/APNs 발송 워커는 아직 별도 구현 대상임

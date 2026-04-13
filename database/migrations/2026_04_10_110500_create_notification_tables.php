@@ -83,7 +83,8 @@ return new class extends Migration
 
             $table->string('platform', 20)->comment('플랫폼(IOS, ANDROID, WEB)');
             $table->string('device_uuid', 100)->nullable()->comment('클라이언트 디바이스 식별자');
-            $table->string('push_token', 255)->comment('푸시 또는 브라우저 토큰');
+            $table->text('push_token')->comment('푸시 또는 브라우저 토큰');
+            $table->char('push_token_hash', 64)->comment('푸시 토큰 SHA-256 해시');
             $table->string('app_version', 32)->nullable()->comment('앱 버전');
             $table->timestamp('last_seen_at')->nullable()->comment('마지막 활성 시각');
             $table->timestamp('revoked_at')->nullable()->comment('토큰 폐기 시각');
@@ -91,7 +92,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique('push_token', 'notification_devices_push_token_unique');
+            $table->unique('push_token_hash', 'notification_devices_push_token_hash_unique');
             $table->index(['owner_type', 'owner_id', 'revoked_at'], 'notification_devices_owner_active_idx');
             $table->index(['platform', 'last_seen_at'], 'notification_devices_platform_seen_idx');
         });

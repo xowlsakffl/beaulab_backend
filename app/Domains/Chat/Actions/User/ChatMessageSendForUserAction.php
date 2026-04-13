@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Domains\Chat\Actions\User;
+
+use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Chat\Dto\User\ChatMessageForUserDto;
+use App\Domains\Chat\Events\ChatMessageCreated;
+use App\Domains\Chat\Models\Chat;
+use App\Domains\Chat\Models\ChatMessage;
+use App\Domains\Chat\Queries\User\ChatMessageSendForUserQuery;
+use App\Domains\Notification\Actions\CreateNotificationAction;
+use App\Domains\Notification\Models\NotificationDelivery;
+use App\Domains\Notification\Models\NotificationInbox;
+
+final class ChatMessageSendForUserAction
+{
+    public function __construct(
+        private readonly CreateNotificationAction $createNotificationAction,
+        private readonly ChatMessageSendForUserQuery $query,
+    ) {}
+
+    public function execute(Chat $chat, AccountUser $user, array $payload): array
+    {
+        $result = $this->query->store($chat, $user, $payload);
+
+        /** @var ChatMessage $message */
+        $message = $result['message'];
+
+        if ((bool) $result['created']) {
+            ChatMessageCreated::dispatch(
+                (int) $message->id,
+                (int) $message->chat_id,
+                (int) $message->sender_user_id,
+            );
+
+            $this->createPeerNotifications($message, $user);
+        }
+
+        return [
+            'message' => ChatMessageForUserDto::fromModel($message, (int) $user->id),
+        ];
+    }
+
+    private function createPeerNotifications(ChatMessage $message, AccountUser $sender): void
+    {
+        $recipientIds = $this->query->notificationRecipientIds($message, $sender);
+
+        foreach ($recipientIds as $recipientId) {
+            $this->createNotificationAction->execute([
+                'recipient_type' => NotificationInbox::RECIPIENT_USER,
+                'recipient_id' => (int) $recipientId,
+                'actor_type' => NotificationInbox::ACTOR_USER,
+                'actor_id' => (int) $sender->id,
+                'event_type' => NotificationInbox::EVENT_CHAT_MESSAGE_CREATED,
+                'title' => '새 메시지가 도착했습니다.',
+                'body' => $this->notificationBody($message),
+                'aggregation_key' => sprintf(
+                    'recipient:user:%d:event:%s:target:chat:%d',
+                    (int) $recipientId,
+                    NotificationInbox::EVENT_CHAT_MESSAGE_CREATED,
+                    (int) $message->chat_id,
+                ),
+                'target_type' => NotificationInbox::TARGET_CHAT,
+                'target_id' => (int) $message->chat_id,
+                'payload' => [
+                    'chat_id' => (int) $message->chat_id,
+                    'message_id' => (int) $message->id,
+                    'sender_user_id' => (int) $sender->id,
+                ],
+                'channels' => [
+                    NotificationDelivery::CHANNEL_IN_APP,
+                    NotificationDelivery::CHANNEL_PUSH,
+                ],
+            ]);
+        }
+    }
+
+    private function notificationBody(ChatMessage $message): string
+    {
+        if ($message->message_type !== ChatMessage::TYPE_TEXT) {
+            return '새 메시지가 도착했습니다.';
+        }
+
+        $body = $this->normalizeNullableString($message->body);
+
+        return $body === null ? '새 메시지가 도착했습니다.' : mb_strimwidth($body, 0, 160, '...');
+    }
+
+    private function normalizeNullableString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
+    }
+}

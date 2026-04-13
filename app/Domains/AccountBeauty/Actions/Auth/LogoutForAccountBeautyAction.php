@@ -2,11 +2,16 @@
 
 namespace App\Domains\AccountBeauty\Actions\Auth;
 
+use App\Domains\AccountBeauty\Queries\Auth\LogoutForAccountBeautyQuery;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
 final class LogoutForAccountBeautyAction
 {
+    public function __construct(
+        private readonly LogoutForAccountBeautyQuery $query,
+    ) {}
+
     /**
      * @return array{message:string}
      */
@@ -17,7 +22,7 @@ final class LogoutForAccountBeautyAction
             'actor_id' => $actor->getAuthIdentifier(),
         ]);
 
-        $actor->currentAccessToken()?->delete();
+        $this->query->deleteCurrentToken($actor);
 
         return [
             'message' => '로그아웃됨',

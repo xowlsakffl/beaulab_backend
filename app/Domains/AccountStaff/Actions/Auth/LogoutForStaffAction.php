@@ -2,11 +2,16 @@
 
 namespace App\Domains\AccountStaff\Actions\Auth;
 
+use App\Domains\AccountStaff\Queries\Auth\LogoutForStaffQuery;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
 final class LogoutForStaffAction
 {
+    public function __construct(
+        private readonly LogoutForStaffQuery $query,
+    ) {}
+
     /**
      * @return array{message:string}
      */
@@ -17,8 +22,7 @@ final class LogoutForStaffAction
             'actor_id' => $actor->getAuthIdentifier(),
         ]);
 
-        // 현재 토큰만 삭제
-        $actor->currentAccessToken()?->delete();
+        $this->query->deleteCurrentToken($actor);
 
         return [
             'message' => '로그아웃됨',

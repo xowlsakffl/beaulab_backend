@@ -5,12 +5,16 @@ namespace App\Domains\AccountStaff\Actions\Auth;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
-use Illuminate\Support\Facades\DB;
+use App\Domains\AccountStaff\Queries\Auth\UpdatePasswordForStaffQuery;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 final class UpdatePasswordForStaffAction
 {
+    public function __construct(
+        private readonly UpdatePasswordForStaffQuery $query,
+    ) {}
+
     /**
      * @param array{current_password:string,password:string} $filters
      * @return array{message:string}
@@ -29,12 +33,7 @@ final class UpdatePasswordForStaffAction
             'staff_id' => $staff->id,
         ]);
 
-        DB::transaction(function () use ($staff, $filters) {
-            $staff->forceFill(['password' => $filters['password']])->save();
-
-            // 보안: 비밀번호 변경 시 모든 토큰 만료
-            $staff->tokens()->delete();
-        });
+        $this->query->update($staff, (string) $filters['password']);
 
         return [
             'message' => 'Password updated',

@@ -2,12 +2,15 @@
 
 namespace App\Domains\Chat\Actions\User;
 
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Dto\User\ChatMessageForUserDto;
 use App\Domains\Chat\Events\ChatMessageCreated;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Queries\User\ChatMessageSendForUserQuery;
+use App\Domains\Chat\Support\ChatMatchKey;
 use App\Domains\Notification\Actions\CreateNotificationAction;
 use App\Domains\Notification\Models\NotificationDelivery;
 use App\Domains\Notification\Models\NotificationInbox;
@@ -26,6 +29,34 @@ final class ChatMessageSendForUserAction
     public function execute(Chat $chat, AccountUser $user, array $payload): array
     {
         $result = $this->query->store($chat, $user, $payload);
+
+        /** @var ChatMessage $message */
+        $message = $result['message'];
+
+        if ((bool) $result['created']) {
+            ChatMessageCreated::dispatch(
+                (int) $message->id,
+                (int) $message->chat_id,
+                (int) $message->sender_user_id,
+            );
+
+            $this->createPeerNotifications($message, $user);
+        }
+
+        return [
+            'message' => ChatMessageForUserDto::fromModel($message, (int) $user->id),
+        ];
+    }
+
+    public function executeFirst(AccountUser $user, int $peerUserId, array $payload): array
+    {
+        if ((int) $user->id === $peerUserId) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '본인과는 채팅방을 만들 수 없습니다.');
+        }
+
+        $peer = $this->query->findActivePeer($peerUserId);
+        $matchKey = ChatMatchKey::forUsers((int) $user->id, $peerUserId);
+        $result = $this->query->storeFirst($user, $peer, $matchKey, $payload);
 
         /** @var ChatMessage $message */
         $message = $result['message'];

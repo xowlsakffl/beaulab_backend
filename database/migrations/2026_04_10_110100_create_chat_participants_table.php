@@ -30,6 +30,14 @@ return new class extends Migration
                 ->nullable()
                 ->comment('마지막 읽음 시각');
 
+            $table->unsignedBigInteger('deleted_until_message_id')
+                ->nullable()
+                ->comment('사용자별 채팅 삭제 기준 메시지 ID. 이 ID 이하 메시지는 해당 사용자에게 숨김');
+
+            $table->timestamp('deleted_at')
+                ->nullable()
+                ->comment('사용자별 채팅 삭제 시각. 참여자 행 삭제가 아니라 내 목록/이전 내용 삭제 기준');
+
             $table->boolean('notifications_enabled')
                 ->default(true)
                 ->comment('이 채팅방 알림 수신 여부');

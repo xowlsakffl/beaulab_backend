@@ -37,8 +37,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user'])->group(function () {
     // 앱 사용자 1:1 채팅 API
     Route::get('chats', [ChatForUserController::class, 'getChatsForUser'])
         ->name('chats.getChatsForUser');
-    Route::post('chats', [ChatForUserController::class, 'openChatForUser'])
-        ->name('chats.openChatForUser');
+    Route::post('chats/messages', [ChatForUserController::class, 'sendFirstMessageForUser'])
+        ->name('chats.sendFirstMessageForUser');
     Route::get('chats/{chat}/messages', [ChatForUserController::class, 'getMessagesForUser'])
         ->name('chats.getMessagesForUser');
     Route::post('chats/{chat}/messages', [ChatForUserController::class, 'sendMessageForUser'])
@@ -47,8 +47,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user'])->group(function () {
         ->name('chats.readChatForUser');
     Route::match(['put', 'patch'], 'chats/{chat}/notifications', [ChatForUserController::class, 'updateNotificationForUser'])
         ->name('chats.updateNotificationForUser');
-    Route::delete('chats/{chat}', [ChatForUserController::class, 'closeChatForUser'])
-        ->name('chats.closeChatForUser');
+    Route::delete('chats/{chat}', [ChatForUserController::class, 'deleteChatForUser'])
+        ->name('chats.deleteChatForUser');
 
     // 공통 알림 API. 채팅 외 도메인 알림도 같은 inbox 구조를 사용한다.
     Route::get('notifications', [NotificationForUserController::class, 'getNotificationsForUser'])

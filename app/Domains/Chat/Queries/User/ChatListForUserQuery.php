@@ -17,7 +17,16 @@ final class ChatListForUserQuery
         $includeClosed = (bool) ($filters['include_closed'] ?? false);
 
         $builder = Chat::query()
-            ->whereHas('participants', fn ($query) => $query->where('account_user_id', $userId))
+            ->whereNotNull('last_message_id')
+            ->whereHas('participants', function ($query) use ($userId): void {
+                $query
+                    ->where('account_user_id', $userId)
+                    ->where(function ($query): void {
+                        $query
+                            ->whereNull('deleted_until_message_id')
+                            ->orWhereColumn('chats.last_message_id', '>', 'chat_participants.deleted_until_message_id');
+                    });
+            })
             ->with([
                 'lastMessage.sender:id,name,email',
                 'lastMessage.attachments',
@@ -29,6 +38,10 @@ final class ChatListForUserQuery
                         ->where('sender_user_id', '!=', $userId)
                         ->whereRaw(
                             'chat_messages.id > COALESCE((select cp.last_read_message_id from chat_participants cp where cp.chat_id = chats.id and cp.account_user_id = ? limit 1), 0)',
+                            [$userId]
+                        )
+                        ->whereRaw(
+                            'chat_messages.id > COALESCE((select cp.deleted_until_message_id from chat_participants cp where cp.chat_id = chats.id and cp.account_user_id = ? limit 1), 0)',
                             [$userId]
                         );
                 },

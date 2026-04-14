@@ -5,21 +5,21 @@ namespace App\Domains\Chat\Actions\User;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Dto\User\ChatForUserDto;
 use App\Domains\Chat\Models\Chat;
-use App\Domains\Chat\Queries\User\ChatCloseForUserQuery;
+use App\Domains\Chat\Queries\User\ChatDeleteForUserQuery;
 
 /**
- * 채팅 종료 유스케이스.
- * 한 참여자가 종료하면 채팅방 전체 상태가 CLOSED가 되는 정책을 Query 호출로 실행한다.
+ * 사용자별 채팅 삭제 유스케이스.
+ * 한 참여자가 삭제해도 채팅방 자체는 유지하고, 해당 사용자에게만 이전 메시지를 숨긴다.
  */
-final class ChatCloseForUserAction
+final class ChatDeleteForUserAction
 {
     public function __construct(
-        private readonly ChatCloseForUserQuery $query,
+        private readonly ChatDeleteForUserQuery $query,
     ) {}
 
     public function execute(Chat $chat, AccountUser $user): array
     {
-        $chat = $this->query->close($chat, $user);
+        $chat = $this->query->deleteForUser($chat, $user);
 
         return [
             'chat' => ChatForUserDto::fromModel($chat, (int) $user->id),

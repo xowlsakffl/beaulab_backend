@@ -4,6 +4,7 @@ namespace App\Domains\Chat\Queries\User;
 
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
+use App\Domains\Chat\Models\ChatParticipant;
 use Illuminate\Support\Collection;
 
 /**
@@ -15,15 +16,20 @@ final class ChatMessageListForUserQuery
     /**
      * @return array{items: Collection<int, ChatMessage>, meta: array<string, mixed>}
      */
-    public function get(Chat $chat, array $filters): array
+    public function get(Chat $chat, ChatParticipant $participant, array $filters): array
     {
         $perPage = max(1, min((int) ($filters['per_page'] ?? 30), 100));
         $afterId = (int) ($filters['after_id'] ?? 0);
         $beforeId = (int) ($filters['before_id'] ?? 0);
+        $deletedUntilMessageId = (int) ($participant->deleted_until_message_id ?? 0);
 
         $builder = ChatMessage::query()
             ->where('chat_id', $chat->id)
             ->with(['sender:id,name,email', 'attachments']);
+
+        if ($deletedUntilMessageId > 0) {
+            $builder->where('id', '>', $deletedUntilMessageId);
+        }
 
         if ($afterId > 0) {
             $builder->where('id', '>', $afterId)->orderBy('id');
@@ -54,10 +60,10 @@ final class ChatMessageListForUserQuery
         ];
     }
 
-    public function isParticipant(Chat $chat, int $userId): bool
+    public function participant(Chat $chat, int $userId): ?ChatParticipant
     {
         return $chat->participants()
             ->where('account_user_id', $userId)
-            ->exists();
+            ->first();
     }
 }

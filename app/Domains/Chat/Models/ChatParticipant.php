@@ -22,6 +22,8 @@ final class ChatParticipant extends Model
         'account_user_id',
         'last_read_message_id',
         'last_read_at',
+        'deleted_until_message_id',
+        'deleted_at',
         'notifications_enabled',
     ];
 
@@ -30,6 +32,8 @@ final class ChatParticipant extends Model
         'account_user_id' => 'integer',
         'last_read_message_id' => 'integer',
         'last_read_at' => 'datetime',
+        'deleted_until_message_id' => 'integer',
+        'deleted_at' => 'datetime',
         'notifications_enabled' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

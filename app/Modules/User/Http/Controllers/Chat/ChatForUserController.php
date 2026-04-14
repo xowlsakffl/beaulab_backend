@@ -7,19 +7,18 @@ use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Chat\Actions\User\ChatCloseForUserAction;
+use App\Domains\Chat\Actions\User\ChatDeleteForUserAction;
 use App\Domains\Chat\Actions\User\ChatListForUserAction;
 use App\Domains\Chat\Actions\User\ChatMessageListForUserAction;
 use App\Domains\Chat\Actions\User\ChatMessageSendForUserAction;
 use App\Domains\Chat\Actions\User\ChatNotificationUpdateForUserAction;
-use App\Domains\Chat\Actions\User\ChatOpenOrCreateForUserAction;
 use App\Domains\Chat\Actions\User\ChatReadForUserAction;
 use App\Domains\Chat\Models\Chat;
+use App\Modules\User\Http\Requests\Chat\ChatFirstMessageSendForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatListForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatMessageListForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatMessageSendForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatNotificationUpdateForUserRequest;
-use App\Modules\User\Http\Requests\Chat\ChatOpenForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatReadForUserRequest;
 
 /**
@@ -33,13 +32,6 @@ final class ChatForUserController extends Controller
         $result = $action->execute($this->user(), $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
-    }
-
-    public function openChatForUser(ChatOpenForUserRequest $request, ChatOpenOrCreateForUserAction $action)
-    {
-        $result = $action->execute($this->user(), (int) $request->validated('peer_user_id'));
-
-        return ApiResponse::success($result['chat'] ?? $result);
     }
 
     public function getMessagesForUser(
@@ -58,6 +50,19 @@ final class ChatForUserController extends Controller
         ChatMessageSendForUserAction $action,
     ) {
         $result = $action->execute($chat, $this->user(), $request->validated());
+
+        return ApiResponse::success($result['message'] ?? $result);
+    }
+
+    public function sendFirstMessageForUser(
+        ChatFirstMessageSendForUserRequest $request,
+        ChatMessageSendForUserAction $action,
+    ) {
+        $result = $action->executeFirst(
+            $this->user(),
+            (int) $request->validated('peer_user_id'),
+            $request->validated(),
+        );
 
         return ApiResponse::success($result['message'] ?? $result);
     }
@@ -83,7 +88,7 @@ final class ChatForUserController extends Controller
         return ApiResponse::success($result['chat'] ?? $result);
     }
 
-    public function closeChatForUser(Chat $chat, ChatCloseForUserAction $action)
+    public function deleteChatForUser(Chat $chat, ChatDeleteForUserAction $action)
     {
         $result = $action->execute($chat, $this->user());
 

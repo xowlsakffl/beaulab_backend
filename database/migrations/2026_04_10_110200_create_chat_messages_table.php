@@ -71,6 +71,11 @@ return new class extends Migration
                 ->references('id')
                 ->on('chat_messages')
                 ->nullOnDelete();
+
+            $table->foreign('deleted_until_message_id', 'chat_participants_deleted_until_message_fk')
+                ->references('id')
+                ->on('chat_messages')
+                ->nullOnDelete();
         });
 
         DB::statement("ALTER TABLE chat_messages COMMENT = '유저 1:1 채팅 영속 메시지'");
@@ -79,6 +84,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('chat_participants', function (Blueprint $table) {
+            $table->dropForeign('chat_participants_deleted_until_message_fk');
             $table->dropForeign('chat_participants_last_read_message_fk');
         });
 

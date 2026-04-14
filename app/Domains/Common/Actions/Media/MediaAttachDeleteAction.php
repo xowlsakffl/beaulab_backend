@@ -42,7 +42,7 @@ final class MediaAttachDeleteAction
     }
 
     /**
-     * @param array<int, UploadedFile> $files
+     * @param  array<int, UploadedFile>  $files
      * @return array<int, Media>
      */
     public function attachMany(
@@ -118,7 +118,10 @@ final class MediaAttachDeleteAction
             'height' => $h,
             'sort_order' => max(0, $sortOrder),
             'is_primary' => false,
-            'metadata' => null,
+            'metadata' => [
+                'original_name' => $file->getClientOriginalName(),
+                'extension' => $file->getClientOriginalExtension(),
+            ],
         ]);
 
         if ($isPrimary) {

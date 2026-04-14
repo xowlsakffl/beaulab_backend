@@ -7,6 +7,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Dto\User\ChatMessageForUserDto;
 use App\Domains\Chat\Models\Chat;
+use App\Domains\Chat\Models\ChatParticipant;
 use App\Domains\Chat\Queries\User\ChatMessageListForUserQuery;
 
 /**
@@ -21,9 +22,9 @@ final class ChatMessageListForUserAction
 
     public function execute(Chat $chat, AccountUser $user, array $filters): array
     {
-        $this->assertParticipant($chat, (int) $user->id);
+        $participant = $this->participant($chat, (int) $user->id);
 
-        $result = $this->query->get($chat, $filters);
+        $result = $this->query->get($chat, $participant, $filters);
 
         return [
             'items' => $result['items']
@@ -34,10 +35,14 @@ final class ChatMessageListForUserAction
         ];
     }
 
-    private function assertParticipant(Chat $chat, int $userId): void
+    private function participant(Chat $chat, int $userId): ChatParticipant
     {
-        if (! $this->query->isParticipant($chat, $userId)) {
+        $participant = $this->query->participant($chat, $userId);
+
+        if (! $participant instanceof ChatParticipant) {
             throw new CustomException(ErrorCode::FORBIDDEN, '채팅방 참여자만 메시지를 조회할 수 있습니다.');
         }
+
+        return $participant;
     }
 }

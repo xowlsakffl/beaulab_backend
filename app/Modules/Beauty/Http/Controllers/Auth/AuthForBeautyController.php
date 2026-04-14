@@ -3,11 +3,11 @@
 namespace App\Modules\Beauty\Http\Controllers\Auth;
 
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\AccountBeauty\Actions\Auth\GetMyProfileForAccountBeautyAction;
-use App\Domains\AccountBeauty\Actions\Auth\LoginForAccountBeautyAction;
-use App\Domains\AccountBeauty\Actions\Auth\LogoutForAccountBeautyAction;
-use App\Domains\AccountBeauty\Actions\Auth\UpdatePasswordForAccountBeautyAction;
-use App\Domains\AccountBeauty\Actions\Auth\UpdateProfileForAccountBeautyAction;
+use App\Domains\AccountBeauty\Actions\Beauty\GetMyProfileForAccountBeautyAction;
+use App\Domains\AccountBeauty\Actions\Beauty\LoginForAccountBeautyAction;
+use App\Domains\AccountBeauty\Actions\Beauty\LogoutForAccountBeautyAction;
+use App\Domains\AccountBeauty\Actions\Beauty\UpdatePasswordForAccountBeautyAction;
+use App\Domains\AccountBeauty\Actions\Beauty\UpdateProfileForAccountBeautyAction;
 use App\Modules\Beauty\Http\Requests\Auth\LoginForAccountBeautyRequest;
 use App\Modules\Beauty\Http\Requests\Auth\UpdatePasswordForAccountBeautyRequest;
 use App\Modules\Beauty\Http\Requests\Auth\UpdateProfileForAccountBeautyRequest;

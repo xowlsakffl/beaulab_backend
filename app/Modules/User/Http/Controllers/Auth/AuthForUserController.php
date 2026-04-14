@@ -3,11 +3,11 @@
 namespace App\Modules\User\Http\Controllers\Auth;
 
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\AccountUser\Actions\Auth\GetMyProfileForAccountUserAction;
-use App\Domains\AccountUser\Actions\Auth\LoginForAccountUserAction;
-use App\Domains\AccountUser\Actions\Auth\LogoutForAccountUserAction;
-use App\Domains\AccountUser\Actions\Auth\UpdatePasswordForAccountUserAction;
-use App\Domains\AccountUser\Actions\Auth\UpdateProfileForAccountUserAction;
+use App\Domains\AccountUser\Actions\User\Auth\GetMyProfileForAccountUserAction;
+use App\Domains\AccountUser\Actions\User\Auth\LoginForAccountUserAction;
+use App\Domains\AccountUser\Actions\User\Auth\LogoutForAccountUserAction;
+use App\Domains\AccountUser\Actions\User\Auth\UpdatePasswordForAccountUserAction;
+use App\Domains\AccountUser\Actions\User\Auth\UpdateProfileForAccountUserAction;
 use App\Modules\User\Http\Requests\Auth\LoginForAccountUserRequest;
 use App\Modules\User\Http\Requests\Auth\UpdatePasswordForAccountUserRequest;
 use App\Modules\User\Http\Requests\Auth\UpdateProfileForAccountUserRequest;

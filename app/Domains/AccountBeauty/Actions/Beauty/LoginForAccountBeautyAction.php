@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Domains\AccountBeauty\Actions\Beauty;
+
+use App\Domains\AccountBeauty\Dto\Beauty\AuthForAccountBeautyDto;
+use App\Domains\AccountBeauty\Queries\Beauty\LoginForAccountBeautyQuery;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * 뷰티 계정 로그인 유스케이스.
+ * 인증/토큰 발급은 Query에 위임하고 API 응답 DTO를 구성한다.
+ */
+final class LoginForAccountBeautyAction
+{
+    public function __construct(
+        private readonly LoginForAccountBeautyQuery $query,
+    ) {}
+
+    /**
+     * @param array{nickname:string,password:string,device_name?:string|null} $filters
+     * @return array{token:string, actor:string, beauty: array, roles: list<string>, permissions: list<string>}
+     */
+    public function execute(array $filters): array
+    {
+        Log::info('뷰티 로그인', [
+            'nickname' => $filters['nickname'] ?? null,
+        ]);
+
+        $result = $this->query->login($filters);
+
+        return [
+            'token' => $result['token'],
+            'actor' => 'beauty',
+            'beauty' => AuthForAccountBeautyDto::fromModel($result['beauty'])->toArray(),
+            'roles' => $result['roles'],
+            'permissions' => $result['permissions'],
+        ];
+    }
+}

@@ -3,11 +3,11 @@
 namespace App\Modules\Hospital\Http\Controllers\Auth;
 
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\AccountHospital\Actions\Auth\GetMyProfileForAccountHospitalAction;
-use App\Domains\AccountHospital\Actions\Auth\LoginForAccountHospitalAction;
-use App\Domains\AccountHospital\Actions\Auth\LogoutForAccountHospitalAction;
-use App\Domains\AccountHospital\Actions\Auth\UpdatePasswordForAccountHospitalAction;
-use App\Domains\AccountHospital\Actions\Auth\UpdateProfileForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Hospital\GetMyProfileForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Hospital\LoginForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Hospital\LogoutForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Hospital\UpdatePasswordForAccountHospitalAction;
+use App\Domains\AccountHospital\Actions\Hospital\UpdateProfileForAccountHospitalAction;
 use App\Modules\Hospital\Http\Requests\Auth\LoginForAccountHospitalRequest;
 use App\Modules\Hospital\Http\Requests\Auth\UpdatePasswordForAccountHospitalRequest;
 use App\Modules\Hospital\Http\Requests\Auth\UpdateProfileForAccountHospitalRequest;

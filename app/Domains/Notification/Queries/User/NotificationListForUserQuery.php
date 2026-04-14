@@ -2,6 +2,7 @@
 
 namespace App\Domains\Notification\Queries\User;
 
+use App\Domains\Notification\Models\NotificationDelivery;
 use App\Domains\Notification\Models\NotificationInbox;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -18,6 +19,24 @@ final class NotificationListForUserQuery
         $builder = NotificationInbox::query()
             ->where('recipient_type', NotificationInbox::RECIPIENT_USER)
             ->where('recipient_id', $userId)
+            ->whereHas('deliveries', function ($query): void {
+                $query->where('channel', NotificationDelivery::CHANNEL_IN_APP);
+            })
+            ->where(function ($query) use ($userId): void {
+                $query
+                    ->whereNull('aggregation_key')
+                    ->orWhereIn('id', function ($query) use ($userId): void {
+                        $query
+                            ->selectRaw('MAX(notification_inboxes.id)')
+                            ->from('notification_inboxes')
+                            ->join('notification_deliveries', 'notification_deliveries.notification_inbox_id', '=', 'notification_inboxes.id')
+                            ->where('recipient_type', NotificationInbox::RECIPIENT_USER)
+                            ->where('recipient_id', $userId)
+                            ->where('notification_deliveries.channel', NotificationDelivery::CHANNEL_IN_APP)
+                            ->whereNotNull('aggregation_key')
+                            ->groupBy('aggregation_key');
+                    });
+            })
             ->orderByDesc('updated_at')
             ->orderByDesc('id');
 

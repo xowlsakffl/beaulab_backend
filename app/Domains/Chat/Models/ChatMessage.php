@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * 채팅 메시지 모델.
- * 현재 API는 TEXT만 허용하지만, Media 연동을 위해 IMAGE/FILE 타입 확장 포인트를 남겨둔다.
+ * TEXT/IMAGE/FILE 메시지를 지원하고 첨부파일은 공통 Media 모델에 연결한다.
  */
 final class ChatMessage extends Model
 {

@@ -5,12 +5,11 @@ namespace App\Domains\Chat\Queries\User;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\AccountUser\Queries\User\AccountUserBlockForUserQuery;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Models\ChatParticipant;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use Illuminate\Database\QueryException;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -21,22 +20,24 @@ use Illuminate\Support\Facades\DB;
 final class ChatMessageSendForUserQuery
 {
     public function __construct(
-        private readonly MediaAttachDeleteAction $mediaAttachDeleteAction,
+        private readonly AccountUserBlockForUserQuery $userBlockQuery,
     ) {}
 
     public function store(Chat $chat, AccountUser $user, array $payload): array
     {
         return DB::transaction(function () use ($chat, $user, $payload): array {
-            $attachments = $this->attachments($payload['attachments'] ?? []);
-
             $lockedChat = Chat::query()
                 ->whereKey($chat->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             $this->assertSendable($lockedChat, (int) $user->id);
+            $this->userBlockQuery->assertCanSendMessage(
+                (int) $user->id,
+                $this->peerUserId($lockedChat, (int) $user->id)
+            );
 
-            return $this->storeOnLockedChat($lockedChat, $user, $payload, $attachments);
+            return $this->storeOnLockedChat($lockedChat, $user, $payload);
         });
     }
 
@@ -71,20 +72,20 @@ final class ChatMessageSendForUserQuery
     private function storeFirstInTransaction(AccountUser $user, AccountUser $peer, string $matchKey, array $payload): array
     {
         return DB::transaction(function () use ($user, $peer, $matchKey, $payload): array {
-            $attachments = $this->attachments($payload['attachments'] ?? []);
+            $this->userBlockQuery->assertCanSendMessage((int) $user->id, (int) $peer->id);
+
             $lockedChat = $this->openOrCreateChat($user, $peer, $matchKey);
 
             $this->assertSendable($lockedChat, (int) $user->id);
 
-            return $this->storeOnLockedChat($lockedChat, $user, $payload, $attachments);
+            return $this->storeOnLockedChat($lockedChat, $user, $payload);
         });
     }
 
     /**
-     * @param  list<UploadedFile>  $attachments
      * @return array{message: ChatMessage, created: bool}
      */
-    private function storeOnLockedChat(Chat $lockedChat, AccountUser $user, array $payload, array $attachments): array
+    private function storeOnLockedChat(Chat $lockedChat, AccountUser $user, array $payload): array
     {
         $clientMessageId = $this->normalizeNullableString($payload['client_message_id'] ?? null);
         if ($clientMessageId !== null) {
@@ -125,8 +126,6 @@ final class ChatMessageSendForUserQuery
             'reply_to_message_id' => $replyToMessageId > 0 ? $replyToMessageId : null,
             'metadata' => $payload['metadata'] ?? null,
         ]);
-
-        $this->storeAttachments($message, $attachments);
 
         $lockedChat->forceFill([
             'last_message_id' => $message->id,
@@ -217,6 +216,19 @@ final class ChatMessageSendForUserQuery
         }
     }
 
+    private function peerUserId(Chat $chat, int $userId): int
+    {
+        $peerUserId = $chat->participants()
+            ->where('account_user_id', '!=', $userId)
+            ->value('account_user_id');
+
+        if ($peerUserId === null) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '상대 사용자를 찾을 수 없습니다.');
+        }
+
+        return (int) $peerUserId;
+    }
+
     private function normalizeNullableString(mixed $value): ?string
     {
         if ($value === null) {
@@ -232,43 +244,5 @@ final class ChatMessageSendForUserQuery
     {
         return ($exception->errorInfo[0] ?? null) === '23000'
             && (int) ($exception->errorInfo[1] ?? 0) === 1062;
-    }
-
-    /**
-     * @return list<UploadedFile>
-     */
-    private function attachments(mixed $value): array
-    {
-        if ($value instanceof UploadedFile) {
-            return [$value];
-        }
-
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_filter(
-            $value,
-            static fn (mixed $file): bool => $file instanceof UploadedFile
-        ));
-    }
-
-    /**
-     * @param  list<UploadedFile>  $attachments
-     */
-    private function storeAttachments(ChatMessage $message, array $attachments): void
-    {
-        if ($attachments === []) {
-            return;
-        }
-
-        $this->mediaAttachDeleteAction->attachMany(
-            $message,
-            $attachments,
-            ChatMessage::MEDIA_COLLECTION_ATTACHMENTS,
-            'chat/messages',
-            'attachments',
-            true,
-        );
     }
 }

@@ -45,8 +45,11 @@ final class ChatReadForUserQuery
                 }
             }
 
+            $currentMessageId = (int) ($participant->last_read_message_id ?? 0);
+            $nextMessageId = max($currentMessageId, $messageId);
+
             $participant->forceFill([
-                'last_read_message_id' => $messageId > 0 ? $messageId : null,
+                'last_read_message_id' => $nextMessageId > 0 ? $nextMessageId : null,
                 'last_read_at' => now(),
             ])->save();
 

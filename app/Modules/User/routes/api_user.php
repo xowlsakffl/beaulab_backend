@@ -6,6 +6,7 @@
  */
 
 use App\Modules\User\Http\Controllers\Auth\AuthForUserController;
+use App\Modules\User\Http\Controllers\Block\AccountUserBlockForUserController;
 use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,15 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user'])->group(function () {
         ->name('chats.updateNotificationForUser');
     Route::delete('chats/{chat}', [ChatForUserController::class, 'deleteChatForUser'])
         ->name('chats.deleteChatForUser');
+
+    // 앱 사용자 차단 API. 차단은 방향성 있는 유저 관계로 저장하고, 메시지 발송 전 검증에 사용한다.
+    Route::get('blocks', [AccountUserBlockForUserController::class, 'getBlocksForUser'])
+        ->name('blocks.getBlocksForUser');
+    Route::post('blocks', [AccountUserBlockForUserController::class, 'blockUserForUser'])
+        ->name('blocks.blockUserForUser');
+    Route::delete('blocks/{blockedUserId}', [AccountUserBlockForUserController::class, 'unblockUserForUser'])
+        ->name('blocks.unblockUserForUser')
+        ->whereNumber('blockedUserId');
 
     // 공통 알림 API. 채팅 외 도메인 알림도 같은 inbox 구조를 사용한다.
     Route::get('notifications', [NotificationForUserController::class, 'getNotificationsForUser'])

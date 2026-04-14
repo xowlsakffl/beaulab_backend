@@ -3,6 +3,7 @@
 namespace App\Domains\Notification\Queries\User;
 
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Notification\Models\NotificationDelivery;
 use App\Domains\Notification\Models\NotificationInbox;
 
 /**
@@ -19,6 +20,9 @@ final class NotificationUnreadForUserQuery
         $builder = NotificationInbox::query()
             ->where('recipient_type', NotificationInbox::RECIPIENT_USER)
             ->where('recipient_id', $user->id)
+            ->whereHas('deliveries', function ($query): void {
+                $query->where('channel', NotificationDelivery::CHANNEL_IN_APP);
+            })
             ->whereNull('read_at');
 
         return [

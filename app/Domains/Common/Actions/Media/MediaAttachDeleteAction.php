@@ -106,23 +106,29 @@ final class MediaAttachDeleteAction
 
         [$w, $h] = $this->imageSize($file);
 
-        $media = $this->query->create([
-            'model_type' => $owner::class,
-            'model_id' => $owner->getKey(),
-            'collection' => $collection,
-            'disk' => $disk,
-            'path' => $path,
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-            'width' => $w,
-            'height' => $h,
-            'sort_order' => max(0, $sortOrder),
-            'is_primary' => false,
-            'metadata' => [
-                'original_name' => $file->getClientOriginalName(),
-                'extension' => $file->getClientOriginalExtension(),
-            ],
-        ]);
+        try {
+            $media = $this->query->create([
+                'model_type' => $owner::class,
+                'model_id' => $owner->getKey(),
+                'collection' => $collection,
+                'disk' => $disk,
+                'path' => $path,
+                'mime_type' => $file->getMimeType(),
+                'size' => $file->getSize(),
+                'width' => $w,
+                'height' => $h,
+                'sort_order' => max(0, $sortOrder),
+                'is_primary' => false,
+                'metadata' => [
+                    'original_name' => $file->getClientOriginalName(),
+                    'extension' => $file->getClientOriginalExtension(),
+                ],
+            ]);
+        } catch (\Throwable $exception) {
+            Storage::disk($disk)->delete($path);
+
+            throw $exception;
+        }
 
         if ($isPrimary) {
             $media->setPrimary(true);

@@ -6,9 +6,10 @@ use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use Database\Factories\AccountUserFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -18,13 +19,16 @@ use Spatie\Permission\Traits\HasRoles;
  */
 final class AccountUser extends Authenticatable
 {
-    use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes, HasAuditLogs;
+    use HasApiTokens, HasAuditLogs, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     protected string $guard_name = 'user';
+
     protected $table = 'account_users';
 
     public const STATUS_ACTIVE = 'ACTIVE';
+
     public const STATUS_SUSPENDED = 'SUSPENDED';
+
     public const STATUS_BLOCKED = 'BLOCKED';
 
     protected $attributes = [
@@ -64,6 +68,15 @@ final class AccountUser extends Authenticatable
         return AccountUserFactory::new();
     }
 
+    public function blockedUserRelations(): HasMany
+    {
+        return $this->hasMany(AccountUserBlock::class, 'blocker_user_id');
+    }
+
+    public function blockerRelations(): HasMany
+    {
+        return $this->hasMany(AccountUserBlock::class, 'blocked_user_id');
+    }
 
     public function isActive(): bool
     {

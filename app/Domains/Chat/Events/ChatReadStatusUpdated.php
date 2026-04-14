@@ -3,7 +3,7 @@
 namespace App\Domains\Chat\Events;
 
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -11,14 +11,10 @@ use Illuminate\Queue\SerializesModels;
  * 채팅방 읽음 상태 변경을 참여자에게 실시간 전달하는 Reverb 이벤트.
  * 수신 클라이언트는 reader_user_id가 본인이 아니면 상대방 읽음 상태로 반영한다.
  */
-final class ChatReadStatusUpdated implements ShouldBroadcast
+final class ChatReadStatusUpdated implements ShouldBroadcastNow
 {
     use Dispatchable;
     use SerializesModels;
-
-    public string $connection = 'redis';
-
-    public string $queue = 'chat';
 
     public function __construct(
         public readonly int $chatId,

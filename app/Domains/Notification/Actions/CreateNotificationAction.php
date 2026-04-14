@@ -21,22 +21,63 @@ final class CreateNotificationAction
     public function execute(array $payload): ?NotificationInbox
     {
         $data = $this->normalizePayload($payload);
+        $data['channels'] = $this->enabledChannels($data);
 
-        if (! $this->query->isInAppEnabled($data['recipient_type'], $data['recipient_id'], $data['event_type'])) {
+        if ($data['channels'] === []) {
             return null;
         }
 
+        $data = $this->scopeOpenAggregationKeyByChannels($data);
         $notification = $this->query->store($data);
 
-        NotificationInboxUpdated::dispatch(
-            (int) $notification->id,
-            (string) $notification->recipient_type,
-            (int) $notification->recipient_id,
-        );
+        if (in_array(NotificationDelivery::CHANNEL_IN_APP, $data['channels'], true)) {
+            NotificationInboxUpdated::dispatch(
+                (int) $notification->id,
+                (string) $notification->recipient_type,
+                (int) $notification->recipient_id,
+            );
+        }
 
         $this->dispatchPushDelivery($notification);
 
         return $notification;
+    }
+
+    private function enabledChannels(array $data): array
+    {
+        return collect($data['channels'])
+            ->filter(function (string $channel) use ($data): bool {
+                return match ($channel) {
+                    NotificationDelivery::CHANNEL_IN_APP => $this->query->isInAppEnabled(
+                        $data['recipient_type'],
+                        $data['recipient_id'],
+                        $data['event_type'],
+                    ),
+                    NotificationDelivery::CHANNEL_PUSH => $this->query->isPushDeliverable(
+                        $data['recipient_type'],
+                        $data['recipient_id'],
+                        $data['event_type'],
+                    ),
+                    default => true,
+                };
+            })
+            ->values()
+            ->all();
+    }
+
+    private function scopeOpenAggregationKeyByChannels(array $data): array
+    {
+        if ($data['open_aggregation_key'] === null) {
+            return $data;
+        }
+
+        $data['open_aggregation_key'] = sprintf(
+            'channels:%s:%s',
+            in_array(NotificationDelivery::CHANNEL_IN_APP, $data['channels'], true) ? 'in_app' : 'non_in_app',
+            sha1($data['open_aggregation_key']),
+        );
+
+        return $data;
     }
 
     private function dispatchPushDelivery(NotificationInbox $notification): void

@@ -38,6 +38,10 @@ final readonly class ChatForUserDto
                 ? (int) $currentParticipant->last_read_message_id
                 : null,
             'last_read_at' => $currentParticipant?->last_read_at?->toISOString(),
+            'other_last_read_message_id' => $otherParticipant?->last_read_message_id
+                ? (int) $otherParticipant->last_read_message_id
+                : null,
+            'other_last_read_at' => $otherParticipant?->last_read_at?->toISOString(),
             'deleted_until_message_id' => $currentParticipant?->deleted_until_message_id
                 ? (int) $currentParticipant->deleted_until_message_id
                 : null,

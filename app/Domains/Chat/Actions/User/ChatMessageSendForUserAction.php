@@ -11,9 +11,12 @@ use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Queries\User\ChatMessageSendForUserQuery;
 use App\Domains\Chat\Support\ChatMatchKey;
+use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Notification\Actions\CreateNotificationAction;
 use App\Domains\Notification\Models\NotificationDelivery;
 use App\Domains\Notification\Models\NotificationInbox;
+use Illuminate\Http\UploadedFile;
+use Throwable;
 
 /**
  * 앱 사용자 메시지 발송 유스케이스.
@@ -23,6 +26,7 @@ final class ChatMessageSendForUserAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
+        private readonly MediaAttachDeleteAction $mediaAttachDeleteAction,
         private readonly ChatMessageSendForUserQuery $query,
     ) {}
 
@@ -32,8 +36,11 @@ final class ChatMessageSendForUserAction
 
         /** @var ChatMessage $message */
         $message = $result['message'];
+        $attachmentsStored = $this->storeAttachments($message, $payload['attachments'] ?? []);
 
-        if ((bool) $result['created']) {
+        if ((bool) $result['created'] || $attachmentsStored) {
+            $message->load(['sender:id,name,email', 'attachments']);
+
             ChatMessageCreated::dispatch(
                 (int) $message->id,
                 (int) $message->chat_id,
@@ -60,8 +67,11 @@ final class ChatMessageSendForUserAction
 
         /** @var ChatMessage $message */
         $message = $result['message'];
+        $attachmentsStored = $this->storeAttachments($message, $payload['attachments'] ?? []);
 
-        if ((bool) $result['created']) {
+        if ((bool) $result['created'] || $attachmentsStored) {
+            $message->load(['sender:id,name,email', 'attachments']);
+
             ChatMessageCreated::dispatch(
                 (int) $message->id,
                 (int) $message->chat_id,
@@ -76,6 +86,57 @@ final class ChatMessageSendForUserAction
         ];
     }
 
+    private function storeAttachments(ChatMessage $message, mixed $value): bool
+    {
+        $attachments = $this->attachments($value);
+
+        if ($attachments === []) {
+            return false;
+        }
+
+        $message->loadMissing('attachments');
+
+        if ($message->attachments->isNotEmpty()) {
+            return false;
+        }
+
+        try {
+            $this->mediaAttachDeleteAction->attachMany(
+                $message,
+                $attachments,
+                ChatMessage::MEDIA_COLLECTION_ATTACHMENTS,
+                'chat/messages',
+                'attachments',
+                true,
+            );
+        } catch (Throwable $exception) {
+            $this->mediaAttachDeleteAction->deleteCollectionMedia($message, ChatMessage::MEDIA_COLLECTION_ATTACHMENTS);
+
+            throw $exception;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return list<UploadedFile>
+     */
+    private function attachments(mixed $value): array
+    {
+        if ($value instanceof UploadedFile) {
+            return [$value];
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $value,
+            static fn (mixed $file): bool => $file instanceof UploadedFile
+        ));
+    }
+
     private function createPeerNotifications(ChatMessage $message, AccountUser $sender): void
     {
         $recipientIds = $this->query->notificationRecipientIds($message, $sender);
@@ -88,7 +149,7 @@ final class ChatMessageSendForUserAction
                 'actor_type' => NotificationInbox::ACTOR_USER,
                 'actor_id' => (int) $sender->id,
                 'event_type' => NotificationInbox::EVENT_CHAT_MESSAGE_CREATED,
-                'title' => '새 메시지가 도착했습니다.',
+                'title' => $this->normalizeNullableString($sender->name) ?? '새 메시지가 도착했습니다.',
                 'body' => $this->notificationBody($message),
                 'aggregation_key' => sprintf(
                     'recipient:user:%d:event:%s:target:chat:%d',
@@ -102,6 +163,7 @@ final class ChatMessageSendForUserAction
                     'chat_id' => (int) $message->chat_id,
                     'message_id' => (int) $message->id,
                     'sender_user_id' => (int) $sender->id,
+                    'sender_user_name' => $this->normalizeNullableString($sender->name),
                 ],
                 'channels' => [
                     NotificationDelivery::CHANNEL_IN_APP,
@@ -113,13 +175,17 @@ final class ChatMessageSendForUserAction
 
     private function notificationBody(ChatMessage $message): string
     {
-        if ($message->message_type !== ChatMessage::TYPE_TEXT) {
-            return '새 메시지가 도착했습니다.';
-        }
-
         $body = $this->normalizeNullableString($message->body);
 
-        return $body === null ? '새 메시지가 도착했습니다.' : mb_strimwidth($body, 0, 160, '...');
+        if ($body !== null) {
+            return mb_strimwidth($body, 0, 160, '...');
+        }
+
+        return match ($message->message_type) {
+            ChatMessage::TYPE_IMAGE => '이미지를 보냈습니다.',
+            ChatMessage::TYPE_FILE => '파일을 보냈습니다.',
+            default => '새 메시지가 도착했습니다.',
+        };
     }
 
     private function normalizeNullableString(mixed $value): ?string

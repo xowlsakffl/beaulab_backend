@@ -37,12 +37,18 @@ final class NotificationCreateQuery
         return $preference ? (bool) $preference->in_app : true;
     }
 
+    public function isPushDeliverable(string $ownerType, int $ownerId, string $eventType): bool
+    {
+        return $this->isPushEnabled($ownerType, $ownerId, $eventType)
+            && $this->hasActivePushDevice($ownerType, $ownerId);
+    }
+
     private function storeOnce(array $data): NotificationInbox
     {
         return DB::transaction(function () use ($data): NotificationInbox {
             $notification = null;
 
-            // open_aggregation_key는 unread 집계 버킷을 유니크하게 잠그기 위한 키다.
+            // unread 집계 버킷만 갱신한다. 읽음 처리된 과거 row는 다시 열지 않는다.
             if ($data['open_aggregation_key'] !== null) {
                 $notification = NotificationInbox::query()
                     ->where('recipient_type', $data['recipient_type'])
@@ -53,12 +59,17 @@ final class NotificationCreateQuery
             }
 
             if ($notification instanceof NotificationInbox) {
+                $eventCount = $notification->isRead()
+                    ? 1
+                    : max(1, (int) $notification->event_count) + 1;
+
                 $notification->forceFill([
                     'actor_type' => $data['actor_type'],
                     'actor_id' => $data['actor_id'],
                     'title' => $data['title'],
                     'body' => $data['body'],
-                    'event_count' => max(1, (int) $notification->event_count) + 1,
+                    'open_aggregation_key' => $data['open_aggregation_key'],
+                    'event_count' => $eventCount,
                     'target_type' => $data['target_type'],
                     'target_id' => $data['target_id'],
                     'payload' => $data['payload'],
@@ -82,7 +93,9 @@ final class NotificationCreateQuery
                 ]);
             }
 
-            $this->syncDelivery($notification, NotificationDelivery::CHANNEL_IN_APP);
+            if ($this->isInAppRequested($data)) {
+                $this->syncDelivery($notification, NotificationDelivery::CHANNEL_IN_APP);
+            }
 
             if (
                 $this->isPushRequested($data)
@@ -155,6 +168,11 @@ final class NotificationCreateQuery
     private function isPushRequested(array $data): bool
     {
         return in_array(NotificationDelivery::CHANNEL_PUSH, $data['channels'], true);
+    }
+
+    private function isInAppRequested(array $data): bool
+    {
+        return in_array(NotificationDelivery::CHANNEL_IN_APP, $data['channels'], true);
     }
 
     private function shouldRetryOpenAggregationRace(QueryException $e, array $data, int $attempt): bool

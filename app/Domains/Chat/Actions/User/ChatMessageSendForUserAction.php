@@ -12,9 +12,9 @@ use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Queries\User\ChatMessageSendForUserQuery;
 use App\Domains\Chat\Support\ChatMatchKey;
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
-use App\Domains\Common\Notification\Actions\CreateNotificationAction;
-use App\Domains\Common\Notification\Models\NotificationDelivery;
-use App\Domains\Common\Notification\Models\NotificationInbox;
+use App\Domains\Common\Actions\Notification\CreateNotificationAction;
+use App\Domains\Common\Models\Notification\NotificationDelivery;
+use App\Domains\Common\Models\Notification\NotificationInbox;
 use Illuminate\Http\UploadedFile;
 use Throwable;
 

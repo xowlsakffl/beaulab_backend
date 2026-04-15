@@ -1,7 +1,7 @@
 <?php
 
-use App\Domains\Common\Notification\Jobs\SendPushNotificationDeliveryJob;
-use App\Domains\Common\Notification\Models\NotificationDelivery;
+use App\Domains\Common\Jobs\Notification\SendPushNotificationDeliveryJob;
+use App\Domains\Common\Models\Notification\NotificationDelivery;
 use App\Domains\Notice\Actions\Common\CleanupTempEditorImagesAction;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;

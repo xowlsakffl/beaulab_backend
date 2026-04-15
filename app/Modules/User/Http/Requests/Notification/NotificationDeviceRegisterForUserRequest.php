@@ -2,7 +2,7 @@
 
 namespace App\Modules\User\Http\Requests\Notification;
 
-use App\Domains\Common\Notification\Models\NotificationDevice;
+use App\Domains\Common\Models\Notification\NotificationDevice;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Staff\Http\Requests\AccountUser;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * AccountUserUpdateForStaffRequest 역할 정의.
@@ -20,6 +21,10 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
             $data['name'] = null;
         }
 
+        if (array_key_exists('nickname', $data) && is_string($data['nickname'])) {
+            $data['nickname'] = trim($data['nickname']);
+        }
+
         $this->replace($data);
     }
 
@@ -32,17 +37,23 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'nickname' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('account_users', 'nickname')->ignore($this->route('user')?->getKey()),
+            ],
             'status' => ['sometimes', 'required', 'in:ACTIVE,SUSPENDED,BLOCKED'],
         ];
     }
 
-
     public function attributes(): array
     {
         return [
-            'name' => '이름',
+            'name' => '실명',
+            'nickname' => '닉네임',
             'status' => '운영 상태',
         ];
     }
-
 }

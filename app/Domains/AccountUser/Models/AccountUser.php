@@ -40,6 +40,7 @@ final class AccountUser extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'nickname',
         'email',
         'password',
         'status',

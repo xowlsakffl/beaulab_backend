@@ -25,7 +25,7 @@ final class ChatMessageListForUserQuery
 
         $builder = ChatMessage::query()
             ->where('chat_id', $chat->id)
-            ->with(['sender:id,name,email', 'attachments']);
+            ->with(['sender:id,nickname,email', 'attachments']);
 
         if ($deletedUntilMessageId > 0) {
             $builder->where('id', '>', $deletedUntilMessageId);

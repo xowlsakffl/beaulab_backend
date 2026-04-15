@@ -94,7 +94,7 @@ final class ChatMessageSendForUserQuery
                 ->where('chat_id', $lockedChat->id)
                 ->where('sender_user_id', $user->id)
                 ->where('client_message_id', $clientMessageId)
-                ->with(['sender:id,name,email', 'attachments'])
+                ->with(['sender:id,nickname,email', 'attachments'])
                 ->first();
 
             if ($existingMessage instanceof ChatMessage) {
@@ -140,7 +140,7 @@ final class ChatMessageSendForUserQuery
             ]);
 
         return [
-            'message' => $message->load(['sender:id,name,email', 'attachments']),
+            'message' => $message->load(['sender:id,nickname,email', 'attachments']),
             'created' => true,
         ];
     }

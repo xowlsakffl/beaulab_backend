@@ -26,6 +26,7 @@ final class AccountUserListForStaffQuery
         $builder = AccountUser::query()->select([
             'id',
             'name',
+            'nickname',
             'email',
             'status',
             'email_verified_at',
@@ -37,6 +38,7 @@ final class AccountUserListForStaffQuery
         if ($q) {
             $builder->where(function ($w) use ($q) {
                 $w->where('name', 'like', "%{$q}%")
+                    ->orWhere('nickname', 'like', "%{$q}%")
                     ->orWhere('email', 'like', "%{$q}%");
             });
         }

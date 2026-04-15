@@ -54,9 +54,9 @@ final class ChatReadForUserQuery
             ])->save();
 
             return $chat->fresh([
-                'lastMessage.sender:id,name,email',
+                'lastMessage.sender:id,nickname,email',
                 'lastMessage.attachments',
-                'participants.accountUser:id,name,email',
+                'participants.accountUser:id,nickname,email',
             ]);
         });
     }

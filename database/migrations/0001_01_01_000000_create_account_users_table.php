@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('account_users', function (Blueprint $table) {
             $table->id()->comment('사용자 고유 ID');
-            $table->string('name')->comment('사용자 이름');
+            $table->string('name')->comment('사용자 실명');
+            $table->string('nickname')->unique()->comment('사용자 닉네임');
             $table->string('email')->unique()->comment('로그인 이메일');
             $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
             $table->string('password')->comment('암호화된 비밀번호');

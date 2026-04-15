@@ -23,6 +23,10 @@ final class UpdateProfileForAccountUserRequest extends FormRequest
             $data['name'] = trim($data['name']);
         }
 
+        if (array_key_exists('nickname', $data) && is_string($data['nickname'])) {
+            $data['nickname'] = trim($data['nickname']);
+        }
+
         $this->replace($data);
     }
 
@@ -35,6 +39,13 @@ final class UpdateProfileForAccountUserRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
+            'nickname' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('account_users', 'nickname')->ignore($this->user()?->getAuthIdentifier()),
+            ],
             'email' => [
                 'sometimes',
                 'email',
@@ -47,7 +58,8 @@ final class UpdateProfileForAccountUserRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => '이름',
+            'name' => '실명',
+            'nickname' => '닉네임',
             'email' => '이메일',
         ];
     }

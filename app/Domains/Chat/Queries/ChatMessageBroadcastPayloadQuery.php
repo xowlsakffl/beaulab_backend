@@ -16,7 +16,7 @@ final class ChatMessageBroadcastPayloadQuery
     public function payload(int $messageId): ?array
     {
         $message = ChatMessage::query()
-            ->with(['sender:id,name,email', 'attachments'])
+            ->with(['sender:id,nickname,email', 'attachments'])
             ->find($messageId);
 
         if (! $message instanceof ChatMessage) {
@@ -38,7 +38,7 @@ final class ChatMessageBroadcastPayloadQuery
             'sender' => $message->relationLoaded('sender') && $message->sender
                 ? [
                     'id' => (int) $message->sender->id,
-                    'name' => (string) $message->sender->name,
+                    'nickname' => (string) $message->sender->nickname,
                     'email' => (string) $message->sender->email,
                 ]
                 : null,

@@ -19,7 +19,7 @@ final readonly class AccountUserBlockForUserDto
             'blocked_user' => $block->relationLoaded('blocked') && $block->blocked
                 ? [
                     'id' => (int) $block->blocked->id,
-                    'name' => (string) $block->blocked->name,
+                    'nickname' => (string) $block->blocked->nickname,
                     'email' => (string) $block->blocked->email,
                     'status' => (string) $block->blocked->status,
                 ]

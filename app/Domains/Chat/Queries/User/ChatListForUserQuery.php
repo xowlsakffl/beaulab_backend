@@ -28,9 +28,9 @@ final class ChatListForUserQuery
                     });
             })
             ->with([
-                'lastMessage.sender:id,name,email',
+                'lastMessage.sender:id,nickname,email',
                 'lastMessage.attachments',
-                'participants.accountUser:id,name,email',
+                'participants.accountUser:id,nickname,email',
             ])
             ->withCount([
                 'messages as unread_count' => function ($query) use ($userId): void {

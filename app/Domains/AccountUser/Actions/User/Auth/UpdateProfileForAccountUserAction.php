@@ -18,7 +18,7 @@ final class UpdateProfileForAccountUserAction
     ) {}
 
     /**
-     * @param array{name?:string,email?:string} $filters
+     * @param  array{name?:string,nickname?:string,email?:string}  $filters
      * @return array{profile: array}
      */
     public function execute(AccountUser $user, array $filters): array

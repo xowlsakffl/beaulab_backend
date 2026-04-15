@@ -49,7 +49,7 @@ final readonly class ChatForUserDto
             'other_user' => $otherParticipant && $otherParticipant->relationLoaded('accountUser') && $otherParticipant->accountUser
                 ? [
                     'id' => (int) $otherParticipant->accountUser->id,
-                    'name' => (string) $otherParticipant->accountUser->name,
+                    'nickname' => (string) $otherParticipant->accountUser->nickname,
                     'email' => (string) $otherParticipant->accountUser->email,
                 ]
                 : null,

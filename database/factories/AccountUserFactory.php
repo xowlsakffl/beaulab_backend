@@ -16,16 +16,17 @@ final class AccountUserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'              => $this->faker->name(),
-            'email'             => $this->faker->unique()->safeEmail(),
+            'name' => $this->faker->name(),
+            'nickname' => $this->faker->unique()->userName(),
+            'email' => $this->faker->unique()->safeEmail(),
 
-            'password'          => Hash::make('password'),
+            'password' => Hash::make('password'),
 
-            'status'            => AccountUser::STATUS_ACTIVE,
+            'status' => AccountUser::STATUS_ACTIVE,
 
             'email_verified_at' => now(),
 
-            'last_login_at'     => null,
+            'last_login_at' => null,
         ];
     }
 
@@ -33,6 +34,15 @@ final class AccountUserFactory extends Factory
     {
         return $this->state(fn () => [
             'password' => Hash::make($password),
+        ]);
+    }
+
+    public function withIdentity(string $name, string $nickname, string $email): self
+    {
+        return $this->state(fn () => [
+            'name' => $name,
+            'nickname' => $nickname,
+            'email' => $email,
         ]);
     }
 

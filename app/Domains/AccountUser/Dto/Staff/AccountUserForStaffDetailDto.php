@@ -15,6 +15,7 @@ final readonly class AccountUserForStaffDetailDto
     public function __construct(
         public int $id,
         public string $name,
+        public string $nickname,
         public string $email,
         public string $status,
         public ?string $emailVerifiedAt,
@@ -29,6 +30,7 @@ final readonly class AccountUserForStaffDetailDto
         return new self(
             id: $user->id,
             name: $user->name,
+            nickname: $user->nickname,
             email: $user->email,
             status: $user->status,
             emailVerifiedAt: $user->email_verified_at?->toISOString(),
@@ -44,6 +46,7 @@ final readonly class AccountUserForStaffDetailDto
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'nickname' => $this->nickname,
             'email' => $this->email,
             'status' => $this->status,
             'email_verified_at' => $this->emailVerifiedAt,

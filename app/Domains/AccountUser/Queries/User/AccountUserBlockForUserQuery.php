@@ -23,7 +23,7 @@ final class AccountUserBlockForUserQuery
 
         return AccountUserBlock::query()
             ->where('blocker_user_id', $user->id)
-            ->with('blocked:id,name,email,status')
+            ->with('blocked:id,nickname,email,status')
             ->orderByDesc('blocked_at')
             ->orderByDesc('id')
             ->paginate($perPage)
@@ -70,7 +70,7 @@ final class AccountUserBlockForUserQuery
 
             $this->hideChatForBlocker((int) $blocker->id, (int) $blocked->id);
 
-            return $block->load('blocked:id,name,email,status');
+            return $block->load('blocked:id,nickname,email,status');
         });
     }
 

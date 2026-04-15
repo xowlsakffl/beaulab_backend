@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace App\Modules\Staff\Http\Requests\AccountUser;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,7 +12,6 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 final class AccountUserListForStaffRequest extends FormRequest
 {
-
     protected function prepareForValidation(): void
     {
         $this->merge([
@@ -30,17 +28,17 @@ final class AccountUserListForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q'            => ['nullable', 'string', 'max:100'],
-            'start_date'   => ['nullable', 'date_format:Y-m-d'],
-            'end_date'     => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'q' => ['nullable', 'string', 'max:100'],
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
 
-            'status'       => ['nullable', 'array'],
-            'status.*'     => ['in:ACTIVE,SUSPENDED,BLOCKED'],
+            'status' => ['nullable', 'array'],
+            'status.*' => ['in:ACTIVE,SUSPENDED,BLOCKED'],
 
-            'sort'         => ['nullable', 'in:id,name,status,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,name,nickname,status,created_at,updated_at'],
 
-            'page'         => ['nullable', 'integer', 'min:1'],
-            'per_page'     => ['nullable', 'integer', 'min:1', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 
@@ -49,14 +47,14 @@ final class AccountUserListForStaffRequest extends FormRequest
         $validate = $this->validated();
 
         return [
-            'q'            => $validate['q'] ?? null,
-            'start_date'   => $validate['start_date'] ?? null,
-            'end_date'     => $validate['end_date'] ?? null,
-            'status'       => $validate['status'] ?? null,
+            'q' => $validate['q'] ?? null,
+            'start_date' => $validate['start_date'] ?? null,
+            'end_date' => $validate['end_date'] ?? null,
+            'status' => $validate['status'] ?? null,
 
-            'sort'         => $validate['sort'] ?? 'id',
+            'sort' => $validate['sort'] ?? 'id',
 
-            'per_page'     => (int)($validate['per_page'] ?? 15),
+            'per_page' => (int) ($validate['per_page'] ?? 15),
         ];
     }
 
@@ -73,7 +71,7 @@ final class AccountUserListForStaffRequest extends FormRequest
             $value = explode(',', $value);
         }
 
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return null;
         }
 
@@ -84,7 +82,6 @@ final class AccountUserListForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : $normalized;
     }
-
 
     public function attributes(): array
     {
@@ -99,5 +96,4 @@ final class AccountUserListForStaffRequest extends FormRequest
             'per_page' => '페이지당 개수',
         ];
     }
-
 }

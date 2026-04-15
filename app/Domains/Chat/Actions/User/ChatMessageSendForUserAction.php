@@ -12,9 +12,9 @@ use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Queries\User\ChatMessageSendForUserQuery;
 use App\Domains\Chat\Support\ChatMatchKey;
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
-use App\Domains\Notification\Actions\CreateNotificationAction;
-use App\Domains\Notification\Models\NotificationDelivery;
-use App\Domains\Notification\Models\NotificationInbox;
+use App\Domains\Common\Notification\Actions\CreateNotificationAction;
+use App\Domains\Common\Notification\Models\NotificationDelivery;
+use App\Domains\Common\Notification\Models\NotificationInbox;
 use Illuminate\Http\UploadedFile;
 use Throwable;
 
@@ -39,7 +39,7 @@ final class ChatMessageSendForUserAction
         $attachmentsStored = $this->storeAttachments($message, $payload['attachments'] ?? []);
 
         if ((bool) $result['created'] || $attachmentsStored) {
-            $message->load(['sender:id,name,email', 'attachments']);
+            $message->load(['sender:id,nickname,email', 'attachments']);
 
             ChatMessageCreated::dispatch(
                 (int) $message->id,
@@ -70,7 +70,7 @@ final class ChatMessageSendForUserAction
         $attachmentsStored = $this->storeAttachments($message, $payload['attachments'] ?? []);
 
         if ((bool) $result['created'] || $attachmentsStored) {
-            $message->load(['sender:id,name,email', 'attachments']);
+            $message->load(['sender:id,nickname,email', 'attachments']);
 
             ChatMessageCreated::dispatch(
                 (int) $message->id,
@@ -149,7 +149,7 @@ final class ChatMessageSendForUserAction
                 'actor_type' => NotificationInbox::ACTOR_USER,
                 'actor_id' => (int) $sender->id,
                 'event_type' => NotificationInbox::EVENT_CHAT_MESSAGE_CREATED,
-                'title' => $this->normalizeNullableString($sender->name) ?? '새 메시지가 도착했습니다.',
+                'title' => $this->normalizeNullableString($sender->nickname) ?? '새 메시지가 도착했습니다.',
                 'body' => $this->notificationBody($message),
                 'aggregation_key' => sprintf(
                     'recipient:user:%d:event:%s:target:chat:%d',
@@ -163,7 +163,7 @@ final class ChatMessageSendForUserAction
                     'chat_id' => (int) $message->chat_id,
                     'message_id' => (int) $message->id,
                     'sender_user_id' => (int) $sender->id,
-                    'sender_user_name' => $this->normalizeNullableString($sender->name),
+                    'sender_user_nickname' => $this->normalizeNullableString($sender->nickname),
                 ],
                 'channels' => [
                     NotificationDelivery::CHANNEL_IN_APP,

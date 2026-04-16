@@ -9,19 +9,18 @@ use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController
 use App\Modules\Staff\Http\Controllers\AdminNote\AdminNoteForStaffController;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
 use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
+use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Category\CategoryForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
-use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
-use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
 use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\Talk\TalkForStaffController;
 use App\Modules\Staff\Http\Controllers\TalkComment\TalkCommentForStaffController;
-use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
-use App\Modules\Staff\Http\Controllers\HospitalVideoRequest\VideoRequestForStaffController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -182,6 +181,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
      **/
     Route::get('talks', [TalkForStaffController::class, 'getTalksForStaff'])
         ->name('talks.getTalksForStaff');
+    Route::patch('talks/visibility', [TalkForStaffController::class, 'updateTalkVisibilityForStaff'])
+        ->name('talks.updateTalkVisibilityForStaff');
     Route::get('talks/{talk}', [TalkForStaffController::class, 'getTalkForStaff'])
         ->name('talks.getTalkForStaff');
     Route::post('talks', [TalkForStaffController::class, 'storeTalkForStaff'])

@@ -40,6 +40,7 @@ final readonly class TalkForStaffDetailDto
             'view_count' => (int) $talk->view_count,
             'comment_count' => (int) $talk->comment_count,
             'like_count' => (int) $talk->like_count,
+            'save_count' => (int) $talk->save_count,
             'categories' => self::resolveCategories($talk)
                 ->map(fn (Category $category): array => [
                     'id' => (int) $category->id,

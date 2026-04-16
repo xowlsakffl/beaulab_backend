@@ -9,11 +9,13 @@ use App\Domains\Talk\Actions\Staff\TalkDeleteForStaffAction;
 use App\Domains\Talk\Actions\Staff\TalkGetForStaffAction;
 use App\Domains\Talk\Actions\Staff\TalkListForStaffAction;
 use App\Domains\Talk\Actions\Staff\TalkUpdateForStaffAction;
+use App\Domains\Talk\Actions\Staff\TalkVisibilityBulkUpdateForStaffAction;
 use App\Domains\Talk\Models\Talk;
 use App\Modules\Staff\Http\Requests\Talk\TalkCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Talk\TalkGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Talk\TalkListForStaffRequest;
 use App\Modules\Staff\Http\Requests\Talk\TalkUpdateForStaffRequest;
+use App\Modules\Staff\Http\Requests\Talk\TalkVisibilityBulkUpdateForStaffRequest;
 
 /**
  * TalkForStaffController 역할 정의.
@@ -47,6 +49,13 @@ final class TalkForStaffController extends Controller
         $result = $action->execute($talk, $request->validated());
 
         return ApiResponse::success($result['talk'] ?? $result);
+    }
+
+    public function updateTalkVisibilityForStaff(
+        TalkVisibilityBulkUpdateForStaffRequest $request,
+        TalkVisibilityBulkUpdateForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($request->validated()));
     }
 
     public function deleteTalkForStaff(Talk $talk, TalkDeleteForStaffAction $action)

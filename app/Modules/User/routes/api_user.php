@@ -9,6 +9,7 @@ use App\Modules\User\Http\Controllers\Auth\AuthForUserController;
 use App\Modules\User\Http\Controllers\Block\AccountUserBlockForUserController;
 use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;
+use App\Modules\User\Http\Controllers\Talk\TalkSaveForUserController;
 use Illuminate\Support\Facades\Route;
 
 // 앱 사용자 API
@@ -50,6 +51,12 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user'])->group(function () {
         ->name('chats.updateNotificationForUser');
     Route::delete('chats/{chat}', [ChatForUserController::class, 'deleteChatForUser'])
         ->name('chats.deleteChatForUser');
+
+    // 앱 사용자 토크 저장 API. 저장 여부는 사용자별 유니크 관계로 관리하고 talks.save_count를 함께 갱신한다.
+    Route::post('talks/{talk}/save', [TalkSaveForUserController::class, 'saveTalkForUser'])
+        ->name('talks.saveTalkForUser');
+    Route::delete('talks/{talk}/save', [TalkSaveForUserController::class, 'unsaveTalkForUser'])
+        ->name('talks.unsaveTalkForUser');
 
     // 앱 사용자 차단 API. 차단은 방향성 있는 유저 관계로 저장하고, 메시지 발송 전 검증에 사용한다.
     Route::get('blocks', [AccountUserBlockForUserController::class, 'getBlocksForUser'])

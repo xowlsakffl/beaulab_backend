@@ -29,6 +29,7 @@ final class TalkListForStaffQuery
                 'view_count',
                 'comment_count',
                 'like_count',
+                'save_count',
                 'created_at',
                 'updated_at',
             ]);
@@ -88,26 +89,6 @@ final class TalkListForStaffQuery
                         ->where('categories.domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
                         ->whereIn('categories.code', $normalizedCategoryCodes)
                 );
-            }
-        } else {
-            $categoryIds = $filters['category_ids'] ?? null;
-            if (! is_array($categoryIds) && ! empty($filters['category_id'])) {
-                $categoryIds = [(int) $filters['category_id']];
-            }
-
-            if (is_array($categoryIds) && $categoryIds !== []) {
-                $normalizedCategoryIds = collect($categoryIds)
-                    ->map(static fn (int|string $value): int => (int) $value)
-                    ->filter(static fn (int $value): bool => $value > 0)
-                    ->unique()
-                    ->values()
-                    ->all();
-
-                if ($normalizedCategoryIds === []) {
-                    $builder->whereRaw('1 = 0');
-                } else {
-                    $builder->whereHas('categories', fn ($query) => $query->whereIn('categories.id', $normalizedCategoryIds));
-                }
             }
         }
 

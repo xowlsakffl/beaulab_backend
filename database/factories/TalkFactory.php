@@ -27,6 +27,7 @@ final class TalkFactory extends Factory
             'view_count' => $this->faker->numberBetween(0, 5000),
             'comment_count' => 0,
             'like_count' => $this->faker->numberBetween(0, 300),
+            'save_count' => $this->faker->numberBetween(0, 300),
         ];
     }
 
@@ -58,6 +59,7 @@ final class TalkFactory extends Factory
         if ($userIds === []) {
             $created = AccountUser::factory()->create();
             $userIds[] = (int) $created->id;
+
             return (int) $created->id;
         }
 

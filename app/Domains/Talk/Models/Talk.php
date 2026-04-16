@@ -23,9 +23,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class Talk extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes;
+    use HasAdminNotes, HasAuditLogs, HasFactory, SoftDeletes;
 
     public const STATUS_ACTIVE = 'ACTIVE';
+
     public const STATUS_INACTIVE = 'INACTIVE';
 
     protected $table = 'talks';
@@ -45,6 +46,7 @@ final class Talk extends Model
         'view_count',
         'comment_count',
         'like_count',
+        'save_count',
     ];
 
     protected $casts = [
@@ -55,6 +57,7 @@ final class Talk extends Model
         'view_count' => 'integer',
         'comment_count' => 'integer',
         'like_count' => 'integer',
+        'save_count' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -68,6 +71,7 @@ final class Talk extends Model
         'view_count' => 0,
         'comment_count' => 0,
         'like_count' => 0,
+        'save_count' => 0,
     ];
 
     public function author(): BelongsTo
@@ -79,6 +83,11 @@ final class Talk extends Model
     {
         return $this->hasMany(TalkComment::class, 'talk_id')
             ->orderBy('id');
+    }
+
+    public function saves(): HasMany
+    {
+        return $this->hasMany(TalkSave::class, 'talk_id');
     }
 
     public function images(): MorphMany

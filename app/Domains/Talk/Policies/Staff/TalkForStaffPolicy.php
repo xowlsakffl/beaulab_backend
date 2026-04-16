@@ -27,7 +27,7 @@ final class TalkForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_TALK_CREATE);
     }
 
-    public function update(AccountStaff $actor, Talk $talk): bool
+    public function update(AccountStaff $actor, ?Talk $talk = null): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_TALK_UPDATE);
     }

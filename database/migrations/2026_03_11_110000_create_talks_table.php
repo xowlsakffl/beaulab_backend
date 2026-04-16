@@ -21,16 +21,17 @@ return new class extends Migration
             $table->string('title', 255)->comment('게시글 제목');
             $table->longText('content')->comment('게시글 내용');
 
-            $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(ACTIVE, INACTIVE)');
-            $table->boolean('is_visible')->default(true)->comment('노출 여부');
+            $table->string('status', 20)->default('ACTIVE')->comment('상태(ACTIVE, INACTIVE)');
+            $table->boolean('is_visible')->default(true)->comment('노출여부');
             $table->string('author_ip', 45)->nullable()->comment('작성자 IP(v4/v6)');
 
             $table->boolean('is_pinned')->default(false)->comment('상단 고정 여부');
             $table->unsignedInteger('pinned_order')->default(0)->comment('상단 고정 정렬 순서');
 
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
-            $table->unsignedInteger('comment_count')->default(0)->comment('댓글 수');
-            $table->unsignedInteger('like_count')->default(0)->comment('좋아요 수');
+            $table->unsignedInteger('comment_count')->default(0)->comment('댓글수');
+            $table->unsignedInteger('like_count')->default(0)->comment('좋아요수');
+            $table->unsignedInteger('save_count')->default(0)->comment('저장수');
 
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');

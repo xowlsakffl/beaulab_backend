@@ -24,6 +24,7 @@ final readonly class TalkForStaffDto
         public int $viewCount,
         public int $commentCount,
         public int $likeCount,
+        public int $saveCount,
         public string $createdAt,
         public string $updatedAt,
         public ?array $author,
@@ -44,6 +45,7 @@ final readonly class TalkForStaffDto
             viewCount: (int) $talk->view_count,
             commentCount: (int) $talk->comment_count,
             likeCount: (int) $talk->like_count,
+            saveCount: (int) $talk->save_count,
             createdAt: $talk->created_at?->toISOString() ?? '',
             updatedAt: $talk->updated_at?->toISOString() ?? '',
             author: $talk->relationLoaded('author') && $talk->author
@@ -81,6 +83,7 @@ final readonly class TalkForStaffDto
             'view_count' => $this->viewCount,
             'comment_count' => $this->commentCount,
             'like_count' => $this->likeCount,
+            'save_count' => $this->saveCount,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

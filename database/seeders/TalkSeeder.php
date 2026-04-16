@@ -24,7 +24,7 @@ final class TalkSeeder extends Seeder
         $communityCategoryIds = $this->ensureTalkCategories();
 
         $talks = Talk::factory()
-            ->count(60)
+            ->count(200)
             ->active()
             ->create()
             ->each(function (Talk $talk) use ($authorIds): void {
@@ -90,8 +90,8 @@ final class TalkSeeder extends Seeder
     }
 
     /**
-     * @param iterable<int, Talk> $talks
-     * @param array<int, int> $categoryIds
+     * @param  iterable<int, Talk>  $talks
+     * @param  array<int, int>  $categoryIds
      */
     private function attachRandomCategories(iterable $talks, array $categoryIds): void
     {
@@ -108,8 +108,8 @@ final class TalkSeeder extends Seeder
     }
 
     /**
-     * @param iterable<int, Talk> $talks
-     * @param array<int, int> $authorIds
+     * @param  iterable<int, Talk>  $talks
+     * @param  array<int, int>  $authorIds
      */
     private function seedComments(iterable $talks, array $authorIds): void
     {

@@ -66,6 +66,23 @@ final class TalkListForStaffQuery
             $builder->where('is_visible', (bool) $filters['is_visible']);
         }
 
+        $metricColumns = [
+            'like_count',
+            'save_count',
+            'comment_count',
+            'view_count',
+        ];
+        $metric = $filters['metric'] ?? null;
+        if (is_string($metric) && in_array($metric, $metricColumns, true)) {
+            if ($filters['metric_min'] !== null) {
+                $builder->where($metric, '>=', (int) $filters['metric_min']);
+            }
+
+            if ($filters['metric_max'] !== null) {
+                $builder->where($metric, '<=', (int) $filters['metric_max']);
+            }
+        }
+
         if (! empty($filters['author_id'])) {
             $builder->where('author_id', (int) $filters['author_id']);
         }

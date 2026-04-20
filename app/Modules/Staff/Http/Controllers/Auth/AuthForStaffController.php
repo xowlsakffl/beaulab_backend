@@ -30,12 +30,6 @@ final class AuthForStaffController
         return ApiResponse::success($payload);
     }
 
-    public function test(
-    ) {
-
-        return ApiResponse::success("");
-    }
-
     public function logout(
         Request $request,
         LogoutForStaffAction $action

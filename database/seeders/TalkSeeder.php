@@ -23,8 +23,8 @@ final class TalkSeeder extends Seeder
 
         $communityCategoryIds = $this->ensureTalkCategories();
 
-        $talks = Talk::factory()
-            ->count(200)
+        $normalTalks = Talk::factory()
+            ->count(160)
             ->active()
             ->create()
             ->each(function (Talk $talk) use ($authorIds): void {
@@ -32,9 +32,63 @@ final class TalkSeeder extends Seeder
                     'author_id' => $authorIds[array_rand($authorIds)],
                 ])->save();
             });
+        $statusSampleTalks = $this->seedPostStatusSamples($authorIds);
+        $talks = $normalTalks->merge($statusSampleTalks);
 
         $this->attachRandomCategories($talks, $communityCategoryIds);
         $this->seedComments($talks, $authorIds);
+    }
+
+    /**
+     * @param  array<int, int>  $authorIds
+     */
+    private function seedPostStatusSamples(array $authorIds): iterable
+    {
+        $samples = [
+            [
+                'count' => 16,
+                'title_prefix' => '[시스템차단]',
+                'post_status' => Talk::POST_STATUS_AUTO_BLIND,
+                'status' => Talk::STATUS_INACTIVE,
+            ],
+            [
+                'count' => 10,
+                'title_prefix' => '[게시중단]',
+                'post_status' => Talk::POST_STATUS_ADMIN_STOP,
+                'status' => Talk::STATUS_INACTIVE,
+            ],
+            [
+                'count' => 8,
+                'title_prefix' => '[본인삭제]',
+                'post_status' => Talk::POST_STATUS_USER_DELETE,
+                'status' => Talk::STATUS_INACTIVE,
+            ],
+            [
+                'count' => 6,
+                'title_prefix' => '[미노출]',
+                'post_status' => Talk::POST_STATUS_NORMAL,
+                'status' => Talk::STATUS_INACTIVE,
+            ],
+        ];
+
+        $talks = collect();
+
+        foreach ($samples as $sample) {
+            $createdTalks = Talk::factory()
+                ->count($sample['count'])
+                ->create([
+                    'author_id' => fn () => $authorIds[array_rand($authorIds)],
+                    'title' => fn () => "{$sample['title_prefix']} ".fake()->sentence(5),
+                    'status' => $sample['status'],
+                    'post_status' => $sample['post_status'],
+                    'is_pinned' => false,
+                    'pinned_order' => 0,
+                ]);
+
+            $talks = $talks->merge($createdTalks);
+        }
+
+        return $talks;
     }
 
     /**

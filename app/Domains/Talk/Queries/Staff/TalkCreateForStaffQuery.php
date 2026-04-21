@@ -17,7 +17,7 @@ final class TalkCreateForStaffQuery
             'title' => $payload['title'],
             'content' => $payload['content'],
             'status' => $payload['status'] ?? Talk::STATUS_ACTIVE,
-            'is_visible' => (bool) ($payload['is_visible'] ?? true),
+            'post_status' => $payload['post_status'] ?? Talk::POST_STATUS_NORMAL,
             'author_ip' => $payload['author_ip'] ?? null,
             'is_pinned' => (bool) ($payload['is_pinned'] ?? false),
             'pinned_order' => (int) ($payload['pinned_order'] ?? 0),

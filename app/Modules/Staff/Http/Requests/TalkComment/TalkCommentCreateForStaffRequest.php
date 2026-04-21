@@ -2,7 +2,9 @@
 
 namespace App\Modules\Staff\Http\Requests\TalkComment;
 
+use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * TalkCommentCreateForStaffRequest 역할 정의.
@@ -18,7 +20,6 @@ final class TalkCommentCreateForStaffRequest extends FormRequest
             'parent_id',
             'author_id',
             'status',
-            'is_visible',
             'admin_note',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
@@ -48,8 +49,7 @@ final class TalkCommentCreateForStaffRequest extends FormRequest
             'parent_id' => ['nullable', 'integer', 'exists:talk_comments,id'],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'content' => ['required', 'string'],
-            'status' => ['nullable', 'in:ACTIVE,INACTIVE'],
-            'is_visible' => ['nullable', 'boolean'],
+            'status' => ['nullable', Rule::in(TalkComment::statuses())],
             'admin_note' => ['nullable', 'string', 'max:1000'],
             'mentions' => ['nullable', 'array'],
             'mentions.user_id' => ['required_with:mentions', 'integer', 'exists:account_users,id'],
@@ -67,8 +67,7 @@ final class TalkCommentCreateForStaffRequest extends FormRequest
             'parent_id' => '부모 댓글',
             'author_id' => '작성자',
             'content' => '내용',
-            'status' => '운영 상태',
-            'is_visible' => '노출 여부',
+            'status' => '노출 상태',
             'admin_note' => '관리자 메모',
             'mentions' => '멘션',
             'mentions.user_id' => '멘션 사용자',

@@ -2,7 +2,9 @@
 
 namespace App\Modules\Staff\Http\Requests\TalkComment;
 
+use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * TalkCommentListForStaffRequest 역할 정의.
@@ -31,11 +33,10 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
-            'status.*' => ['in:ACTIVE,INACTIVE'],
-            'is_visible' => ['nullable', 'boolean'],
+            'status.*' => [Rule::in(TalkComment::statuses())],
             'include' => ['nullable', 'array'],
             'include.*' => ['in:author,talk,mentions'],
-            'sort' => ['nullable', 'in:id,status,is_visible,like_count,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,status,like_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -51,7 +52,6 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
-            'is_visible' => $validated['is_visible'] ?? null,
             'include' => $validated['include'] ?? [],
             'sort' => $validated['sort'] ?? 'id',
             'direction' => $validated['direction'] ?? 'desc',
@@ -69,9 +69,8 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'parent_id' => '부모 댓글',
             'author_id' => '작성자',
             'q' => '검색어',
-            'status' => '운영 상태',
-            'status.*' => '운영 상태',
-            'is_visible' => '노출 여부',
+            'status' => '노출 상태',
+            'status.*' => '노출 상태',
             'include' => '포함 항목',
             'include.*' => '포함 항목',
             'sort' => '정렬 기준',

@@ -1,19 +1,26 @@
 <?php
 
-namespace App\Domains\Common\Models\AdminActionHistory;
+namespace App\Domains\Common\Models\OperationHistory;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
- * AdminActionHistory 역할 정의.
- * 운영 화면에 노출할 관리자 액션 이력을 공통 폴리모픽 모델로 관리한다.
+ * OperationHistory 역할 정의.
+ * 운영 화면에 노출할 운영/시스템 액션 이력을 공통 폴리모픽 모델로 관리한다.
  */
-final class AdminActionHistory extends Model
+final class OperationHistory extends Model
 {
     public const string ACTION_VISIBILITY_UPDATED = 'VISIBILITY_UPDATED';
 
-    protected $table = 'admin_action_histories';
+    public const string ACTOR_KIND_STAFF = 'STAFF';
+    public const string ACTOR_KIND_HOSPITAL = 'HOSPITAL';
+    public const string ACTOR_KIND_BEAUTY = 'BEAUTY';
+    public const string ACTOR_KIND_USER = 'USER';
+    public const string ACTOR_KIND_SYSTEM = 'SYSTEM';
+    public const string ACTOR_KIND_UNKNOWN = 'UNKNOWN';
+
+    protected $table = 'operation_histories';
 
     /**
      * @var list<string>
@@ -23,6 +30,7 @@ final class AdminActionHistory extends Model
         'target_id',
         'actor_type',
         'actor_id',
+        'actor_kind',
         'action',
         'field',
         'before_value',

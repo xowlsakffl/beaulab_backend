@@ -66,7 +66,7 @@ final class TalkSaveForUserQuery
         $lockedTalk = Talk::query()
             ->whereKey($talk->id)
             ->where('status', Talk::STATUS_ACTIVE)
-            ->where('is_visible', true)
+            ->where('post_status', Talk::POST_STATUS_NORMAL)
             ->lockForUpdate()
             ->first();
 

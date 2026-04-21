@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Talk;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,7 +22,7 @@ final class TalkUpdateForStaffRequest extends FormRequest
             'title',
             'content',
             'status',
-            'is_visible',
+            'post_status',
             'author_ip',
             'is_pinned',
             'pinned_order',
@@ -50,8 +51,8 @@ final class TalkUpdateForStaffRequest extends FormRequest
             'author_id' => ['sometimes', 'nullable', 'integer', 'exists:account_users,id'],
             'title' => ['sometimes', 'string', 'max:255'],
             'content' => ['sometimes', 'string'],
-            'status' => ['sometimes', 'nullable', 'in:ACTIVE,INACTIVE'],
-            'is_visible' => ['sometimes', 'nullable', 'boolean'],
+            'status' => ['sometimes', 'nullable', Rule::in(Talk::statuses())],
+            'post_status' => ['sometimes', 'nullable', Rule::in(Talk::postStatuses())],
             'author_ip' => ['sometimes', 'nullable', 'ip'],
             'is_pinned' => ['sometimes', 'nullable', 'boolean'],
             'pinned_order' => ['sometimes', 'nullable', 'integer', 'min:0'],
@@ -78,8 +79,8 @@ final class TalkUpdateForStaffRequest extends FormRequest
             'author_id' => '작성자',
             'title' => '제목',
             'content' => '내용',
-            'status' => '운영 상태',
-            'is_visible' => '노출 여부',
+            'status' => '노출 상태',
+            'post_status' => '게시 상태',
             'author_ip' => '작성자 IP',
             'is_pinned' => '상단 고정 여부',
             'pinned_order' => '고정 정렬 순서',

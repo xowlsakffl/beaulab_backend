@@ -4,9 +4,9 @@ namespace App\Domains\Talk\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Concerns\HasAdminActionHistories;
 use App\Domains\Common\Models\Concerns\HasAdminNotes;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Models\Concerns\HasOperationHistories;
 use App\Domains\Common\Models\Media\Media;
 use Database\Factories\TalkFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -24,11 +24,25 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class Talk extends Model
 {
-    use HasAdminActionHistories, HasAdminNotes, HasAuditLogs, HasFactory, SoftDeletes;
+    use HasAdminNotes, HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
     public const STATUS_ACTIVE = 'ACTIVE';
 
     public const STATUS_INACTIVE = 'INACTIVE';
+
+    public const POST_STATUS_NORMAL = 'POST_NORMAL';
+
+    public const POST_STATUS_AUTO_BLIND = 'POST_AUTO_BLIND';
+
+    public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
+
+    public const POST_STATUS_USER_DELETE = 'POST_USER_DELETE';
+
+    public const array VISIBILITY_CHANGE_LOCKED_POST_STATUSES = [
+        self::POST_STATUS_AUTO_BLIND,
+        self::POST_STATUS_ADMIN_STOP,
+        self::POST_STATUS_USER_DELETE,
+    ];
 
     protected $table = 'talks';
 
@@ -40,7 +54,7 @@ final class Talk extends Model
         'title',
         'content',
         'status',
-        'is_visible',
+        'post_status',
         'author_ip',
         'is_pinned',
         'pinned_order',
@@ -52,7 +66,6 @@ final class Talk extends Model
 
     protected $casts = [
         'author_id' => 'integer',
-        'is_visible' => 'boolean',
         'is_pinned' => 'boolean',
         'pinned_order' => 'integer',
         'view_count' => 'integer',
@@ -66,7 +79,7 @@ final class Talk extends Model
 
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
-        'is_visible' => true,
+        'post_status' => self::POST_STATUS_NORMAL,
         'is_pinned' => false,
         'pinned_order' => 0,
         'view_count' => 0,
@@ -74,6 +87,35 @@ final class Talk extends Model
         'like_count' => 0,
         'save_count' => 0,
     ];
+
+    /**
+     * @return array<int, string>
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_ACTIVE,
+            self::STATUS_INACTIVE,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function postStatuses(): array
+    {
+        return [
+            self::POST_STATUS_NORMAL,
+            self::POST_STATUS_AUTO_BLIND,
+            self::POST_STATUS_ADMIN_STOP,
+            self::POST_STATUS_USER_DELETE,
+        ];
+    }
+
+    public function isVisibilityChangeLocked(): bool
+    {
+        return in_array((string) $this->post_status, self::VISIBILITY_CHANGE_LOCKED_POST_STATUSES, true);
+    }
 
     public function author(): BelongsTo
     {

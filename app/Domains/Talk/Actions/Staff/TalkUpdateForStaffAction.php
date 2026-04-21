@@ -48,6 +48,7 @@ final class TalkUpdateForStaffAction
                 'categories',
                 'images',
                 'adminNotes.creator',
+                'adminActionHistories.actor',
             ]);
         });
 

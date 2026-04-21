@@ -2,7 +2,9 @@
 
 namespace App\Domains\Talk\Dto\Staff;
 
-use App\Domains\Common\Dto\AdminNote\AdminNoteData;
+use App\Domains\Common\Dto\AdminNote\AdminNoteDto;
+use App\Domains\Common\Dto\AdminActionHistory\AdminActionHistoryDto;
+use App\Domains\Common\Models\AdminActionHistory\AdminActionHistory;
 use App\Domains\Common\Models\AdminNote\AdminNote;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
@@ -66,7 +68,11 @@ final readonly class TalkForStaffDetailDto
                 ->values()
                 ->all(),
             'admin_notes' => self::resolveAdminNotes($talk)
-                ->map(fn (AdminNote $note): array => AdminNoteData::fromModel($note)->toArray())
+                ->map(fn (AdminNote $note): array => AdminNoteDto::fromModel($note)->toArray())
+                ->values()
+                ->all(),
+            'admin_action_histories' => self::resolveAdminActionHistories($talk)
+                ->map(fn (AdminActionHistory $history): array => AdminActionHistoryDto::fromModel($history)->toArray())
                 ->values()
                 ->all(),
             'created_at' => $talk->created_at?->toISOString(),
@@ -139,6 +145,18 @@ final readonly class TalkForStaffDetailDto
         }
 
         return $talk->adminNotes;
+    }
+
+    /**
+     * @return Collection<int, AdminActionHistory>
+     */
+    private static function resolveAdminActionHistories(Talk $talk): Collection
+    {
+        if (! $talk->relationLoaded('adminActionHistories')) {
+            return collect();
+        }
+
+        return $talk->adminActionHistories;
     }
 
     /**

@@ -36,6 +36,7 @@ final class TalkVisibilityBulkUpdateForStaffRequest extends FormRequest
                 Rule::exists('talks', 'id')->whereNull('deleted_at'),
             ],
             'is_visible' => ['required', 'boolean'],
+            'hidden_reason' => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -48,6 +49,7 @@ final class TalkVisibilityBulkUpdateForStaffRequest extends FormRequest
             'ids' => '토크 목록',
             'ids.*' => '토크',
             'is_visible' => '노출 여부',
+            'hidden_reason' => '미노출 사유',
         ];
     }
 

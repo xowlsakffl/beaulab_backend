@@ -24,6 +24,7 @@ final class TalkGetForStaffAction
             'categories',
             'images',
             'adminNotes.creator',
+            'adminActionHistories.actor',
         ];
 
         if ($includeComments) {

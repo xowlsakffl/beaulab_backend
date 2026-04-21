@@ -4,7 +4,7 @@ namespace App\Domains\Common\Actions\AdminNote;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Dto\AdminNote\AdminNoteData;
+use App\Domains\Common\Dto\AdminNote\AdminNoteDto;
 use App\Domains\Common\Models\AdminNote\AdminNote;
 use App\Domains\Common\Queries\AdminNote\AdminNoteUpdateQuery;
 use App\Domains\Common\Support\AdminNote\AdminNoteActorRegistry;
@@ -52,7 +52,7 @@ final class AdminNoteUpdateAction
         ]));
 
         return [
-            'note' => AdminNoteData::fromModel($updated)->toArray(),
+            'note' => AdminNoteDto::fromModel($updated)->toArray(),
         ];
     }
 }

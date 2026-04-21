@@ -4,7 +4,7 @@ namespace App\Domains\Common\Actions\AdminNote;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Dto\AdminNote\AdminNoteData;
+use App\Domains\Common\Dto\AdminNote\AdminNoteDto;
 use App\Domains\Common\Support\AdminNote\AdminNoteActorRegistry;
 use App\Domains\Common\Support\AdminNote\AdminNoteTargetRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -44,7 +44,7 @@ final class AdminNoteStoreAction
             ->load('creator');
 
         return [
-            'note' => AdminNoteData::fromModel($note)->toArray(),
+            'note' => AdminNoteDto::fromModel($note)->toArray(),
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Talk;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +20,7 @@ final class TalkCreateForStaffRequest extends FormRequest
         foreach ([
             'author_id',
             'status',
-            'is_visible',
+            'post_status',
             'is_pinned',
             'pinned_order',
             'admin_note',
@@ -47,8 +48,8 @@ final class TalkCreateForStaffRequest extends FormRequest
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
-            'status' => ['nullable', 'in:ACTIVE,INACTIVE'],
-            'is_visible' => ['nullable', 'boolean'],
+            'status' => ['nullable', Rule::in(Talk::statuses())],
+            'post_status' => ['nullable', Rule::in(Talk::postStatuses())],
             'is_pinned' => ['nullable', 'boolean'],
             'pinned_order' => ['nullable', 'integer', 'min:0'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
@@ -74,8 +75,8 @@ final class TalkCreateForStaffRequest extends FormRequest
             'author_id' => '작성자',
             'title' => '제목',
             'content' => '내용',
-            'status' => '운영 상태',
-            'is_visible' => '노출 여부',
+            'status' => '노출 상태',
+            'post_status' => '게시 상태',
             'is_pinned' => '상단 고정 여부',
             'pinned_order' => '고정 정렬 순서',
             'category_ids' => '카테고리 목록',

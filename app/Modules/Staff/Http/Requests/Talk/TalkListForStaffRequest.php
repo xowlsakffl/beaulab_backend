@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Talk;
 
+use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,6 +16,7 @@ final class TalkListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
+            'post_status' => $this->normalizeToArray($this->input('post_status')),
             'category_codes' => $this->normalizeToArray($this->input('category_codes')),
             'include' => $this->normalizeToArray($this->input('include')),
         ]);
@@ -30,8 +32,9 @@ final class TalkListForStaffRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
-            'status.*' => ['in:ACTIVE,INACTIVE'],
-            'is_visible' => ['nullable', 'boolean'],
+            'status.*' => [Rule::in(Talk::statuses())],
+            'post_status' => ['nullable', 'array'],
+            'post_status.*' => [Rule::in(Talk::postStatuses())],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'category_codes' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_codes.*' => ['string', Rule::in([
@@ -52,7 +55,7 @@ final class TalkListForStaffRequest extends FormRequest
             'end_date' => ['nullable', 'date_format:Y-m-d'],
             'include' => ['nullable', 'array'],
             'include.*' => ['in:author,categories'],
-            'sort' => ['nullable', 'in:id,title,status,is_visible,is_pinned,view_count,comment_count,like_count,save_count,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,title,status,post_status,is_pinned,view_count,comment_count,like_count,save_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -65,7 +68,7 @@ final class TalkListForStaffRequest extends FormRequest
         return [
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
-            'is_visible' => $validated['is_visible'] ?? null,
+            'post_status' => $validated['post_status'] ?? null,
             'author_id' => $validated['author_id'] ?? null,
             'category_codes' => $validated['category_codes'] ?? null,
             'metric' => $validated['metric'] ?? null,
@@ -87,9 +90,10 @@ final class TalkListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
-            'status' => '운영 상태',
-            'status.*' => '운영 상태',
-            'is_visible' => '노출 여부',
+            'status' => '노출 상태',
+            'status.*' => '노출 상태',
+            'post_status' => '게시 상태',
+            'post_status.*' => '게시 상태',
             'author_id' => '작성자',
             'category_codes' => '카테고리 코드 목록',
             'category_codes.*' => '카테고리 코드',

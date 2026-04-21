@@ -23,7 +23,7 @@ final class TalkListForStaffQuery
                 'title',
                 'content',
                 'status',
-                'is_visible',
+                'post_status',
                 'is_pinned',
                 'pinned_order',
                 'view_count',
@@ -36,7 +36,7 @@ final class TalkListForStaffQuery
 
         if (is_array($include) && in_array('author', $include, true)) {
             $builder->with([
-                'author:id,name,email',
+                'author:id,name,nickname,email',
             ]);
         }
 
@@ -62,8 +62,8 @@ final class TalkListForStaffQuery
             $builder->whereIn('status', $filters['status']);
         }
 
-        if (array_key_exists('is_visible', $filters) && $filters['is_visible'] !== null) {
-            $builder->where('is_visible', (bool) $filters['is_visible']);
+        if (is_array($filters['post_status'] ?? null) && $filters['post_status'] !== []) {
+            $builder->whereIn('post_status', $filters['post_status']);
         }
 
         $metricColumns = [

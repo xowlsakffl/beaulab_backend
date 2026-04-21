@@ -17,7 +17,6 @@ final class TalkCommentUpdateForStaffQuery
             'author_id' => array_key_exists('author_id', $payload) ? $payload['author_id'] : $comment->author_id,
             'content' => array_key_exists('content', $payload) ? $payload['content'] : $comment->content,
             'status' => array_key_exists('status', $payload) ? $payload['status'] : $comment->status,
-            'is_visible' => array_key_exists('is_visible', $payload) ? (bool) $payload['is_visible'] : $comment->is_visible,
         ]);
 
         if ($comment->isDirty()) {

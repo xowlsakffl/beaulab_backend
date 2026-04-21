@@ -21,7 +21,6 @@ final class TalkCommentFactory extends Factory
             'author_id' => $this->randomAuthorId(),
             'content' => $this->faker->sentence(18),
             'status' => $this->faker->randomElement([TalkComment::STATUS_ACTIVE, TalkComment::STATUS_INACTIVE]),
-            'is_visible' => $this->faker->boolean(92),
             'author_ip' => $this->faker->ipv4(),
             'like_count' => $this->faker->numberBetween(0, 80),
         ];
@@ -31,7 +30,6 @@ final class TalkCommentFactory extends Factory
     {
         return $this->state(fn () => [
             'status' => TalkComment::STATUS_ACTIVE,
-            'is_visible' => true,
         ]);
     }
 

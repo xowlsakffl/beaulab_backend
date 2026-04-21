@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Talk;
 
+use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -35,7 +36,7 @@ final class TalkVisibilityBulkUpdateForStaffRequest extends FormRequest
                 'distinct',
                 Rule::exists('talks', 'id')->whereNull('deleted_at'),
             ],
-            'is_visible' => ['required', 'boolean'],
+            'status' => ['required', Rule::in(Talk::statuses())],
             'hidden_reason' => ['nullable', 'string', 'max:500'],
         ];
     }
@@ -48,7 +49,7 @@ final class TalkVisibilityBulkUpdateForStaffRequest extends FormRequest
         return [
             'ids' => '토크 목록',
             'ids.*' => '토크',
-            'is_visible' => '노출 여부',
+            'status' => '노출 상태',
             'hidden_reason' => '미노출 사유',
         ];
     }

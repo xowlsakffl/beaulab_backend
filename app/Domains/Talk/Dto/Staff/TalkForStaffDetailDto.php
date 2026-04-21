@@ -3,11 +3,11 @@
 namespace App\Domains\Talk\Dto\Staff;
 
 use App\Domains\Common\Dto\AdminNote\AdminNoteDto;
-use App\Domains\Common\Dto\AdminActionHistory\AdminActionHistoryDto;
-use App\Domains\Common\Models\AdminActionHistory\AdminActionHistory;
+use App\Domains\Common\Dto\OperationHistory\OperationHistoryDto;
 use App\Domains\Common\Models\AdminNote\AdminNote;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Models\OperationHistory\OperationHistory;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Support\Collection;
@@ -35,7 +35,7 @@ final readonly class TalkForStaffDetailDto
             'title' => (string) $talk->title,
             'content' => (string) $talk->content,
             'status' => (string) $talk->status,
-            'is_visible' => (bool) $talk->is_visible,
+            'post_status' => (string) $talk->post_status,
             'author_ip' => $talk->author_ip,
             'is_pinned' => (bool) $talk->is_pinned,
             'pinned_order' => (int) $talk->pinned_order,
@@ -71,8 +71,8 @@ final readonly class TalkForStaffDetailDto
                 ->map(fn (AdminNote $note): array => AdminNoteDto::fromModel($note)->toArray())
                 ->values()
                 ->all(),
-            'admin_action_histories' => self::resolveAdminActionHistories($talk)
-                ->map(fn (AdminActionHistory $history): array => AdminActionHistoryDto::fromModel($history)->toArray())
+            'operation_histories' => self::resolveOperationHistories($talk)
+                ->map(fn (OperationHistory $history): array => OperationHistoryDto::fromModel($history)->toArray())
                 ->values()
                 ->all(),
             'created_at' => $talk->created_at?->toISOString(),
@@ -92,7 +92,6 @@ final readonly class TalkForStaffDetailDto
                         : null,
                     'content' => (string) $comment->content,
                     'status' => (string) $comment->status,
-                    'is_visible' => (bool) $comment->is_visible,
                     'author_ip' => $comment->author_ip,
                     'like_count' => (int) $comment->like_count,
                     'created_at' => $comment->created_at?->toISOString(),
@@ -148,15 +147,15 @@ final readonly class TalkForStaffDetailDto
     }
 
     /**
-     * @return Collection<int, AdminActionHistory>
+     * @return Collection<int, OperationHistory>
      */
-    private static function resolveAdminActionHistories(Talk $talk): Collection
+    private static function resolveOperationHistories(Talk $talk): Collection
     {
-        if (! $talk->relationLoaded('adminActionHistories')) {
+        if (! $talk->relationLoaded('operationHistories')) {
             return collect();
         }
 
-        return $talk->adminActionHistories;
+        return $talk->operationHistories;
     }
 
     /**

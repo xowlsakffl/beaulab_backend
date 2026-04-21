@@ -36,7 +36,6 @@ final class TalkComment extends Model
         'author_id',
         'content',
         'status',
-        'is_visible',
         'author_ip',
         'like_count',
     ];
@@ -45,7 +44,6 @@ final class TalkComment extends Model
         'talk_id' => 'integer',
         'parent_id' => 'integer',
         'author_id' => 'integer',
-        'is_visible' => 'boolean',
         'like_count' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -54,9 +52,19 @@ final class TalkComment extends Model
 
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
-        'is_visible' => true,
         'like_count' => 0,
     ];
+
+    /**
+     * @return list<string>
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_ACTIVE,
+            self::STATUS_INACTIVE,
+        ];
+    }
 
     /**
      * @var list<string>

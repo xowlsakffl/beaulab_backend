@@ -26,13 +26,13 @@ final class TalkVisibilityBulkUpdateForStaffQuery
             ->whereIn('id', $ids)
             ->orderBy('id')
             ->lockForUpdate()
-            ->get(['id', 'is_visible']);
+            ->get(['id', 'status', 'post_status']);
     }
 
     /**
      * @param  array<int, int>  $talkIds
      */
-    public function update(array $talkIds, bool $isVisible): int
+    public function update(array $talkIds, string $status): int
     {
         $ids = $this->normalizeIds($talkIds);
 
@@ -42,7 +42,8 @@ final class TalkVisibilityBulkUpdateForStaffQuery
 
         return Talk::query()
             ->whereIn('id', $ids)
-            ->update(['is_visible' => $isVisible]);
+            ->whereNotIn('post_status', Talk::VISIBILITY_CHANGE_LOCKED_POST_STATUSES)
+            ->update(['status' => $status]);
     }
 
     /**

@@ -23,7 +23,6 @@ final class TalkCommentListForStaffQuery
                 'author_id',
                 'content',
                 'status',
-                'is_visible',
                 'like_count',
                 'created_at',
                 'updated_at',
@@ -73,10 +72,6 @@ final class TalkCommentListForStaffQuery
 
         if (is_array($filters['status'] ?? null) && $filters['status'] !== []) {
             $builder->whereIn('status', $filters['status']);
-        }
-
-        if (array_key_exists('is_visible', $filters) && $filters['is_visible'] !== null) {
-            $builder->where('is_visible', (bool) $filters['is_visible']);
         }
 
         if (! empty($filters['author_id'])) {

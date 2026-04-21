@@ -2,7 +2,7 @@
 
 namespace App\Domains\Talk\Dto\Staff;
 
-use App\Domains\Common\Dto\AdminNote\AdminNoteData;
+use App\Domains\Common\Dto\AdminNote\AdminNoteDto;
 use App\Domains\Common\Models\AdminNote\AdminNote;
 use App\Domains\Talk\Models\TalkComment;
 use App\Domains\Talk\Models\TalkCommentMention;
@@ -48,7 +48,7 @@ final readonly class TalkCommentForStaffDetailDto
             'like_count' => (int) $comment->like_count,
             'mention_count' => (int) ($comment->mentions_count ?? $comment->mentions()->count()),
             'admin_notes' => self::resolveAdminNotes($comment)
-                ->map(fn (AdminNote $note): array => AdminNoteData::fromModel($note)->toArray())
+                ->map(fn (AdminNote $note): array => AdminNoteDto::fromModel($note)->toArray())
                 ->values()
                 ->all(),
             'created_at' => $comment->created_at?->toISOString(),

@@ -3,6 +3,7 @@
 namespace App\Domains\Talk\Queries\Staff;
 
 use App\Domains\Talk\Models\Talk;
+use Illuminate\Support\Collection;
 
 /**
  * 토크 다중 노출 상태 변경 DB 쿼리.
@@ -11,15 +12,29 @@ final class TalkVisibilityBulkUpdateForStaffQuery
 {
     /**
      * @param  array<int, int>  $talkIds
+     * @return Collection<int, Talk>
+     */
+    public function getForUpdate(array $talkIds): Collection
+    {
+        $ids = $this->normalizeIds($talkIds);
+
+        if ($ids === []) {
+            return collect();
+        }
+
+        return Talk::query()
+            ->whereIn('id', $ids)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get(['id', 'is_visible']);
+    }
+
+    /**
+     * @param  array<int, int>  $talkIds
      */
     public function update(array $talkIds, bool $isVisible): int
     {
-        $ids = collect($talkIds)
-            ->map(static fn (int|string $id): int => (int) $id)
-            ->filter(static fn (int $id): bool => $id > 0)
-            ->unique()
-            ->values()
-            ->all();
+        $ids = $this->normalizeIds($talkIds);
 
         if ($ids === []) {
             return 0;
@@ -28,5 +43,19 @@ final class TalkVisibilityBulkUpdateForStaffQuery
         return Talk::query()
             ->whereIn('id', $ids)
             ->update(['is_visible' => $isVisible]);
+    }
+
+    /**
+     * @param  array<int, int|string>  $talkIds
+     * @return array<int, int>
+     */
+    private function normalizeIds(array $talkIds): array
+    {
+        return collect($talkIds)
+            ->map(static fn (int|string $id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
     }
 }

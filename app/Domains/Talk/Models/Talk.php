@@ -4,6 +4,7 @@ namespace App\Domains\Talk\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Models\Concerns\HasAdminActionHistories;
 use App\Domains\Common\Models\Concerns\HasAdminNotes;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
 use App\Domains\Common\Models\Media\Media;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class Talk extends Model
 {
-    use HasAdminNotes, HasAuditLogs, HasFactory, SoftDeletes;
+    use HasAdminActionHistories, HasAdminNotes, HasAuditLogs, HasFactory, SoftDeletes;
 
     public const STATUS_ACTIVE = 'ACTIVE';
 

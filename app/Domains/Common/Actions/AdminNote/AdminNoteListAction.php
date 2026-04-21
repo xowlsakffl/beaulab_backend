@@ -2,7 +2,7 @@
 
 namespace App\Domains\Common\Actions\AdminNote;
 
-use App\Domains\Common\Dto\AdminNote\AdminNoteData;
+use App\Domains\Common\Dto\AdminNote\AdminNoteDto;
 use App\Domains\Common\Models\AdminNote\AdminNote;
 use App\Domains\Common\Queries\AdminNote\AdminNoteListQuery;
 use App\Domains\Common\Support\AdminNote\AdminNoteTargetRegistry;
@@ -28,7 +28,7 @@ final class AdminNoteListAction
         Gate::forUser($actor)->authorize('view', $target);
 
         $items = $this->query->getForTarget($target, $actor)
-            ->map(static fn (AdminNote $note): array => AdminNoteData::fromModel($note)->toArray())
+            ->map(static fn (AdminNote $note): array => AdminNoteDto::fromModel($note)->toArray())
             ->values()
             ->all();
 

@@ -31,7 +31,7 @@ final readonly class TalkForStaffDetailDto
         public int $likeCount,
         public int $saveCount,
         public ?array $author,
-        public array $categories,
+        public ?string $categories,
         public array $images,
         public array $operationHistories,
         public array $comments,
@@ -109,16 +109,15 @@ final readonly class TalkForStaffDetailDto
         ];
     }
 
-    private static function categories(Talk $talk): array
+    private static function categories(Talk $talk): ?string
     {
-        return self::resolveCategories($talk)
-            ->map(fn (Category $category): array => [
-                'id' => (int) $category->id,
-                'name' => (string) $category->name,
-                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-            ])
-            ->values()
-            ->all();
+        $code = self::resolveCategories($talk)
+            ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
+            ->map(fn (Category $category): string => (string) $category->code)
+            ->filter(static fn (string $code): bool => $code !== '')
+            ->first();
+
+        return is_string($code) && $code !== '' ? $code : null;
     }
 
     private static function images(Talk $talk): array

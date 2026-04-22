@@ -26,7 +26,7 @@ final class TalkCreateForUserAction
         $talk = DB::transaction(function () use ($normalized): Talk {
             $talk = $this->query->create($normalized);
 
-            $this->syncCategories($talk, $normalized['category_ids'] ?? []);
+            $this->syncCategory($talk, $normalized['category_id'] ?? null);
             $this->attachImages($talk, $normalized['images'] ?? []);
 
             return $talk->fresh([
@@ -41,30 +41,17 @@ final class TalkCreateForUserAction
         ];
     }
 
-    /**
-     * @param array<int, int|string> $categoryIds
-     */
-    private function syncCategories(Talk $talk, array $categoryIds): void
+    private function syncCategory(Talk $talk, mixed $categoryId): void
     {
-        if ($categoryIds === []) {
+        $categoryId = (int) $categoryId;
+
+        if ($categoryId <= 0) {
             return;
         }
 
-        $syncPayload = collect($categoryIds)
-            ->map(static fn (int|string $categoryId): int => (int) $categoryId)
-            ->filter(static fn (int $categoryId): bool => $categoryId > 0)
-            ->unique()
-            ->values()
-            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
-                $categoryId => ['is_primary' => $index === 0],
-            ])
-            ->all();
-
-        if ($syncPayload === []) {
-            return;
-        }
-
-        $talk->categories()->sync($syncPayload);
+        $talk->categories()->sync([
+            $categoryId => ['is_primary' => true],
+        ]);
     }
 
     /**

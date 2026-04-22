@@ -28,7 +28,7 @@ final readonly class TalkForStaffDto
         public string $createdAt,
         public string $updatedAt,
         public ?string $nickname,
-        public array $talkType,
+        public ?string $categories,
     ) {}
 
     public static function fromModel(Talk $talk): self
@@ -49,7 +49,7 @@ final readonly class TalkForStaffDto
             createdAt: $talk->created_at?->toISOString() ?? '',
             updatedAt: $talk->updated_at?->toISOString() ?? '',
             nickname: self::nickname($talk),
-            talkType: self::talkTypeCodes($talk)->values()->all(),
+            categories: self::categoryCode($talk),
         );
     }
 
@@ -59,7 +59,7 @@ final readonly class TalkForStaffDto
             'id' => $this->id,
             'author_id' => $this->authorId,
             'nickname' => $this->nickname,
-            'talk_type' => $this->talkType,
+            'categories' => $this->categories,
             'title' => $this->title,
             'content' => $this->content,
             'status' => $this->status,
@@ -89,18 +89,19 @@ final readonly class TalkForStaffDto
     }
 
     /**
-     * @return Collection<int, string>
      */
-    private static function talkTypeCodes(Talk $talk): Collection
+    private static function categoryCode(Talk $talk): ?string
     {
         if (! $talk->relationLoaded('categories')) {
-            return collect();
+            return null;
         }
 
-        return $talk->categories
+        $code = $talk->categories
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
             ->map(fn (Category $category): string => (string) $category->code)
             ->filter(static fn (string $code): bool => $code !== '')
-            ->values();
+            ->first();
+
+        return is_string($code) && $code !== '' ? $code : null;
     }
 }

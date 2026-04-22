@@ -237,7 +237,7 @@
             <div>
                 <span class="eyebrow">Internal Tools</span>
                 <h2>로그인 후 내부도구 허브로 이동합니다.</h2>
-                <p>직원 계정으로 로그인하면 공용 대시보드에서 Horizon, Telescope, Swagger 같은 운영 도구를 같은 세션으로 선택해 열 수 있습니다.</p>
+                <p>직원 계정으로 로그인하면 공용 대시보드에서 Horizon, Telescope, API Docs 같은 운영 도구를 같은 세션으로 선택해 열 수 있습니다.</p>
             </div>
 
             <div class="summary">

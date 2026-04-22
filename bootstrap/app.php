@@ -61,6 +61,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('tool.login');
             }
 
+            if ($request->is('docs/api') || $request->is('docs/api.json')) {
+                return route('tool.login');
+            }
+
             $guards = ['staff', 'hospital', 'beauty', 'user'];
 
             foreach ($guards as $guard) {

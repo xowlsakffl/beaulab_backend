@@ -370,7 +370,7 @@
             <div class="hero-footer">
                 <div class="hero-stat">
                     <strong>통합 인증</strong>
-                    <span>한 번 로그인하면 내부도구 공용 세션으로 Horizon, Telescope, Swagger를 공통 진입합니다.</span>
+                    <span>한 번 로그인하면 내부도구 공용 세션으로 Horizon, Telescope, API Docs를 공통 진입합니다.</span>
                 </div>
                 <div class="hero-stat">
                     <strong>권한 기준</strong>
@@ -418,7 +418,7 @@
             </div>
 
             <div class="note">
-                Swagger 링크는 환경변수 <code>INTERNAL_TOOL_SWAGGER_URL</code>로 제어합니다. 값이 없으면 허브에서는 미설정 상태로 표시합니다.
+                API Docs는 Scramble이 생성하며 내부도구 인증 아래의 <code>/docs/api</code>에서 열립니다. 외부 문서 URL이 필요하면 <code>INTERNAL_TOOL_API_DOCS_URL</code>로 대체할 수 있습니다.
             </div>
         </section>
     </div>

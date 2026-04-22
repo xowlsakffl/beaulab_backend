@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 /**
@@ -82,8 +83,7 @@ final class ToolAuthController
 
     public function index(Request $request): View
     {
-        $staff = $request->user('tool_staff');
-        abort_unless($staff instanceof AccountStaff && Gate::forUser($staff)->allows('viewTool'), 403);
+        $staff = $this->authorizeToolStaff($request);
 
         return view('tools.index', [
             'staff' => $staff,
@@ -123,6 +123,14 @@ final class ToolAuthController
             ->onlyInput('nickname');
     }
 
+    private function authorizeToolStaff(Request $request): AccountStaff
+    {
+        $staff = $request->user('tool_staff');
+        abort_unless($staff instanceof AccountStaff && Gate::forUser($staff)->allows('viewTool'), 403);
+
+        return $staff;
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -144,10 +152,10 @@ final class ToolAuthController
                 'badge' => 'Debug',
             ],
             [
-                'name' => 'Swagger',
-                'description' => 'API 명세와 테스트 콘솔을 엽니다.',
-                'url' => $this->swaggerUrl(),
-                'enabled' => $this->swaggerUrl() !== null,
+                'name' => 'API Docs',
+                'description' => 'Scramble이 생성한 API 명세와 테스트 콘솔을 엽니다.',
+                'url' => $this->apiDocsUrl(),
+                'enabled' => $this->apiDocsUrl() !== null,
                 'badge' => 'API',
             ],
         ];
@@ -163,18 +171,18 @@ final class ToolAuthController
         return url('/'.trim((string) config('telescope.path', 'telescope'), '/'));
     }
 
-    private function swaggerUrl(): ?string
+    private function apiDocsUrl(): ?string
     {
-        $configured = trim((string) env('INTERNAL_TOOL_SWAGGER_URL', ''));
+        $configured = trim((string) env('INTERNAL_TOOL_API_DOCS_URL', ''));
 
-        if ($configured === '') {
-            return null;
-        }
-
-        if (str_starts_with($configured, 'http://') || str_starts_with($configured, 'https://')) {
+        if ($configured !== '' && (str_starts_with($configured, 'http://') || str_starts_with($configured, 'https://'))) {
             return $configured;
         }
 
-        return url('/'.ltrim($configured, '/'));
+        if ($configured !== '') {
+            return url('/'.ltrim($configured, '/'));
+        }
+
+        return Route::has('scramble.docs.ui') ? route('scramble.docs.ui') : null;
     }
 }

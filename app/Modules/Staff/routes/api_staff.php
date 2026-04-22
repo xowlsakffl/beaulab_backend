@@ -185,26 +185,12 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('talks.updateTalkVisibilityForStaff');
     Route::get('talks/{talk}', [TalkForStaffController::class, 'getTalkForStaff'])
         ->name('talks.getTalkForStaff');
-    Route::post('talks', [TalkForStaffController::class, 'storeTalkForStaff'])
-        ->name('talks.storeTalkForStaff');
-    Route::match(['post', 'put', 'patch'], 'talks/{talk}', [TalkForStaffController::class, 'updateTalkForStaff'])
-        ->name('talks.updateTalkForStaff');
-    Route::delete('talks/{talk}', [TalkForStaffController::class, 'deleteTalkForStaff'])
-        ->name('talks.deleteTalkForStaff');
 
     /**
      * 토크 댓글 관리
      **/
     Route::get('talk-comments', [TalkCommentForStaffController::class, 'getCommentsForStaff'])
         ->name('talk-comments.getCommentsForStaff');
-    Route::get('talk-comments/{comment}', [TalkCommentForStaffController::class, 'getCommentForStaff'])
-        ->name('talk-comments.getCommentForStaff');
-    Route::post('talk-comments', [TalkCommentForStaffController::class, 'storeCommentForStaff'])
-        ->name('talk-comments.storeCommentForStaff');
-    Route::match(['post', 'put', 'patch'], 'talk-comments/{comment}', [TalkCommentForStaffController::class, 'updateCommentForStaff'])
-        ->name('talk-comments.updateCommentForStaff');
-    Route::delete('talk-comments/{comment}', [TalkCommentForStaffController::class, 'deleteCommentForStaff'])
-        ->name('talk-comments.deleteCommentForStaff');
 
     /**
      * 공지사항

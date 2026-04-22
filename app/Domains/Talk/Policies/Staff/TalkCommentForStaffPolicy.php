@@ -22,18 +22,4 @@ final class TalkCommentForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_TALK_SHOW);
     }
 
-    public function create(AccountStaff $actor): bool
-    {
-        return $actor->can(AccessPermissions::BEAULAB_TALK_CREATE);
-    }
-
-    public function update(AccountStaff $actor, TalkComment $comment): bool
-    {
-        return $actor->can(AccessPermissions::BEAULAB_TALK_UPDATE);
-    }
-
-    public function delete(AccountStaff $actor, TalkComment $comment): bool
-    {
-        return $actor->can(AccessPermissions::BEAULAB_TALK_DELETE);
-    }
 }

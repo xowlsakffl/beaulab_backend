@@ -23,19 +23,9 @@ final class TalkPolicy
         return $this->delegate($actor)->view($actor, $talk);
     }
 
-    public function create(mixed $actor): bool
-    {
-        return $this->delegate($actor)->create($actor);
-    }
-
     public function update(mixed $actor, ?Talk $talk = null): bool
     {
         return $this->delegate($actor)->update($actor, $talk);
-    }
-
-    public function delete(mixed $actor, Talk $talk): bool
-    {
-        return $this->delegate($actor)->delete($actor, $talk);
     }
 
     private function delegate(mixed $actor): object
@@ -54,17 +44,7 @@ final class TalkPolicy
                     return false;
                 }
 
-                public function create(mixed $actor): bool
-                {
-                    return false;
-                }
-
                 public function update(mixed $actor, ?Talk $talk = null): bool
-                {
-                    return false;
-                }
-
-                public function delete(mixed $actor, Talk $talk): bool
                 {
                     return false;
                 }
@@ -81,17 +61,7 @@ final class TalkPolicy
                     return false;
                 }
 
-                public function create(mixed $actor): bool
-                {
-                    return false;
-                }
-
                 public function update(mixed $actor, ?Talk $talk = null): bool
-                {
-                    return false;
-                }
-
-                public function delete(mixed $actor, Talk $talk): bool
                 {
                     return false;
                 }

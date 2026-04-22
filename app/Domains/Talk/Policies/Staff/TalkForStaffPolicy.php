@@ -22,18 +22,8 @@ final class TalkForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_TALK_SHOW);
     }
 
-    public function create(AccountStaff $actor): bool
-    {
-        return $actor->can(AccessPermissions::BEAULAB_TALK_CREATE);
-    }
-
     public function update(AccountStaff $actor, ?Talk $talk = null): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_TALK_UPDATE);
-    }
-
-    public function delete(AccountStaff $actor, Talk $talk): bool
-    {
-        return $actor->can(AccessPermissions::BEAULAB_TALK_DELETE);
     }
 }

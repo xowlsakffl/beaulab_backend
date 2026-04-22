@@ -12,8 +12,11 @@ final class TalkCreateForUserRequest extends FormRequest
     {
         $data = $this->all();
 
-        if (array_key_exists('category_ids', $data)) {
-            $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
+        if (array_key_exists('category_id', $data)) {
+            $data['category_id'] = $this->normalizeId($data['category_id']);
+        } elseif (array_key_exists('category_ids', $data)) {
+            $categoryIds = $this->normalizeIdList($data['category_ids']);
+            $data['category_id'] = $categoryIds[0] ?? null;
         }
 
         $this->replace($data);
@@ -29,10 +32,9 @@ final class TalkCreateForUserRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:20000'],
-            'category_ids' => ['nullable', 'array', 'max:10'],
-            'category_ids.*' => [
+            'category_id' => [
+                'nullable',
                 'integer',
-                'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
                     ->where('domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
                     ->where('status', Category::STATUS_ACTIVE)),
@@ -40,6 +42,21 @@ final class TalkCreateForUserRequest extends FormRequest
             'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ];
+    }
+
+    private function normalizeId(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value > 0 ? $value : null;
+        }
+
+        if (is_string($value) && ctype_digit(trim($value))) {
+            $id = (int) $value;
+
+            return $id > 0 ? $id : null;
+        }
+
+        return null;
     }
 
     /**

@@ -15,7 +15,7 @@ final readonly class TalkCommentForStaffDto
         public int $id,
         public string $createdAt,
         public ?string $nickname,
-        public array $talkType,
+        public ?string $categories,
         public ?string $parentTalkTitle,
         public string $content,
         public string $visibilityStatus,
@@ -29,7 +29,7 @@ final readonly class TalkCommentForStaffDto
             id: (int) $comment->id,
             createdAt: $comment->created_at?->toISOString() ?? '',
             nickname: self::nickname($comment),
-            talkType: self::talkTypeCodes($comment)->values()->all(),
+            categories: self::categoryCode($comment),
             parentTalkTitle: $comment->relationLoaded('talk') && $comment->talk
                 ? (string) $comment->talk->title
                 : null,
@@ -46,7 +46,7 @@ final readonly class TalkCommentForStaffDto
             'id' => $this->id,
             'created_at' => $this->createdAt,
             'nickname' => $this->nickname,
-            'talk_type' => $this->talkType,
+            'categories' => $this->categories,
             'parent_talk_title' => $this->parentTalkTitle,
             'content' => $this->content,
             'visibility_status' => $this->visibilityStatus,
@@ -69,18 +69,19 @@ final readonly class TalkCommentForStaffDto
     }
 
     /**
-     * @return Collection<int, string>
      */
-    private static function talkTypeCodes(TalkComment $comment): Collection
+    private static function categoryCode(TalkComment $comment): ?string
     {
         if (! $comment->relationLoaded('talk') || ! $comment->talk || ! $comment->talk->relationLoaded('categories')) {
-            return collect();
+            return null;
         }
 
-        return $comment->talk->categories
+        $code = $comment->talk->categories
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
             ->map(fn (Category $category): string => (string) $category->code)
             ->filter(static fn (string $code): bool => $code !== '')
-            ->values();
+            ->first();
+
+        return is_string($code) && $code !== '' ? $code : null;
     }
 }

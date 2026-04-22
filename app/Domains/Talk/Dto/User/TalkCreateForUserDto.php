@@ -23,7 +23,7 @@ final readonly class TalkCreateForUserDto
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?array $author = null,
-        public ?array $categories = null,
+        public ?string $categories = null,
         public ?array $images = null,
     ) {}
 
@@ -93,16 +93,15 @@ final readonly class TalkCreateForUserDto
         ];
     }
 
-    private static function categories(Talk $talk): array
+    private static function categories(Talk $talk): ?string
     {
-        return self::resolveCategories($talk)
-            ->map(fn (Category $category): array => [
-                'id' => (int) $category->id,
-                'name' => (string) $category->name,
-                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-            ])
-            ->values()
-            ->all();
+        $code = self::resolveCategories($talk)
+            ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
+            ->map(fn (Category $category): string => (string) $category->code)
+            ->filter(static fn (string $code): bool => $code !== '')
+            ->first();
+
+        return is_string($code) && $code !== '' ? $code : null;
     }
 
     private static function images(Talk $talk): array

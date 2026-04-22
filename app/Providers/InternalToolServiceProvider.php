@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Common\Authorization\AccessRoles;
 use App\Common\OpenApi\Scramble\AddSanctumSecurityScheme;
 use App\Common\OpenApi\Scramble\ApplySanctumSecurity;
+use App\Common\OpenApi\Scramble\NormalizeQueryArrayParameters;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Gate;
@@ -16,7 +17,10 @@ class InternalToolServiceProvider extends ServiceProvider
     {
         Scramble::configure()
             ->withDocumentTransformers(AddSanctumSecurityScheme::class)
-            ->withOperationTransformers(ApplySanctumSecurity::class);
+            ->withOperationTransformers([
+                ApplySanctumSecurity::class,
+                NormalizeQueryArrayParameters::class,
+            ]);
 
         Gate::define('viewTool', function (?AccountStaff $user): bool {
             if (! $user instanceof AccountStaff || ! $user->isActive()) {

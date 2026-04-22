@@ -28,7 +28,7 @@ final class ChatMessageListForUserAction
 
         return [
             'items' => $result['items']
-                ->map(fn ($message) => ChatMessageForUserDto::fromModel($message, (int) $user->id))
+                ->map(fn ($message) => ChatMessageForUserDto::fromModel($message, (int) $user->id)->toArray())
                 ->values()
                 ->all(),
             'meta' => $result['meta'],

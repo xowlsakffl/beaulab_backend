@@ -8,47 +8,89 @@ use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Support\Collection;
 
 /**
- * HospitalVideoForHospitalDetailDto 역할 정의.
- * 병원 동영상 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * HospitalVideoForHospitalDetailDto DTO.
  */
 final readonly class HospitalVideoForHospitalDetailDto
 {
-    public function __construct(public array $video) {}
+    public function __construct(
+        public int $id,
+        public int $hospitalId,
+        public ?int $doctorId,
+        public ?int $submittedByAccountId,
+        public string $title,
+        public ?string $description,
+        public bool $isUsageConsented,
+        public string $distributionChannel,
+        public string $status,
+        public string $allowStatus,
+        public ?string $publishStartAt,
+        public ?string $publishEndAt,
+        public ?array $thumbnailFile,
+        public ?array $videoFile,
+        public array $categories,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+    ) {}
 
     public static function fromModel(HospitalVideo $video): self
     {
-        return new self([
-            'id' => (int) $video->id,
-            'hospital_id' => (int) $video->hospital_id,
-            'doctor_id' => $video->doctor_id ? (int) $video->doctor_id : null,
-            'submitted_by_account_id' => $video->submitted_by_account_id ? (int) $video->submitted_by_account_id : null,
-            'title' => (string) $video->title,
-            'description' => $video->description,
-            'is_usage_consented' => (bool) $video->is_usage_consented,
-            'distribution_channel' => (string) $video->distribution_channel,
-            'status' => (string) $video->status,
-            'allow_status' => (string) $video->allow_status,
-            'publish_start_at' => $video->publish_start_at?->toISOString(),
-            'publish_end_at' => $video->publish_end_at?->toISOString(),
-            'thumbnail_file' => self::formatMedia($video->thumbnailMedia),
-            'video_file' => self::formatMedia($video->videoFileMedia),
-            'categories' => self::resolveCategories($video)
-                ->map(fn (Category $category): array => [
-                    'id' => (int) $category->id,
-                    'name' => (string) $category->name,
-                    'full_path' => (string) ($category->full_path ?? ''),
-                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-                ])
-                ->values()
-                ->all(),
-            'created_at' => $video->created_at?->toISOString(),
-            'updated_at' => $video->updated_at?->toISOString(),
-        ]);
+        return new self(
+            id: (int) $video->id,
+            hospitalId: (int) $video->hospital_id,
+            doctorId: $video->doctor_id ? (int) $video->doctor_id : null,
+            submittedByAccountId: $video->submitted_by_account_id ? (int) $video->submitted_by_account_id : null,
+            title: (string) $video->title,
+            description: $video->description,
+            isUsageConsented: (bool) $video->is_usage_consented,
+            distributionChannel: (string) $video->distribution_channel,
+            status: (string) $video->status,
+            allowStatus: (string) $video->allow_status,
+            publishStartAt: $video->publish_start_at?->toISOString(),
+            publishEndAt: $video->publish_end_at?->toISOString(),
+            thumbnailFile: self::formatMedia($video->thumbnailMedia),
+            videoFile: self::formatMedia($video->videoFileMedia),
+            categories: self::categories($video),
+            createdAt: $video->created_at?->toISOString(),
+            updatedAt: $video->updated_at?->toISOString(),
+        );
     }
 
     public function toArray(): array
     {
-        return $this->video;
+        $data = [
+            'id' => $this->id,
+            'hospital_id' => $this->hospitalId,
+            'doctor_id' => $this->doctorId,
+            'submitted_by_account_id' => $this->submittedByAccountId,
+            'title' => $this->title,
+            'description' => $this->description,
+            'is_usage_consented' => $this->isUsageConsented,
+            'distribution_channel' => $this->distributionChannel,
+            'status' => $this->status,
+            'allow_status' => $this->allowStatus,
+            'publish_start_at' => $this->publishStartAt,
+            'publish_end_at' => $this->publishEndAt,
+            'thumbnail_file' => $this->thumbnailFile,
+            'video_file' => $this->videoFile,
+            'categories' => $this->categories,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+
+        return $data;
+    }
+
+    private static function categories(HospitalVideo $video): array
+    {
+        return self::resolveCategories($video)
+            ->map(fn (Category $category): array => [
+                'id' => (int) $category->id,
+                'name' => (string) $category->name,
+                'full_path' => (string) ($category->full_path ?? ''),
+                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+            ])
+            ->values()
+            ->all();
     }
 
     private static function formatMedia(?Media $media): ?array

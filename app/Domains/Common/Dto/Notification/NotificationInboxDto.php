@@ -5,34 +5,80 @@ namespace App\Domains\Common\Dto\Notification;
 use App\Domains\Common\Models\Notification\NotificationInbox;
 
 /**
- * 앱 알림함 응답 DTO.
- * event_count에서 additional_count를 계산해 "외 N건" 표시를 쉽게 만든다.
+ * NotificationInboxDto DTO.
  */
 final readonly class NotificationInboxDto
 {
-    public static function fromModel(NotificationInbox $notification): array
+    public function __construct(
+        public int $id,
+        public string $recipientType,
+        public int $recipientId,
+        public ?string $actorType,
+        public ?int $actorId,
+        public string $eventType,
+        public ?string $title,
+        public ?string $body,
+        public ?string $aggregationKey,
+        public int $eventCount,
+        public int $additionalCount,
+        public ?string $targetType,
+        public ?int $targetId,
+        public mixed $payload,
+        public bool $isRead,
+        public ?string $readAt,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+    ) {}
+
+    public static function fromModel(NotificationInbox $notification): self
     {
         $eventCount = max(1, (int) $notification->event_count);
 
-        return [
-            'id' => (int) $notification->id,
-            'recipient_type' => (string) $notification->recipient_type,
-            'recipient_id' => (int) $notification->recipient_id,
-            'actor_type' => $notification->actor_type,
-            'actor_id' => $notification->actor_id ? (int) $notification->actor_id : null,
-            'event_type' => (string) $notification->event_type,
-            'title' => $notification->title,
-            'body' => $notification->body,
-            'aggregation_key' => $notification->aggregation_key,
-            'event_count' => $eventCount,
-            'additional_count' => max(0, $eventCount - 1),
-            'target_type' => $notification->target_type,
-            'target_id' => $notification->target_id ? (int) $notification->target_id : null,
-            'payload' => $notification->payload,
-            'is_read' => $notification->isRead(),
-            'read_at' => $notification->read_at?->toISOString(),
-            'created_at' => $notification->created_at?->toISOString(),
-            'updated_at' => $notification->updated_at?->toISOString(),
+        return new self(
+            id: (int) $notification->id,
+            recipientType: (string) $notification->recipient_type,
+            recipientId: (int) $notification->recipient_id,
+            actorType: $notification->actor_type,
+            actorId: $notification->actor_id ? (int) $notification->actor_id : null,
+            eventType: (string) $notification->event_type,
+            title: $notification->title,
+            body: $notification->body,
+            aggregationKey: $notification->aggregation_key,
+            eventCount: $eventCount,
+            additionalCount: max(0, $eventCount - 1),
+            targetType: $notification->target_type,
+            targetId: $notification->target_id ? (int) $notification->target_id : null,
+            payload: $notification->payload,
+            isRead: $notification->isRead(),
+            readAt: $notification->read_at?->toISOString(),
+            createdAt: $notification->created_at?->toISOString(),
+            updatedAt: $notification->updated_at?->toISOString(),
+        );
+    }
+
+    public function toArray(): array
+    {
+        $data = [
+            'id' => $this->id,
+            'recipient_type' => $this->recipientType,
+            'recipient_id' => $this->recipientId,
+            'actor_type' => $this->actorType,
+            'actor_id' => $this->actorId,
+            'event_type' => $this->eventType,
+            'title' => $this->title,
+            'body' => $this->body,
+            'aggregation_key' => $this->aggregationKey,
+            'event_count' => $this->eventCount,
+            'additional_count' => $this->additionalCount,
+            'target_type' => $this->targetType,
+            'target_id' => $this->targetId,
+            'payload' => $this->payload,
+            'is_read' => $this->isRead,
+            'read_at' => $this->readAt,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
         ];
+
+        return $data;
     }
 }

@@ -25,7 +25,7 @@ final class NotificationReadForUserAction
         $notification = $this->query->read($notification);
 
         return [
-            'notification' => NotificationInboxDto::fromModel($notification),
+            'notification' => NotificationInboxDto::fromModel($notification)->toArray(),
         ];
     }
 

@@ -5,34 +5,58 @@ namespace App\Domains\Common\Dto\Notification;
 use App\Domains\Common\Models\Notification\NotificationPreference;
 
 /**
- * 이벤트별 알림 설정 응답 DTO.
- * DB row가 없는 기본 이벤트도 default 응답으로 내려줄 수 있게 분리한다.
+ * NotificationPreferenceDto DTO.
  */
 final readonly class NotificationPreferenceDto
 {
-    public static function fromModel(NotificationPreference $preference): array
+    public function __construct(
+        public string $eventType,
+        public bool $inApp,
+        public bool $push,
+        public bool $email,
+        public mixed $metadata,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+    ) {}
+
+    public static function fromModel(NotificationPreference $preference): self
     {
-        return [
-            'event_type' => (string) $preference->event_type,
-            'in_app' => (bool) $preference->in_app,
-            'push' => (bool) $preference->push,
-            'email' => (bool) $preference->email,
-            'metadata' => $preference->metadata,
-            'created_at' => $preference->created_at?->toISOString(),
-            'updated_at' => $preference->updated_at?->toISOString(),
-        ];
+        return new self(
+            eventType: (string) $preference->event_type,
+            inApp: (bool) $preference->in_app,
+            push: (bool) $preference->push,
+            email: (bool) $preference->email,
+            metadata: $preference->metadata,
+            createdAt: $preference->created_at?->toISOString(),
+            updatedAt: $preference->updated_at?->toISOString(),
+        );
     }
 
-    public static function default(string $eventType): array
+    public static function default(string $eventType): self
     {
-        return [
-            'event_type' => $eventType,
-            'in_app' => true,
-            'push' => true,
-            'email' => false,
-            'metadata' => null,
-            'created_at' => null,
-            'updated_at' => null,
+        return new self(
+            eventType: $eventType,
+            inApp: true,
+            push: true,
+            email: false,
+            metadata: null,
+            createdAt: null,
+            updatedAt: null,
+        );
+    }
+
+    public function toArray(): array
+    {
+        $data = [
+            'event_type' => $this->eventType,
+            'in_app' => $this->inApp,
+            'push' => $this->push,
+            'email' => $this->email,
+            'metadata' => $this->metadata,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
         ];
+
+        return $data;
     }
 }

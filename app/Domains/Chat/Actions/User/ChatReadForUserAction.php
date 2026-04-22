@@ -32,7 +32,7 @@ final class ChatReadForUserAction
         );
 
         return [
-            'chat' => ChatForUserDto::fromModel($chat, (int) $user->id),
+            'chat' => ChatForUserDto::fromModel($chat, (int) $user->id)->toArray(),
         ];
     }
 

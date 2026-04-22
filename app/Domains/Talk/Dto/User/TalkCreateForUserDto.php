@@ -9,60 +9,120 @@ use Illuminate\Support\Collection;
 
 final readonly class TalkCreateForUserDto
 {
-    public function __construct(public array $talk) {}
+    public function __construct(
+        public int $id,
+        public ?int $authorId,
+        public string $title,
+        public string $content,
+        public string $status,
+        public string $postStatus,
+        public int $viewCount,
+        public int $commentCount,
+        public int $likeCount,
+        public int $saveCount,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+        public ?array $author = null,
+        public ?array $categories = null,
+        public ?array $images = null,
+    ) {}
 
     public static function fromModel(Talk $talk): self
     {
-        return new self([
-            'id' => (int) $talk->id,
-            'author_id' => $talk->author_id ? (int) $talk->author_id : null,
-            'author' => $talk->relationLoaded('author') && $talk->author
-                ? [
-                    'id' => (int) $talk->author->id,
-                    'name' => (string) $talk->author->name,
-                    'nickname' => $talk->author->nickname ? (string) $talk->author->nickname : null,
-                ]
-                : null,
-            'title' => (string) $talk->title,
-            'content' => (string) $talk->content,
-            'status' => (string) $talk->status,
-            'post_status' => (string) $talk->post_status,
-            'view_count' => (int) $talk->view_count,
-            'comment_count' => (int) $talk->comment_count,
-            'like_count' => (int) $talk->like_count,
-            'save_count' => (int) $talk->save_count,
-            'categories' => self::resolveCategories($talk)
-                ->map(fn (Category $category): array => [
-                    'id' => (int) $category->id,
-                    'name' => (string) $category->name,
-                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-                ])
-                ->values()
-                ->all(),
-            'images' => self::resolveImages($talk)
-                ->map(fn (Media $media): array => [
-                    'id' => (int) $media->id,
-                    'collection' => (string) $media->collection,
-                    'disk' => (string) $media->disk,
-                    'path' => (string) $media->path,
-                    'mime_type' => (string) $media->mime_type,
-                    'size' => (int) $media->size,
-                    'width' => $media->width !== null ? (int) $media->width : null,
-                    'height' => $media->height !== null ? (int) $media->height : null,
-                    'sort_order' => (int) $media->sort_order,
-                    'created_at' => $media->created_at?->toISOString(),
-                    'updated_at' => $media->updated_at?->toISOString(),
-                ])
-                ->values()
-                ->all(),
-            'created_at' => $talk->created_at?->toISOString(),
-            'updated_at' => $talk->updated_at?->toISOString(),
-        ]);
+        return new self(
+            id: (int) $talk->id,
+            authorId: $talk->author_id ? (int) $talk->author_id : null,
+            title: (string) $talk->title,
+            content: (string) $talk->content,
+            status: (string) $talk->status,
+            postStatus: (string) $talk->post_status,
+            viewCount: (int) $talk->view_count,
+            commentCount: (int) $talk->comment_count,
+            likeCount: (int) $talk->like_count,
+            saveCount: (int) $talk->save_count,
+            createdAt: $talk->created_at?->toISOString(),
+            updatedAt: $talk->updated_at?->toISOString(),
+            author: $talk->relationLoaded('author') ? self::author($talk) : null,
+            categories: $talk->relationLoaded('categories') ? self::categories($talk) : null,
+            images: $talk->relationLoaded('images') ? self::images($talk) : null,
+        );
     }
 
     public function toArray(): array
     {
-        return $this->talk;
+        $data = [
+            'id' => $this->id,
+            'author_id' => $this->authorId,
+            'title' => $this->title,
+            'content' => $this->content,
+            'status' => $this->status,
+            'post_status' => $this->postStatus,
+            'view_count' => $this->viewCount,
+            'comment_count' => $this->commentCount,
+            'like_count' => $this->likeCount,
+            'save_count' => $this->saveCount,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+
+        if ($this->author !== null) {
+            $data['author'] = $this->author;
+        }
+
+        if ($this->categories !== null) {
+            $data['categories'] = $this->categories;
+        }
+
+        if ($this->images !== null) {
+            $data['images'] = $this->images;
+        }
+
+        return $data;
+    }
+
+    private static function author(Talk $talk): ?array
+    {
+        if (! $talk->relationLoaded('author') || ! $talk->author) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $talk->author->id,
+            'name' => (string) $talk->author->name,
+            'nickname' => $talk->author->nickname ? (string) $talk->author->nickname : null,
+        ];
+    }
+
+    private static function categories(Talk $talk): array
+    {
+        return self::resolveCategories($talk)
+            ->map(fn (Category $category): array => [
+                'id' => (int) $category->id,
+                'name' => (string) $category->name,
+                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private static function images(Talk $talk): array
+    {
+        return self::resolveImages($talk)
+            ->map(fn (Media $media): array => [
+                'id' => (int) $media->id,
+                'collection' => (string) $media->collection,
+                'disk' => (string) $media->disk,
+                'path' => (string) $media->path,
+                'mime_type' => (string) $media->mime_type,
+                'size' => (int) $media->size,
+                'width' => $media->width !== null ? (int) $media->width : null,
+                'height' => $media->height !== null ? (int) $media->height : null,
+                'sort_order' => (int) $media->sort_order,
+                'created_at' => $media->created_at?->toISOString(),
+                'updated_at' => $media->updated_at?->toISOString(),
+            ])
+            ->values()
+            ->all();
     }
 
     /**

@@ -22,7 +22,7 @@ final class NotificationListForUserAction
 
         return [
             'items' => collect($paginator->items())
-                ->map(fn ($notification) => NotificationInboxDto::fromModel($notification))
+                ->map(fn ($notification) => NotificationInboxDto::fromModel($notification)->toArray())
                 ->values()
                 ->all(),
             'meta' => [

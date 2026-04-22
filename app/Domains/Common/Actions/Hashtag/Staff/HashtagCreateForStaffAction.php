@@ -4,6 +4,7 @@ namespace App\Domains\Common\Actions\Hashtag\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Dto\Hashtag\Staff\HashtagForStaffDto;
 use App\Domains\Common\Models\Hashtag\Hashtag;
 use App\Domains\Common\Queries\Hashtag\Staff\HashtagCreateForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -63,21 +64,7 @@ final class HashtagCreateForStaffAction
         ]);
 
         return [
-            'hashtag' => $this->toArray($created),
-        ];
-    }
-
-    private function toArray(Hashtag $hashtag): array
-    {
-        return [
-            'id' => (int) $hashtag->id,
-            'name' => (string) $hashtag->name,
-            'normalized_name' => (string) $hashtag->normalized_name,
-            'status' => $hashtag->resolveStatus(),
-            'usage_count' => $hashtag->resolveUsageCount(0),
-            'assignment_count' => 0,
-            'created_at' => optional($hashtag->created_at)?->toISOString(),
-            'updated_at' => optional($hashtag->updated_at)?->toISOString(),
+            'hashtag' => HashtagForStaffDto::fromModel($created)->toArray(),
         ];
     }
 }

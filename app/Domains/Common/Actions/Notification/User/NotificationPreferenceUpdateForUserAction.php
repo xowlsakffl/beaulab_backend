@@ -33,7 +33,7 @@ final class NotificationPreferenceUpdateForUserAction
         $preference = $this->query->update($user, trim((string) $payload['event_type']), $values);
 
         return [
-            'preference' => NotificationPreferenceDto::fromModel($preference),
+            'preference' => NotificationPreferenceDto::fromModel($preference)->toArray(),
         ];
     }
 }

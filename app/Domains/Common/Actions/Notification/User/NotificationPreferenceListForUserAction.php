@@ -31,9 +31,9 @@ final class NotificationPreferenceListForUserAction
                 ->map(function (string $eventType) use ($preferences): array {
                     $preference = $preferences->get($eventType);
 
-                    return $preference instanceof NotificationPreference
+                    return ($preference instanceof NotificationPreference
                         ? NotificationPreferenceDto::fromModel($preference)
-                        : NotificationPreferenceDto::default($eventType);
+                        : NotificationPreferenceDto::default($eventType))->toArray();
                 })
                 ->all(),
         ];

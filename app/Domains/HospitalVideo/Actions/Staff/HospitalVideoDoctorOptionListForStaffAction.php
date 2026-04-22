@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalVideo\Actions\Staff;
 
+use App\Domains\HospitalDoctor\Dto\Staff\HospitalDoctorOptionForStaffDto;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalVideo\Queries\Staff\HospitalVideoDoctorOptionListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
@@ -21,11 +22,7 @@ final class HospitalVideoDoctorOptionListForStaffAction
         Gate::authorize('viewAny', HospitalDoctor::class);
 
         $items = $this->query->get($filters)
-            ->map(static fn (HospitalDoctor $doctor): array => [
-                'id' => (int) $doctor->id,
-                'name' => (string) $doctor->name,
-                'position' => $doctor->position,
-            ])
+            ->map(static fn (HospitalDoctor $doctor): array => HospitalDoctorOptionForStaffDto::fromModel($doctor)->toArray())
             ->values()
             ->all();
 

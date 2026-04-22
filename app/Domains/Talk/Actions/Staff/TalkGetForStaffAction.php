@@ -16,25 +16,16 @@ final class TalkGetForStaffAction
     {
         Gate::authorize('view', $talk);
 
-        $include = $filters['include'] ?? [];
-        $includeComments = is_array($include) && in_array('comments', $include, true);
-
-        $relations = [
+        $talk->load([
             'author',
             'categories',
             'images',
-            'adminNotes.creator',
             'operationHistories.actor',
-        ];
-
-        if ($includeComments) {
-            $relations[] = 'comments.author';
-        }
-
-        $talk->load($relations);
+            'comments.author',
+        ]);
 
         return [
-            'talk' => TalkForStaffDetailDto::fromModel($talk, $includeComments)->toArray(),
+            'talk' => TalkForStaffDetailDto::fromModel($talk)->toArray(),
         ];
     }
 }

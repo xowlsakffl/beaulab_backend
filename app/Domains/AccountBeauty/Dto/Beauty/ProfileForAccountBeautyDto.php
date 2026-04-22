@@ -5,8 +5,7 @@ namespace App\Domains\AccountBeauty\Dto\Beauty;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 
 /**
- * ProfileForAccountBeautyDto 역할 정의.
- * 뷰티 계정 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * ProfileForAccountBeautyDto DTO.
  */
 final readonly class ProfileForAccountBeautyDto
 {
@@ -39,7 +38,7 @@ final readonly class ProfileForAccountBeautyDto
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'nickname' => $this->nickname,
@@ -50,5 +49,7 @@ final readonly class ProfileForAccountBeautyDto
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];
+
+        return $data;
     }
 }

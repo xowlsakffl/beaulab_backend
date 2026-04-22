@@ -15,36 +15,60 @@ use Illuminate\Support\Collection;
  */
 final readonly class BeautyForStaffDetailDto
 {
+    /**
+     * @param array<int, array<string, mixed>> $gallery
+     * @param array<int, array<string, mixed>> $categories
+     * @param array<int, array<string, mixed>>|null $accountBeauties
+     * @param array<int, array<string, mixed>>|null $experts
+     * @param array<string, mixed>|null $businessRegistration
+     */
     public function __construct(
-        public array $beauty,
+        public int $id,
+        public string $name,
+        public ?string $description,
+        public ?string $address,
+        public ?string $addressDetail,
+        public ?string $latitude,
+        public ?string $longitude,
+        public ?string $tel,
+        public ?string $email,
+        public ?string $consultingHours,
+        public ?string $direction,
+        public int $viewCount,
+        public string $allowStatus,
+        public string $status,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+        public ?array $logo,
+        public array $gallery,
+        public array $categories,
+        public ?array $accountBeauties = null,
+        public ?array $experts = null,
+        public ?array $businessRegistration = null,
     ) {}
 
-    /**
-     * @param array<int, string> $include
-     */
-    public static function fromModel(Beauty $beauty, array $include = []): self
+    public static function fromModel(Beauty $beauty): self
     {
-
-        $payload = [
-            'id' => $beauty->id,
-            'name' => $beauty->name,
-            'description' => $beauty->description,
-            'address' => $beauty->address,
-            'address_detail' => $beauty->address_detail,
-            'latitude' => $beauty->latitude,
-            'longitude' => $beauty->longitude,
-            'tel' => $beauty->tel,
-            'email' => $beauty->email,
-            'consulting_hours' => $beauty->consulting_hours,
-            'direction' => $beauty->direction,
-            'view_count' => (int) $beauty->view_count,
-            'allow_status' => $beauty->allow_status,
-            'status' => $beauty->status,
-            'created_at' => $beauty->created_at?->toISOString(),
-            'updated_at' => $beauty->updated_at?->toISOString(),
-            'logo' => self::formatMedia(self::resolveLogo($beauty)),
-            'gallery' => self::resolveGallery($beauty)->map(fn (Media $media): array => self::formatMedia($media))->all(),
-            'categories' => self::resolveCategories($beauty)
+        return new self(
+            id: (int) $beauty->id,
+            name: (string) $beauty->name,
+            description: $beauty->description,
+            address: $beauty->address,
+            addressDetail: $beauty->address_detail,
+            latitude: $beauty->latitude,
+            longitude: $beauty->longitude,
+            tel: $beauty->tel,
+            email: $beauty->email,
+            consultingHours: $beauty->consulting_hours,
+            direction: $beauty->direction,
+            viewCount: (int) $beauty->view_count,
+            allowStatus: (string) $beauty->allow_status,
+            status: (string) $beauty->status,
+            createdAt: $beauty->created_at?->toISOString(),
+            updatedAt: $beauty->updated_at?->toISOString(),
+            logo: self::formatMedia(self::resolveLogo($beauty)),
+            gallery: self::resolveGallery($beauty)->map(fn (Media $media): array => self::formatMedia($media))->all(),
+            categories: self::resolveCategories($beauty)
                 ->map(fn (Category $category): array => [
                     'id' => (int) $category->id,
                     'name' => (string) $category->name,
@@ -52,65 +76,125 @@ final readonly class BeautyForStaffDetailDto
                 ])
                 ->values()
                 ->all(),
-        ];
-
-        if (in_array('account_beauties', $include, true)) {
-            $payload['account_beauties'] = $beauty->accountBeauties->map(fn (AccountBeauty $accountBeauty): array => [
-                'id' => $accountBeauty->id,
-                'name' => $accountBeauty->name,
-                'nickname' => $accountBeauty->nickname,
-                'email' => $accountBeauty->email,
-                'status' => $accountBeauty->status,
-                'roles' => $accountBeauty->getRoleNames()->values()->all(),
-                'last_login_at' => $accountBeauty->last_login_at?->toISOString(),
-                'created_at' => $accountBeauty->created_at?->toISOString(),
-                'updated_at' => $accountBeauty->updated_at?->toISOString(),
-            ])->all();
-        }
-
-        if (in_array('experts', $include, true)) {
-            $payload['experts'] = $beauty->experts->map(fn (BeautyExpert $expert): array => [
-                'id' => $expert->id,
-                'beauty_id' => $expert->beauty_id,
-                'sort_order' => (int) $expert->sort_order,
-                'name' => $expert->name,
-                'gender' => $expert->gender,
-                'position' => $expert->position,
-                'career_started_at' => $expert->career_started_at?->toDateString(),
-                'educations' => $expert->educations ?? [],
-                'careers' => $expert->careers ?? [],
-                'etc_contents' => $expert->etc_contents ?? [],
-                'status' => $expert->status,
-                'allow_status' => $expert->allow_status,
-                'profile_image' => self::formatMedia($expert->profileImage),
-                'created_at' => $expert->created_at?->toISOString(),
-                'updated_at' => $expert->updated_at?->toISOString(),
-            ])->all();
-        }
-
-        if (in_array('business_registration', $include, true)) {
-            $businessRegistration = $beauty->businessRegistration;
-            $payload['business_registration'] = $businessRegistration ? [
-                'id' => $businessRegistration->id,
-                'business_number' => $businessRegistration->business_number,
-                'company_name' => $businessRegistration->company_name,
-                'ceo_name' => $businessRegistration->ceo_name,
-                'business_type' => $businessRegistration->business_type,
-                'business_item' => $businessRegistration->business_item,
-                'business_address' => $businessRegistration->business_address,
-                'business_address_detail' => $businessRegistration->business_address_detail,
-                'issued_at' => $businessRegistration->issued_at?->toDateString(),
-                'status' => $businessRegistration->status,
-                'certificate_media' => self::formatMedia($businessRegistration->certificateMedia),
-            ] : null;
-        }
-
-        return new self(beauty: $payload);
+            accountBeauties: $beauty->relationLoaded('accountBeauties') ? self::formatAccountBeauties($beauty) : null,
+            experts: $beauty->relationLoaded('experts') ? self::formatExperts($beauty) : null,
+            businessRegistration: $beauty->relationLoaded('businessRegistration') ? self::formatBusinessRegistration($beauty) : null,
+        );
     }
 
     public function toArray(): array
     {
-        return $this->beauty;
+        $data = [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'address' => $this->address,
+            'address_detail' => $this->addressDetail,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'tel' => $this->tel,
+            'email' => $this->email,
+            'consulting_hours' => $this->consultingHours,
+            'direction' => $this->direction,
+            'view_count' => $this->viewCount,
+            'allow_status' => $this->allowStatus,
+            'status' => $this->status,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'logo' => $this->logo,
+            'gallery' => $this->gallery,
+            'categories' => $this->categories,
+        ];
+
+        if ($this->accountBeauties !== null) {
+            $data['account_beauties'] = $this->accountBeauties;
+        }
+
+        if ($this->experts !== null) {
+            $data['experts'] = $this->experts;
+        }
+
+        if ($this->businessRegistration !== null) {
+            $data['business_registration'] = $this->businessRegistration;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function formatAccountBeauties(Beauty $beauty): array
+    {
+        return $beauty->accountBeauties->map(fn (AccountBeauty $accountBeauty): array => [
+            'id' => $accountBeauty->id,
+            'name' => $accountBeauty->name,
+            'nickname' => $accountBeauty->nickname,
+            'email' => $accountBeauty->email,
+            'status' => $accountBeauty->status,
+            'roles' => $accountBeauty->getRoleNames()->values()->all(),
+            'last_login_at' => $accountBeauty->last_login_at?->toISOString(),
+            'created_at' => $accountBeauty->created_at?->toISOString(),
+            'updated_at' => $accountBeauty->updated_at?->toISOString(),
+        ])->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function formatExperts(Beauty $beauty): array
+    {
+        return $beauty->experts->map(fn (BeautyExpert $expert): array => [
+            'id' => $expert->id,
+            'beauty_id' => $expert->beauty_id,
+            'sort_order' => (int) $expert->sort_order,
+            'name' => $expert->name,
+            'gender' => $expert->gender,
+            'position' => $expert->position,
+            'career_started_at' => $expert->career_started_at?->toDateString(),
+            'educations' => self::arrayValue($expert->educations),
+            'careers' => self::arrayValue($expert->careers),
+            'etc_contents' => self::arrayValue($expert->etc_contents),
+            'status' => $expert->status,
+            'allow_status' => $expert->allow_status,
+            'profile_image' => self::formatMedia($expert->profileImage),
+            'created_at' => $expert->created_at?->toISOString(),
+            'updated_at' => $expert->updated_at?->toISOString(),
+        ])->all();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function formatBusinessRegistration(Beauty $beauty): ?array
+    {
+        $businessRegistration = $beauty->businessRegistration;
+
+        if (! $businessRegistration) {
+            return null;
+        }
+
+        return [
+            'id' => $businessRegistration->id,
+            'business_number' => $businessRegistration->business_number,
+            'company_name' => $businessRegistration->company_name,
+            'ceo_name' => $businessRegistration->ceo_name,
+            'business_type' => $businessRegistration->business_type,
+            'business_item' => $businessRegistration->business_item,
+            'business_address' => $businessRegistration->business_address,
+            'business_address_detail' => $businessRegistration->business_address_detail,
+            'issued_at' => $businessRegistration->issued_at?->toDateString(),
+            'status' => $businessRegistration->status,
+            'certificate_media' => self::formatMedia($businessRegistration->certificateMedia),
+        ];
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private static function arrayValue(mixed $value): array
+    {
+        return is_array($value) ? $value : [];
     }
 
     private static function resolveLogo(Beauty $beauty): ?Media

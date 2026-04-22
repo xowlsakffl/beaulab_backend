@@ -41,7 +41,7 @@ final class HospitalGetForStaffAction
         }
 
         return [
-            'hospital' => HospitalForStaffDetailDto::fromModel($hospital, $include)->toArray(),
+            'hospital' => HospitalForStaffDetailDto::fromModel($hospital)->toArray(),
         ];
     }
 }

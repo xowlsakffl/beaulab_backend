@@ -22,7 +22,7 @@ final class AccountUserBlockForUserAction
 
         return [
             'items' => collect($paginator->items())
-                ->map(fn ($block) => AccountUserBlockForUserDto::fromModel($block))
+                ->map(fn ($block) => AccountUserBlockForUserDto::fromModel($block)->toArray())
                 ->values()
                 ->all(),
             'meta' => [
@@ -40,7 +40,7 @@ final class AccountUserBlockForUserAction
         $block = $this->query->block($user, $blocked);
 
         return [
-            'block' => AccountUserBlockForUserDto::fromModel($block),
+            'block' => AccountUserBlockForUserDto::fromModel($block)->toArray(),
         ];
     }
 

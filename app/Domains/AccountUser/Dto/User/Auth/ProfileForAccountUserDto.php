@@ -5,8 +5,7 @@ namespace App\Domains\AccountUser\Dto\User\Auth;
 use App\Domains\AccountUser\Models\AccountUser;
 
 /**
- * ProfileForAccountUserDto 역할 정의.
- * 일반 회원 계정 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * ProfileForAccountUserDto DTO.
  */
 final readonly class ProfileForAccountUserDto
 {
@@ -39,7 +38,7 @@ final readonly class ProfileForAccountUserDto
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'nickname' => $this->nickname,
@@ -50,5 +49,7 @@ final readonly class ProfileForAccountUserDto
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];
+
+        return $data;
     }
 }

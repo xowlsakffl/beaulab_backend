@@ -51,7 +51,7 @@ final class ChatMessageSendForUserAction
         }
 
         return [
-            'message' => ChatMessageForUserDto::fromModel($message, (int) $user->id),
+            'message' => ChatMessageForUserDto::fromModel($message, (int) $user->id)->toArray(),
         ];
     }
 
@@ -82,7 +82,7 @@ final class ChatMessageSendForUserAction
         }
 
         return [
-            'message' => ChatMessageForUserDto::fromModel($message, (int) $user->id),
+            'message' => ChatMessageForUserDto::fromModel($message, (int) $user->id)->toArray(),
         ];
     }
 

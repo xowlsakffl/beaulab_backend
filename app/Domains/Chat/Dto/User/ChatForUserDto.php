@@ -7,12 +7,31 @@ use App\Domains\Chat\Models\ChatParticipant;
 use Illuminate\Support\Collection;
 
 /**
- * 앱 채팅방 응답 DTO.
- * 현재 사용자 기준 상대방 정보, 알림 설정, 읽음 상태, 미읽음 수를 함께 내려준다.
+ * ChatForUserDto DTO.
  */
 final readonly class ChatForUserDto
 {
-    public static function fromModel(Chat $chat, int $currentUserId): array
+    public function __construct(
+        public int $id,
+        public string $status,
+        public ?int $lastMessageId,
+        public ?string $lastMessageAt,
+        public ?array $lastMessage,
+        public int $unreadCount,
+        public bool $notificationsEnabled,
+        public ?int $lastReadMessageId,
+        public ?string $lastReadAt,
+        public ?int $otherLastReadMessageId,
+        public ?string $otherLastReadAt,
+        public ?int $deletedUntilMessageId,
+        public ?string $deletedAt,
+        public ?array $otherUser,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+        public ?string $closedAt,
+    ) {}
+
+    public static function fromModel(Chat $chat, int $currentUserId): self
     {
         $participants = self::participants($chat);
         $currentParticipant = $participants->first(
@@ -22,41 +41,60 @@ final readonly class ChatForUserDto
             static fn (ChatParticipant $participant): bool => (int) $participant->account_user_id !== $currentUserId
         );
 
-        return [
-            'id' => (int) $chat->id,
-            'status' => (string) $chat->status,
-            'last_message_id' => $chat->last_message_id ? (int) $chat->last_message_id : null,
-            'last_message_at' => $chat->last_message_at?->toISOString(),
-            'last_message' => $chat->relationLoaded('lastMessage') && $chat->lastMessage
-                ? ChatMessageForUserDto::fromModel($chat->lastMessage, $currentUserId)
+        return new self(
+            id: (int) $chat->id,
+            status: (string) $chat->status,
+            lastMessageId: $chat->last_message_id ? (int) $chat->last_message_id : null,
+            lastMessageAt: $chat->last_message_at?->toISOString(),
+            lastMessage: $chat->relationLoaded('lastMessage') && $chat->lastMessage
+                ? ChatMessageForUserDto::fromModel($chat->lastMessage, $currentUserId)->toArray()
                 : null,
-            'unread_count' => (int) ($chat->unread_count ?? 0),
-            'notifications_enabled' => $currentParticipant
+            unreadCount: (int) ($chat->unread_count ?? 0),
+            notificationsEnabled: $currentParticipant
                 ? (bool) $currentParticipant->notifications_enabled
                 : true,
-            'last_read_message_id' => $currentParticipant?->last_read_message_id
+            lastReadMessageId: $currentParticipant?->last_read_message_id
                 ? (int) $currentParticipant->last_read_message_id
                 : null,
-            'last_read_at' => $currentParticipant?->last_read_at?->toISOString(),
-            'other_last_read_message_id' => $otherParticipant?->last_read_message_id
+            lastReadAt: $currentParticipant?->last_read_at?->toISOString(),
+            otherLastReadMessageId: $otherParticipant?->last_read_message_id
                 ? (int) $otherParticipant->last_read_message_id
                 : null,
-            'other_last_read_at' => $otherParticipant?->last_read_at?->toISOString(),
-            'deleted_until_message_id' => $currentParticipant?->deleted_until_message_id
+            otherLastReadAt: $otherParticipant?->last_read_at?->toISOString(),
+            deletedUntilMessageId: $currentParticipant?->deleted_until_message_id
                 ? (int) $currentParticipant->deleted_until_message_id
                 : null,
-            'deleted_at' => $currentParticipant?->deleted_at?->toISOString(),
-            'other_user' => $otherParticipant && $otherParticipant->relationLoaded('accountUser') && $otherParticipant->accountUser
-                ? [
-                    'id' => (int) $otherParticipant->accountUser->id,
-                    'nickname' => (string) $otherParticipant->accountUser->nickname,
-                    'email' => (string) $otherParticipant->accountUser->email,
-                ]
-                : null,
-            'created_at' => $chat->created_at?->toISOString(),
-            'updated_at' => $chat->updated_at?->toISOString(),
-            'closed_at' => $chat->closed_at?->toISOString(),
+            deletedAt: $currentParticipant?->deleted_at?->toISOString(),
+            otherUser: self::otherUser($otherParticipant),
+            createdAt: $chat->created_at?->toISOString(),
+            updatedAt: $chat->updated_at?->toISOString(),
+            closedAt: $chat->closed_at?->toISOString(),
+        );
+    }
+
+    public function toArray(): array
+    {
+        $data = [
+            'id' => $this->id,
+            'status' => $this->status,
+            'last_message_id' => $this->lastMessageId,
+            'last_message_at' => $this->lastMessageAt,
+            'last_message' => $this->lastMessage,
+            'unread_count' => $this->unreadCount,
+            'notifications_enabled' => $this->notificationsEnabled,
+            'last_read_message_id' => $this->lastReadMessageId,
+            'last_read_at' => $this->lastReadAt,
+            'other_last_read_message_id' => $this->otherLastReadMessageId,
+            'other_last_read_at' => $this->otherLastReadAt,
+            'deleted_until_message_id' => $this->deletedUntilMessageId,
+            'deleted_at' => $this->deletedAt,
+            'other_user' => $this->otherUser,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'closed_at' => $this->closedAt,
         ];
+
+        return $data;
     }
 
     /**
@@ -69,5 +107,18 @@ final readonly class ChatForUserDto
         }
 
         return $chat->participants;
+    }
+
+    private static function otherUser(?ChatParticipant $participant): ?array
+    {
+        if (! $participant || ! $participant->relationLoaded('accountUser') || ! $participant->accountUser) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $participant->accountUser->id,
+            'nickname' => (string) $participant->accountUser->nickname,
+            'email' => (string) $participant->accountUser->email,
+        ];
     }
 }

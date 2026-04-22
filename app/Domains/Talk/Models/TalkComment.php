@@ -23,7 +23,22 @@ final class TalkComment extends Model
     use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes;
 
     public const STATUS_ACTIVE = 'ACTIVE';
+
     public const STATUS_INACTIVE = 'INACTIVE';
+
+    public const POST_STATUS_NORMAL = 'POST_NORMAL';
+
+    public const POST_STATUS_AUTO_BLIND = 'POST_AUTO_BLIND';
+
+    public const POST_STATUS_USER_DELETE = 'POST_USER_DELETE';
+
+    public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
+
+    public const array VISIBILITY_CHANGE_LOCKED_POST_STATUSES = [
+        self::POST_STATUS_AUTO_BLIND,
+        self::POST_STATUS_USER_DELETE,
+        self::POST_STATUS_ADMIN_STOP,
+    ];
 
     protected $table = 'talk_comments';
 
@@ -36,10 +51,14 @@ final class TalkComment extends Model
         'author_id',
         'content',
         'status',
+        'post_status',
         'author_ip',
         'like_count',
     ];
 
+    /**
+     * @var array<string, string>
+     */
     protected $casts = [
         'talk_id' => 'integer',
         'parent_id' => 'integer',
@@ -50,9 +69,20 @@ final class TalkComment extends Model
         'deleted_at' => 'datetime',
     ];
 
+    /**
+     * @var array<string, mixed>
+     */
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
+        'post_status' => self::POST_STATUS_NORMAL,
         'like_count' => 0,
+    ];
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = [
+        'is_reply',
     ];
 
     /**
@@ -67,11 +97,30 @@ final class TalkComment extends Model
     }
 
     /**
-     * @var list<string>
+     * @return list<string>
      */
-    protected $appends = [
-        'is_reply',
-    ];
+    public static function postStatuses(): array
+    {
+        return [
+            self::POST_STATUS_NORMAL,
+            self::POST_STATUS_AUTO_BLIND,
+            self::POST_STATUS_USER_DELETE,
+            self::POST_STATUS_ADMIN_STOP,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function categoryCodes(): array
+    {
+        return Talk::categoryCodes();
+    }
+
+    public function isVisibilityChangeLocked(): bool
+    {
+        return in_array((string) $this->post_status, self::VISIBILITY_CHANGE_LOCKED_POST_STATUSES, true);
+    }
 
     public function talk(): BelongsTo
     {

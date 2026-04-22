@@ -6,17 +6,14 @@ use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * TalkCommentListForStaffRequest 역할 정의.
- * 스태프 모듈의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
- */
 final class TalkCommentListForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
-            'include' => $this->normalizeToArray($this->input('include')),
+            'post_status' => $this->normalizeToArray($this->input('post_status')),
+            'category_codes' => $this->normalizeToArray($this->input('category_codes')),
         ]);
     }
 
@@ -34,9 +31,15 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::in(TalkComment::statuses())],
-            'include' => ['nullable', 'array'],
-            'include.*' => ['in:author,talk,mentions'],
-            'sort' => ['nullable', 'in:id,status,like_count,created_at,updated_at'],
+            'post_status' => ['nullable', 'array'],
+            'post_status.*' => [Rule::in(TalkComment::postStatuses())],
+            'category_codes' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_codes.*' => ['string', Rule::in(TalkComment::categoryCodes())],
+            'metric_min' => ['nullable', 'integer', 'min:0'],
+            'metric_max' => ['nullable', 'integer', 'min:0'],
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d'],
+            'sort' => ['nullable', 'in:id,status,post_status,like_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -52,7 +55,12 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
-            'include' => $validated['include'] ?? [],
+            'post_status' => $validated['post_status'] ?? null,
+            'category_codes' => $validated['category_codes'] ?? null,
+            'metric_min' => isset($validated['metric_min']) ? (int) $validated['metric_min'] : null,
+            'metric_max' => isset($validated['metric_max']) ? (int) $validated['metric_max'] : null,
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
             'sort' => $validated['sort'] ?? 'id',
             'direction' => $validated['direction'] ?? 'desc',
             'per_page' => (int) ($validated['per_page'] ?? 15),
@@ -65,14 +73,20 @@ final class TalkCommentListForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'talk_id' => '게시글',
+            'talk_id' => '토크',
             'parent_id' => '부모 댓글',
             'author_id' => '작성자',
             'q' => '검색어',
-            'status' => '노출 상태',
-            'status.*' => '노출 상태',
-            'include' => '포함 항목',
-            'include.*' => '포함 항목',
+            'status' => '노출 여부',
+            'status.*' => '노출 여부',
+            'post_status' => '상태',
+            'post_status.*' => '상태',
+            'category_codes' => '토크 유형',
+            'category_codes.*' => '토크 유형',
+            'metric_min' => '좋아요 수 최소값',
+            'metric_max' => '좋아요 수 최대값',
+            'start_date' => '작성 시작일',
+            'end_date' => '작성 종료일',
             'sort' => '정렬 기준',
             'direction' => '정렬 방향',
             'per_page' => '페이지당 개수',
@@ -87,6 +101,8 @@ final class TalkCommentListForStaffRequest extends FormRequest
 
         if (is_string($value)) {
             $value = explode(',', $value);
+        } elseif (is_int($value)) {
+            $value = [(string) $value];
         }
 
         if (! is_array($value)) {
@@ -94,10 +110,22 @@ final class TalkCommentListForStaffRequest extends FormRequest
         }
 
         $normalized = array_values(array_filter(array_map(
-            static fn ($item) => is_string($item) ? trim($item) : null,
+            static function ($item): ?string {
+                if (is_string($item)) {
+                    $item = trim($item);
+
+                    return $item === '' ? null : $item;
+                }
+
+                if (is_int($item)) {
+                    return (string) $item;
+                }
+
+                return null;
+            },
             $value,
         )));
 
-        return $normalized === [] ? null : $normalized;
+        return $normalized === [] ? null : array_values(array_unique($normalized));
     }
 }

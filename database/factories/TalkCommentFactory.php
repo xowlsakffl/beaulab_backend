@@ -15,12 +15,17 @@ final class TalkCommentFactory extends Factory
 
     public function definition(): array
     {
+        $postStatus = $this->faker->randomElement(TalkComment::postStatuses());
+
         return [
             'talk_id' => null,
             'parent_id' => null,
             'author_id' => $this->randomAuthorId(),
             'content' => $this->faker->sentence(18),
-            'status' => $this->faker->randomElement([TalkComment::STATUS_ACTIVE, TalkComment::STATUS_INACTIVE]),
+            'status' => $postStatus === TalkComment::POST_STATUS_NORMAL
+                ? $this->faker->randomElement(TalkComment::statuses())
+                : TalkComment::STATUS_INACTIVE,
+            'post_status' => $postStatus,
             'author_ip' => $this->faker->ipv4(),
             'like_count' => $this->faker->numberBetween(0, 80),
         ];
@@ -30,6 +35,7 @@ final class TalkCommentFactory extends Factory
     {
         return $this->state(fn () => [
             'status' => TalkComment::STATUS_ACTIVE,
+            'post_status' => TalkComment::POST_STATUS_NORMAL,
         ]);
     }
 

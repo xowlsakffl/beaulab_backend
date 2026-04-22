@@ -2,19 +2,14 @@
 
 namespace App\Domains\Talk\Queries\Staff;
 
+use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-/**
- * TalkCommentListForStaffQuery 역할 정의.
- * 토크 도메인의 Query 계층으로, Eloquent 조회/저장 조건을 캡슐화해 Action 계층에 DB 쿼리가 흩어지지 않게 한다.
- */
 final class TalkCommentListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $include = $filters['include'] ?? [];
-
         $builder = TalkComment::query()
             ->select([
                 'id',
@@ -23,35 +18,20 @@ final class TalkCommentListForStaffQuery
                 'author_id',
                 'content',
                 'status',
+                'post_status',
                 'like_count',
                 'created_at',
                 'updated_at',
             ])
-            ->withCount('mentions');
-
-        if (is_array($include) && in_array('author', $include, true)) {
-            $builder->with(['author:id,name,email']);
-        }
-
-        if (is_array($include) && in_array('talk', $include, true)) {
-            $builder->with(['talk:id,title']);
-        }
-
-        if (is_array($include) && in_array('mentions', $include, true)) {
-            $builder->with([
-                'mentions' => fn ($query) => $query
-                    ->select([
-                        'id',
-                        'talk_comment_id',
-                        'mentioned_user_id',
-                        'mentioned_by_user_id',
-                        'mention_text',
-                        'start_offset',
-                        'end_offset',
-                    ])
-                    ->with(['mentionedUser:id,name']),
+            ->with([
+                'talk:id,title',
+                'author:id,name,nickname,email',
+                'talk.categories' => fn ($categoryQuery) => $categoryQuery
+                    ->select(['categories.id', 'categories.code', 'categories.depth', 'categories.sort_order'])
+                    ->orderBy('depth')
+                    ->orderBy('sort_order')
+                    ->orderBy('id'),
             ]);
-        }
 
         if (! empty($filters['talk_id'])) {
             $builder->where('talk_id', (int) $filters['talk_id']);
@@ -67,15 +47,60 @@ final class TalkCommentListForStaffQuery
 
         if (! empty($filters['q'])) {
             $q = (string) $filters['q'];
-            $builder->where('content', 'like', "%{$q}%");
+            $builder->where(function ($query) use ($q): void {
+                $query->where('content', 'like', "%{$q}%")
+                    ->orWhereHas('talk', fn ($talkQuery) => $talkQuery->where('title', 'like', "%{$q}%"));
+            });
         }
 
         if (is_array($filters['status'] ?? null) && $filters['status'] !== []) {
             $builder->whereIn('status', $filters['status']);
         }
 
+        if (is_array($filters['post_status'] ?? null) && $filters['post_status'] !== []) {
+            $builder->whereIn('post_status', $filters['post_status']);
+        }
+
         if (! empty($filters['author_id'])) {
             $builder->where('author_id', (int) $filters['author_id']);
+        }
+
+        $categoryCodes = $filters['category_codes'] ?? null;
+        if (is_array($categoryCodes) && $categoryCodes !== []) {
+            $normalizedCategoryCodes = collect($categoryCodes)
+                ->filter(static fn ($value): bool => is_string($value))
+                ->map(static fn (string $value): string => trim($value))
+                ->filter(static fn (string $value): bool => $value !== '')
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($normalizedCategoryCodes === []) {
+                $builder->whereRaw('1 = 0');
+            } else {
+                $builder->whereHas(
+                    'talk.categories',
+                    fn ($query) => $query
+                        ->where('categories.domain', Talk::CATEGORY_DOMAIN)
+                        ->whereIn('categories.code', $normalizedCategoryCodes)
+                );
+            }
+        }
+
+        if ($filters['metric_min'] !== null) {
+            $builder->where('like_count', '>=', (int) $filters['metric_min']);
+        }
+
+        if ($filters['metric_max'] !== null) {
+            $builder->where('like_count', '<=', (int) $filters['metric_max']);
+        }
+
+        if (! empty($filters['start_date'])) {
+            $builder->whereDate('created_at', '>=', $filters['start_date']);
+        }
+
+        if (! empty($filters['end_date'])) {
+            $builder->whereDate('created_at', '<=', $filters['end_date']);
         }
 
         $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');

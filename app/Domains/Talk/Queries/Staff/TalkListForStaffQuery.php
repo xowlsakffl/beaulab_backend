@@ -2,7 +2,6 @@
 
 namespace App\Domains\Talk\Queries\Staff;
 
-use App\Domains\Common\Models\Category\Category;
 use App\Domains\Talk\Models\Talk;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -14,8 +13,6 @@ final class TalkListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $include = $filters['include'] ?? [];
-
         $builder = Talk::query()
             ->select([
                 'id',
@@ -32,23 +29,15 @@ final class TalkListForStaffQuery
                 'save_count',
                 'created_at',
                 'updated_at',
-            ]);
-
-        if (is_array($include) && in_array('author', $include, true)) {
-            $builder->with([
+            ])
+            ->with([
                 'author:id,name,nickname,email',
-            ]);
-        }
-
-        if (is_array($include) && in_array('categories', $include, true)) {
-            $builder->with([
                 'categories' => fn ($query) => $query
-                    ->select(['categories.id', 'categories.name', 'categories.depth', 'categories.sort_order'])
+                    ->select(['categories.id', 'categories.code', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')
                     ->orderBy('sort_order')
                     ->orderBy('id'),
             ]);
-        }
 
         if (! empty($filters['q'])) {
             $q = (string) $filters['q'];
@@ -103,7 +92,7 @@ final class TalkListForStaffQuery
                 $builder->whereHas(
                     'categories',
                     fn ($query) => $query
-                        ->where('categories.domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
+                        ->where('categories.domain', Talk::CATEGORY_DOMAIN)
                         ->whereIn('categories.code', $normalizedCategoryCodes)
                 );
             }

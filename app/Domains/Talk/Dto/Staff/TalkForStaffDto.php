@@ -27,8 +27,8 @@ final readonly class TalkForStaffDto
         public int $saveCount,
         public string $createdAt,
         public string $updatedAt,
-        public ?array $author,
-        public ?array $categories,
+        public ?string $nickname,
+        public array $talkType,
     ) {}
 
     public static function fromModel(Talk $talk): self
@@ -48,24 +48,8 @@ final readonly class TalkForStaffDto
             saveCount: (int) $talk->save_count,
             createdAt: $talk->created_at?->toISOString() ?? '',
             updatedAt: $talk->updated_at?->toISOString() ?? '',
-            author: $talk->relationLoaded('author') && $talk->author
-                ? [
-                    'id' => (int) $talk->author->id,
-                    'name' => (string) $talk->author->name,
-                    'nickname' => (string) $talk->author->nickname,
-                    'email' => (string) $talk->author->email,
-                ]
-                : null,
-            categories: $talk->relationLoaded('categories')
-                ? self::resolveCategories($talk)
-                    ->map(fn (Category $category): array => [
-                        'id' => (int) $category->id,
-                        'name' => (string) $category->name,
-                        'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-                    ])
-                    ->values()
-                    ->all()
-                : null,
+            nickname: self::nickname($talk),
+            talkType: self::talkTypeCodes($talk)->values()->all(),
         );
     }
 
@@ -74,6 +58,8 @@ final readonly class TalkForStaffDto
         $data = [
             'id' => $this->id,
             'author_id' => $this->authorId,
+            'nickname' => $this->nickname,
+            'talk_type' => $this->talkType,
             'title' => $this->title,
             'content' => $this->content,
             'status' => $this->status,
@@ -88,26 +74,33 @@ final readonly class TalkForStaffDto
             'updated_at' => $this->updatedAt,
         ];
 
-        if ($this->author !== null) {
-            $data['author'] = $this->author;
-        }
-
-        if ($this->categories !== null) {
-            $data['categories'] = $this->categories;
-        }
-
         return $data;
     }
 
+    private static function nickname(Talk $talk): ?string
+    {
+        if (! $talk->relationLoaded('author') || ! $talk->author) {
+            return null;
+        }
+
+        $nickname = trim((string) $talk->author->nickname);
+
+        return $nickname !== '' ? $nickname : (string) $talk->author->name;
+    }
+
     /**
-     * @return Collection<int, Category>
+     * @return Collection<int, string>
      */
-    private static function resolveCategories(Talk $talk): Collection
+    private static function talkTypeCodes(Talk $talk): Collection
     {
         if (! $talk->relationLoaded('categories')) {
             return collect();
         }
 
-        return $talk->categories;
+        return $talk->categories
+            ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
+            ->map(fn (Category $category): string => (string) $category->code)
+            ->filter(static fn (string $code): bool => $code !== '')
+            ->values();
     }
 }

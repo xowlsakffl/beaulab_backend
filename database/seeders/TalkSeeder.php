@@ -47,25 +47,21 @@ final class TalkSeeder extends Seeder
         $samples = [
             [
                 'count' => 16,
-                'title_prefix' => '[시스템차단]',
                 'post_status' => Talk::POST_STATUS_AUTO_BLIND,
                 'status' => Talk::STATUS_INACTIVE,
             ],
             [
                 'count' => 10,
-                'title_prefix' => '[게시중단]',
                 'post_status' => Talk::POST_STATUS_ADMIN_STOP,
                 'status' => Talk::STATUS_INACTIVE,
             ],
             [
                 'count' => 8,
-                'title_prefix' => '[본인삭제]',
                 'post_status' => Talk::POST_STATUS_USER_DELETE,
                 'status' => Talk::STATUS_INACTIVE,
             ],
             [
                 'count' => 6,
-                'title_prefix' => '[미노출]',
                 'post_status' => Talk::POST_STATUS_NORMAL,
                 'status' => Talk::STATUS_INACTIVE,
             ],
@@ -78,7 +74,6 @@ final class TalkSeeder extends Seeder
                 ->count($sample['count'])
                 ->create([
                     'author_id' => fn () => $authorIds[array_rand($authorIds)],
-                    'title' => fn () => "{$sample['title_prefix']} ".fake()->sentence(5),
                     'status' => $sample['status'],
                     'post_status' => $sample['post_status'],
                     'is_pinned' => false,

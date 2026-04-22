@@ -22,7 +22,7 @@ final class ChatListForUserAction
 
         return [
             'items' => collect($paginator->items())
-                ->map(fn ($chat) => ChatForUserDto::fromModel($chat, (int) $user->id))
+                ->map(fn ($chat) => ChatForUserDto::fromModel($chat, (int) $user->id)->toArray())
                 ->values()
                 ->all(),
             'meta' => [

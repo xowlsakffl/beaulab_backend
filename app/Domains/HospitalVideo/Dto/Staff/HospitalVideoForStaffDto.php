@@ -36,7 +36,7 @@ final readonly class HospitalVideoForStaffDto
         public bool $isPublishPeriodUnlimited,
         public string $createdAt,
         public string $updatedAt,
-        public ?array $categories,
+        public ?array $categories = null,
     ) {}
 
     public static function fromModel(HospitalVideo $video): self

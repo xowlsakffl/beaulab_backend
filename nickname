@@ -1,1 +1,0 @@
-app/Domains/Talk/Dto/Staff/TalkForStaffDto.php:55:                    'nickname' => (string) $talk->author->name,

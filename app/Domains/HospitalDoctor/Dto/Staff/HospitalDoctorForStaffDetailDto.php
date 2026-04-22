@@ -8,41 +8,72 @@ use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Support\Collection;
 
 /**
- * HospitalDoctorForStaffDetailDto 역할 정의.
- * 병원 의사 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * HospitalDoctorForStaffDetailDto DTO.
  */
 final readonly class HospitalDoctorForStaffDetailDto
 {
+    /**
+     * @param array<int, mixed> $educations
+     * @param array<int, mixed> $careers
+     * @param array<int, mixed> $etcContents
+     * @param array<int, array<string, mixed>> $educationCertificateImage
+     * @param array<int, array<string, mixed>> $etcCertificateImage
+     * @param array<int, array<string, mixed>> $categories
+     */
     public function __construct(
-        public array $doctor,
+        public int $id,
+        public int $hospitalId,
+        public ?string $hospitalName,
+        public ?string $hospitalBusinessNumber,
+        public int $sortOrder,
+        public string $name,
+        public ?string $gender,
+        public ?string $position,
+        public ?string $careerStartedAt,
+        public ?string $licenseNumber,
+        public bool $isSpecialist,
+        public int $viewCount,
+        public array $educations,
+        public array $careers,
+        public array $etcContents,
+        public string $status,
+        public string $allowStatus,
+        public ?array $profileImage,
+        public ?array $licenseImage,
+        public ?array $specialistCertificateImage,
+        public array $educationCertificateImage,
+        public array $etcCertificateImage,
+        public array $categories,
+        public ?string $createdAt,
+        public ?string $updatedAt,
     ) {}
 
     public static function fromModel(HospitalDoctor $doctor): self
     {
-        return new self([
-            'id' => $doctor->id,
-            'hospital_id' => $doctor->hospital_id,
-            'hospital_name' => $doctor->hospital?->name,
-            'hospital_business_number' => $doctor->hospital?->businessRegistration?->business_number,
-            'sort_order' => (int) $doctor->sort_order,
-            'name' => $doctor->name,
-            'gender' => $doctor->gender,
-            'position' => $doctor->position,
-            'career_started_at' => $doctor->career_started_at?->toDateString(),
-            'license_number' => $doctor->license_number,
-            'is_specialist' => (bool) $doctor->is_specialist,
-            'view_count' => (int) $doctor->view_count,
-            'educations' => $doctor->educations ?? [],
-            'careers' => $doctor->careers ?? [],
-            'etc_contents' => $doctor->etc_contents ?? [],
-            'status' => $doctor->status,
-            'allow_status' => $doctor->allow_status,
-            'profile_image' => self::formatMedia($doctor->profileImage),
-            'license_image' => self::formatMedia($doctor->licenseImage),
-            'specialist_certificate_image' => self::formatMedia($doctor->specialistCertificateImages->first()),
-            'education_certificate_image' => self::formatMediaList($doctor->educationCertificateImages),
-            'etc_certificate_image' => self::formatMediaList($doctor->etcCertificateImages),
-            'categories' => self::resolveCategories($doctor)
+        return new self(
+            id: (int) $doctor->id,
+            hospitalId: (int) $doctor->hospital_id,
+            hospitalName: $doctor->hospital?->name,
+            hospitalBusinessNumber: $doctor->hospital?->businessRegistration?->business_number,
+            sortOrder: (int) $doctor->sort_order,
+            name: (string) $doctor->name,
+            gender: $doctor->gender,
+            position: $doctor->position,
+            careerStartedAt: $doctor->career_started_at?->toDateString(),
+            licenseNumber: $doctor->license_number,
+            isSpecialist: (bool) $doctor->is_specialist,
+            viewCount: (int) $doctor->view_count,
+            educations: self::arrayValue($doctor->educations),
+            careers: self::arrayValue($doctor->careers),
+            etcContents: self::arrayValue($doctor->etc_contents),
+            status: (string) $doctor->status,
+            allowStatus: (string) $doctor->allow_status,
+            profileImage: self::formatMedia($doctor->profileImage),
+            licenseImage: self::formatMedia($doctor->licenseImage),
+            specialistCertificateImage: self::formatMedia($doctor->specialistCertificateImages->first()),
+            educationCertificateImage: self::formatMediaList($doctor->educationCertificateImages),
+            etcCertificateImage: self::formatMediaList($doctor->etcCertificateImages),
+            categories: self::resolveCategories($doctor)
                 ->map(fn (Category $category): array => [
                     'id' => (int) $category->id,
                     'domain' => (string) $category->domain,
@@ -52,14 +83,50 @@ final readonly class HospitalDoctorForStaffDetailDto
                 ])
                 ->values()
                 ->all(),
-            'created_at' => $doctor->created_at?->toISOString(),
-            'updated_at' => $doctor->updated_at?->toISOString(),
-        ]);
+            createdAt: $doctor->created_at?->toISOString(),
+            updatedAt: $doctor->updated_at?->toISOString(),
+        );
     }
 
     public function toArray(): array
     {
-        return $this->doctor;
+        $data = [
+            'id' => $this->id,
+            'hospital_id' => $this->hospitalId,
+            'hospital_name' => $this->hospitalName,
+            'hospital_business_number' => $this->hospitalBusinessNumber,
+            'sort_order' => $this->sortOrder,
+            'name' => $this->name,
+            'gender' => $this->gender,
+            'position' => $this->position,
+            'career_started_at' => $this->careerStartedAt,
+            'license_number' => $this->licenseNumber,
+            'is_specialist' => $this->isSpecialist,
+            'view_count' => $this->viewCount,
+            'educations' => $this->educations,
+            'careers' => $this->careers,
+            'etc_contents' => $this->etcContents,
+            'status' => $this->status,
+            'allow_status' => $this->allowStatus,
+            'profile_image' => $this->profileImage,
+            'license_image' => $this->licenseImage,
+            'specialist_certificate_image' => $this->specialistCertificateImage,
+            'education_certificate_image' => $this->educationCertificateImage,
+            'etc_certificate_image' => $this->etcCertificateImage,
+            'categories' => $this->categories,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+
+        return $data;
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private static function arrayValue(mixed $value): array
+    {
+        return is_array($value) ? $value : [];
     }
 
     private static function formatMedia(?Media $media): ?array

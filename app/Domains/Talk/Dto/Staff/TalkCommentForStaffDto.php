@@ -7,8 +7,7 @@ use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Support\Collection;
 
 /**
- * TalkCommentForStaffDto 역할 정의.
- * 토크 댓글 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * TalkCommentForStaffDto DTO.
  */
 final readonly class TalkCommentForStaffDto
 {
@@ -43,7 +42,7 @@ final readonly class TalkCommentForStaffDto
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'created_at' => $this->createdAt,
             'nickname' => $this->nickname,
@@ -54,6 +53,8 @@ final readonly class TalkCommentForStaffDto
             'like_count' => $this->likeCount,
             'status' => $this->postStatus,
         ];
+
+        return $data;
     }
 
     private static function nickname(TalkComment $comment): ?string

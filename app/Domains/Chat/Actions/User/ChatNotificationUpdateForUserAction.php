@@ -22,7 +22,7 @@ final class ChatNotificationUpdateForUserAction
         $chat = $this->query->update($chat, $user, $notificationsEnabled);
 
         return [
-            'chat' => ChatForUserDto::fromModel($chat, (int) $user->id),
+            'chat' => ChatForUserDto::fromModel($chat, (int) $user->id)->toArray(),
         ];
     }
 }

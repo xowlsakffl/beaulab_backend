@@ -5,28 +5,59 @@ namespace App\Domains\AccountUser\Dto\User;
 use App\Domains\AccountUser\Models\AccountUserBlock;
 
 /**
- * 앱 사용자 차단 응답 DTO.
- * API 응답에는 차단 관계와 차단된 사용자 요약 정보만 노출한다.
+ * AccountUserBlockForUserDto DTO.
  */
 final readonly class AccountUserBlockForUserDto
 {
-    public static function fromModel(AccountUserBlock $block): array
+    public function __construct(
+        public int $id,
+        public int $blockerUserId,
+        public int $blockedUserId,
+        public ?array $blockedUser,
+        public ?string $blockedAt,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+    ) {}
+
+    public static function fromModel(AccountUserBlock $block): self
     {
+        return new self(
+            id: (int) $block->id,
+            blockerUserId: (int) $block->blocker_user_id,
+            blockedUserId: (int) $block->blocked_user_id,
+            blockedUser: self::blockedUser($block),
+            blockedAt: $block->blocked_at?->toISOString(),
+            createdAt: $block->created_at?->toISOString(),
+            updatedAt: $block->updated_at?->toISOString(),
+        );
+    }
+
+    public function toArray(): array
+    {
+        $data = [
+            'id' => $this->id,
+            'blocker_user_id' => $this->blockerUserId,
+            'blocked_user_id' => $this->blockedUserId,
+            'blocked_user' => $this->blockedUser,
+            'blocked_at' => $this->blockedAt,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+
+        return $data;
+    }
+
+    private static function blockedUser(AccountUserBlock $block): ?array
+    {
+        if (! $block->relationLoaded('blocked') || ! $block->blocked) {
+            return null;
+        }
+
         return [
-            'id' => (int) $block->id,
-            'blocker_user_id' => (int) $block->blocker_user_id,
-            'blocked_user_id' => (int) $block->blocked_user_id,
-            'blocked_user' => $block->relationLoaded('blocked') && $block->blocked
-                ? [
-                    'id' => (int) $block->blocked->id,
-                    'nickname' => (string) $block->blocked->nickname,
-                    'email' => (string) $block->blocked->email,
-                    'status' => (string) $block->blocked->status,
-                ]
-                : null,
-            'blocked_at' => $block->blocked_at?->toISOString(),
-            'created_at' => $block->created_at?->toISOString(),
-            'updated_at' => $block->updated_at?->toISOString(),
+            'id' => (int) $block->blocked->id,
+            'nickname' => (string) $block->blocked->nickname,
+            'email' => (string) $block->blocked->email,
+            'status' => (string) $block->blocked->status,
         ];
     }
 }

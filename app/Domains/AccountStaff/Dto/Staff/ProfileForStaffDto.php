@@ -5,8 +5,7 @@ namespace App\Domains\AccountStaff\Dto\Staff;
 use App\Domains\AccountStaff\Models\AccountStaff;
 
 /**
- * ProfileForStaffDto 역할 정의.
- * 스태프 계정 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * ProfileForStaffDto DTO.
  */
 final readonly class ProfileForStaffDto
 {
@@ -41,7 +40,7 @@ final readonly class ProfileForStaffDto
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'nickname' => $this->nickname,
@@ -53,5 +52,7 @@ final readonly class ProfileForStaffDto
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];
+
+        return $data;
     }
 }

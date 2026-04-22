@@ -16,7 +16,7 @@ final class NotificationInboxBroadcastPayloadQuery
         $notification = NotificationInbox::query()->find($notificationId);
 
         return $notification instanceof NotificationInbox
-            ? NotificationInboxDto::fromModel($notification)
+            ? NotificationInboxDto::fromModel($notification)->toArray()
             : null;
     }
 }

@@ -5,8 +5,8 @@ namespace App\Domains\Common\Actions\Category\Staff;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Dto\Category\Staff\CategoryForStaffDto;
 use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
 use App\Domains\Common\Queries\Category\Staff\CategoryCreateForStaffQuery;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -106,49 +106,7 @@ final class CategoryCreateForStaffAction
         ]);
 
         return [
-            'category' => $this->toArray($category->load('iconMedia')),
-        ];
-    }
-
-    private function toArray(Category $category): array
-    {
-        return [
-            'id' => (int) $category->id,
-            'domain' => (string) $category->domain,
-            'parent_id' => $category->parent_id !== null ? (int) $category->parent_id : null,
-            'depth' => (int) $category->depth,
-            'name' => (string) $category->name,
-            'code' => $category->code,
-            'full_path' => $category->full_path,
-            'sort_order' => (int) $category->sort_order,
-            'status' => (string) $category->status,
-            'is_menu_visible' => (bool) $category->is_menu_visible,
-            'icon' => $this->formatMedia($category->relationLoaded('iconMedia') ? $category->iconMedia : null),
-            'created_at' => optional($category->created_at)?->toISOString(),
-            'updated_at' => optional($category->updated_at)?->toISOString(),
-        ];
-    }
-
-    private function formatMedia(?Media $media): ?array
-    {
-        if (! $media) {
-            return null;
-        }
-
-        return [
-            'id' => (int) $media->id,
-            'collection' => (string) $media->collection,
-            'disk' => (string) $media->disk,
-            'path' => (string) $media->path,
-            'mime_type' => $media->mime_type,
-            'size' => $media->size,
-            'width' => $media->width,
-            'height' => $media->height,
-            'sort_order' => (int) $media->sort_order,
-            'is_primary' => (bool) $media->is_primary,
-            'metadata' => $media->metadata,
-            'created_at' => optional($media->created_at)?->toISOString(),
-            'updated_at' => optional($media->updated_at)?->toISOString(),
+            'category' => CategoryForStaffDto::fromModel($category->load('iconMedia'))->toArray(),
         ];
     }
 }

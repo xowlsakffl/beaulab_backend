@@ -8,37 +8,67 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * 앱 채팅 메시지 응답 DTO.
- * API 응답에서는 현재 사용자 기준 is_mine을 계산하지만, broadcast payload에는 이 값을 넣지 않는다.
+ * ChatMessageForUserDto DTO.
  */
 final readonly class ChatMessageForUserDto
 {
-    public static function fromModel(ChatMessage $message, int $currentUserId): array
+    public function __construct(
+        public int $id,
+        public int $chatId,
+        public int $senderUserId,
+        public bool $isMine,
+        public string $messageType,
+        public ?string $body,
+        public ?int $replyToMessageId,
+        public mixed $metadata,
+        public array $attachments,
+        public ?array $sender,
+        public ?string $editedAt,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+    ) {}
+
+    public static function fromModel(ChatMessage $message, int $currentUserId): self
     {
-        return [
-            'id' => (int) $message->id,
-            'chat_id' => (int) $message->chat_id,
-            'sender_user_id' => (int) $message->sender_user_id,
-            'is_mine' => (int) $message->sender_user_id === $currentUserId,
-            'message_type' => (string) $message->message_type,
-            'body' => $message->body,
-            'reply_to_message_id' => $message->reply_to_message_id ? (int) $message->reply_to_message_id : null,
-            'metadata' => $message->metadata,
-            'attachments' => self::attachments($message)
+        return new self(
+            id: (int) $message->id,
+            chatId: (int) $message->chat_id,
+            senderUserId: (int) $message->sender_user_id,
+            isMine: (int) $message->sender_user_id === $currentUserId,
+            messageType: (string) $message->message_type,
+            body: $message->body,
+            replyToMessageId: $message->reply_to_message_id ? (int) $message->reply_to_message_id : null,
+            metadata: $message->metadata,
+            attachments: self::attachments($message)
                 ->map(static fn (Media $media): array => self::media($media))
                 ->values()
                 ->all(),
-            'sender' => $message->relationLoaded('sender') && $message->sender
-                ? [
-                    'id' => (int) $message->sender->id,
-                    'nickname' => (string) $message->sender->nickname,
-                    'email' => (string) $message->sender->email,
-                ]
-                : null,
-            'edited_at' => $message->edited_at?->toISOString(),
-            'created_at' => $message->created_at?->toISOString(),
-            'updated_at' => $message->updated_at?->toISOString(),
+            sender: self::sender($message),
+            editedAt: $message->edited_at?->toISOString(),
+            createdAt: $message->created_at?->toISOString(),
+            updatedAt: $message->updated_at?->toISOString(),
+        );
+    }
+
+    public function toArray(): array
+    {
+        $data = [
+            'id' => $this->id,
+            'chat_id' => $this->chatId,
+            'sender_user_id' => $this->senderUserId,
+            'is_mine' => $this->isMine,
+            'message_type' => $this->messageType,
+            'body' => $this->body,
+            'reply_to_message_id' => $this->replyToMessageId,
+            'metadata' => $this->metadata,
+            'attachments' => $this->attachments,
+            'sender' => $this->sender,
+            'edited_at' => $this->editedAt,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
         ];
+
+        return $data;
     }
 
     /**
@@ -51,6 +81,19 @@ final readonly class ChatMessageForUserDto
         }
 
         return $message->attachments;
+    }
+
+    private static function sender(ChatMessage $message): ?array
+    {
+        if (! $message->relationLoaded('sender') || ! $message->sender) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $message->sender->id,
+            'nickname' => (string) $message->sender->nickname,
+            'email' => (string) $message->sender->email,
+        ];
     }
 
     private static function media(Media $media): array

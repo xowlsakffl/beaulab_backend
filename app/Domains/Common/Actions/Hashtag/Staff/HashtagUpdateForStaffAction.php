@@ -4,6 +4,7 @@ namespace App\Domains\Common\Actions\Hashtag\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Dto\Hashtag\Staff\HashtagForStaffDto;
 use App\Domains\Common\Models\Hashtag\Hashtag;
 use App\Domains\Common\Queries\Hashtag\Staff\HashtagUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -64,34 +65,7 @@ final class HashtagUpdateForStaffAction
         ]);
 
         return [
-            'hashtag' => $this->toArray($updated),
+            'hashtag' => HashtagForStaffDto::fromModel($updated)->toArray(),
         ];
-    }
-
-    private function toArray(Hashtag $hashtag): array
-    {
-        $assignmentCount = $this->resolveAssignmentCount($hashtag);
-
-        return [
-            'id' => (int) $hashtag->id,
-            'name' => (string) $hashtag->name,
-            'normalized_name' => (string) $hashtag->normalized_name,
-            'status' => $hashtag->resolveStatus(),
-            'usage_count' => $hashtag->resolveUsageCount($assignmentCount),
-            'assignment_count' => $assignmentCount,
-            'created_at' => optional($hashtag->created_at)?->toISOString(),
-            'updated_at' => optional($hashtag->updated_at)?->toISOString(),
-        ];
-    }
-
-    private function resolveAssignmentCount(Hashtag $hashtag): int
-    {
-        if (array_key_exists('assignment_count', $hashtag->getAttributes())) {
-            return (int) ($hashtag->getAttribute('assignment_count') ?? 0);
-        }
-
-        return (int) DB::table('hashtaggables')
-            ->where('hashtag_id', $hashtag->id)
-            ->count();
     }
 }

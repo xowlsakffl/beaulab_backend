@@ -22,7 +22,7 @@ final class ChatDeleteForUserAction
         $chat = $this->query->deleteForUser($chat, $user);
 
         return [
-            'chat' => ChatForUserDto::fromModel($chat, (int) $user->id),
+            'chat' => ChatForUserDto::fromModel($chat, (int) $user->id)->toArray(),
         ];
     }
 }

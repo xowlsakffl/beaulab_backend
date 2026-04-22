@@ -7,36 +7,59 @@ use App\Domains\Common\Support\AdminNote\AdminNoteActorRegistry;
 use App\Domains\Common\Support\AdminNote\AdminNoteTargetRegistry;
 
 /**
- * AdminNoteDto 역할 정의.
- * 공통 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * AdminNoteDto DTO.
  */
 final readonly class AdminNoteDto
 {
-    public function __construct(public array $note) {}
+    public function __construct(
+        public int $id,
+        public ?string $targetType,
+        public int $targetId,
+        public string $note,
+        public bool $isInternal,
+        public ?string $creatorType,
+        public ?int $creatorId,
+        public ?string $creatorName,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+        public ?string $deletedAt,
+    ) {}
 
     public static function fromModel(AdminNote $note): self
     {
         $creator = $note->relationLoaded('creator') ? $note->creator : null;
-        $creatorType = AdminNoteActorRegistry::aliasForModel($creator ?? $note->creator_type);
-        $creatorName = $creator && isset($creator->name) ? (string) $creator->name : null;
 
-        return new self([
-            'id' => (int) $note->id,
-            'target_type' => AdminNoteTargetRegistry::aliasForModel($note->target_type),
-            'target_id' => (int) $note->target_id,
-            'note' => (string) $note->note,
-            'is_internal' => (bool) $note->is_internal,
-            'creator_type' => $creatorType,
-            'creator_id' => $note->creator_id ? (int) $note->creator_id : null,
-            'creator_name' => $creatorName,
-            'created_at' => $note->created_at?->toISOString(),
-            'updated_at' => $note->updated_at?->toISOString(),
-            'deleted_at' => $note->deleted_at?->toISOString(),
-        ]);
+        return new self(
+            id: (int) $note->id,
+            targetType: AdminNoteTargetRegistry::aliasForModel($note->target_type),
+            targetId: (int) $note->target_id,
+            note: (string) $note->note,
+            isInternal: (bool) $note->is_internal,
+            creatorType: AdminNoteActorRegistry::aliasForModel($creator ?? $note->creator_type),
+            creatorId: $note->creator_id ? (int) $note->creator_id : null,
+            creatorName: $creator && isset($creator->name) ? (string) $creator->name : null,
+            createdAt: $note->created_at?->toISOString(),
+            updatedAt: $note->updated_at?->toISOString(),
+            deletedAt: $note->deleted_at?->toISOString(),
+        );
     }
 
     public function toArray(): array
     {
-        return $this->note;
+        $data = [
+            'id' => $this->id,
+            'target_type' => $this->targetType,
+            'target_id' => $this->targetId,
+            'note' => $this->note,
+            'is_internal' => $this->isInternal,
+            'creator_type' => $this->creatorType,
+            'creator_id' => $this->creatorId,
+            'creator_name' => $this->creatorName,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'deleted_at' => $this->deletedAt,
+        ];
+
+        return $data;
     }
 }

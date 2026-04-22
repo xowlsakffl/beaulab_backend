@@ -7,45 +7,79 @@ use App\Domains\Faq\Models\Faq;
 use Illuminate\Support\Collection;
 
 /**
- * FaqForStaffDto 역할 정의.
- * FAQ 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * FaqForStaffDto DTO.
  */
 final readonly class FaqForStaffDto
 {
-    public function __construct(public array $faq) {}
+    public function __construct(
+        public int $id,
+        public ?int $categoryId,
+        public ?array $category,
+        public string $channel,
+        public string $question,
+        public string $status,
+        public int $sortOrder,
+        public int $viewCount,
+        public ?int $createdByStaffId,
+        public ?int $updatedByStaffId,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+    ) {}
 
     public static function fromModel(Faq $faq): self
     {
         $primaryCategory = self::resolvePrimaryCategory($faq);
 
-        return new self([
-            'id' => (int) $faq->id,
-            'category_id' => $primaryCategory ? (int) $primaryCategory->id : null,
-            'category' => $primaryCategory
-                ? [
-                    'id' => (int) $primaryCategory->id,
-                    'name' => (string) $primaryCategory->name,
-                    'domain' => (string) $primaryCategory->domain,
-                    'status' => (string) $primaryCategory->status,
-                    'sort_order' => (int) $primaryCategory->sort_order,
-                    'is_primary' => (bool) ($primaryCategory->pivot?->is_primary ?? false),
-                ]
-                : null,
-            'channel' => (string) $faq->channel,
-            'question' => (string) $faq->question,
-            'status' => (string) $faq->status,
-            'sort_order' => (int) $faq->sort_order,
-            'view_count' => (int) $faq->view_count,
-            'created_by_staff_id' => $faq->created_by_staff_id ? (int) $faq->created_by_staff_id : null,
-            'updated_by_staff_id' => $faq->updated_by_staff_id ? (int) $faq->updated_by_staff_id : null,
-            'created_at' => $faq->created_at?->toISOString(),
-            'updated_at' => $faq->updated_at?->toISOString(),
-        ]);
+        return new self(
+            id: (int) $faq->id,
+            categoryId: $primaryCategory ? (int) $primaryCategory->id : null,
+            category: self::category($primaryCategory),
+            channel: (string) $faq->channel,
+            question: (string) $faq->question,
+            status: (string) $faq->status,
+            sortOrder: (int) $faq->sort_order,
+            viewCount: (int) $faq->view_count,
+            createdByStaffId: $faq->created_by_staff_id ? (int) $faq->created_by_staff_id : null,
+            updatedByStaffId: $faq->updated_by_staff_id ? (int) $faq->updated_by_staff_id : null,
+            createdAt: $faq->created_at?->toISOString(),
+            updatedAt: $faq->updated_at?->toISOString(),
+        );
     }
 
     public function toArray(): array
     {
-        return $this->faq;
+        $data = [
+            'id' => $this->id,
+            'category_id' => $this->categoryId,
+            'category' => $this->category,
+            'channel' => $this->channel,
+            'question' => $this->question,
+            'status' => $this->status,
+            'sort_order' => $this->sortOrder,
+            'view_count' => $this->viewCount,
+            'created_by_staff_id' => $this->createdByStaffId,
+            'updated_by_staff_id' => $this->updatedByStaffId,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+
+        return $data;
+    }
+
+    private static function category(?Category $category): ?array
+    {
+        if (! $category) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $category->id,
+            'name' => (string) $category->name,
+            'domain' => (string) $category->domain,
+            'status' => (string) $category->status,
+            'sort_order' => (int) $category->sort_order,
+            'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+        ];
     }
 
     /**

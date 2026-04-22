@@ -8,59 +8,123 @@ use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Support\Collection;
 
 /**
- * HospitalVideoForStaffDetailDto 역할 정의.
- * 병원 동영상 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * HospitalVideoForStaffDetailDto DTO.
  */
 final readonly class HospitalVideoForStaffDetailDto
 {
-    public function __construct(public array $video) {}
+    public function __construct(
+        public int $id,
+        public int $hospitalId,
+        public ?string $hospitalName,
+        public ?string $hospitalBusinessNumber,
+        public ?int $doctorId,
+        public ?string $doctorName,
+        public string $title,
+        public ?string $description,
+        public string $distributionChannel,
+        public ?string $externalVideoId,
+        public ?string $externalVideoUrl,
+        public ?int $thumbnailMediaId,
+        public ?array $thumbnailFile,
+        public ?int $videoFileMediaId,
+        public ?array $videoFile,
+        public int $durationSeconds,
+        public string $status,
+        public string $allowStatus,
+        public int $viewCount,
+        public int $likeCount,
+        public ?string $allowedAt,
+        public ?string $publishStartAt,
+        public ?string $publishEndAt,
+        public bool $isPublishPeriodUnlimited,
+        public array $categories,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+        public ?string $deletedAt,
+    ) {}
 
     public static function fromModel(HospitalVideo $video): self
     {
-        return new self([
-            'id' => $video->id,
-            'hospital_id' => $video->hospital_id,
-            'hospital_name' => $video->hospital?->name,
-            'hospital_business_number' => $video->hospital?->businessRegistration?->business_number,
-            'doctor_id' => $video->doctor_id,
-            'doctor_name' => $video->doctor?->name,
-            'title' => $video->title,
-            'description' => $video->description,
-            'distribution_channel' => $video->distribution_channel,
-            'external_video_id' => $video->external_video_id,
-            'external_video_url' => $video->external_video_url,
-            'thumbnail_media_id' => $video->thumbnailMedia?->id,
-            'thumbnail_file' => self::formatMedia($video->thumbnailMedia),
-            'video_file_media_id' => $video->videoFileMedia?->id,
-            'video_file' => self::formatMedia($video->videoFileMedia),
-            'duration_seconds' => (int) $video->duration_seconds,
-            'status' => $video->status,
-            'allow_status' => $video->allow_status,
-            'view_count' => (int) $video->view_count,
-            'like_count' => (int) $video->like_count,
-            'allowed_at' => $video->allowed_at?->toISOString(),
-            'publish_start_at' => $video->publish_start_at?->toISOString(),
-            'publish_end_at' => $video->publish_end_at?->toISOString(),
-            'is_publish_period_unlimited' => (bool) $video->is_publish_period_unlimited,
-            'categories' => self::resolveCategories($video)
-                ->map(fn (Category $category): array => [
-                    'id' => (int) $category->id,
-                    'domain' => (string) ($category->domain ?? ''),
-                    'name' => (string) $category->name,
-                    'full_path' => (string) ($category->full_path ?? ''),
-                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-                ])
-                ->values()
-                ->all(),
-            'created_at' => $video->created_at?->toISOString(),
-            'updated_at' => $video->updated_at?->toISOString(),
-            'deleted_at' => $video->deleted_at?->toISOString(),
-        ]);
+        return new self(
+            id: (int) $video->id,
+            hospitalId: (int) $video->hospital_id,
+            hospitalName: $video->hospital?->name,
+            hospitalBusinessNumber: $video->hospital?->businessRegistration?->business_number,
+            doctorId: $video->doctor_id ? (int) $video->doctor_id : null,
+            doctorName: $video->doctor?->name,
+            title: (string) $video->title,
+            description: $video->description,
+            distributionChannel: (string) $video->distribution_channel,
+            externalVideoId: $video->external_video_id,
+            externalVideoUrl: $video->external_video_url,
+            thumbnailMediaId: $video->thumbnailMedia?->id ? (int) $video->thumbnailMedia->id : null,
+            thumbnailFile: self::formatMedia($video->thumbnailMedia),
+            videoFileMediaId: $video->videoFileMedia?->id ? (int) $video->videoFileMedia->id : null,
+            videoFile: self::formatMedia($video->videoFileMedia),
+            durationSeconds: (int) $video->duration_seconds,
+            status: (string) $video->status,
+            allowStatus: (string) $video->allow_status,
+            viewCount: (int) $video->view_count,
+            likeCount: (int) $video->like_count,
+            allowedAt: $video->allowed_at?->toISOString(),
+            publishStartAt: $video->publish_start_at?->toISOString(),
+            publishEndAt: $video->publish_end_at?->toISOString(),
+            isPublishPeriodUnlimited: (bool) $video->is_publish_period_unlimited,
+            categories: self::categories($video),
+            createdAt: $video->created_at?->toISOString(),
+            updatedAt: $video->updated_at?->toISOString(),
+            deletedAt: $video->deleted_at?->toISOString(),
+        );
     }
 
     public function toArray(): array
     {
-        return $this->video;
+        $data = [
+            'id' => $this->id,
+            'hospital_id' => $this->hospitalId,
+            'hospital_name' => $this->hospitalName,
+            'hospital_business_number' => $this->hospitalBusinessNumber,
+            'doctor_id' => $this->doctorId,
+            'doctor_name' => $this->doctorName,
+            'title' => $this->title,
+            'description' => $this->description,
+            'distribution_channel' => $this->distributionChannel,
+            'external_video_id' => $this->externalVideoId,
+            'external_video_url' => $this->externalVideoUrl,
+            'thumbnail_media_id' => $this->thumbnailMediaId,
+            'thumbnail_file' => $this->thumbnailFile,
+            'video_file_media_id' => $this->videoFileMediaId,
+            'video_file' => $this->videoFile,
+            'duration_seconds' => $this->durationSeconds,
+            'status' => $this->status,
+            'allow_status' => $this->allowStatus,
+            'view_count' => $this->viewCount,
+            'like_count' => $this->likeCount,
+            'allowed_at' => $this->allowedAt,
+            'publish_start_at' => $this->publishStartAt,
+            'publish_end_at' => $this->publishEndAt,
+            'is_publish_period_unlimited' => $this->isPublishPeriodUnlimited,
+            'categories' => $this->categories,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'deleted_at' => $this->deletedAt,
+        ];
+
+        return $data;
+    }
+
+    private static function categories(HospitalVideo $video): array
+    {
+        return self::resolveCategories($video)
+            ->map(fn (Category $category): array => [
+                'id' => (int) $category->id,
+                'domain' => (string) ($category->domain ?? ''),
+                'name' => (string) $category->name,
+                'full_path' => (string) ($category->full_path ?? ''),
+                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+            ])
+            ->values()
+            ->all();
     }
 
     private static function formatMedia(?Media $media): ?array

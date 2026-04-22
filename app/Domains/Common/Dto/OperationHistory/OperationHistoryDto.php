@@ -6,38 +6,73 @@ use App\Domains\Common\Models\OperationHistory\OperationHistory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * OperationHistoryDto 역할 정의.
- * 운영/시스템 액션 히스토리를 API 응답용 배열로 정규화한다.
+ * OperationHistoryDto DTO.
  */
 final readonly class OperationHistoryDto
 {
-    public function __construct(public array $history) {}
+    public function __construct(
+        public int $id,
+        public string $targetType,
+        public int $targetId,
+        public string $actorKind,
+        public ?string $actorType,
+        public ?int $actorId,
+        public ?array $actor,
+        public string $actorLabel,
+        public string $action,
+        public ?string $field,
+        public mixed $beforeValue,
+        public mixed $afterValue,
+        public ?string $reason,
+        public mixed $metadata,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+    ) {}
 
     public static function fromModel(OperationHistory $history): self
     {
-        return new self([
-            'id' => (int) $history->id,
-            'target_type' => (string) $history->target_type,
-            'target_id' => (int) $history->target_id,
-            'actor_kind' => (string) $history->actor_kind,
-            'actor_type' => $history->actor_type,
-            'actor_id' => $history->actor_id ? (int) $history->actor_id : null,
-            'actor' => self::resolveActor($history),
-            'actor_label' => self::resolveActorLabel($history),
-            'action' => (string) $history->action,
-            'field' => $history->field,
-            'before_value' => $history->before_value,
-            'after_value' => $history->after_value,
-            'reason' => $history->reason,
-            'metadata' => $history->metadata,
-            'created_at' => $history->created_at?->toISOString(),
-            'updated_at' => $history->updated_at?->toISOString(),
-        ]);
+        return new self(
+            id: (int) $history->id,
+            targetType: (string) $history->target_type,
+            targetId: (int) $history->target_id,
+            actorKind: (string) $history->actor_kind,
+            actorType: $history->actor_type,
+            actorId: $history->actor_id ? (int) $history->actor_id : null,
+            actor: self::resolveActor($history),
+            actorLabel: self::resolveActorLabel($history),
+            action: (string) $history->action,
+            field: $history->field,
+            beforeValue: $history->before_value,
+            afterValue: $history->after_value,
+            reason: $history->reason,
+            metadata: $history->metadata,
+            createdAt: $history->created_at?->toISOString(),
+            updatedAt: $history->updated_at?->toISOString(),
+        );
     }
 
     public function toArray(): array
     {
-        return $this->history;
+        $data = [
+            'id' => $this->id,
+            'target_type' => $this->targetType,
+            'target_id' => $this->targetId,
+            'actor_kind' => $this->actorKind,
+            'actor_type' => $this->actorType,
+            'actor_id' => $this->actorId,
+            'actor' => $this->actor,
+            'actor_label' => $this->actorLabel,
+            'action' => $this->action,
+            'field' => $this->field,
+            'before_value' => $this->beforeValue,
+            'after_value' => $this->afterValue,
+            'reason' => $this->reason,
+            'metadata' => $this->metadata,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+
+        return $data;
     }
 
     private static function resolveActor(OperationHistory $history): ?array

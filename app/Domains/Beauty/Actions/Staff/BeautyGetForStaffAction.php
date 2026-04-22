@@ -41,7 +41,7 @@ final class BeautyGetForStaffAction
         }
 
         return [
-            'beauty' => BeautyForStaffDetailDto::fromModel($beauty, $include)->toArray(),
+            'beauty' => BeautyForStaffDetailDto::fromModel($beauty)->toArray(),
         ];
     }
 }

@@ -34,14 +34,31 @@ final class Talk extends Model
 
     public const POST_STATUS_AUTO_BLIND = 'POST_AUTO_BLIND';
 
+    public const POST_STATUS_USER_DELETE = 'POST_USER_DELETE';
+
     public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
 
-    public const POST_STATUS_USER_DELETE = 'POST_USER_DELETE';
+    public const CATEGORY_DOMAIN = Category::DOMAIN_HOSPITAL_COMMUNITY;
+
+    public const CATEGORY_CODE_PLASTIC_PETIT = 'TALK_PLASTIC_PETIT';
+
+    public const CATEGORY_CODE_BEAUTY = 'TALK_BEAUTY';
+
+    public const CATEGORY_CODE_DAILY = 'TALK_DAILY';
+
+    public const CATEGORY_CODE_SECRET = 'TALK_SECRET';
+
+    public const array CATEGORY_CODES = [
+        self::CATEGORY_CODE_PLASTIC_PETIT,
+        self::CATEGORY_CODE_BEAUTY,
+        self::CATEGORY_CODE_DAILY,
+        self::CATEGORY_CODE_SECRET,
+    ];
 
     public const array VISIBILITY_CHANGE_LOCKED_POST_STATUSES = [
         self::POST_STATUS_AUTO_BLIND,
-        self::POST_STATUS_ADMIN_STOP,
         self::POST_STATUS_USER_DELETE,
+        self::POST_STATUS_ADMIN_STOP,
     ];
 
     protected $table = 'talks';
@@ -89,7 +106,7 @@ final class Talk extends Model
     ];
 
     /**
-     * @return array<int, string>
+     * @return list<string>
      */
     public static function statuses(): array
     {
@@ -100,16 +117,24 @@ final class Talk extends Model
     }
 
     /**
-     * @return array<int, string>
+     * @return list<string>
      */
     public static function postStatuses(): array
     {
         return [
             self::POST_STATUS_NORMAL,
             self::POST_STATUS_AUTO_BLIND,
-            self::POST_STATUS_ADMIN_STOP,
             self::POST_STATUS_USER_DELETE,
+            self::POST_STATUS_ADMIN_STOP,
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function categoryCodes(): array
+    {
+        return self::CATEGORY_CODES;
     }
 
     public function isVisibilityChangeLocked(): bool

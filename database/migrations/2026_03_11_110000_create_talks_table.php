@@ -22,7 +22,7 @@ return new class extends Migration
             $table->longText('content')->comment('게시글 내용');
 
             $table->string('status', 20)->default('ACTIVE')->comment('노출상태(ACTIVE=노출, INACTIVE=미노출)');
-            $table->string('post_status', 30)->default('POST_NORMAL')->comment('게시상태(POST_NORMAL, POST_AUTO_BLIND, POST_ADMIN_STOP, POST_USER_DELETE)');
+            $table->string('post_status', 30)->default('POST_NORMAL')->comment('게시상태(POST_NORMAL, POST_AUTO_BLIND, POST_USER_DELETE, POST_ADMIN_STOP)');
             $table->string('author_ip', 45)->nullable()->comment('작성자 IP(v4/v6)');
 
             $table->boolean('is_pinned')->default(false)->comment('상단 고정 여부');

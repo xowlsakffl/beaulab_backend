@@ -4,6 +4,7 @@ namespace App\Domains\Talk\Actions\User;
 
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Talk\Dto\User\TalkCreateForUserDto;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkPoll;
@@ -23,6 +24,7 @@ final class TalkCreateForUserAction
         $normalized = $payload;
         $normalized['author_id'] = (int) $user->id;
         $normalized['author_ip'] = request()->ip();
+        $normalized['category_id'] = $this->resolveCategoryId($normalized['category_code'] ?? null);
 
         $talk = DB::transaction(function () use ($normalized): Talk {
             $talk = $this->query->create($normalized);
@@ -55,6 +57,23 @@ final class TalkCreateForUserAction
         $talk->categories()->sync([
             $categoryId => ['is_primary' => true],
         ]);
+    }
+
+    private function resolveCategoryId(mixed $categoryCode): ?int
+    {
+        if (! is_string($categoryCode) || trim($categoryCode) === '') {
+            return null;
+        }
+
+        $categoryId = Category::query()
+            ->where('domain', Talk::CATEGORY_DOMAIN)
+            ->where('status', Category::STATUS_ACTIVE)
+            ->where('code', trim($categoryCode))
+            ->value('id');
+
+        $categoryId = is_numeric($categoryId) ? (int) $categoryId : 0;
+
+        return $categoryId > 0 ? $categoryId : null;
     }
 
     /**

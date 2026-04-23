@@ -41,7 +41,7 @@ final class TalkListForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
+                    ->where('domain', Talk::CATEGORY_DOMAIN)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'metric' => ['nullable', 'required_with:metric_min,metric_max', Rule::in([

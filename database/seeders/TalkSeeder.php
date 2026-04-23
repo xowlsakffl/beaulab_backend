@@ -21,7 +21,7 @@ final class TalkSeeder extends Seeder
             return;
         }
 
-        $communityCategoryIds = $this->ensureTalkCategories();
+        $talkCategoryIds = $this->loadTalkCategoryIds();
 
         $normalTalks = Talk::factory()
             ->count(160)
@@ -35,7 +35,7 @@ final class TalkSeeder extends Seeder
         $statusSampleTalks = $this->seedPostStatusSamples($authorIds);
         $talks = $normalTalks->merge($statusSampleTalks);
 
-        $this->attachRandomCategories($talks, $communityCategoryIds);
+        $this->attachRandomCategories($talks, $talkCategoryIds);
         $this->seedComments($talks, $authorIds);
     }
 
@@ -89,53 +89,18 @@ final class TalkSeeder extends Seeder
     /**
      * @return array<int, int>
      */
-    private function ensureTalkCategories(): array
+    private function loadTalkCategoryIds(): array
     {
-        $root = Category::query()->updateOrCreate(
-            [
-                'domain' => Category::DOMAIN_HOSPITAL_COMMUNITY,
-                'parent_id' => null,
-                'name' => 'Talk',
-            ],
-            [
-                'depth' => 1,
-                'code' => 'TALK_ROOT',
-                'full_path' => 'Talk',
-                'sort_order' => 1,
-                'status' => Category::STATUS_ACTIVE,
-                'is_menu_visible' => true,
-            ]
-        );
-
-        $children = [
-            ['name' => '성형/쁘띠', 'code' => 'TALK_PLASTIC_PETIT', 'sort_order' => 1],
-            ['name' => '뷰티', 'code' => 'TALK_BEAUTY', 'sort_order' => 2],
-            ['name' => '일상', 'code' => 'TALK_DAILY', 'sort_order' => 3],
-            ['name' => '시크릿', 'code' => 'TALK_SECRET', 'sort_order' => 4],
-        ];
-
-        $childIds = [];
-        foreach ($children as $child) {
-            $category = Category::query()->updateOrCreate(
-                [
-                    'domain' => Category::DOMAIN_HOSPITAL_COMMUNITY,
-                    'parent_id' => $root->id,
-                    'name' => $child['name'],
-                ],
-                [
-                    'depth' => 2,
-                    'code' => $child['code'],
-                    'full_path' => "Talk > {$child['name']}",
-                    'sort_order' => $child['sort_order'],
-                    'status' => Category::STATUS_ACTIVE,
-                    'is_menu_visible' => true,
-                ]
-            );
-
-            $childIds[] = (int) $category->id;
-        }
-
-        return $childIds;
+        return Category::query()
+            ->where('domain', Category::DOMAIN_TALK)
+            ->whereIn('code', Talk::categoryCodes())
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(static fn (int|string $id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->values()
+            ->all();
     }
 
     /**

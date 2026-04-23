@@ -5,6 +5,7 @@ namespace App\Modules\User\Http\Requests\Talk;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 final class TalkCreateForUserRequest extends FormRequest
@@ -13,11 +14,8 @@ final class TalkCreateForUserRequest extends FormRequest
     {
         $data = $this->all();
 
-        if (array_key_exists('category_id', $data)) {
-            $data['category_id'] = $this->normalizeId($data['category_id']);
-        } elseif (array_key_exists('category_ids', $data)) {
-            $categoryIds = $this->normalizeIdList($data['category_ids']);
-            $data['category_id'] = $categoryIds[0] ?? null;
+        if (array_key_exists('category_code', $data) && is_string($data['category_code'])) {
+            $data['category_code'] = trim($data['category_code']);
         }
 
         if (isset($data['poll']) && is_array($data['poll']) && isset($data['poll']['options']) && is_array($data['poll']['options'])) {
@@ -40,60 +38,54 @@ final class TalkCreateForUserRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:20000'],
-            'category_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
+            'category_code' => [
+                'required',
+                'string',
+                Rule::in(Talk::categoryCodes()),
+                Rule::exists('categories', 'code')->where(static fn ($query) => $query
+                    ->where('domain', Talk::CATEGORY_DOMAIN)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'images' => ['nullable', 'array', 'max:' . Talk::MAX_IMAGE_COUNT],
             'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'poll' => ['nullable', 'array'],
-            'poll.allow_multiple' => ['required_with:poll', 'boolean'],
-            'poll.options' => ['required_with:poll', 'array', 'min:2', 'max:10'],
+            'poll.allow_multiple' => ['nullable', 'boolean'],
+            'poll.options' => ['nullable', 'array', 'min:2', 'max:10'],
             'poll.options.*' => ['required', 'string', 'max:100', 'distinct:strict'],
         ];
     }
 
-    private function normalizeId(mixed $value): ?int
+    public function withValidator(Validator $validator): void
     {
-        if (is_int($value)) {
-            return $value > 0 ? $value : null;
-        }
+        $validator->after(function (Validator $validator): void {
+            $poll = $this->input('poll');
 
-        if (is_string($value) && ctype_digit(trim($value))) {
-            $id = (int) $value;
+            if (! is_array($poll)) {
+                return;
+            }
 
-            return $id > 0 ? $id : null;
-        }
+            if (! array_key_exists('allow_multiple', $poll)) {
+                $validator->errors()->add('poll.allow_multiple', '투표를 등록할 때 복수 선택 허용 여부는 필수입니다.');
+            }
 
-        return null;
+            if (! array_key_exists('options', $poll)) {
+                $validator->errors()->add('poll.options', '투표를 등록할 때 항목 목록은 필수입니다.');
+            }
+        });
     }
 
-    /**
-     * @return array<int, int>
-     */
-    private function normalizeIdList(mixed $value): array
+    public function attributes(): array
     {
-        if ($value === null || $value === '') {
-            return [];
-        }
-
-        if (is_string($value)) {
-            $value = explode(',', $value);
-        }
-
-        if (! is_array($value)) {
-            return [];
-        }
-
-        return collect($value)
-            ->filter(static fn ($item): bool => is_int($item) || (is_string($item) && ctype_digit(trim($item))))
-            ->map(static fn ($item): int => (int) $item)
-            ->filter(static fn (int $item): bool => $item > 0)
-            ->unique()
-            ->values()
-            ->all();
+        return [
+            'title' => '제목',
+            'content' => '내용',
+            'category_code' => '토크 유형',
+            'images' => '이미지 목록',
+            'images.*' => '이미지',
+            'poll' => '투표',
+            'poll.allow_multiple' => '복수 선택 허용 여부',
+            'poll.options' => '투표 항목 목록',
+            'poll.options.*' => '투표 항목',
+        ];
     }
 }

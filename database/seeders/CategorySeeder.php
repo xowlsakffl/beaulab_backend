@@ -11,6 +11,7 @@ final class CategorySeeder extends Seeder
     {
         CategoryFactory::seedHospitalCategories();
         CategoryFactory::seedBeautyCategories();
+        CategoryFactory::seedTalkCategories();
         CategoryFactory::seedFaqCategories();
     }
 }

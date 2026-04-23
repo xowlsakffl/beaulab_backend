@@ -38,7 +38,7 @@ final class Talk extends Model
 
     public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
 
-    public const CATEGORY_DOMAIN = Category::DOMAIN_HOSPITAL_COMMUNITY;
+    public const CATEGORY_DOMAIN = Category::DOMAIN_TALK;
 
     public const CATEGORY_CODE_PLASTIC_PETIT = 'TALK_PLASTIC_PETIT';
 

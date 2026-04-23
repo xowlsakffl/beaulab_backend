@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\TalkComment;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -39,7 +40,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
+                    ->where('domain', Talk::CATEGORY_DOMAIN)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'metric_min' => ['nullable', 'integer', 'min:0'],

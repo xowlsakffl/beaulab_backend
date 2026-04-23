@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Talk\Models\Talk;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\DB;
 
@@ -49,6 +50,13 @@ final class CategoryFactory extends Factory
     {
         DB::transaction(function (): void {
             self::seedDomainTree(Category::DOMAIN_BEAUTY, self::beautyTree());
+        });
+    }
+
+    public static function seedTalkCategories(): void
+    {
+        DB::transaction(function (): void {
+            self::seedDomainTree(Category::DOMAIN_TALK, self::talkTree());
         });
     }
 
@@ -632,6 +640,19 @@ final class CategoryFactory extends Factory
                     ],
                 ],
             ],
+        ];
+    }
+
+    /**
+     * @return array<int, array{name:string, code:string}>
+     */
+    public static function talkTree(): array
+    {
+        return [
+            ['name' => '성형/쁘띠', 'code' => Talk::CATEGORY_CODE_PLASTIC_PETIT],
+            ['name' => '뷰티', 'code' => Talk::CATEGORY_CODE_BEAUTY],
+            ['name' => '일상', 'code' => Talk::CATEGORY_CODE_DAILY],
+            ['name' => '시크릿', 'code' => Talk::CATEGORY_CODE_SECRET],
         ];
     }
 

@@ -31,7 +31,7 @@ final readonly class TalkForStaffDetailDto
         public int $likeCount,
         public int $saveCount,
         public ?array $author,
-        public ?string $categories,
+        public ?string $categoryCode,
         public array $images,
         public array $operationHistories,
         public array $comments,
@@ -57,7 +57,7 @@ final readonly class TalkForStaffDetailDto
             likeCount: (int) $talk->like_count,
             saveCount: (int) $talk->save_count,
             author: self::author($talk),
-            categories: self::categories($talk),
+            categoryCode: self::categoryCode($talk),
             images: self::images($talk),
             operationHistories: self::operationHistories($talk),
             comments: self::comments($talk),
@@ -84,7 +84,7 @@ final readonly class TalkForStaffDetailDto
             'comment_count' => $this->commentCount,
             'like_count' => $this->likeCount,
             'save_count' => $this->saveCount,
-            'categories' => $this->categories,
+            'category_code' => $this->categoryCode,
             'images' => $this->images,
             'operation_histories' => $this->operationHistories,
             'comments' => $this->comments,
@@ -109,7 +109,7 @@ final readonly class TalkForStaffDetailDto
         ];
     }
 
-    private static function categories(Talk $talk): ?string
+    private static function categoryCode(Talk $talk): ?string
     {
         $code = self::resolveCategories($talk)
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))

@@ -4,7 +4,6 @@ namespace App\Domains\Talk\Dto\Staff;
 
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Talk\Models\Talk;
-use Illuminate\Support\Collection;
 
 /**
  * TalkForStaffDto 역할 정의.
@@ -28,7 +27,7 @@ final readonly class TalkForStaffDto
         public string $createdAt,
         public string $updatedAt,
         public ?string $nickname,
-        public ?string $categories,
+        public ?string $categoryCode,
     ) {}
 
     public static function fromModel(Talk $talk): self
@@ -49,7 +48,7 @@ final readonly class TalkForStaffDto
             createdAt: $talk->created_at?->toISOString() ?? '',
             updatedAt: $talk->updated_at?->toISOString() ?? '',
             nickname: self::nickname($talk),
-            categories: self::categoryCode($talk),
+            categoryCode: self::categoryCode($talk),
         );
     }
 
@@ -59,7 +58,7 @@ final readonly class TalkForStaffDto
             'id' => $this->id,
             'author_id' => $this->authorId,
             'nickname' => $this->nickname,
-            'categories' => $this->categories,
+            'category_code' => $this->categoryCode,
             'title' => $this->title,
             'content' => $this->content,
             'status' => $this->status,
@@ -88,8 +87,6 @@ final readonly class TalkForStaffDto
         return $nickname !== '' ? $nickname : (string) $talk->author->name;
     }
 
-    /**
-     */
     private static function categoryCode(Talk $talk): ?string
     {
         if (! $talk->relationLoaded('categories')) {

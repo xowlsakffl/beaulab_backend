@@ -21,6 +21,7 @@ final class TalkGetForStaffAction
             'author',
             'categories',
             'images',
+            'poll.options',
         ]);
 
         $operationHistories = $talk->operationHistories()
@@ -33,9 +34,9 @@ final class TalkGetForStaffAction
             );
 
         $comments = $talk->comments()
-            ->with(['author', 'operationHistories.actor'])
+            ->with(['author', 'operationHistories'])
             ->paginate(
-                perPage: (int) ($filters['comments_per_page'] ?? 15),
+                perPage: (int) ($filters['comments_per_page'] ?? 10),
                 columns: ['*'],
                 pageName: 'comments_page',
                 page: (int) ($filters['comments_page'] ?? 1),

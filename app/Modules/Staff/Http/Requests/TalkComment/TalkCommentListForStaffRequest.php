@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\TalkComment;
 
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
             'post_status' => $this->normalizeToArray($this->input('post_status')),
-            'category_codes' => $this->normalizeToArray($this->input('category_codes')),
+            'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
         ]);
     }
 
@@ -33,8 +34,14 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'status.*' => [Rule::in(TalkComment::statuses())],
             'post_status' => ['nullable', 'array'],
             'post_status.*' => [Rule::in(TalkComment::postStatuses())],
-            'category_codes' => ['nullable', 'array', 'min:1', 'max:100'],
-            'category_codes.*' => ['string', Rule::in(TalkComment::categoryCodes())],
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->where('domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
             'metric_min' => ['nullable', 'integer', 'min:0'],
             'metric_max' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
@@ -56,7 +63,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
             'post_status' => $validated['post_status'] ?? null,
-            'category_codes' => $validated['category_codes'] ?? null,
+            'category_ids' => $validated['category_ids'] ?? null,
             'metric_min' => isset($validated['metric_min']) ? (int) $validated['metric_min'] : null,
             'metric_max' => isset($validated['metric_max']) ? (int) $validated['metric_max'] : null,
             'start_date' => $validated['start_date'] ?? null,
@@ -81,8 +88,8 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'status.*' => '노출 여부',
             'post_status' => '상태',
             'post_status.*' => '상태',
-            'category_codes' => '토크 유형',
-            'category_codes.*' => '토크 유형',
+            'category_ids' => '토크 유형',
+            'category_ids.*' => '토크 유형',
             'metric_min' => '좋아요 수 최소값',
             'metric_max' => '좋아요 수 최대값',
             'start_date' => '작성 시작일',

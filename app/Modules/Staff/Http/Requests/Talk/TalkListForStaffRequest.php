@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Talk;
 
+use App\Domains\Common\Models\Category\Category;
 use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -17,7 +18,7 @@ final class TalkListForStaffRequest extends FormRequest
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
             'post_status' => $this->normalizeToArray($this->input('post_status')),
-            'category_codes' => $this->normalizeToArray($this->input('category_codes')),
+            'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
         ]);
     }
 
@@ -35,8 +36,14 @@ final class TalkListForStaffRequest extends FormRequest
             'post_status' => ['nullable', 'array'],
             'post_status.*' => [Rule::in(Talk::postStatuses())],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
-            'category_codes' => ['nullable', 'array', 'min:1', 'max:100'],
-            'category_codes.*' => ['string', Rule::in(Talk::categoryCodes())],
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->where('domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
             'metric' => ['nullable', 'required_with:metric_min,metric_max', Rule::in([
                 'like_count',
                 'save_count',
@@ -62,7 +69,7 @@ final class TalkListForStaffRequest extends FormRequest
             'status' => $validated['status'] ?? null,
             'post_status' => $validated['post_status'] ?? null,
             'author_id' => $validated['author_id'] ?? null,
-            'category_codes' => $validated['category_codes'] ?? null,
+            'category_ids' => $validated['category_ids'] ?? null,
             'metric' => $validated['metric'] ?? null,
             'metric_min' => isset($validated['metric_min']) ? (int) $validated['metric_min'] : null,
             'metric_max' => isset($validated['metric_max']) ? (int) $validated['metric_max'] : null,
@@ -86,8 +93,8 @@ final class TalkListForStaffRequest extends FormRequest
             'post_status' => '상태',
             'post_status.*' => '상태',
             'author_id' => '작성자',
-            'category_codes' => '토크 유형',
-            'category_codes.*' => '토크 유형',
+            'category_ids' => '토크 유형',
+            'category_ids.*' => '토크 유형',
             'metric' => '지표',
             'metric_min' => '지표 최소값',
             'metric_max' => '지표 최대값',

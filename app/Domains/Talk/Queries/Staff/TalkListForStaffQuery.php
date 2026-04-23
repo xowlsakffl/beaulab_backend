@@ -76,24 +76,23 @@ final class TalkListForStaffQuery
             $builder->where('author_id', (int) $filters['author_id']);
         }
 
-        $categoryCodes = $filters['category_codes'] ?? null;
-        if (is_array($categoryCodes) && $categoryCodes !== []) {
-            $normalizedCategoryCodes = collect($categoryCodes)
-                ->filter(static fn ($value): bool => is_string($value))
-                ->map(static fn (string $value): string => trim($value))
-                ->filter(static fn (string $value): bool => $value !== '')
+        $categoryIds = $filters['category_ids'] ?? null;
+        if (is_array($categoryIds) && $categoryIds !== []) {
+            $normalizedCategoryIds = collect($categoryIds)
+                ->map(static fn (int|string $value): int => (int) $value)
+                ->filter(static fn (int $value): bool => $value > 0)
                 ->unique()
                 ->values()
                 ->all();
 
-            if ($normalizedCategoryCodes === []) {
+            if ($normalizedCategoryIds === []) {
                 $builder->whereRaw('1 = 0');
             } else {
                 $builder->whereHas(
                     'categories',
                     fn ($query) => $query
                         ->where('categories.domain', Talk::CATEGORY_DOMAIN)
-                        ->whereIn('categories.code', $normalizedCategoryCodes)
+                        ->whereIn('categories.id', $normalizedCategoryIds)
                 );
             }
         }

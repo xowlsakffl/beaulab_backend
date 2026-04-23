@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -53,6 +54,8 @@ final class Talk extends Model
         self::CATEGORY_CODE_DAILY,
         self::CATEGORY_CODE_SECRET,
     ];
+
+    public const int MAX_IMAGE_COUNT = 4;
 
     public const array STATUS_CHANGE_LOCKED_POST_STATUSES = [
         self::POST_STATUS_AUTO_BLIND,
@@ -150,6 +153,11 @@ final class Talk extends Model
     {
         return $this->hasMany(TalkComment::class, 'talk_id')
             ->orderBy('id');
+    }
+
+    public function poll(): HasOne
+    {
+        return $this->hasOne(TalkPoll::class, 'talk_id');
     }
 
     public function saves(): HasMany

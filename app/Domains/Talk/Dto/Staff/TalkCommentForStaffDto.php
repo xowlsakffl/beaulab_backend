@@ -14,7 +14,7 @@ final readonly class TalkCommentForStaffDto
         public int $id,
         public string $createdAt,
         public ?string $nickname,
-        public ?string $categoryCode,
+        public ?int $categoryId,
         public ?string $parentTalkTitle,
         public string $content,
         public string $status,
@@ -28,7 +28,7 @@ final readonly class TalkCommentForStaffDto
             id: (int) $comment->id,
             createdAt: $comment->created_at?->toISOString() ?? '',
             nickname: self::nickname($comment),
-            categoryCode: self::categoryCode($comment),
+            categoryId: self::categoryId($comment),
             parentTalkTitle: $comment->relationLoaded('talk') && $comment->talk
                 ? (string) $comment->talk->title
                 : null,
@@ -45,7 +45,7 @@ final readonly class TalkCommentForStaffDto
             'id' => $this->id,
             'created_at' => $this->createdAt,
             'nickname' => $this->nickname,
-            'category_code' => $this->categoryCode,
+            'category_id' => $this->categoryId,
             'parent_talk_title' => $this->parentTalkTitle,
             'content' => $this->content,
             'status' => $this->status,
@@ -67,18 +67,18 @@ final readonly class TalkCommentForStaffDto
         return $nickname !== '' ? $nickname : (string) $comment->author->name;
     }
 
-    private static function categoryCode(TalkComment $comment): ?string
+    private static function categoryId(TalkComment $comment): ?int
     {
         if (! $comment->relationLoaded('talk') || ! $comment->talk || ! $comment->talk->relationLoaded('categories')) {
             return null;
         }
 
-        $code = $comment->talk->categories
+        $id = $comment->talk->categories
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
-            ->map(fn (Category $category): string => (string) $category->code)
-            ->filter(static fn (string $code): bool => $code !== '')
+            ->map(fn (Category $category): int => (int) $category->id)
+            ->filter(static fn (int $id): bool => $id > 0)
             ->first();
 
-        return is_string($code) && $code !== '' ? $code : null;
+        return is_int($id) && $id > 0 ? $id : null;
     }
 }

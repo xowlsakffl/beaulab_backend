@@ -6,6 +6,7 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Talk\Dto\User\TalkCreateForUserDto;
 use App\Domains\Talk\Models\Talk;
+use App\Domains\Talk\Models\TalkPoll;
 use App\Domains\Talk\Queries\User\TalkCreateForUserQuery;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -28,11 +29,13 @@ final class TalkCreateForUserAction
 
             $this->syncCategory($talk, $normalized['category_id'] ?? null);
             $this->attachImages($talk, $normalized['images'] ?? []);
+            $this->createPoll($talk, $normalized['poll'] ?? null);
 
             return $talk->fresh([
                 'author',
                 'categories',
                 'images',
+                'poll.options',
             ]);
         });
 
@@ -70,5 +73,30 @@ final class TalkCreateForUserAction
             'talk',
             'images',
         );
+    }
+
+    private function createPoll(Talk $talk, mixed $pollPayload): void
+    {
+        if (! is_array($pollPayload)) {
+            return;
+        }
+
+        $poll = $talk->poll()->create([
+            'allow_multiple' => (bool) ($pollPayload['allow_multiple'] ?? false),
+        ]);
+
+        if (! $poll instanceof TalkPoll) {
+            return;
+        }
+
+        collect($pollPayload['options'] ?? [])
+            ->values()
+            ->each(function (string $content, int $index) use ($poll): void {
+                $poll->options()->create([
+                    'content' => $content,
+                    'sort_order' => $index + 1,
+                    'vote_count' => 0,
+                ]);
+            });
     }
 }

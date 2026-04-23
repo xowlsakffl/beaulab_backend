@@ -10,6 +10,7 @@ use App\Modules\User\Http\Controllers\Block\AccountUserBlockForUserController;
 use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkCreateForUserController;
+use App\Modules\User\Http\Controllers\Talk\TalkPollVoteForUserController;
 use Illuminate\Support\Facades\Route;
 
 // 앱 사용자 API
@@ -55,6 +56,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user'])->group(function () {
     // 앱 사용자 토크 생성 API.
     Route::post('talks', [TalkCreateForUserController::class, 'createTalkForUser'])
         ->name('talks.createTalkForUser');
+    Route::post('talks/{talk}/poll-votes', [TalkPollVoteForUserController::class, 'voteTalkPollForUser'])
+        ->name('talks.voteTalkPollForUser');
 
     // 앱 사용자 차단 API. 차단은 방향성 있는 유저 관계로 저장하고, 메시지 발송 전 검증에 사용한다.
     Route::get('blocks', [AccountUserBlockForUserController::class, 'getBlocksForUser'])

@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use InvalidArgumentException;
 
 /**
  * @extends Factory<TalkComment>
@@ -36,6 +37,62 @@ final class TalkCommentFactory extends Factory
         return $this->state(fn () => [
             'status' => TalkComment::STATUS_ACTIVE,
             'post_status' => TalkComment::POST_STATUS_NORMAL,
+        ]);
+    }
+
+    public function topLevel(): self
+    {
+        return $this->state(fn () => [
+            'parent_id' => null,
+        ]);
+    }
+
+    public function replyTo(TalkComment $parent): self
+    {
+        if (! $parent->isRootComment()) {
+            throw new InvalidArgumentException('토크 댓글은 1단계 대댓글까지만 허용합니다.');
+        }
+
+        return $this->state(fn () => [
+            'talk_id' => (int) $parent->talk_id,
+            'parent_id' => (int) $parent->id,
+        ]);
+    }
+
+    public function inactive(): self
+    {
+        return $this->state(fn () => [
+            'status' => TalkComment::STATUS_INACTIVE,
+            'post_status' => TalkComment::POST_STATUS_NORMAL,
+        ]);
+    }
+
+    public function systemBlocked(): self
+    {
+        return $this->state(fn () => [
+            'status' => TalkComment::STATUS_INACTIVE,
+            'post_status' => TalkComment::POST_STATUS_AUTO_BLIND,
+        ]);
+    }
+
+    public function autoBlind(): self
+    {
+        return $this->systemBlocked();
+    }
+
+    public function userDeleted(): self
+    {
+        return $this->state(fn () => [
+            'status' => TalkComment::STATUS_INACTIVE,
+            'post_status' => TalkComment::POST_STATUS_USER_DELETE,
+        ]);
+    }
+
+    public function adminStopped(): self
+    {
+        return $this->state(fn () => [
+            'status' => TalkComment::STATUS_INACTIVE,
+            'post_status' => TalkComment::POST_STATUS_ADMIN_STOP,
         ]);
     }
 

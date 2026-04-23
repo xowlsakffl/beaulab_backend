@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->foreignId('parent_id')
                 ->nullable()
-                ->comment('부모 댓글 ID(대댓글용)')
+                ->comment('부모 댓글 ID(대댓글용, 최상위 댓글만 허용)')
                 ->constrained('talk_comments')
                 ->cascadeOnDelete();
 

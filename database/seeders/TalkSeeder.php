@@ -168,10 +168,10 @@ final class TalkSeeder extends Seeder
             $topLevelComments = TalkComment::factory()
                 ->count($topLevelCount)
                 ->active()
+                ->topLevel()
                 ->create([
                     'talk_id' => $talk->id,
                     'author_id' => fn () => $authorIds[array_rand($authorIds)],
-                    'parent_id' => null,
                 ]);
 
             foreach ($topLevelComments as $comment) {
@@ -183,12 +183,13 @@ final class TalkSeeder extends Seeder
                 TalkComment::factory()
                     ->count($replyCount)
                     ->active()
+                    ->replyTo($comment)
                     ->create([
-                        'talk_id' => $talk->id,
                         'author_id' => fn () => $authorIds[array_rand($authorIds)],
-                        'parent_id' => $comment->id,
                     ]);
             }
+
+            $this->seedCommentPostStatusSamples($talk, $authorIds, $topLevelComments);
 
             $talk->forceFill([
                 'comment_count' => (int) TalkComment::query()
@@ -196,5 +197,80 @@ final class TalkSeeder extends Seeder
                     ->count(),
             ])->save();
         }
+    }
+
+    /**
+     * @param  array<int, int>  $authorIds
+     */
+    private function seedCommentPostStatusSamples(Talk $talk, array $authorIds, iterable $parentCandidates): void
+    {
+        $parentComments = collect($parentCandidates)
+            ->filter(static fn (TalkComment $comment): bool => $comment->isRootComment())
+            ->values()
+            ->all();
+
+        $samples = [
+            [
+                'chance' => 12,
+                'factory_state' => 'systemBlocked',
+                'prefix' => '[시스템 차단 샘플]',
+            ],
+            [
+                'chance' => 8,
+                'factory_state' => 'adminStopped',
+                'prefix' => '[게시중단 샘플]',
+            ],
+            [
+                'chance' => 6,
+                'factory_state' => 'userDeleted',
+                'prefix' => '[본인삭제 샘플]',
+            ],
+            [
+                'chance' => 8,
+                'factory_state' => 'inactive',
+                'prefix' => '[비노출 정상 샘플]',
+            ],
+        ];
+
+        foreach ($samples as $sample) {
+            if (random_int(1, 100) > $sample['chance']) {
+                continue;
+            }
+
+            $parent = null;
+            if (random_int(1, 100) <= 60) {
+                if ($parentComments === []) {
+                    $parentComments[] = $this->createSampleParentComment($talk, $authorIds);
+                }
+
+                $parent = $parentComments[array_rand($parentComments)];
+            }
+
+            $factory = TalkComment::factory()->{$sample['factory_state']}();
+            $factory = $parent instanceof TalkComment
+                ? $factory->replyTo($parent)
+                : $factory->topLevel();
+
+            $factory->count(random_int(1, 2))->create([
+                'talk_id' => $talk->id,
+                'author_id' => fn () => $authorIds[array_rand($authorIds)],
+                'content' => fn () => $sample['prefix'].' '.fake()->sentence(14),
+            ]);
+        }
+    }
+
+    /**
+     * @param  array<int, int>  $authorIds
+     */
+    private function createSampleParentComment(Talk $talk, array $authorIds): TalkComment
+    {
+        return TalkComment::factory()
+            ->active()
+            ->topLevel()
+            ->create([
+                'talk_id' => $talk->id,
+                'author_id' => fn () => $authorIds[array_rand($authorIds)],
+                'content' => '[상태 샘플 부모 댓글] '.fake()->sentence(14),
+            ]);
     }
 }

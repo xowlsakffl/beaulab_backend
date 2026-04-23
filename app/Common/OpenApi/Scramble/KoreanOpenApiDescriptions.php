@@ -256,7 +256,6 @@ final class KoreanOpenApiDescriptions
             'content' => '내용',
             'status' => '상태',
             'post_status' => '게시 상태',
-            'visibility_status' => '노출 여부',
             'allow_status' => '검수 상태',
             'is_pinned' => '상단 고정 여부',
             'pinned_order' => '상단 고정 정렬 순서',

@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Modules\Staff\Http\Requests\Talk;
+namespace App\Modules\Staff\Http\Requests\TalkComment;
 
-use App\Domains\Talk\Models\Talk;
+use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * 토크 다중 노출 상태 변경 요청.
+ * 토크 댓글 다중 노출 상태 변경 요청.
  */
-final class TalkVisibilityBulkUpdateForStaffRequest extends FormRequest
+final class TalkCommentStatusUpdateForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -34,9 +34,9 @@ final class TalkVisibilityBulkUpdateForStaffRequest extends FormRequest
             'ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('talks', 'id')->whereNull('deleted_at'),
+                Rule::exists('talk_comments', 'id')->whereNull('deleted_at'),
             ],
-            'status' => ['required', Rule::in(Talk::statuses())],
+            'status' => ['required', Rule::in(TalkComment::statuses())],
             'hidden_reason' => ['nullable', 'string', 'max:500'],
         ];
     }
@@ -47,8 +47,8 @@ final class TalkVisibilityBulkUpdateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'ids' => '토크 목록',
-            'ids.*' => '토크',
+            'ids' => '토크 댓글 목록',
+            'ids.*' => '토크 댓글',
             'status' => '노출 상태',
             'hidden_reason' => '미노출 사유',
         ];

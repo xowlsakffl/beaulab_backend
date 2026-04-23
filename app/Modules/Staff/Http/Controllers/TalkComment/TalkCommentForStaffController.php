@@ -5,7 +5,9 @@ namespace App\Modules\Staff\Http\Controllers\TalkComment;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\Talk\Actions\Staff\TalkCommentListForStaffAction;
+use App\Domains\Talk\Actions\Staff\TalkCommentStatusUpdateForStaffAction;
 use App\Modules\Staff\Http\Requests\TalkComment\TalkCommentListForStaffRequest;
+use App\Modules\Staff\Http\Requests\TalkComment\TalkCommentStatusUpdateForStaffRequest;
 
 /**
  * TalkCommentForStaffController 역할 정의.
@@ -18,6 +20,13 @@ final class TalkCommentForStaffController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function updateTalkCommentStatusForStaff(
+        TalkCommentStatusUpdateForStaffRequest $request,
+        TalkCommentStatusUpdateForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($request->validated()));
     }
 
 }

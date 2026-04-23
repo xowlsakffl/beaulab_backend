@@ -6,25 +6,25 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Actions\OperationHistory\OperationHistoryCreateAction;
 use App\Domains\Common\Models\OperationHistory\OperationHistory;
-use App\Domains\Talk\Models\Talk;
-use App\Domains\Talk\Queries\Staff\TalkVisibilityBulkUpdateForStaffQuery;
+use App\Domains\Talk\Models\TalkComment;
+use App\Domains\Talk\Queries\Staff\TalkCommentStatusUpdateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * 토크 다중 노출 상태 변경 유스케이스.
+ * 토크 댓글 다중 노출 상태 변경 유스케이스.
  */
-final class TalkVisibilityBulkUpdateForStaffAction
+final class TalkCommentStatusUpdateForStaffAction
 {
     public function __construct(
-        private readonly TalkVisibilityBulkUpdateForStaffQuery $query,
+        private readonly TalkCommentStatusUpdateForStaffQuery $query,
         private readonly OperationHistoryCreateAction $historyCreateAction,
     ) {}
 
     public function execute(array $payload): array
     {
-        Gate::authorize('update', Talk::class);
+        Gate::authorize('update', TalkComment::class);
 
         $ids = collect($payload['ids'] ?? [])
             ->map(static fn (int|string $id): int => (int) $id)
@@ -33,19 +33,19 @@ final class TalkVisibilityBulkUpdateForStaffAction
             ->values()
             ->all();
         $status = (string) $payload['status'];
-        $hiddenReason = $status === Talk::STATUS_ACTIVE ? null : $this->normalizeReason($payload['hidden_reason'] ?? null);
+        $hiddenReason = $status === TalkComment::STATUS_ACTIVE ? null : $this->normalizeReason($payload['hidden_reason'] ?? null);
         $actor = auth()->user();
 
         return DB::transaction(function () use ($ids, $status, $hiddenReason, $actor): array {
-            $talks = $this->query->getForUpdate($ids);
-            $existingIds = $talks
+            $comments = $this->query->getForUpdate($ids);
+            $existingIds = $comments
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)
                 ->values()
                 ->all();
 
-            $lockedIds = $talks
-                ->filter(static fn (Talk $talk): bool => $talk->isVisibilityChangeLocked())
+            $lockedIds = $comments
+                ->filter(static fn (TalkComment $comment): bool => $comment->isStatusChangeLocked())
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)
                 ->values()
@@ -55,7 +55,7 @@ final class TalkVisibilityBulkUpdateForStaffAction
                 throw new CustomException(
                     ErrorCode::INVALID_REQUEST,
                     sprintf(
-                        '자동 블라인드, 게시중단, 본인삭제 상태의 토크는 노출 상태를 변경할 수 없습니다. (ID: %s)',
+                        '자동 블라인드, 게시중단, 본인삭제 상태의 토크 댓글은 노출 상태를 변경할 수 없습니다. (ID: %s)',
                         implode(', ', $lockedIds),
                     ),
                 );
@@ -63,24 +63,24 @@ final class TalkVisibilityBulkUpdateForStaffAction
 
             $updatedCount = $this->query->update($existingIds, $status);
 
-            foreach ($talks as $talk) {
-                $beforeStatus = (string) $talk->status;
+            foreach ($comments as $comment) {
+                $beforeStatus = (string) $comment->status;
                 if ($beforeStatus === $status) {
                     continue;
                 }
 
                 $this->historyCreateAction->execute(
-                    target: $talk,
-                    action: OperationHistory::ACTION_VISIBILITY_UPDATED,
+                    target: $comment,
+                    action: OperationHistory::ACTION_STATUS_UPDATED,
                     actor: $actor instanceof Model ? $actor : null,
                     field: 'status',
                     beforeValue: $beforeStatus,
                     afterValue: $status,
                     reason: $hiddenReason,
                     metadata: [
-                        'before_label' => $beforeStatus === Talk::STATUS_ACTIVE ? '노출' : '미노출',
-                        'after_label' => $status === Talk::STATUS_ACTIVE ? '노출' : '미노출',
-                        'source' => 'staff.talk.visibility',
+                        'before_label' => $beforeStatus === TalkComment::STATUS_ACTIVE ? '노출' : '미노출',
+                        'after_label' => $status === TalkComment::STATUS_ACTIVE ? '노출' : '미노출',
+                        'source' => 'staff.talk_comment.status',
                         'bulk' => count($existingIds) > 1,
                     ],
                 );

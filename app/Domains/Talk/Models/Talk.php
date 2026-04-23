@@ -54,7 +54,7 @@ final class Talk extends Model
         self::CATEGORY_CODE_SECRET,
     ];
 
-    public const array VISIBILITY_CHANGE_LOCKED_POST_STATUSES = [
+    public const array STATUS_CHANGE_LOCKED_POST_STATUSES = [
         self::POST_STATUS_AUTO_BLIND,
         self::POST_STATUS_USER_DELETE,
         self::POST_STATUS_ADMIN_STOP,
@@ -136,9 +136,9 @@ final class Talk extends Model
         return self::CATEGORY_CODES;
     }
 
-    public function isVisibilityChangeLocked(): bool
+    public function isStatusChangeLocked(): bool
     {
-        return in_array((string) $this->post_status, self::VISIBILITY_CHANGE_LOCKED_POST_STATUSES, true);
+        return in_array((string) $this->post_status, self::STATUS_CHANGE_LOCKED_POST_STATUSES, true);
     }
 
     public function author(): BelongsTo

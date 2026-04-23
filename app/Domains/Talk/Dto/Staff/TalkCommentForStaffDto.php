@@ -17,7 +17,7 @@ final readonly class TalkCommentForStaffDto
         public ?string $categoryCode,
         public ?string $parentTalkTitle,
         public string $content,
-        public string $visibilityStatus,
+        public string $status,
         public int $likeCount,
         public string $postStatus,
     ) {}
@@ -33,7 +33,7 @@ final readonly class TalkCommentForStaffDto
                 ? (string) $comment->talk->title
                 : null,
             content: (string) $comment->content,
-            visibilityStatus: (string) $comment->status,
+            status: (string) $comment->status,
             likeCount: (int) $comment->like_count,
             postStatus: (string) $comment->post_status,
         );
@@ -48,9 +48,9 @@ final readonly class TalkCommentForStaffDto
             'category_code' => $this->categoryCode,
             'parent_talk_title' => $this->parentTalkTitle,
             'content' => $this->content,
-            'visibility_status' => $this->visibilityStatus,
+            'status' => $this->status,
             'like_count' => $this->likeCount,
-            'status' => $this->postStatus,
+            'post_status' => $this->postStatus,
         ];
 
         return $data;

@@ -23,6 +23,11 @@ final class TalkCommentPolicy
         return $this->delegate($actor)->view($actor, $comment);
     }
 
+    public function update(mixed $actor, ?TalkComment $comment = null): bool
+    {
+        return $this->delegate($actor)->update($actor, $comment);
+    }
+
     private function delegate(mixed $actor): object
     {
         return match (true) {
@@ -30,10 +35,12 @@ final class TalkCommentPolicy
             $actor instanceof AccountUser => new class {
                 public function viewAny(mixed $actor): bool { return false; }
                 public function view(mixed $actor, TalkComment $comment): bool { return false; }
+                public function update(mixed $actor, ?TalkComment $comment = null): bool { return false; }
             },
             default => new class {
                 public function viewAny(mixed $actor): bool { return false; }
                 public function view(mixed $actor, TalkComment $comment): bool { return false; }
+                public function update(mixed $actor, ?TalkComment $comment = null): bool { return false; }
             },
         };
     }

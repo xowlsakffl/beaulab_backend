@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 final class OperationHistory extends Model
 {
-    public const string ACTION_VISIBILITY_UPDATED = 'VISIBILITY_UPDATED';
+    public const string ACTION_STATUS_UPDATED = 'STATUS_UPDATED';
 
     public const string ACTOR_KIND_STAFF = 'STAFF';
     public const string ACTOR_KIND_HOSPITAL = 'HOSPITAL';

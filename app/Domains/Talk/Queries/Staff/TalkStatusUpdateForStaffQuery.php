@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 /**
  * 토크 다중 노출 상태 변경 DB 쿼리.
  */
-final class TalkVisibilityBulkUpdateForStaffQuery
+final class TalkStatusUpdateForStaffQuery
 {
     /**
      * @param  array<int, int>  $talkIds
@@ -42,7 +42,7 @@ final class TalkVisibilityBulkUpdateForStaffQuery
 
         return Talk::query()
             ->whereIn('id', $ids)
-            ->whereNotIn('post_status', Talk::VISIBILITY_CHANGE_LOCKED_POST_STATUSES)
+            ->whereNotIn('post_status', Talk::STATUS_CHANGE_LOCKED_POST_STATUSES)
             ->update(['status' => $status]);
     }
 

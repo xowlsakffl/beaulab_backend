@@ -7,7 +7,6 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
-use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -19,7 +18,6 @@ final class AdminNoteTargetRegistry
     public const string ALIAS_HOSPITAL = 'hospital';
     public const string ALIAS_BEAUTY = 'beauty';
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
-    public const string ALIAS_TALK_COMMENT = 'talk_comment';
 
     /**
      * @var array<string, class-string<Model>>
@@ -28,7 +26,6 @@ final class AdminNoteTargetRegistry
         self::ALIAS_HOSPITAL => Hospital::class,
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
-        self::ALIAS_TALK_COMMENT => TalkComment::class,
     ];
 
     /**

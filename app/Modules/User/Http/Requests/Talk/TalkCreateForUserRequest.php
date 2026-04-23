@@ -3,6 +3,7 @@
 namespace App\Modules\User\Http\Requests\Talk;
 
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,6 +18,13 @@ final class TalkCreateForUserRequest extends FormRequest
         } elseif (array_key_exists('category_ids', $data)) {
             $categoryIds = $this->normalizeIdList($data['category_ids']);
             $data['category_id'] = $categoryIds[0] ?? null;
+        }
+
+        if (isset($data['poll']) && is_array($data['poll']) && isset($data['poll']['options']) && is_array($data['poll']['options'])) {
+            $data['poll']['options'] = array_map(
+                static fn ($option) => is_string($option) ? trim($option) : $option,
+                $data['poll']['options'],
+            );
         }
 
         $this->replace($data);
@@ -39,8 +47,12 @@ final class TalkCreateForUserRequest extends FormRequest
                     ->where('domain', Category::DOMAIN_HOSPITAL_COMMUNITY)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
-            'images' => ['nullable', 'array', 'max:10'],
+            'images' => ['nullable', 'array', 'max:' . Talk::MAX_IMAGE_COUNT],
             'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'poll' => ['nullable', 'array'],
+            'poll.allow_multiple' => ['required_with:poll', 'boolean'],
+            'poll.options' => ['required_with:poll', 'array', 'min:2', 'max:10'],
+            'poll.options.*' => ['required', 'string', 'max:100', 'distinct:strict'],
         ];
     }
 

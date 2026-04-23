@@ -8,6 +8,7 @@ use App\Domains\Common\Models\Media\Media;
 use App\Domains\Common\Models\OperationHistory\OperationHistory;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
+use App\Domains\Talk\Models\TalkPollOption;
 use Illuminate\Support\Collection;
 
 /**
@@ -31,8 +32,9 @@ final readonly class TalkForStaffDetailDto
         public int $likeCount,
         public int $saveCount,
         public ?array $author,
-        public ?string $categoryCode,
+        public ?int $categoryId,
         public array $images,
+        public ?array $poll,
         public array $operationHistories,
         public array $comments,
         public ?string $createdAt,
@@ -61,8 +63,9 @@ final readonly class TalkForStaffDetailDto
             likeCount: (int) $talk->like_count,
             saveCount: (int) $talk->save_count,
             author: self::author($talk),
-            categoryCode: self::categoryCode($talk),
+            categoryId: self::categoryId($talk),
             images: self::images($talk),
+            poll: self::poll($talk),
             operationHistories: $operationHistories,
             comments: $comments,
             createdAt: $talk->created_at?->toISOString(),
@@ -88,8 +91,9 @@ final readonly class TalkForStaffDetailDto
             'comment_count' => $this->commentCount,
             'like_count' => $this->likeCount,
             'save_count' => $this->saveCount,
-            'category_code' => $this->categoryCode,
+            'category_id' => $this->categoryId,
             'images' => $this->images,
+            'poll' => $this->poll,
             'operation_histories' => $this->operationHistories,
             'comments' => $this->comments,
             'created_at' => $this->createdAt,
@@ -113,15 +117,15 @@ final readonly class TalkForStaffDetailDto
         ];
     }
 
-    private static function categoryCode(Talk $talk): ?string
+    private static function categoryId(Talk $talk): ?int
     {
-        $code = self::resolveCategories($talk)
+        $id = self::resolveCategories($talk)
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
-            ->map(fn (Category $category): string => (string) $category->code)
-            ->filter(static fn (string $code): bool => $code !== '')
+            ->map(fn (Category $category): int => (int) $category->id)
+            ->filter(static fn (int $id): bool => $id > 0)
             ->first();
 
-        return is_string($code) && $code !== '' ? $code : null;
+        return is_int($id) && $id > 0 ? $id : null;
     }
 
     private static function images(Talk $talk): array
@@ -147,6 +151,31 @@ final readonly class TalkForStaffDetailDto
     public static function operationHistory(OperationHistory $history): array
     {
         return OperationHistoryDto::fromModel($history)->toArray();
+    }
+
+    private static function poll(Talk $talk): ?array
+    {
+        if (! $talk->relationLoaded('poll') || ! $talk->poll) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $talk->poll->id,
+            'allow_multiple' => (bool) $talk->poll->allow_multiple,
+            'options' => $talk->poll->relationLoaded('options')
+                ? $talk->poll->options
+                    ->map(fn (TalkPollOption $option): array => [
+                        'id' => (int) $option->id,
+                        'content' => (string) $option->content,
+                        'sort_order' => (int) $option->sort_order,
+                        'vote_count' => (int) $option->vote_count,
+                    ])
+                    ->values()
+                    ->all()
+                : [],
+            'created_at' => $talk->poll->created_at?->toISOString(),
+            'updated_at' => $talk->poll->updated_at?->toISOString(),
+        ];
     }
 
     public static function comment(TalkComment $comment): array
@@ -178,9 +207,21 @@ final readonly class TalkForStaffDetailDto
         }
 
         return $comment->operationHistories
-            ->map(fn (OperationHistory $history): array => self::operationHistory($history))
+            ->map(fn (OperationHistory $history): array => self::commentOperationHistory($history))
             ->values()
             ->all();
+    }
+
+    private static function commentOperationHistory(OperationHistory $history): array
+    {
+        $field = (string) $history->field;
+
+        return [
+            'status' => $field === 'status' ? $history->after_value : null,
+            'post_status' => $field === 'post_status' ? $history->after_value : null,
+            'created_at' => $history->created_at?->toISOString(),
+            'reason' => $history->reason,
+        ];
     }
 
     /**

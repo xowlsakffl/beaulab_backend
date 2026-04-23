@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Talk;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * TalkGetForStaffRequest 역할 정의.
@@ -29,7 +30,7 @@ final class TalkGetForStaffRequest extends FormRequest
     {
         return [
             'comments_page' => ['nullable', 'integer', 'min:1'],
-            'comments_per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'comments_per_page' => ['nullable', 'integer', Rule::in([10, 20, 50])],
             'operation_histories_page' => ['nullable', 'integer', 'min:1'],
             'operation_histories_per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -41,7 +42,7 @@ final class TalkGetForStaffRequest extends FormRequest
 
         return [
             'comments_page' => (int) ($validated['comments_page'] ?? 1),
-            'comments_per_page' => (int) ($validated['comments_per_page'] ?? 15),
+            'comments_per_page' => (int) ($validated['comments_per_page'] ?? 10),
             'operation_histories_page' => (int) ($validated['operation_histories_page'] ?? 1),
             'operation_histories_per_page' => (int) ($validated['operation_histories_per_page'] ?? 15),
         ];

@@ -5,6 +5,7 @@ namespace App\Domains\Talk\Dto\User;
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Common\Models\Media\Media;
 use App\Domains\Talk\Models\Talk;
+use App\Domains\Talk\Models\TalkPollOption;
 use Illuminate\Support\Collection;
 
 final readonly class TalkCreateForUserDto
@@ -25,6 +26,7 @@ final readonly class TalkCreateForUserDto
         public ?array $author = null,
         public ?string $categoryCode = null,
         public ?array $images = null,
+        public ?array $poll = null,
     ) {}
 
     public static function fromModel(Talk $talk): self
@@ -45,6 +47,7 @@ final readonly class TalkCreateForUserDto
             author: $talk->relationLoaded('author') ? self::author($talk) : null,
             categoryCode: $talk->relationLoaded('categories') ? self::categoryCode($talk) : null,
             images: $talk->relationLoaded('images') ? self::images($talk) : null,
+            poll: $talk->relationLoaded('poll') ? self::poll($talk) : null,
         );
     }
 
@@ -75,6 +78,10 @@ final readonly class TalkCreateForUserDto
 
         if ($this->images !== null) {
             $data['images'] = $this->images;
+        }
+
+        if ($this->poll !== null) {
+            $data['poll'] = $this->poll;
         }
 
         return $data;
@@ -122,6 +129,31 @@ final readonly class TalkCreateForUserDto
             ])
             ->values()
             ->all();
+    }
+
+    private static function poll(Talk $talk): ?array
+    {
+        if (! $talk->relationLoaded('poll') || ! $talk->poll) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $talk->poll->id,
+            'allow_multiple' => (bool) $talk->poll->allow_multiple,
+            'options' => $talk->poll->relationLoaded('options')
+                ? $talk->poll->options
+                    ->map(fn (TalkPollOption $option): array => [
+                        'id' => (int) $option->id,
+                        'content' => (string) $option->content,
+                        'sort_order' => (int) $option->sort_order,
+                        'vote_count' => (int) $option->vote_count,
+                    ])
+                    ->values()
+                    ->all()
+                : [],
+            'created_at' => $talk->poll->created_at?->toISOString(),
+            'updated_at' => $talk->poll->updated_at?->toISOString(),
+        ];
     }
 
     /**

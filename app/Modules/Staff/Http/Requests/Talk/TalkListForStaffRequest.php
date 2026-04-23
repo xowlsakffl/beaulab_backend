@@ -134,4 +134,5 @@ final class TalkListForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : array_values(array_unique($normalized));
     }
+
 }

@@ -23,7 +23,7 @@ final readonly class TalkCreateForUserDto
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?array $author = null,
-        public ?string $categories = null,
+        public ?string $categoryCode = null,
         public ?array $images = null,
     ) {}
 
@@ -43,7 +43,7 @@ final readonly class TalkCreateForUserDto
             createdAt: $talk->created_at?->toISOString(),
             updatedAt: $talk->updated_at?->toISOString(),
             author: $talk->relationLoaded('author') ? self::author($talk) : null,
-            categories: $talk->relationLoaded('categories') ? self::categories($talk) : null,
+            categoryCode: $talk->relationLoaded('categories') ? self::categoryCode($talk) : null,
             images: $talk->relationLoaded('images') ? self::images($talk) : null,
         );
     }
@@ -69,8 +69,8 @@ final readonly class TalkCreateForUserDto
             $data['author'] = $this->author;
         }
 
-        if ($this->categories !== null) {
-            $data['categories'] = $this->categories;
+        if ($this->categoryCode !== null) {
+            $data['category_code'] = $this->categoryCode;
         }
 
         if ($this->images !== null) {
@@ -93,7 +93,7 @@ final readonly class TalkCreateForUserDto
         ];
     }
 
-    private static function categories(Talk $talk): ?string
+    private static function categoryCode(Talk $talk): ?string
     {
         $code = self::resolveCategories($talk)
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))

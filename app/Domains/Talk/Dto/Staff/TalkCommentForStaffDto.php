@@ -4,7 +4,6 @@ namespace App\Domains\Talk\Dto\Staff;
 
 use App\Domains\Common\Models\Category\Category;
 use App\Domains\Talk\Models\TalkComment;
-use Illuminate\Support\Collection;
 
 /**
  * TalkCommentForStaffDto DTO.
@@ -15,7 +14,7 @@ final readonly class TalkCommentForStaffDto
         public int $id,
         public string $createdAt,
         public ?string $nickname,
-        public ?string $categories,
+        public ?string $categoryCode,
         public ?string $parentTalkTitle,
         public string $content,
         public string $visibilityStatus,
@@ -29,7 +28,7 @@ final readonly class TalkCommentForStaffDto
             id: (int) $comment->id,
             createdAt: $comment->created_at?->toISOString() ?? '',
             nickname: self::nickname($comment),
-            categories: self::categoryCode($comment),
+            categoryCode: self::categoryCode($comment),
             parentTalkTitle: $comment->relationLoaded('talk') && $comment->talk
                 ? (string) $comment->talk->title
                 : null,
@@ -46,7 +45,7 @@ final readonly class TalkCommentForStaffDto
             'id' => $this->id,
             'created_at' => $this->createdAt,
             'nickname' => $this->nickname,
-            'categories' => $this->categories,
+            'category_code' => $this->categoryCode,
             'parent_talk_title' => $this->parentTalkTitle,
             'content' => $this->content,
             'visibility_status' => $this->visibilityStatus,
@@ -68,8 +67,6 @@ final readonly class TalkCommentForStaffDto
         return $nickname !== '' ? $nickname : (string) $comment->author->name;
     }
 
-    /**
-     */
     private static function categoryCode(TalkComment $comment): ?string
     {
         if (! $comment->relationLoaded('talk') || ! $comment->talk || ! $comment->talk->relationLoaded('categories')) {

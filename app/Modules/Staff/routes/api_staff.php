@@ -181,8 +181,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
      **/
     Route::get('talks', [TalkForStaffController::class, 'getTalksForStaff'])
         ->name('talks.getTalksForStaff');
-    Route::patch('talks/visibility', [TalkForStaffController::class, 'updateTalkVisibilityForStaff'])
-        ->name('talks.updateTalkVisibilityForStaff');
+    Route::patch('talks/status', [TalkForStaffController::class, 'updateTalkStatusForStaff'])
+        ->name('talks.updateTalkStatusForStaff');
     Route::get('talks/{talk}', [TalkForStaffController::class, 'getTalkForStaff'])
         ->name('talks.getTalkForStaff');
 
@@ -191,6 +191,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
      **/
     Route::get('talk-comments', [TalkCommentForStaffController::class, 'getCommentsForStaff'])
         ->name('talk-comments.getCommentsForStaff');
+    Route::patch('talk-comments/status', [TalkCommentForStaffController::class, 'updateTalkCommentStatusForStaff'])
+        ->name('talk-comments.updateTalkCommentStatusForStaff');
 
     /**
      * 공지사항

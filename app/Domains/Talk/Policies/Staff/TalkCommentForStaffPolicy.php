@@ -22,4 +22,9 @@ final class TalkCommentForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_TALK_SHOW);
     }
 
+    public function update(AccountStaff $actor, ?TalkComment $comment = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_TALK_UPDATE);
+    }
+
 }

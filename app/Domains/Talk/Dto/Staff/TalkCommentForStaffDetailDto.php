@@ -2,8 +2,6 @@
 
 namespace App\Domains\Talk\Dto\Staff;
 
-use App\Domains\Common\Dto\AdminNote\AdminNoteDto;
-use App\Domains\Common\Models\AdminNote\AdminNote;
 use App\Domains\Talk\Models\TalkComment;
 use App\Domains\Talk\Models\TalkCommentMention;
 use Illuminate\Support\Collection;
@@ -30,7 +28,6 @@ final readonly class TalkCommentForStaffDetailDto
         public ?string $deletedAt,
         public ?array $author = null,
         public ?array $talk = null,
-        public ?array $adminNotes = null,
         public ?array $mentions = null,
         public ?array $children = null,
     ) {}
@@ -53,7 +50,6 @@ final readonly class TalkCommentForStaffDetailDto
             deletedAt: $comment->deleted_at?->toISOString(),
             author: $comment->relationLoaded('author') ? self::author($comment) : null,
             talk: $comment->relationLoaded('talk') ? self::talk($comment) : null,
-            adminNotes: $comment->relationLoaded('adminNotes') ? self::adminNotes($comment) : null,
             mentions: $comment->relationLoaded('mentions') ? self::mentions($comment) : null,
             children: $comment->relationLoaded('children') && $comment->isRootComment() ? self::children($comment) : null,
         );
@@ -83,10 +79,6 @@ final readonly class TalkCommentForStaffDetailDto
 
         if ($this->talk !== null) {
             $data['talk'] = $this->talk;
-        }
-
-        if ($this->adminNotes !== null) {
-            $data['admin_notes'] = $this->adminNotes;
         }
 
         if ($this->mentions !== null) {
@@ -123,14 +115,6 @@ final readonly class TalkCommentForStaffDetailDto
             'id' => (int) $comment->talk->id,
             'title' => (string) $comment->talk->title,
         ];
-    }
-
-    private static function adminNotes(TalkComment $comment): array
-    {
-        return self::resolveAdminNotes($comment)
-            ->map(fn (AdminNote $note): array => AdminNoteDto::fromModel($note)->toArray())
-            ->values()
-            ->all();
     }
 
     private static function mentions(TalkComment $comment): array
@@ -171,18 +155,6 @@ final readonly class TalkCommentForStaffDetailDto
             ])
             ->values()
             ->all();
-    }
-
-    /**
-     * @return Collection<int, AdminNote>
-     */
-    private static function resolveAdminNotes(TalkComment $comment): Collection
-    {
-        if (! $comment->relationLoaded('adminNotes')) {
-            return collect();
-        }
-
-        return $comment->adminNotes;
     }
 
     /**

@@ -6,11 +6,11 @@ use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\Talk\Actions\Staff\TalkGetForStaffAction;
 use App\Domains\Talk\Actions\Staff\TalkListForStaffAction;
-use App\Domains\Talk\Actions\Staff\TalkVisibilityBulkUpdateForStaffAction;
+use App\Domains\Talk\Actions\Staff\TalkStatusUpdateForStaffAction;
 use App\Domains\Talk\Models\Talk;
 use App\Modules\Staff\Http\Requests\Talk\TalkGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Talk\TalkListForStaffRequest;
-use App\Modules\Staff\Http\Requests\Talk\TalkVisibilityBulkUpdateForStaffRequest;
+use App\Modules\Staff\Http\Requests\Talk\TalkStatusUpdateForStaffRequest;
 
 /**
  * TalkForStaffController 역할 정의.
@@ -32,9 +32,9 @@ final class TalkForStaffController extends Controller
         return ApiResponse::success($result['talk'] ?? $result);
     }
 
-    public function updateTalkVisibilityForStaff(
-        TalkVisibilityBulkUpdateForStaffRequest $request,
-        TalkVisibilityBulkUpdateForStaffAction $action,
+    public function updateTalkStatusForStaff(
+        TalkStatusUpdateForStaffRequest $request,
+        TalkStatusUpdateForStaffAction $action,
     ) {
         return ApiResponse::success($action->execute($request->validated()));
     }

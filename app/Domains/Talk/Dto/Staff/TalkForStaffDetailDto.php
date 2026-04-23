@@ -164,10 +164,23 @@ final readonly class TalkForStaffDetailDto
             'post_status' => (string) $comment->post_status,
             'author_ip' => $comment->author_ip,
             'like_count' => (int) $comment->like_count,
+            'operation_histories' => self::commentOperationHistories($comment),
             'created_at' => $comment->created_at?->toISOString(),
             'updated_at' => $comment->updated_at?->toISOString(),
             'deleted_at' => $comment->deleted_at?->toISOString(),
         ];
+    }
+
+    private static function commentOperationHistories(TalkComment $comment): array
+    {
+        if (! $comment->relationLoaded('operationHistories')) {
+            return [];
+        }
+
+        return $comment->operationHistories
+            ->map(fn (OperationHistory $history): array => self::operationHistory($history))
+            ->values()
+            ->all();
     }
 
     /**

@@ -3,8 +3,8 @@
 namespace App\Domains\Talk\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Models\Concerns\HasAdminNotes;
 use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Models\Concerns\HasOperationHistories;
 use Database\Factories\TalkCommentFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,7 +21,7 @@ use InvalidArgumentException;
  */
 final class TalkComment extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes;
+    use HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
     public const STATUS_ACTIVE = 'ACTIVE';
 
@@ -35,7 +35,7 @@ final class TalkComment extends Model
 
     public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
 
-    public const array VISIBILITY_CHANGE_LOCKED_POST_STATUSES = [
+    public const array STATUS_CHANGE_LOCKED_POST_STATUSES = [
         self::POST_STATUS_AUTO_BLIND,
         self::POST_STATUS_USER_DELETE,
         self::POST_STATUS_ADMIN_STOP,
@@ -118,9 +118,9 @@ final class TalkComment extends Model
         return Talk::categoryCodes();
     }
 
-    public function isVisibilityChangeLocked(): bool
+    public function isStatusChangeLocked(): bool
     {
-        return in_array((string) $this->post_status, self::VISIBILITY_CHANGE_LOCKED_POST_STATUSES, true);
+        return in_array((string) $this->post_status, self::STATUS_CHANGE_LOCKED_POST_STATUSES, true);
     }
 
     public function talk(): BelongsTo

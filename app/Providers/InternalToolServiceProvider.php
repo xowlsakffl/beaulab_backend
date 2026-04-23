@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Common\Authorization\AccessRoles;
 use App\Common\OpenApi\Scramble\AddSanctumSecurityScheme;
+use App\Common\OpenApi\Scramble\ApplyKoreanOperationDocumentation;
+use App\Common\OpenApi\Scramble\ApplyKoreanSchemaDescriptions;
 use App\Common\OpenApi\Scramble\ApplySanctumSecurity;
 use App\Common\OpenApi\Scramble\NormalizeQueryArrayParameters;
 use App\Domains\AccountStaff\Models\AccountStaff;
@@ -17,9 +19,11 @@ class InternalToolServiceProvider extends ServiceProvider
     {
         Scramble::configure()
             ->withDocumentTransformers(AddSanctumSecurityScheme::class)
+            ->withDocumentTransformers(ApplyKoreanSchemaDescriptions::class)
             ->withOperationTransformers([
                 ApplySanctumSecurity::class,
                 NormalizeQueryArrayParameters::class,
+                ApplyKoreanOperationDocumentation::class,
             ]);
 
         Gate::define('viewTool', function (?AccountStaff $user): bool {

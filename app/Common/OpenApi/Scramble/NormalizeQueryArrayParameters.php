@@ -53,7 +53,7 @@ final class NormalizeQueryArrayParameters extends OperationExtension
                 $parameter->example($stringType->enum[0]);
             }
 
-            $note = 'Enter one value or comma-separated values.';
+            $note = '값 하나 또는 쉼표로 구분한 여러 값을 입력합니다.';
             $parameter->description(trim($parameter->description . ' ' . $note));
         }
     }

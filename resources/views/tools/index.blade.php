@@ -348,7 +348,7 @@
             <div class="hero-top">
                 <div>
                     <span class="eyebrow">Internal Tools</span>
-                    <h1>운영 도구 허브</h1>
+                    <h1>내부 도구 허브</h1>
                     <p class="hero-copy">내부 운영 도구는 같은 세션과 같은 권한 기준으로 묶여 있습니다. 필요한 도구를 선택해서 바로 이동하고, 접근 정책은 공용 Gate와 허용 IP로 통일합니다.</p>
                 </div>
 
@@ -365,21 +365,6 @@
                         <button class="logout-button" type="submit">로그아웃</button>
                     </form>
                 </aside>
-            </div>
-
-            <div class="hero-footer">
-                <div class="hero-stat">
-                    <strong>통합 인증</strong>
-                    <span>한 번 로그인하면 내부도구 공용 세션으로 Horizon, Telescope, API Docs를 공통 진입합니다.</span>
-                </div>
-                <div class="hero-stat">
-                    <strong>권한 기준</strong>
-                    <span><code>viewTool</code> Gate를 통과한 staff만 내부도구를 볼 수 있습니다.</span>
-                </div>
-                <div class="hero-stat">
-                    <strong>접속 제한</strong>
-                    <span>허용 IP와 웹 세션을 함께 확인하므로 외부 직접 접근을 줄입니다.</span>
-                </div>
             </div>
         </section>
 

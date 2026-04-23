@@ -55,7 +55,7 @@ final readonly class TalkCommentForStaffDetailDto
             talk: $comment->relationLoaded('talk') ? self::talk($comment) : null,
             adminNotes: $comment->relationLoaded('adminNotes') ? self::adminNotes($comment) : null,
             mentions: $comment->relationLoaded('mentions') ? self::mentions($comment) : null,
-            children: $comment->relationLoaded('children') ? self::children($comment) : null,
+            children: $comment->relationLoaded('children') && $comment->isRootComment() ? self::children($comment) : null,
         );
     }
 

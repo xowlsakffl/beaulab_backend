@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use InvalidArgumentException;
 
 /**
  * TalkComment 역할 정의.
@@ -165,9 +166,35 @@ final class TalkComment extends Model
         return $this->parent_id !== null;
     }
 
+    public function isRootComment(): bool
+    {
+        return $this->parent_id === null;
+    }
+
     public function getIsReplyAttribute(): bool
     {
         return $this->isReply();
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(static function (self $comment): void {
+            if ($comment->parent_id === null) {
+                return;
+            }
+
+            $parent = self::query()
+                ->select(['id', 'talk_id', 'parent_id'])
+                ->find((int) $comment->parent_id);
+
+            if (! $parent instanceof self || ! $parent->isRootComment()) {
+                throw new InvalidArgumentException('대댓글은 최상위 댓글에만 작성할 수 있습니다.');
+            }
+
+            if ((int) $parent->talk_id !== (int) $comment->talk_id) {
+                throw new InvalidArgumentException('대댓글은 부모 댓글과 같은 토크에만 작성할 수 있습니다.');
+            }
+        });
     }
 
     protected static function newFactory(): Factory

@@ -40,7 +40,11 @@ final readonly class TalkForStaffDetailDto
         public ?string $deletedAt,
     ) {}
 
-    public static function fromModel(Talk $talk): self
+    public static function fromModel(
+        Talk $talk,
+        array $operationHistories,
+        array $comments,
+    ): self
     {
         return new self(
             id: (int) $talk->id,
@@ -59,8 +63,8 @@ final readonly class TalkForStaffDetailDto
             author: self::author($talk),
             categoryCode: self::categoryCode($talk),
             images: self::images($talk),
-            operationHistories: self::operationHistories($talk),
-            comments: self::comments($talk),
+            operationHistories: $operationHistories,
+            comments: $comments,
             createdAt: $talk->created_at?->toISOString(),
             updatedAt: $talk->updated_at?->toISOString(),
             deletedAt: $talk->deleted_at?->toISOString(),
@@ -140,35 +144,30 @@ final readonly class TalkForStaffDetailDto
             ->all();
     }
 
-    private static function operationHistories(Talk $talk): array
+    public static function operationHistory(OperationHistory $history): array
     {
-        return self::resolveOperationHistories($talk)
-            ->map(fn (OperationHistory $history): array => OperationHistoryDto::fromModel($history)->toArray())
-            ->values()
-            ->all();
+        return OperationHistoryDto::fromModel($history)->toArray();
     }
 
-    private static function comments(Talk $talk): array
+    public static function comment(TalkComment $comment): array
     {
-        return self::resolveComments($talk)
-            ->map(fn (TalkComment $comment): array => [
-                'id' => (int) $comment->id,
-                'parent_id' => $comment->parent_id ? (int) $comment->parent_id : null,
-                'is_reply' => $comment->isReply(),
-                'author_id' => $comment->author_id ? (int) $comment->author_id : null,
-                'author_name' => $comment->relationLoaded('author') && $comment->author
-                    ? (string) $comment->author->name
-                    : null,
-                'content' => (string) $comment->content,
-                'status' => (string) $comment->status,
-                'author_ip' => $comment->author_ip,
-                'like_count' => (int) $comment->like_count,
-                'created_at' => $comment->created_at?->toISOString(),
-                'updated_at' => $comment->updated_at?->toISOString(),
-                'deleted_at' => $comment->deleted_at?->toISOString(),
-            ])
-            ->values()
-            ->all();
+        return [
+            'id' => (int) $comment->id,
+            'parent_id' => $comment->parent_id ? (int) $comment->parent_id : null,
+            'is_reply' => $comment->isReply(),
+            'author_id' => $comment->author_id ? (int) $comment->author_id : null,
+            'author_name' => $comment->relationLoaded('author') && $comment->author
+                ? (string) $comment->author->name
+                : null,
+            'content' => (string) $comment->content,
+            'status' => (string) $comment->status,
+            'post_status' => (string) $comment->post_status,
+            'author_ip' => $comment->author_ip,
+            'like_count' => (int) $comment->like_count,
+            'created_at' => $comment->created_at?->toISOString(),
+            'updated_at' => $comment->updated_at?->toISOString(),
+            'deleted_at' => $comment->deleted_at?->toISOString(),
+        ];
     }
 
     /**
@@ -195,27 +194,4 @@ final readonly class TalkForStaffDetailDto
         return $talk->images;
     }
 
-    /**
-     * @return Collection<int, OperationHistory>
-     */
-    private static function resolveOperationHistories(Talk $talk): Collection
-    {
-        if (! $talk->relationLoaded('operationHistories')) {
-            return collect();
-        }
-
-        return $talk->operationHistories;
-    }
-
-    /**
-     * @return Collection<int, TalkComment>
-     */
-    private static function resolveComments(Talk $talk): Collection
-    {
-        if (! $talk->relationLoaded('comments')) {
-            return collect();
-        }
-
-        return $talk->comments;
-    }
 }

@@ -15,7 +15,7 @@ final class AddSanctumSecurityScheme implements DocumentTransformer
             'sanctum',
             SecurityScheme::http('bearer', 'Sanctum token')
                 ->as('sanctum')
-                ->setDescription('Sanctum personal access token. Enter the token value without the Bearer prefix.'),
+                ->setDescription('Sanctum 개인 접근 토큰입니다. Bearer 접두어 없이 토큰 값만 입력합니다.'),
         );
     }
 }

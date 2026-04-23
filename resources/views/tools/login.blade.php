@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>내부도구 로그인</title>
+    <title>로그인</title>
     <style>
         :root {
             --bg-start: #f5efe4;
@@ -236,15 +236,11 @@
         <section class="hero">
             <div>
                 <span class="eyebrow">Internal Tools</span>
-                <h2>로그인 후 내부도구 허브로 이동합니다.</h2>
-                <p>직원 계정으로 로그인하면 공용 대시보드에서 Horizon, Telescope, API Docs 같은 운영 도구를 같은 세션으로 선택해 열 수 있습니다.</p>
+                <h2>내부도구 허브</h2>
+                <p>로그인하면 공용 대시보드에서 Horizon, Telescope, API Docs 같은 운영 도구를 같은 세션으로 선택해 열 수 있습니다.</p>
             </div>
 
             <div class="summary">
-                <div class="summary-item">
-                    <strong>로그인 후 이동</strong>
-                    <span>{{ $dashboardUrl }}</span>
-                </div>
                 <div class="summary-item">
                     <strong>접근 보호</strong>
                     <span>통합 로그인, 허용 IP, 공용 권한 Gate를 함께 적용합니다.</span>
@@ -254,7 +250,7 @@
 
         <section class="panel">
             <h2>내부도구 로그인</h2>
-            <p class="panel-copy">한 번 로그인하면 내부도구 허브를 거쳐 필요한 운영 도구로 이동합니다. 권한이 없는 계정은 로그인 후에도 내부도구에 접근할 수 없습니다.</p>
+            <p class="panel-copy">권한이 없는 계정은 로그인 후에도 내부도구에 접근할 수 없습니다.</p>
 
             @if ($errorMessage !== '')
                 <div class="error">{{ $errorMessage }}</div>
@@ -287,11 +283,6 @@
 
                 <button type="submit">로그인</button>
             </form>
-
-            <p class="panel-note">
-                로그인 성공 후 이동하는 내부도구 허브:
-                <a href="{{ $dashboardUrl }}">{{ $dashboardUrl }}</a>
-            </p>
         </section>
     </main>
 </body>

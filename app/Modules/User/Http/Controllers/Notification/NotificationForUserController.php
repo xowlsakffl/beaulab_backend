@@ -4,7 +4,6 @@ namespace App\Modules\User\Http\Controllers\Notification;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Actions\Notification\User\NotificationDeviceRegisterForUserAction;
 use App\Domains\Common\Actions\Notification\User\NotificationDeviceRevokeForUserAction;
 use App\Domains\Common\Actions\Notification\User\NotificationListForUserAction;
@@ -18,6 +17,7 @@ use App\Modules\User\Http\Requests\Notification\NotificationDeviceRegisterForUse
 use App\Modules\User\Http\Requests\Notification\NotificationDeviceRevokeForUserRequest;
 use App\Modules\User\Http\Requests\Notification\NotificationListForUserRequest;
 use App\Modules\User\Http\Requests\Notification\NotificationPreferenceUpdateForUserRequest;
+use Illuminate\Http\Request;
 
 /**
  * 앱 사용자 알림 API 컨트롤러.
@@ -29,48 +29,33 @@ final class NotificationForUserController extends Controller
         NotificationListForUserRequest $request,
         NotificationListForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($user, $request->filters());
+        $result = $action->execute($request->user(), $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
-    public function getUnreadCountForUser(NotificationUnreadCountForUserAction $action)
+    public function getUnreadCountForUser(Request $request, NotificationUnreadCountForUserAction $action)
     {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        return ApiResponse::success($action->execute($user));
+        return ApiResponse::success($action->execute($request->user()));
     }
 
-    public function readNotificationForUser(NotificationInbox $notificationInbox, NotificationReadForUserAction $action)
+    public function readNotificationForUser(Request $request, NotificationInbox $notificationInbox, NotificationReadForUserAction $action)
     {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($notificationInbox, $user);
+        $result = $action->execute($notificationInbox, $request->user());
 
         return ApiResponse::success($result['notification'] ?? $result);
     }
 
-    public function readAllNotificationsForUser(NotificationReadAllForUserAction $action)
+    public function readAllNotificationsForUser(Request $request, NotificationReadAllForUserAction $action)
     {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        return ApiResponse::success($action->execute($user));
+        return ApiResponse::success($action->execute($request->user()));
     }
 
     public function registerDeviceForUser(
         NotificationDeviceRegisterForUserRequest $request,
         NotificationDeviceRegisterForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($user, $request->validated());
+        $result = $action->execute($request->user(), $request->validated());
 
         return ApiResponse::success($result['device'] ?? $result);
     }
@@ -79,18 +64,12 @@ final class NotificationForUserController extends Controller
         NotificationDeviceRevokeForUserRequest $request,
         NotificationDeviceRevokeForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        return ApiResponse::success($action->execute($user, (string) $request->validated('push_token')));
+        return ApiResponse::success($action->execute($request->user(), (string) $request->validated('push_token')));
     }
 
-    public function getPreferencesForUser(NotificationPreferenceListForUserAction $action)
+    public function getPreferencesForUser(Request $request, NotificationPreferenceListForUserAction $action)
     {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($user);
+        $result = $action->execute($request->user());
 
         return ApiResponse::success($result['items']);
     }
@@ -99,10 +78,7 @@ final class NotificationForUserController extends Controller
         NotificationPreferenceUpdateForUserRequest $request,
         NotificationPreferenceUpdateForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($user, $request->validated());
+        $result = $action->execute($request->user(), $request->validated());
 
         return ApiResponse::success($result['preference'] ?? $result);
     }

@@ -7,6 +7,10 @@ use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Queries\Staff\HospitalReviewListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * HospitalReviewListForStaffAction 역할 정의.
+ * 병의원 후기 도메인의 Action 계층으로, 관리자 목록 조회 흐름을 조합한다.
+ */
 final class HospitalReviewListForStaffAction
 {
     public function __construct(

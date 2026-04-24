@@ -7,6 +7,9 @@ use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Support\Collection;
 
+/**
+ * HospitalReviewForUserDetailDto DTO.
+ */
 final readonly class HospitalReviewForUserDetailDto
 {
     public function __construct(

@@ -18,6 +18,7 @@ use App\Modules\User\Http\Requests\Chat\ChatMessageListForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatMessageSendForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatNotificationUpdateForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatReadForUserRequest;
+use Illuminate\Http\Request;
 
 /**
  * 앱 사용자 채팅 API 컨트롤러.
@@ -27,10 +28,7 @@ final class ChatForUserController extends Controller
 {
     public function getChatsForUser(ChatListForUserRequest $request, ChatListForUserAction $action)
     {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($user, $request->filters());
+        $result = $action->execute($request->user(), $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
@@ -40,10 +38,7 @@ final class ChatForUserController extends Controller
         ChatMessageListForUserRequest $request,
         ChatMessageListForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($chat, $user, $request->filters());
+        $result = $action->execute($chat, $request->user(), $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
@@ -53,10 +48,7 @@ final class ChatForUserController extends Controller
         ChatMessageSendForUserRequest $request,
         ChatMessageSendForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($chat, $user, $request->validated());
+        $result = $action->execute($chat, $request->user(), $request->validated());
 
         return ApiResponse::success($result['message'] ?? $result);
     }
@@ -65,11 +57,8 @@ final class ChatForUserController extends Controller
         ChatFirstMessageSendForUserRequest $request,
         ChatMessageSendForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
         $result = $action->executeFirst(
-            $user,
+            $request->user(),
             (int) $request->validated('peer_user_id'),
             $request->validated(),
         );
@@ -79,10 +68,7 @@ final class ChatForUserController extends Controller
 
     public function readChatForUser(Chat $chat, ChatReadForUserRequest $request, ChatReadForUserAction $action)
     {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($chat, $user, $request->validated());
+        $result = $action->execute($chat, $request->user(), $request->validated());
 
         return ApiResponse::success($result['chat'] ?? $result);
     }
@@ -92,24 +78,18 @@ final class ChatForUserController extends Controller
         ChatNotificationUpdateForUserRequest $request,
         ChatNotificationUpdateForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
         $result = $action->execute(
             $chat,
-            $user,
+            $request->user(),
             (bool) $request->validated('notifications_enabled'),
         );
 
         return ApiResponse::success($result['chat'] ?? $result);
     }
 
-    public function deleteChatForUser(Chat $chat, ChatDeleteForUserAction $action)
+    public function deleteChatForUser(Request $request, Chat $chat, ChatDeleteForUserAction $action)
     {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->execute($chat, $user);
+        $result = $action->execute($chat, $request->user());
 
         return ApiResponse::success($result['chat'] ?? $result);
     }

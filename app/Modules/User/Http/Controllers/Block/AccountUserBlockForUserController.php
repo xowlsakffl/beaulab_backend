@@ -4,10 +4,12 @@ namespace App\Modules\User\Http\Controllers\Block;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\AccountUser\Actions\User\AccountUserBlockForUserAction;
-use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\AccountUser\Actions\User\AccountUserBlockCreateForUserAction;
+use App\Domains\AccountUser\Actions\User\AccountUserBlockDeleteForUserAction;
+use App\Domains\AccountUser\Actions\User\AccountUserBlockListForUserAction;
 use App\Modules\User\Http\Requests\Block\AccountUserBlockCreateForUserRequest;
 use App\Modules\User\Http\Requests\Block\AccountUserBlockListForUserRequest;
+use Illuminate\Http\Request;
 
 /**
  * 앱 사용자 차단 API 컨트롤러.
@@ -17,33 +19,24 @@ final class AccountUserBlockForUserController extends Controller
 {
     public function getBlocksForUser(
         AccountUserBlockListForUserRequest $request,
-        AccountUserBlockForUserAction $action,
+        AccountUserBlockListForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->list($user, $request->filters());
+        $result = $action->execute($request->user(), $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
     public function blockUserForUser(
         AccountUserBlockCreateForUserRequest $request,
-        AccountUserBlockForUserAction $action,
+        AccountUserBlockCreateForUserAction $action,
     ) {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        $result = $action->block($user, (int) $request->validated('blocked_user_id'));
+        $result = $action->execute($request->user(), (int) $request->validated('blocked_user_id'));
 
         return ApiResponse::success($result['block']);
     }
 
-    public function unblockUserForUser(int $blockedUserId, AccountUserBlockForUserAction $action)
+    public function unblockUserForUser(Request $request, int $blockedUserId, AccountUserBlockDeleteForUserAction $action)
     {
-        /** @var AccountUser $user */
-        $user = auth('user')->user();
-
-        return ApiResponse::success($action->unblock($user, $blockedUserId));
+        return ApiResponse::success($action->execute($request->user(), $blockedUserId));
     }
 }

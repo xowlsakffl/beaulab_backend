@@ -10,17 +10,17 @@ use App\Domains\BeautyExpert\Actions\Staff\BeautyExpertGetForStaffAction;
 use App\Domains\BeautyExpert\Actions\Staff\BeautyExpertListForStaffAction;
 use App\Domains\BeautyExpert\Actions\Staff\BeautyExpertUpdateForStaffAction;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
-use App\Modules\Staff\Http\Requests\Expert\ExpertCreateForStaffRequest;
-use App\Modules\Staff\Http\Requests\Expert\ExpertListForStaffRequest;
-use App\Modules\Staff\Http\Requests\Expert\ExpertUpdateForStaffRequest;
+use App\Modules\Staff\Http\Requests\BeautyExpert\BeautyExpertCreateForStaffRequest;
+use App\Modules\Staff\Http\Requests\BeautyExpert\BeautyExpertListForStaffRequest;
+use App\Modules\Staff\Http\Requests\BeautyExpert\BeautyExpertUpdateForStaffRequest;
 
 /**
  * ExpertForStaffController 역할 정의.
  * 뷰티 전문가 도메인의 HTTP 컨트롤러로, 라우트 요청을 받아 Request 검증 결과와 Action 실행 결과를 API 응답으로 연결한다.
  */
-final class ExpertForStaffController extends Controller
+final class BeautyExpertForStaffController extends Controller
 {
-    public function getExpertsForStaff(ExpertListForStaffRequest $request, BeautyExpertListForStaffAction $action)
+    public function getExpertsForStaff(BeautyExpertListForStaffRequest $request, BeautyExpertListForStaffAction $action)
     {
         $result = $action->execute($request->filters());
 
@@ -34,14 +34,14 @@ final class ExpertForStaffController extends Controller
         return ApiResponse::success($result['expert'] ?? $result);
     }
 
-    public function storeExpertForStaff(ExpertCreateForStaffRequest $request, BeautyExpertCreateForStaffAction $action)
+    public function storeExpertForStaff(BeautyExpertCreateForStaffRequest $request, BeautyExpertCreateForStaffAction $action)
     {
         $result = $action->execute($request->validated());
 
         return ApiResponse::success($result['expert'] ?? $result);
     }
 
-    public function updateExpertForStaff(BeautyExpert $expert, ExpertUpdateForStaffRequest $request, BeautyExpertUpdateForStaffAction $action)
+    public function updateExpertForStaff(BeautyExpert $expert, BeautyExpertUpdateForStaffRequest $request, BeautyExpertUpdateForStaffAction $action)
     {
         $result = $action->execute($expert, $request->validated());
 

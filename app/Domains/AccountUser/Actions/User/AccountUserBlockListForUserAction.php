@@ -4,7 +4,7 @@ namespace App\Domains\AccountUser\Actions\User;
 
 use App\Domains\AccountUser\Dto\User\AccountUserBlockForUserDto;
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\AccountUser\Queries\User\AccountUserBlockForUserQuery;
+use App\Domains\AccountUser\Queries\User\AccountUserBlockListForUserQuery;
 
 /**
  * 사용자 차단 목록 조회 유스케이스.
@@ -13,7 +13,7 @@ use App\Domains\AccountUser\Queries\User\AccountUserBlockForUserQuery;
 final class AccountUserBlockListForUserAction
 {
     public function __construct(
-        private readonly AccountUserBlockForUserQuery $query,
+        private readonly AccountUserBlockListForUserQuery $query,
     ) {}
 
     public function execute(AccountUser $user, array $filters): array

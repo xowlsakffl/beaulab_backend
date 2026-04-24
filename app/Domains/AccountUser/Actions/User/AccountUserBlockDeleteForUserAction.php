@@ -3,7 +3,7 @@
 namespace App\Domains\AccountUser\Actions\User;
 
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\AccountUser\Queries\User\AccountUserBlockForUserQuery;
+use App\Domains\AccountUser\Queries\User\AccountUserBlockDeleteForUserQuery;
 
 /**
  * 사용자 차단 해제 유스케이스.
@@ -12,13 +12,13 @@ use App\Domains\AccountUser\Queries\User\AccountUserBlockForUserQuery;
 final class AccountUserBlockDeleteForUserAction
 {
     public function __construct(
-        private readonly AccountUserBlockForUserQuery $query,
+        private readonly AccountUserBlockDeleteForUserQuery $query,
     ) {}
 
     public function execute(AccountUser $user, int $blockedUserId): array
     {
         return [
-            'unblocked' => $this->query->unblock($user, $blockedUserId) > 0,
+            'unblocked' => $this->query->delete($user, $blockedUserId) > 0,
         ];
     }
 }

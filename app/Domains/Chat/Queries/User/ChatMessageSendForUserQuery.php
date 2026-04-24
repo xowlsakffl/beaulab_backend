@@ -5,7 +5,7 @@ namespace App\Domains\Chat\Queries\User;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\AccountUser\Queries\User\AccountUserBlockForUserQuery;
+use App\Domains\AccountUser\Models\AccountUserBlock;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Models\ChatParticipant;
@@ -19,10 +19,6 @@ use Illuminate\Support\Facades\DB;
  */
 final class ChatMessageSendForUserQuery
 {
-    public function __construct(
-        private readonly AccountUserBlockForUserQuery $userBlockQuery,
-    ) {}
-
     public function store(Chat $chat, AccountUser $user, array $payload): array
     {
         return DB::transaction(function () use ($chat, $user, $payload): array {
@@ -32,7 +28,7 @@ final class ChatMessageSendForUserQuery
                 ->firstOrFail();
 
             $this->assertSendable($lockedChat, (int) $user->id);
-            $this->userBlockQuery->assertCanSendMessage(
+            $this->assertCanSendMessage(
                 (int) $user->id,
                 $this->peerUserId($lockedChat, (int) $user->id)
             );
@@ -72,7 +68,7 @@ final class ChatMessageSendForUserQuery
     private function storeFirstInTransaction(AccountUser $user, AccountUser $peer, string $matchKey, array $payload): array
     {
         return DB::transaction(function () use ($user, $peer, $matchKey, $payload): array {
-            $this->userBlockQuery->assertCanSendMessage((int) $user->id, (int) $peer->id);
+            $this->assertCanSendMessage((int) $user->id, (int) $peer->id);
 
             $lockedChat = $this->openOrCreateChat($user, $peer, $matchKey);
 
@@ -227,6 +223,31 @@ final class ChatMessageSendForUserQuery
         }
 
         return (int) $peerUserId;
+    }
+
+    private function assertCanSendMessage(int $senderUserId, int $peerUserId): void
+    {
+        $blockerIds = AccountUserBlock::query()
+            ->where(function ($query) use ($senderUserId, $peerUserId): void {
+                $query
+                    ->where('blocker_user_id', $senderUserId)
+                    ->where('blocked_user_id', $peerUserId);
+            })
+            ->orWhere(function ($query) use ($senderUserId, $peerUserId): void {
+                $query
+                    ->where('blocker_user_id', $peerUserId)
+                    ->where('blocked_user_id', $senderUserId);
+            })
+            ->pluck('blocker_user_id')
+            ->map(static fn (mixed $blockerId): int => (int) $blockerId);
+
+        if ($blockerIds->contains($senderUserId)) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '차단 해제 후 메시지를 보낼 수 있습니다.');
+        }
+
+        if ($blockerIds->contains($peerUserId)) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '메시지를 보낼 수 없습니다.');
+        }
     }
 
     private function normalizeNullableString(mixed $value): ?string

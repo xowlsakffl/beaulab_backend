@@ -3,12 +3,14 @@
 namespace App\Modules\User\Http\Requests\HospitalReview;
 
 use App\Domains\Common\Models\Category\Category;
-use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
+/**
+ * HospitalReviewCreateForUserRequest 역할 정의.
+ * 병의원 후기 도메인의 HTTP 요청 검증 객체로, 사용자 입력의 형식과 기본 제약을 검증한다.
+ */
 final class HospitalReviewCreateForUserRequest extends FormRequest
 {
     protected function prepareForValidation(): void
@@ -38,7 +40,15 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'category_domain' => ['required', Rule::in(HospitalReview::categoryDomains())],
             'category_codes' => ['required', 'array', 'min:1', 'max:' . HospitalReview::MAX_CATEGORY_COUNT],
-            'category_codes.*' => ['required', 'string', 'max:80', 'distinct:strict'],
+            'category_codes.*' => [
+                'required',
+                'string',
+                'max:80',
+                'distinct:strict',
+                Rule::exists('categories', 'code')->where(fn ($query) => $query
+                    ->where('domain', (string) $this->input('category_domain'))
+                    ->where('status', Category::STATUS_ACTIVE)),
+            ],
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:20000'],
             'cost' => ['required', 'integer', 'min:0'],
@@ -48,47 +58,6 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
             'after_images' => ['nullable', 'array', 'max:' . HospitalReview::MAX_AFTER_IMAGE_COUNT],
             'after_images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ];
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function (Validator $validator): void {
-            $hospitalId = $this->input('hospital_id');
-            $doctorId = $this->input('doctor_id');
-            $categoryDomain = $this->input('category_domain');
-            $categoryCodes = $this->input('category_codes');
-
-            if ($hospitalId && $doctorId) {
-                $doctorHospitalId = HospitalDoctor::query()
-                    ->whereKey((int) $doctorId)
-                    ->value('hospital_id');
-
-                if ((int) $doctorHospitalId !== (int) $hospitalId) {
-                    $validator->errors()->add('doctor_id', '선택한 의료진이 병의원에 소속되어 있지 않습니다.');
-                }
-            }
-
-            if (! is_string($categoryDomain) || ! is_array($categoryCodes) || $categoryCodes === []) {
-                return;
-            }
-
-            $categories = Category::query()
-                ->where('domain', $categoryDomain)
-                ->where('status', Category::STATUS_ACTIVE)
-                ->whereIn('code', $categoryCodes)
-                ->withCount('children')
-                ->get(['id', 'code']);
-
-            if ($categories->count() !== count($categoryCodes)) {
-                $validator->errors()->add('category_codes', '유효한 후기 카테고리만 선택할 수 있습니다.');
-
-                return;
-            }
-
-            if ($categories->contains(static fn (Category $category): bool => (int) $category->children_count > 0)) {
-                $validator->errors()->add('category_codes', '후기 카테고리는 최하위 카테고리만 선택할 수 있습니다.');
-            }
-        });
     }
 
     public function attributes(): array

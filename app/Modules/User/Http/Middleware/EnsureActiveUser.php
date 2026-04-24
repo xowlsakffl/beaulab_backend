@@ -13,7 +13,7 @@ final class EnsureActiveUser
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = auth('user')->user();
+        $user = $request->user();
 
         if (! $user instanceof AccountUser) {
             throw new CustomException(ErrorCode::UNAUTHORIZED);

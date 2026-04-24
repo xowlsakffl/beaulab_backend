@@ -7,6 +7,10 @@ use App\Domains\Common\Models\Media\Media;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Support\Collection;
 
+/**
+ * HospitalReviewForStaffDto 역할 정의.
+ * 병의원 후기 도메인의 DTO로, 모델 값을 관리자 리스트 응답에 맞는 단순한 구조로 정규화한다.
+ */
 final readonly class HospitalReviewForStaffDto
 {
     public function __construct(

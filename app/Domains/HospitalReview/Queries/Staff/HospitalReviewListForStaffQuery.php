@@ -5,6 +5,10 @@ namespace App\Domains\HospitalReview\Queries\Staff;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
+/**
+ * HospitalReviewListForStaffQuery 역할 정의.
+ * 병의원 후기 도메인의 Query 계층으로, 관리자 목록 조회 조건을 캡슐화한다.
+ */
 final class HospitalReviewListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator

@@ -9,6 +9,10 @@ use App\Domains\HospitalReview\Actions\Staff\HospitalReviewStatusUpdateForStaffA
 use App\Modules\Staff\Http\Requests\HospitalReview\HospitalReviewListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalReview\HospitalReviewStatusUpdateForStaffRequest;
 
+/**
+ * HospitalReviewForStaffController 역할 정의.
+ * 병의원 후기 도메인의 HTTP 컨트롤러로, 관리자 요청을 Action 실행 결과와 API 응답으로 연결한다.
+ */
 final class HospitalReviewForStaffController extends Controller
 {
     public function getHospitalReviewsForStaff(HospitalReviewListForStaffRequest $request, HospitalReviewListForStaffAction $action)

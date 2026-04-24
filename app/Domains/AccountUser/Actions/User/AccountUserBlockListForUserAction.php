@@ -7,16 +7,16 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\AccountUser\Queries\User\AccountUserBlockForUserQuery;
 
 /**
- * 앱 사용자 차단 유스케이스.
- * Action은 요청 흐름과 응답 DTO 변환만 담당하고 DB 처리는 Query에 위임한다.
+ * 사용자 차단 목록 조회 유스케이스.
+ * Query가 페이지네이션과 모델 조회를 담당하고 Action은 목록 응답 형태로 정규화한다.
  */
-final class AccountUserBlockForUserAction
+final class AccountUserBlockListForUserAction
 {
     public function __construct(
         private readonly AccountUserBlockForUserQuery $query,
     ) {}
 
-    public function list(AccountUser $user, array $filters): array
+    public function execute(AccountUser $user, array $filters): array
     {
         $paginator = $this->query->paginate($user, $filters);
 
@@ -31,23 +31,6 @@ final class AccountUserBlockForUserAction
                 'total' => $paginator->total(),
                 'last_page' => $paginator->lastPage(),
             ],
-        ];
-    }
-
-    public function block(AccountUser $user, int $blockedUserId): array
-    {
-        $blocked = $this->query->findTarget($blockedUserId);
-        $block = $this->query->block($user, $blocked);
-
-        return [
-            'block' => AccountUserBlockForUserDto::fromModel($block)->toArray(),
-        ];
-    }
-
-    public function unblock(AccountUser $user, int $blockedUserId): array
-    {
-        return [
-            'unblocked' => $this->query->unblock($user, $blockedUserId) > 0,
         ];
     }
 }

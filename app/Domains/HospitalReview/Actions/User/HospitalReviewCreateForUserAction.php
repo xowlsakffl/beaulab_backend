@@ -7,6 +7,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Common\Models\Category\Category;
+use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalReview\Dto\User\HospitalReviewForUserDetailDto;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Queries\User\HospitalReviewCreateForUserQuery;
@@ -14,6 +15,10 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * HospitalReviewCreateForUserAction 역할 정의.
+ * 병의원 후기 도메인의 Action 계층으로, 사용자 후기 등록 흐름과 도메인 정합성 검증을 조합한다.
+ */
 final class HospitalReviewCreateForUserAction
 {
     public function __construct(
@@ -23,22 +28,12 @@ final class HospitalReviewCreateForUserAction
 
     public function execute(AccountUser $user, array $payload): array
     {
-        $normalized = $payload;
-        $normalized['author_id'] = (int) $user->id;
+        $normalized = $this->normalizePayload($user, $payload);
 
-        $categories = $this->resolveCategories(
-            $normalized['category_domain'] ?? null,
-            $normalized['category_codes'] ?? [],
-        );
-
-        if ($categories->isEmpty()) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '카테고리를 선택해 주세요.');
-        }
-
-        $review = DB::transaction(function () use ($normalized, $categories): HospitalReview {
+        $review = DB::transaction(function () use ($normalized): HospitalReview {
             $review = $this->query->create($normalized);
 
-            $this->syncCategories($review, $categories);
+            $this->syncCategories($review, $normalized['resolved_categories']);
             $this->attachImages($review, $normalized);
 
             return $review->fresh([
@@ -54,6 +49,44 @@ final class HospitalReviewCreateForUserAction
         return [
             'hospital_review' => HospitalReviewForUserDetailDto::fromModel($review)->toArray(),
         ];
+    }
+
+    private function normalizePayload(AccountUser $user, array $payload): array
+    {
+        $payload['author_id'] = (int) $user->id;
+
+        if (! empty($payload['doctor_id'])) {
+            $doctor = HospitalDoctor::query()->find($payload['doctor_id']);
+
+            if (! $doctor || (int) $doctor->hospital_id !== (int) $payload['hospital_id']) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병의원에 소속된 의료진이 아닙니다.');
+            }
+        }
+
+        $resolvedCategories = $this->resolveCategories(
+            $payload['category_domain'] ?? null,
+            $payload['category_codes'] ?? [],
+        );
+
+        if ($resolvedCategories->isEmpty()) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '카테고리를 선택해 주세요.');
+        }
+
+        $requestedCategoryCount = collect($payload['category_codes'] ?? [])
+            ->filter(static fn ($code): bool => is_string($code) && trim($code) !== '')
+            ->count();
+
+        if ($resolvedCategories->count() !== $requestedCategoryCount) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '유효한 후기 카테고리만 선택할 수 있습니다.');
+        }
+
+        if ($resolvedCategories->contains(static fn (Category $category): bool => (int) ($category->children_count ?? 0) > 0)) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '후기 카테고리는 최하위 카테고리만 선택할 수 있습니다.');
+        }
+
+        $payload['resolved_categories'] = $resolvedCategories;
+
+        return $payload;
     }
 
     /**
@@ -80,6 +113,7 @@ final class HospitalReviewCreateForUserAction
             ->where('domain', $categoryDomain)
             ->where('status', Category::STATUS_ACTIVE)
             ->whereIn('code', $codes->all())
+            ->withCount('children')
             ->get()
             ->keyBy('code');
 

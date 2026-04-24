@@ -15,6 +15,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * HospitalReview 역할 정의.
+ * 병의원 후기 도메인의 Eloquent 모델로, 테이블 매핑, 관계, 상태 상수를 한곳에 모아 도메인 데이터 접근 기준을 제공한다.
+ */
 final class HospitalReview extends Model
 {
     use HasAuditLogs, HasOperationHistories, SoftDeletes;
@@ -35,13 +39,13 @@ final class HospitalReview extends Model
 
     public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
 
-    public const int MAX_BEFORE_IMAGE_COUNT = 4;
+    public const MAX_BEFORE_IMAGE_COUNT = 4;
 
-    public const int MAX_AFTER_IMAGE_COUNT = 4;
+    public const MAX_AFTER_IMAGE_COUNT = 4;
 
-    public const int MAX_CATEGORY_COUNT = 10;
+    public const MAX_CATEGORY_COUNT = 10;
 
-    public const array STATUS_CHANGE_LOCKED_POST_STATUSES = [
+    public const STATUS_CHANGE_LOCKED_POST_STATUSES = [
         self::POST_STATUS_AUTO_BLIND,
         self::POST_STATUS_USER_DELETE,
         self::POST_STATUS_ADMIN_STOP,

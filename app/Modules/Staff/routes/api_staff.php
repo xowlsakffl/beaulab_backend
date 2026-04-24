@@ -9,13 +9,13 @@ use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController
 use App\Modules\Staff\Http\Controllers\AdminNote\AdminNoteForStaffController;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
 use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
-use App\Modules\Staff\Http\Controllers\BeautyExpert\ExpertForStaffController;
+use App\Modules\Staff\Http\Controllers\BeautyExpert\BeautyExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Category\CategoryForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
-use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
@@ -130,31 +130,31 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 의사 관리
      **/
-    Route::get('doctors/hospital-options', [DoctorForStaffController::class, 'getDoctorHospitalOptionsForStaff'])
+    Route::get('doctors/hospital-options', [HospitalDoctorForStaffController::class, 'getDoctorHospitalOptionsForStaff'])
         ->name('doctors.getDoctorHospitalOptionsForStaff');
-    Route::get('doctors', [DoctorForStaffController::class, 'getDoctorsForStaff'])
+    Route::get('doctors', [HospitalDoctorForStaffController::class, 'getDoctorsForStaff'])
         ->name('doctors.getDoctorsForStaff');
-    Route::get('doctors/{doctor}', [DoctorForStaffController::class, 'getDoctorForStaff'])
+    Route::get('doctors/{doctor}', [HospitalDoctorForStaffController::class, 'getDoctorForStaff'])
         ->name('doctors.getDoctorForStaff');
-    Route::post('doctors', [DoctorForStaffController::class, 'storeDoctorForStaff'])
+    Route::post('doctors', [HospitalDoctorForStaffController::class, 'storeDoctorForStaff'])
         ->name('doctors.storeDoctorForStaff');
-    Route::match(['post', 'put', 'patch'], 'doctors/{doctor}', [DoctorForStaffController::class, 'updateDoctorForStaff'])
+    Route::match(['post', 'put', 'patch'], 'doctors/{doctor}', [HospitalDoctorForStaffController::class, 'updateDoctorForStaff'])
         ->name('doctors.updateDoctorForStaff');
-    Route::delete('doctors/{doctor}', [DoctorForStaffController::class, 'deleteDoctorForStaff'])
+    Route::delete('doctors/{doctor}', [HospitalDoctorForStaffController::class, 'deleteDoctorForStaff'])
         ->name('doctors.deleteDoctorForStaff');
 
     /**
      * 뷰티전문가 관리
      **/
-    Route::get('experts', [ExpertForStaffController::class, 'getExpertsForStaff'])
+    Route::get('experts', [BeautyExpertForStaffController::class, 'getExpertsForStaff'])
         ->name('experts.getExpertsForStaff');
-    Route::get('experts/{expert}', [ExpertForStaffController::class, 'getExpertForStaff'])
+    Route::get('experts/{expert}', [BeautyExpertForStaffController::class, 'getExpertForStaff'])
         ->name('experts.getExpertForStaff');
-    Route::post('experts', [ExpertForStaffController::class, 'storeExpertForStaff'])
+    Route::post('experts', [BeautyExpertForStaffController::class, 'storeExpertForStaff'])
         ->name('experts.storeExpertForStaff');
-    Route::match(['post', 'put', 'patch'], 'experts/{expert}', [ExpertForStaffController::class, 'updateExpertForStaff'])
+    Route::match(['post', 'put', 'patch'], 'experts/{expert}', [BeautyExpertForStaffController::class, 'updateExpertForStaff'])
         ->name('experts.updateExpertForStaff');
-    Route::delete('experts/{expert}', [ExpertForStaffController::class, 'deleteExpertForStaff'])
+    Route::delete('experts/{expert}', [BeautyExpertForStaffController::class, 'deleteExpertForStaff'])
         ->name('experts.deleteExpertForStaff');
 
     /**

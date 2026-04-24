@@ -2,8 +2,6 @@
 
 namespace App\Modules\User\Http\Controllers\Notification;
 
-use App\Common\Exceptions\CustomException;
-use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Models\AccountUser;
@@ -31,33 +29,48 @@ final class NotificationForUserController extends Controller
         NotificationListForUserRequest $request,
         NotificationListForUserAction $action,
     ) {
-        $result = $action->execute($this->user(), $request->filters());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($user, $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
     public function getUnreadCountForUser(NotificationUnreadCountForUserAction $action)
     {
-        return ApiResponse::success($action->execute($this->user()));
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        return ApiResponse::success($action->execute($user));
     }
 
     public function readNotificationForUser(NotificationInbox $notificationInbox, NotificationReadForUserAction $action)
     {
-        $result = $action->execute($notificationInbox, $this->user());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($notificationInbox, $user);
 
         return ApiResponse::success($result['notification'] ?? $result);
     }
 
     public function readAllNotificationsForUser(NotificationReadAllForUserAction $action)
     {
-        return ApiResponse::success($action->execute($this->user()));
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        return ApiResponse::success($action->execute($user));
     }
 
     public function registerDeviceForUser(
         NotificationDeviceRegisterForUserRequest $request,
         NotificationDeviceRegisterForUserAction $action,
     ) {
-        $result = $action->execute($this->user(), $request->validated());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($user, $request->validated());
 
         return ApiResponse::success($result['device'] ?? $result);
     }
@@ -66,12 +79,18 @@ final class NotificationForUserController extends Controller
         NotificationDeviceRevokeForUserRequest $request,
         NotificationDeviceRevokeForUserAction $action,
     ) {
-        return ApiResponse::success($action->execute($this->user(), (string) $request->validated('push_token')));
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        return ApiResponse::success($action->execute($user, (string) $request->validated('push_token')));
     }
 
     public function getPreferencesForUser(NotificationPreferenceListForUserAction $action)
     {
-        $result = $action->execute($this->user());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($user);
 
         return ApiResponse::success($result['items']);
     }
@@ -80,24 +99,11 @@ final class NotificationForUserController extends Controller
         NotificationPreferenceUpdateForUserRequest $request,
         NotificationPreferenceUpdateForUserAction $action,
     ) {
-        $result = $action->execute($this->user(), $request->validated());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($user, $request->validated());
 
         return ApiResponse::success($result['preference'] ?? $result);
-    }
-
-    private function user(): AccountUser
-    {
-        $user = auth()->user();
-
-        // 알림 API는 앱 사용자 계정만 접근 가능해야 다른 actor 토큰과 섞이지 않는다.
-        if (! $user instanceof AccountUser) {
-            throw new CustomException(ErrorCode::UNAUTHORIZED);
-        }
-
-        if (! $user->isActive()) {
-            throw new CustomException(ErrorCode::FORBIDDEN, '활성 상태의 사용자만 알림을 사용할 수 있습니다.');
-        }
-
-        return $user;
     }
 }

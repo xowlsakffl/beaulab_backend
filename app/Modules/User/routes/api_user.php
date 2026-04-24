@@ -8,9 +8,11 @@
 use App\Modules\User\Http\Controllers\Auth\AuthForUserController;
 use App\Modules\User\Http\Controllers\Block\AccountUserBlockForUserController;
 use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
+use App\Modules\User\Http\Controllers\HospitalReview\HospitalReviewCreateForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkCreateForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkPollVoteForUserController;
+use App\Modules\User\Http\Middleware\EnsureActiveUser;
 use Illuminate\Support\Facades\Route;
 
 // 앱 사용자 API
@@ -23,7 +25,7 @@ Route::prefix('auth')->group(function () {
 });
 
 // 아래 API는 Sanctum actor:user 토큰만 허용한다.
-Route::middleware(['auth:sanctum', 'abilities:actor:user'])->group(function () {
+Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::class])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthForUserController::class, 'logout'])
             ->name('logout');
@@ -53,11 +55,13 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user'])->group(function () {
     Route::delete('chats/{chat}', [ChatForUserController::class, 'deleteChatForUser'])
         ->name('chats.deleteChatForUser');
 
-    // 앱 사용자 토크 생성 API.
+    // 앱 사용자 토크/후기 생성 API.
     Route::post('talks', [TalkCreateForUserController::class, 'createTalkForUser'])
         ->name('talks.createTalkForUser');
     Route::post('talks/{talk}/poll-votes', [TalkPollVoteForUserController::class, 'voteTalkPollForUser'])
         ->name('talks.voteTalkPollForUser');
+    Route::post('hospital-reviews', [HospitalReviewCreateForUserController::class, 'createHospitalReviewForUser'])
+        ->name('hospital-reviews.createHospitalReviewForUser');
 
     // 앱 사용자 차단 API. 차단은 방향성 있는 유저 관계로 저장하고, 메시지 발송 전 검증에 사용한다.
     Route::get('blocks', [AccountUserBlockForUserController::class, 'getBlocksForUser'])

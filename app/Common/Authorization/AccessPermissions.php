@@ -44,6 +44,8 @@ final class AccessPermissions
     public const BEAULAB_VIDEO_CREATE = 'beaulab.video.create';
     public const BEAULAB_VIDEO_UPDATE = 'beaulab.video.update';
     public const BEAULAB_VIDEO_DELETE = 'beaulab.video.delete';
+    public const BEAULAB_HOSPITAL_REVIEW_SHOW = 'beaulab.hospital_review.show';
+    public const BEAULAB_HOSPITAL_REVIEW_UPDATE = 'beaulab.hospital_review.update';
     public const BEAULAB_TALK_SHOW = 'beaulab.talk.show';
     public const BEAULAB_TALK_UPDATE = 'beaulab.talk.update';
     public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
@@ -183,6 +185,8 @@ final class AccessPermissions
             self::BEAULAB_VIDEO_CREATE,
             self::BEAULAB_VIDEO_UPDATE,
             self::BEAULAB_VIDEO_DELETE,
+            self::BEAULAB_HOSPITAL_REVIEW_SHOW,
+            self::BEAULAB_HOSPITAL_REVIEW_UPDATE,
             self::BEAULAB_TALK_SHOW,
             self::BEAULAB_TALK_UPDATE,
             self::BEAULAB_NOTICE_SHOW,

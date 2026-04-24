@@ -17,6 +17,7 @@ use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\DoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
 use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\Talk\TalkForStaffController;
@@ -175,6 +176,14 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('videos.updateVideoForStaff');
     Route::delete('videos/{video}', [HospitalVideoForStaffController::class, 'deleteVideoForStaff'])
         ->name('videos.deleteVideoForStaff');
+
+    /**
+     * 병의원 후기 관리
+     **/
+    Route::get('hospital-reviews', [HospitalReviewForStaffController::class, 'getHospitalReviewsForStaff'])
+        ->name('hospital-reviews.getHospitalReviewsForStaff');
+    Route::patch('hospital-reviews/status', [HospitalReviewForStaffController::class, 'updateHospitalReviewStatusForStaff'])
+        ->name('hospital-reviews.updateHospitalReviewStatusForStaff');
 
     /**
      * 토크 관리

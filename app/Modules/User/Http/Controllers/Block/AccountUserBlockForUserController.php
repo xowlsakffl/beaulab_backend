@@ -2,8 +2,6 @@
 
 namespace App\Modules\User\Http\Controllers\Block;
 
-use App\Common\Exceptions\CustomException;
-use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Actions\User\AccountUserBlockForUserAction;
@@ -21,7 +19,10 @@ final class AccountUserBlockForUserController extends Controller
         AccountUserBlockListForUserRequest $request,
         AccountUserBlockForUserAction $action,
     ) {
-        $result = $action->list($this->user(), $request->filters());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->list($user, $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
@@ -30,29 +31,19 @@ final class AccountUserBlockForUserController extends Controller
         AccountUserBlockCreateForUserRequest $request,
         AccountUserBlockForUserAction $action,
     ) {
-        $result = $action->block($this->user(), (int) $request->validated('blocked_user_id'));
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->block($user, (int) $request->validated('blocked_user_id'));
 
         return ApiResponse::success($result['block']);
     }
 
     public function unblockUserForUser(int $blockedUserId, AccountUserBlockForUserAction $action)
     {
-        return ApiResponse::success($action->unblock($this->user(), $blockedUserId));
-    }
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
 
-    private function user(): AccountUser
-    {
-        $user = auth()->user();
-
-        // 차단 API는 앱 사용자 계정만 접근 가능해야 다른 actor 토큰과 섞이지 않는다.
-        if (! $user instanceof AccountUser) {
-            throw new CustomException(ErrorCode::UNAUTHORIZED);
-        }
-
-        if (! $user->isActive()) {
-            throw new CustomException(ErrorCode::FORBIDDEN, '활성 상태의 사용자만 차단 기능을 사용할 수 있습니다.');
-        }
-
-        return $user;
+        return ApiResponse::success($action->unblock($user, $blockedUserId));
     }
 }

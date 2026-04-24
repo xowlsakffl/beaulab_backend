@@ -2,8 +2,6 @@
 
 namespace App\Modules\User\Http\Controllers\Chat;
 
-use App\Common\Exceptions\CustomException;
-use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Models\AccountUser;
@@ -29,7 +27,10 @@ final class ChatForUserController extends Controller
 {
     public function getChatsForUser(ChatListForUserRequest $request, ChatListForUserAction $action)
     {
-        $result = $action->execute($this->user(), $request->filters());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($user, $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
@@ -39,7 +40,10 @@ final class ChatForUserController extends Controller
         ChatMessageListForUserRequest $request,
         ChatMessageListForUserAction $action,
     ) {
-        $result = $action->execute($chat, $this->user(), $request->filters());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($chat, $user, $request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
@@ -49,7 +53,10 @@ final class ChatForUserController extends Controller
         ChatMessageSendForUserRequest $request,
         ChatMessageSendForUserAction $action,
     ) {
-        $result = $action->execute($chat, $this->user(), $request->validated());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($chat, $user, $request->validated());
 
         return ApiResponse::success($result['message'] ?? $result);
     }
@@ -58,8 +65,11 @@ final class ChatForUserController extends Controller
         ChatFirstMessageSendForUserRequest $request,
         ChatMessageSendForUserAction $action,
     ) {
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
         $result = $action->executeFirst(
-            $this->user(),
+            $user,
             (int) $request->validated('peer_user_id'),
             $request->validated(),
         );
@@ -69,7 +79,10 @@ final class ChatForUserController extends Controller
 
     public function readChatForUser(Chat $chat, ChatReadForUserRequest $request, ChatReadForUserAction $action)
     {
-        $result = $action->execute($chat, $this->user(), $request->validated());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($chat, $user, $request->validated());
 
         return ApiResponse::success($result['chat'] ?? $result);
     }
@@ -79,9 +92,12 @@ final class ChatForUserController extends Controller
         ChatNotificationUpdateForUserRequest $request,
         ChatNotificationUpdateForUserAction $action,
     ) {
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
         $result = $action->execute(
             $chat,
-            $this->user(),
+            $user,
             (bool) $request->validated('notifications_enabled'),
         );
 
@@ -90,24 +106,11 @@ final class ChatForUserController extends Controller
 
     public function deleteChatForUser(Chat $chat, ChatDeleteForUserAction $action)
     {
-        $result = $action->execute($chat, $this->user());
+        /** @var AccountUser $user */
+        $user = auth('user')->user();
+
+        $result = $action->execute($chat, $user);
 
         return ApiResponse::success($result['chat'] ?? $result);
-    }
-
-    private function user(): AccountUser
-    {
-        $user = auth()->user();
-
-        // User 모듈 API에서는 Sanctum 토큰 ability와 실제 모델 타입이 모두 맞아야 한다.
-        if (! $user instanceof AccountUser) {
-            throw new CustomException(ErrorCode::UNAUTHORIZED);
-        }
-
-        if (! $user->isActive()) {
-            throw new CustomException(ErrorCode::FORBIDDEN, '활성 상태의 사용자만 채팅을 사용할 수 있습니다.');
-        }
-
-        return $user;
     }
 }

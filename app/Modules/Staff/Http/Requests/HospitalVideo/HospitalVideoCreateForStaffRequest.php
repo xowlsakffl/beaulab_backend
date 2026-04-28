@@ -2,7 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -77,8 +77,17 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
                     ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
-            'publish_start_at' => ['nullable', 'date'],
-            'publish_end_at' => ['nullable', 'date', 'after_or_equal:publish_start_at'],
+            'publish_start_at' => [
+                Rule::requiredIf(! $this->boolean('is_publish_period_unlimited')),
+                'nullable',
+                'date',
+            ],
+            'publish_end_at' => [
+                Rule::requiredIf(! $this->boolean('is_publish_period_unlimited')),
+                'nullable',
+                'date',
+                'after_or_equal:publish_start_at',
+            ],
             'is_publish_period_unlimited' => ['nullable', 'boolean'],
             'thumbnail_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ];
@@ -104,23 +113,6 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             'is_publish_period_unlimited' => '무기한 게시 여부',
             'thumbnail_file' => '썸네일 파일',
         ];
-    }
-
-    public function withValidator(\Illuminate\Validation\Validator $validator): void
-    {
-        $validator->after(function (\Illuminate\Validation\Validator $validator): void {
-            if ($this->boolean('is_publish_period_unlimited')) {
-                return;
-            }
-
-            if (! $this->filled('publish_start_at')) {
-                $validator->errors()->add('publish_start_at', '게시 시작 시각을 입력해 주세요.');
-            }
-
-            if (! $this->filled('publish_end_at')) {
-                $validator->errors()->add('publish_end_at', '게시 종료 시각을 입력해 주세요.');
-            }
-        });
     }
 
     /**

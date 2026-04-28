@@ -4,8 +4,8 @@ namespace App\Domains\HospitalReview\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Actions\OperationHistory\OperationHistoryCreateAction;
-use App\Domains\Common\Models\OperationHistory\OperationHistory;
+use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Queries\Staff\HospitalReviewStatusUpdateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
@@ -52,7 +52,7 @@ final class HospitalReviewStatusUpdateForStaffAction
                 throw new CustomException(
                     ErrorCode::INVALID_REQUEST,
                     sprintf(
-                        '자동 블라인드, 게시중단, 본인삭제 상태의 후기는 노출 상태를 변경할 수 없습니다. (ID: %s)',
+                        '자동 블라인드, 게시중단, 본인삭제 상태의 후기는 상태를 변경할 수 없습니다. (ID: %s)',
                         implode(', ', $lockedIds),
                     ),
                 );

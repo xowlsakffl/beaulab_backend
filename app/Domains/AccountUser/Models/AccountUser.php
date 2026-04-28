@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountUser\Models;
 
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Concerns\HasAuditLogs;
 use Database\Factories\AccountUserFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +15,9 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * AccountUser 역할 정의.
- * 일반 회원 계정 도메인의 Eloquent 모델로, 테이블 매핑, 관계, 스코프, 상태 상수를 한곳에 모아 도메인 데이터 접근 기준을 제공한다.
+ * 일반 회원 계정 도메인의 Eloquent 모델로, �
+�븨, 愿怨? ?�
+�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
  */
 final class AccountUser extends Authenticatable
 {

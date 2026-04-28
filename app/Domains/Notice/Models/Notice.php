@@ -3,8 +3,8 @@
 namespace App\Domains\Notice\Models;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Domains\Common\Media\Models\Media;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Notice 역할 정의.
- * 공지사항 도메인의 Eloquent 모델로, 테이블 매핑, 관계, 스코프, 상태 상수를 한곳에 모아 도메인 데이터 접근 기준을 제공한다.
+ * 공지사항 도메인의 Eloquent 모델로, �
+�븨, 愿怨? ?�
+�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
  */
 final class Notice extends Model
 {

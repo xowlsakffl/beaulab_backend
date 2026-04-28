@@ -4,7 +4,7 @@ namespace App\Domains\BeautyBusinessRegistration\Actions;
 
 use App\Domains\BeautyBusinessRegistration\Models\BeautyBusinessRegistration;
 use App\Domains\BeautyBusinessRegistration\Queries\BeautyBusinessRegistrationCreateForStaffQuery;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Database\Eloquent\Model;
 
 /**

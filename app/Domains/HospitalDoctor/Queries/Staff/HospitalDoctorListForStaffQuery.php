@@ -2,7 +2,7 @@
 
 namespace App\Domains\HospitalDoctor\Queries\Staff;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 

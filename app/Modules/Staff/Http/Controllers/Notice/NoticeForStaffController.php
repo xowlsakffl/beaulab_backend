@@ -43,7 +43,7 @@ final class NoticeForStaffController extends Controller
         return ApiResponse::success($result['notice'] ?? $result);
     }
 
-    public function storeNoticeForStaff(
+    public function createNoticeForStaff(
         NoticeCreateForStaffRequest $request,
         NoticeCreateForStaffAction $action,
     ) {

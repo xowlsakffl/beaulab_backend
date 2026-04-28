@@ -3,7 +3,6 @@
 namespace App\Modules\User\Http\Requests\Chat;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
 /**
  * ChatMessageListForUserRequest 역할 정의.
@@ -20,18 +19,9 @@ final class ChatMessageListForUserRequest extends FormRequest
     {
         return [
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'after_id' => ['nullable', 'integer', 'min:1'],
-            'before_id' => ['nullable', 'integer', 'min:1'],
+            'after_id' => ['nullable', 'integer', 'min:1', 'prohibits:before_id'],
+            'before_id' => ['nullable', 'integer', 'min:1', 'prohibits:after_id'],
         ];
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function (Validator $validator): void {
-            if ($this->filled('after_id') && $this->filled('before_id')) {
-                $validator->errors()->add('after_id', 'after_id와 before_id는 동시에 사용할 수 없습니다.');
-            }
-        });
     }
 
     public function filters(): array

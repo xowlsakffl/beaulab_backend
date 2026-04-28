@@ -54,7 +54,7 @@ final class BeautyForStaffController extends Controller
      * POST /api/v1/staff/beauties
      * (Beaulab) Staff 전용 뷰티 생성
      */
-    public function storeBeautyForStaff(
+    public function createBeautyForStaff(
         BeautyCreateForStaffRequest $request,
         BeautyCreateForStaffAction $action,
     ) {

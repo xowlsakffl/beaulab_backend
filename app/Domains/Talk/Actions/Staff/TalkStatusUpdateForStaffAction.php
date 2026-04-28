@@ -4,8 +4,8 @@ namespace App\Domains\Talk\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Actions\OperationHistory\OperationHistoryCreateAction;
-use App\Domains\Common\Models\OperationHistory\OperationHistory;
+use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Queries\Staff\TalkStatusUpdateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * 토크 다중 노출 상태 변경 유스케이스.
+ * 토크 다중 상태 변경 유스케이스.
  */
 final class TalkStatusUpdateForStaffAction
 {
@@ -55,7 +55,7 @@ final class TalkStatusUpdateForStaffAction
                 throw new CustomException(
                     ErrorCode::INVALID_REQUEST,
                     sprintf(
-                        '자동 블라인드, 게시중단, 본인삭제 상태의 토크는 노출 상태를 변경할 수 없습니다. (ID: %s)',
+                        '자동 블라인드, 게시중단, 본인삭제 상태의 토크는 상태를 변경할 수 없습니다. (ID: %s)',
                         implode(', ', $lockedIds),
                     ),
                 );

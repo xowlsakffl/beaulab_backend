@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalDoctor\Models;
 
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\HospitalDoctorFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;

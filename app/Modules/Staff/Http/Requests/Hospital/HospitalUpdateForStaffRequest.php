@@ -2,8 +2,8 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
 use App\Domains\HospitalFeature\Models\HospitalFeature;

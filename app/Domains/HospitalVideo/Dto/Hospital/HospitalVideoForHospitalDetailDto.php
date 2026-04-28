@@ -2,8 +2,8 @@
 
 namespace App\Domains\HospitalVideo\Dto\Hospital;
 
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Support\Collection;
 
@@ -109,6 +109,8 @@ final readonly class HospitalVideoForHospitalDetailDto
             'width' => $media->width,
             'height' => $media->height,
             'sort_order' => (int) $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];

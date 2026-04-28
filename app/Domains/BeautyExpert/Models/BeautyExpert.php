@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domains\BeautyExpert\Models;
 
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Beauty\Models\Beauty;
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use Database\Factories\BeautyExpertFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

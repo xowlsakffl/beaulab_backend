@@ -3,12 +3,12 @@
 namespace App\Domains\Notice\Actions\Staff;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Notice\Actions\Common\SyncNoticeEditorImagesAction;
 use App\Domains\Notice\Dto\Staff\NoticeForStaffDetailDto;
 use App\Domains\Notice\Models\Notice;
 use App\Domains\Notice\Queries\Staff\NoticeUpdateForStaffQuery;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Media\Models\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;

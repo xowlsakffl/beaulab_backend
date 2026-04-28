@@ -23,13 +23,13 @@ Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function 
     Route::match(['put', 'patch'], '/profile', [AuthForHospitalController::class, 'updateMyProfile'])->name('profile.update');
     Route::match(['put', 'patch'], '/password', [AuthForHospitalController::class, 'updateMyPassword'])->name('password.update')->middleware('throttle:6,1');
     Route::get('/notes', [AdminNoteForHospitalController::class, 'getAdminNotesForHospital'])->name('notes.getAdminNotesForHospital');
-    Route::post('/notes', [AdminNoteForHospitalController::class, 'storeAdminNoteForHospital'])->name('notes.storeAdminNoteForHospital');
+    Route::post('/notes', [AdminNoteForHospitalController::class, 'createAdminNoteForHospital'])->name('notes.createAdminNoteForHospital');
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForHospitalController::class, 'updateAdminNoteForHospital'])->name('notes.updateAdminNoteForHospital');
 
     /**
      * 동영상 게시 요청
      **/
-    Route::post('/videos', [HospitalVideoForHospitalController::class, 'storeVideoForHospital'])->name('videos.storeVideoForHospital');
+    Route::post('/videos', [HospitalVideoForHospitalController::class, 'createVideoForHospital'])->name('videos.createVideoForHospital');
     Route::post('/videos/{video}/cancel', [HospitalVideoForHospitalController::class, 'cancelVideoForHospital'])->name('videos.cancelVideoForHospital');
 
 });

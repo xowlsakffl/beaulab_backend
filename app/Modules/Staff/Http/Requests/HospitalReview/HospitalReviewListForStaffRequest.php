@@ -2,14 +2,14 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalReview;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
  * HospitalReviewListForStaffRequest 역할 정의.
- * 병의원 후기 도메인의 HTTP 요청 검증 객체로, 관리자 목록 필터 입력을 정규화하고 검증한다.
+ * 병의원 후기 도메인의 HTTP 요청 검증 객체로, 관리자 목록 필터 입력값을 정규화하고 검증한다.
  */
 final class HospitalReviewListForStaffRequest extends FormRequest
 {

@@ -4,12 +4,12 @@ namespace App\Modules\Hospital\Http\Controllers\AdminNote;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\Common\Actions\AdminNote\AdminNoteListAction;
-use App\Domains\Common\Actions\AdminNote\AdminNoteStoreAction;
-use App\Domains\Common\Actions\AdminNote\AdminNoteUpdateAction;
-use App\Domains\Common\Models\AdminNote\AdminNote;
+use App\Domains\Common\AdminNote\Actions\AdminNoteCreateAction;
+use App\Domains\Common\AdminNote\Actions\AdminNoteListAction;
+use App\Domains\Common\AdminNote\Actions\AdminNoteUpdateAction;
+use App\Domains\Common\AdminNote\Models\AdminNote;
 use App\Modules\Hospital\Http\Requests\AdminNote\AdminNoteListForHospitalRequest;
-use App\Modules\Hospital\Http\Requests\AdminNote\AdminNoteStoreForHospitalRequest;
+use App\Modules\Hospital\Http\Requests\AdminNote\AdminNoteCreateForHospitalRequest;
 use App\Modules\Hospital\Http\Requests\AdminNote\AdminNoteUpdateForHospitalRequest;
 
 /**
@@ -27,9 +27,9 @@ final class AdminNoteForHospitalController extends Controller
         return ApiResponse::success($result['items'] ?? $result);
     }
 
-    public function storeAdminNoteForHospital(
-        AdminNoteStoreForHospitalRequest $request,
-        AdminNoteStoreAction $action
+    public function createAdminNoteForHospital(
+        AdminNoteCreateForHospitalRequest $request,
+        AdminNoteCreateAction             $action
     ) {
         $result = $action->execute($request->user(), $request->validated());
 

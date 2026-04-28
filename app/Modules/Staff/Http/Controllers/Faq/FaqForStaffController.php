@@ -44,7 +44,7 @@ final class FaqForStaffController extends Controller
         return ApiResponse::success($result['faq'] ?? $result);
     }
 
-    public function storeFaqForStaff(
+    public function createFaqForStaff(
         FaqCreateForStaffRequest $request,
         FaqCreateForStaffAction $action,
     ) {

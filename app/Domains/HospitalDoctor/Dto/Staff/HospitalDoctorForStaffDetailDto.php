@@ -2,8 +2,8 @@
 
 namespace App\Domains\HospitalDoctor\Dto\Staff;
 
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Support\Collection;
 
@@ -145,6 +145,8 @@ final readonly class HospitalDoctorForStaffDetailDto
             'width' => $media->width,
             'height' => $media->height,
             'sort_order' => $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];

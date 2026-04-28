@@ -2,7 +2,7 @@
 
 namespace App\Modules\User\Http\Requests\HospitalReview;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

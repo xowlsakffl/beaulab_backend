@@ -5,8 +5,8 @@ namespace App\Domains\Beauty\Dto\Staff;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use Illuminate\Support\Collection;
 
 /**

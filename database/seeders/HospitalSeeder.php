@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
 use Illuminate\Database\Seeder;

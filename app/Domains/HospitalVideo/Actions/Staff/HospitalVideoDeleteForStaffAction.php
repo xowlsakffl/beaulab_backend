@@ -2,7 +2,7 @@
 
 namespace App\Domains\HospitalVideo\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\HospitalVideo\Queries\Staff\HospitalVideoDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;

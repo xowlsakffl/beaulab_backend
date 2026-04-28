@@ -5,7 +5,7 @@ namespace App\Domains\HospitalVideo\Actions\Hospital;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalVideo\Dto\Hospital\HospitalVideoForHospitalDetailDto;
 use App\Domains\HospitalVideo\Models\HospitalVideo;

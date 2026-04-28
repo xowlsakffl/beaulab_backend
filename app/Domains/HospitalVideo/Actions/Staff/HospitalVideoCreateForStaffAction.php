@@ -4,7 +4,7 @@ namespace App\Domains\HospitalVideo\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalVideo\Dto\Staff\HospitalVideoForStaffDetailDto;
 use App\Domains\HospitalVideo\Models\HospitalVideo;

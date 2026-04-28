@@ -2,7 +2,7 @@
 
 namespace App\Domains\Notice\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Notice\Models\Notice;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;

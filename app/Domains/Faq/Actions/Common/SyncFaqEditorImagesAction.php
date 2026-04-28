@@ -2,7 +2,7 @@
 
 namespace App\Domains\Faq\Actions\Common;
 
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Faq\Models\Faq;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

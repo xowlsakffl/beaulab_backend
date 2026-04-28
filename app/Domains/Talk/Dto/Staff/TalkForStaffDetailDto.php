@@ -2,10 +2,10 @@
 
 namespace App\Domains\Talk\Dto\Staff;
 
-use App\Domains\Common\Dto\OperationHistory\OperationHistoryDto;
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
-use App\Domains\Common\Models\OperationHistory\OperationHistory;
+use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use App\Domains\Talk\Models\TalkPollOption;

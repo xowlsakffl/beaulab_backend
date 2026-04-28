@@ -6,10 +6,10 @@ namespace App\Domains\Beauty\Models;
 
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\BeautyBusinessRegistration\Models\BeautyBusinessRegistration;
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Concerns\HasAdminNotes;
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
+use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use Database\Factories\BeautyFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;

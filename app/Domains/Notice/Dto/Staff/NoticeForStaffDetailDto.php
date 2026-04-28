@@ -2,7 +2,7 @@
 
 namespace App\Domains\Notice\Dto\Staff;
 
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Notice\Models\Notice;
 use Illuminate\Support\Collection;
 

@@ -3,7 +3,7 @@
 namespace App\Domains\Chat\Dto\User;
 
 use App\Domains\Chat\Models\ChatMessage;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Media\Models\Media;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 

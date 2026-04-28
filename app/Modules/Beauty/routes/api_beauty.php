@@ -22,7 +22,7 @@ Route::middleware(['auth:sanctum', 'abilities:actor:beauty'])->group(function ()
     Route::match(['put', 'patch'], '/profile', [AuthForBeautyController::class, 'updateMyProfile'])->name('profile.update');
     Route::match(['put', 'patch'], '/password', [AuthForBeautyController::class, 'updateMyPassword'])->name('password.update')->middleware('throttle:6,1');
     Route::get('/notes', [AdminNoteForBeautyController::class, 'getAdminNotesForBeauty'])->name('notes.getAdminNotesForBeauty');
-    Route::post('/notes', [AdminNoteForBeautyController::class, 'storeAdminNoteForBeauty'])->name('notes.storeAdminNoteForBeauty');
+    Route::post('/notes', [AdminNoteForBeautyController::class, 'createAdminNoteForBeauty'])->name('notes.createAdminNoteForBeauty');
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForBeautyController::class, 'updateAdminNoteForBeauty'])->name('notes.updateAdminNoteForBeauty');
 
 });

@@ -2,7 +2,7 @@
 
 namespace App\Domains\Beauty\Dto\Staff;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Beauty\Models\Beauty;
 
 /**

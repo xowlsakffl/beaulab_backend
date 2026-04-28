@@ -42,8 +42,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
 
     Route::get('/notes', [AdminNoteForStaffController::class, 'getAdminNotesForStaff'])
         ->name('notes.getAdminNotesForStaff');
-    Route::post('/notes', [AdminNoteForStaffController::class, 'storeAdminNoteForStaff'])
-        ->name('notes.storeAdminNoteForStaff');
+    Route::post('/notes', [AdminNoteForStaffController::class, 'createAdminNoteForStaff'])
+        ->name('notes.createAdminNoteForStaff');
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForStaffController::class, 'updateAdminNoteForStaff'])
         ->name('notes.updateAdminNoteForStaff');
 
@@ -64,8 +64,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospitals.checkHospitalBusinessNumberDuplicateForStaff');
     Route::get('hospitals/{hospital}', [HospitalForStaffController::class, 'getHospitalForStaff'])
         ->name('hospitals.getHospitalForStaff');
-    Route::post('hospitals', [HospitalForStaffController::class, 'storeHospitalForStaff'])
-        ->name('hospitals.storeHospitalForStaff');
+    Route::post('hospitals', [HospitalForStaffController::class, 'createHospitalForStaff'])
+        ->name('hospitals.createHospitalForStaff');
     Route::match(['post', 'put', 'patch'], 'hospitals/{hospital}', [HospitalForStaffController::class, 'updateHospitalForStaff'])
         ->name('hospitals.updateHospitalForStaff');
     Route::delete('hospitals/{hospital}', [HospitalForStaffController::class, 'deleteHospitalForStaff'])
@@ -80,8 +80,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('categories.getCategoriesForStaff');
     Route::get('categories/{category}', [CategoryForStaffController::class, 'getCategoryForStaff'])
         ->name('categories.getCategoryForStaff');
-    Route::post('categories', [CategoryForStaffController::class, 'storeCategoryForStaff'])
-        ->name('categories.storeCategoryForStaff');
+    Route::post('categories', [CategoryForStaffController::class, 'createCategoryForStaff'])
+        ->name('categories.createCategoryForStaff');
     Route::match(['post', 'put', 'patch'], 'categories/{category}', [CategoryForStaffController::class, 'updateCategoryForStaff'])
         ->name('categories.updateCategoryForStaff');
     Route::delete('categories/{category}', [CategoryForStaffController::class, 'deleteCategoryForStaff'])
@@ -94,8 +94,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hashtags.getHashtagsForStaff');
     Route::get('hashtags/{hashtag}', [HashtagForStaffController::class, 'getHashtagForStaff'])
         ->name('hashtags.getHashtagForStaff');
-    Route::post('hashtags', [HashtagForStaffController::class, 'storeHashtagForStaff'])
-        ->name('hashtags.storeHashtagForStaff');
+    Route::post('hashtags', [HashtagForStaffController::class, 'createHashtagForStaff'])
+        ->name('hashtags.createHashtagForStaff');
     Route::match(['post', 'put', 'patch'], 'hashtags/{hashtag}', [HashtagForStaffController::class, 'updateHashtagForStaff'])
         ->name('hashtags.updateHashtagForStaff');
     Route::delete('hashtags/{hashtag}', [HashtagForStaffController::class, 'deleteHashtagForStaff'])
@@ -108,8 +108,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('beauties.getBeautiesForStaff');
     Route::get('beauties/{beauty}', [BeautyForStaffController::class, 'getBeautyForStaff'])
         ->name('beauties.getBeautyForStaff');
-    Route::post('beauties', [BeautyForStaffController::class, 'storeBeautyForStaff'])
-        ->name('beauties.storeBeautyForStaff');
+    Route::post('beauties', [BeautyForStaffController::class, 'createBeautyForStaff'])
+        ->name('beauties.createBeautyForStaff');
     Route::match(['post', 'put', 'patch'], 'beauties/{beauty}', [BeautyForStaffController::class, 'updateBeautyForStaff'])
         ->name('beauties.updateBeautyForStaff');
     Route::delete('beauties/{beauty}', [BeautyForStaffController::class, 'deleteBeautyForStaff'])
@@ -136,8 +136,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('doctors.getDoctorsForStaff');
     Route::get('doctors/{doctor}', [HospitalDoctorForStaffController::class, 'getDoctorForStaff'])
         ->name('doctors.getDoctorForStaff');
-    Route::post('doctors', [HospitalDoctorForStaffController::class, 'storeDoctorForStaff'])
-        ->name('doctors.storeDoctorForStaff');
+    Route::post('doctors', [HospitalDoctorForStaffController::class, 'createDoctorForStaff'])
+        ->name('doctors.createDoctorForStaff');
     Route::match(['post', 'put', 'patch'], 'doctors/{doctor}', [HospitalDoctorForStaffController::class, 'updateDoctorForStaff'])
         ->name('doctors.updateDoctorForStaff');
     Route::delete('doctors/{doctor}', [HospitalDoctorForStaffController::class, 'deleteDoctorForStaff'])
@@ -150,8 +150,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('experts.getExpertsForStaff');
     Route::get('experts/{expert}', [BeautyExpertForStaffController::class, 'getExpertForStaff'])
         ->name('experts.getExpertForStaff');
-    Route::post('experts', [BeautyExpertForStaffController::class, 'storeExpertForStaff'])
-        ->name('experts.storeExpertForStaff');
+    Route::post('experts', [BeautyExpertForStaffController::class, 'createExpertForStaff'])
+        ->name('experts.createExpertForStaff');
     Route::match(['post', 'put', 'patch'], 'experts/{expert}', [BeautyExpertForStaffController::class, 'updateExpertForStaff'])
         ->name('experts.updateExpertForStaff');
     Route::delete('experts/{expert}', [BeautyExpertForStaffController::class, 'deleteExpertForStaff'])
@@ -170,8 +170,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('videos.downloadVideoFileForStaff');
     Route::get('videos/{video}', [HospitalVideoForStaffController::class, 'getVideoForStaff'])
         ->name('videos.getVideoForStaff');
-    Route::post('videos', [HospitalVideoForStaffController::class, 'storeVideoForStaff'])
-        ->name('videos.storeVideoForStaff');
+    Route::post('videos', [HospitalVideoForStaffController::class, 'createVideoForStaff'])
+        ->name('videos.createVideoForStaff');
     Route::match(['post', 'put', 'patch'], 'videos/{video}', [HospitalVideoForStaffController::class, 'updateVideoForStaff'])
         ->name('videos.updateVideoForStaff');
     Route::delete('videos/{video}', [HospitalVideoForStaffController::class, 'deleteVideoForStaff'])
@@ -210,8 +210,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('notices.getNoticesForStaff');
     Route::get('notices/{notice}', [NoticeForStaffController::class, 'getNoticeForStaff'])
         ->name('notices.getNoticeForStaff');
-    Route::post('notices', [NoticeForStaffController::class, 'storeNoticeForStaff'])
-        ->name('notices.storeNoticeForStaff');
+    Route::post('notices', [NoticeForStaffController::class, 'createNoticeForStaff'])
+        ->name('notices.createNoticeForStaff');
     Route::post('notices/editor-images', [NoticeForStaffController::class, 'uploadEditorImageForStaff'])
         ->name('notices.uploadEditorImageForStaff');
     Route::delete('notices/editor-images', [NoticeForStaffController::class, 'cleanupEditorImagesForStaff'])
@@ -228,8 +228,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('faqs.getFaqsForStaff');
     Route::get('faqs/{faq}', [FaqForStaffController::class, 'getFaqForStaff'])
         ->name('faqs.getFaqForStaff');
-    Route::post('faqs', [FaqForStaffController::class, 'storeFaqForStaff'])
-        ->name('faqs.storeFaqForStaff');
+    Route::post('faqs', [FaqForStaffController::class, 'createFaqForStaff'])
+        ->name('faqs.createFaqForStaff');
     Route::post('faqs/editor-images', [FaqForStaffController::class, 'uploadEditorImageForStaff'])
         ->name('faqs.uploadEditorImageForStaff');
     Route::delete('faqs/editor-images', [FaqForStaffController::class, 'cleanupEditorImagesForStaff'])

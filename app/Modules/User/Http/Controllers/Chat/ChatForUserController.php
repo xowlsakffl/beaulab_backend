@@ -4,7 +4,6 @@ namespace App\Modules\User\Http\Controllers\Chat;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Actions\User\ChatDeleteForUserAction;
 use App\Domains\Chat\Actions\User\ChatListForUserAction;
 use App\Domains\Chat\Actions\User\ChatMessageListForUserAction;
@@ -48,7 +47,7 @@ final class ChatForUserController extends Controller
         ChatMessageSendForUserRequest $request,
         ChatMessageSendForUserAction $action,
     ) {
-        $result = $action->execute($chat, $request->user(), $request->validated());
+        $result = $action->execute($request->user(), $request->validated(), $chat);
 
         return ApiResponse::success($result['message'] ?? $result);
     }
@@ -57,9 +56,8 @@ final class ChatForUserController extends Controller
         ChatFirstMessageSendForUserRequest $request,
         ChatMessageSendForUserAction $action,
     ) {
-        $result = $action->executeFirst(
+        $result = $action->execute(
             $request->user(),
-            (int) $request->validated('peer_user_id'),
             $request->validated(),
         );
 

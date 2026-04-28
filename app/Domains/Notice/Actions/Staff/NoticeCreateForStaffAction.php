@@ -3,7 +3,7 @@
 namespace App\Domains\Notice\Actions\Staff;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Notice\Actions\Common\SyncNoticeEditorImagesAction;
 use App\Domains\Notice\Dto\Staff\NoticeForStaffDetailDto;
 use App\Domains\Notice\Models\Notice;

@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Domains\Common\Models\Hashtag\Hashtag;
+use App\Domains\Common\Hashtag\Models\Hashtag;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

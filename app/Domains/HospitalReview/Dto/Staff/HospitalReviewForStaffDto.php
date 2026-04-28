@@ -2,8 +2,8 @@
 
 namespace App\Domains\HospitalReview\Dto\Staff;
 
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Support\Collection;
 
@@ -128,6 +128,8 @@ final readonly class HospitalReviewForStaffDto
                 'width' => $media->width !== null ? (int) $media->width : null,
                 'height' => $media->height !== null ? (int) $media->height : null,
                 'sort_order' => (int) $media->sort_order,
+                'is_primary' => (bool) $media->is_primary,
+                'metadata' => $media->metadata,
                 'created_at' => $media->created_at?->toISOString(),
                 'updated_at' => $media->updated_at?->toISOString(),
             ])

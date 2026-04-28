@@ -3,10 +3,10 @@
 namespace App\Domains\HospitalReview\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
-use App\Domains\Common\Models\Concerns\HasOperationHistories;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Database\Eloquent\Model;

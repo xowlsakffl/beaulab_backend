@@ -45,7 +45,7 @@ final class HospitalDoctorForStaffController extends Controller
         return ApiResponse::success($result['doctor'] ?? $result);
     }
 
-    public function storeDoctorForStaff(HospitalDoctorCreateForStaffRequest $request, HospitalDoctorCreateForStaffAction $action)
+    public function createDoctorForStaff(HospitalDoctorCreateForStaffRequest $request, HospitalDoctorCreateForStaffAction $action)
     {
         $result = $action->execute($request->validated());
 

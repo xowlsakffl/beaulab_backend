@@ -3,7 +3,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

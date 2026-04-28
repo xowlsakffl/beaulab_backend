@@ -15,7 +15,7 @@ use App\Modules\Hospital\Http\Requests\HospitalVideo\HospitalVideoCreateForHospi
  */
 final class HospitalVideoForHospitalController extends Controller
 {
-    public function storeVideoForHospital(
+    public function createVideoForHospital(
         HospitalVideoCreateForHospitalRequest $request,
         HospitalVideoCreateForHospitalAction $action
     ) {

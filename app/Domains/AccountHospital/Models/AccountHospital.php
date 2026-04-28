@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountHospital\Models;
 
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\AccountHospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;

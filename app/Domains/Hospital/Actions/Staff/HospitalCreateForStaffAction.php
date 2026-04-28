@@ -3,7 +3,7 @@
 namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\HospitalBusinessRegistration\Actions\HospitalBusinessRegistrationCreateForStaffAction;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;

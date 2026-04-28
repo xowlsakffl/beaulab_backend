@@ -2,7 +2,7 @@
 
 namespace App\Domains\HospitalDoctor\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Dto\Staff\HospitalDoctorForStaffDetailDto;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalDoctor\Queries\Staff\HospitalDoctorCreateForStaffQuery;

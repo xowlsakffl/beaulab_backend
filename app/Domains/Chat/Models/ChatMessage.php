@@ -3,7 +3,7 @@
 namespace App\Domains\Chat\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Media\Models\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;

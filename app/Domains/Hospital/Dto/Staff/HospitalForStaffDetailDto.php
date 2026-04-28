@@ -3,8 +3,8 @@
 namespace App\Domains\Hospital\Dto\Staff;
 
 use App\Domains\AccountHospital\Models\AccountHospital;
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalFeature\Models\HospitalFeature;

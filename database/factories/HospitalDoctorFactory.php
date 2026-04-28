@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Database\Factories\Support\SeedMediaFactory;

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Notice;
 
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Notice\Models\Notice;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Hashtag;
 
-use App\Domains\Common\Models\Hashtag\Hashtag;
+use App\Domains\Common\Hashtag\Models\Hashtag;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**

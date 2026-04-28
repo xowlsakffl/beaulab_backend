@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountBeauty\Models;
 
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\AccountBeautyFactory;

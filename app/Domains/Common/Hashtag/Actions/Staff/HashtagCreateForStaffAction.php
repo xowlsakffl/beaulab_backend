@@ -1,0 +1,70 @@
+<?php
+
+namespace App\Domains\Common\Hashtag\Actions\Staff;
+
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Hashtag\Dto\Staff\HashtagForStaffDto;
+use App\Domains\Common\Hashtag\Models\Hashtag;
+use App\Domains\Common\Hashtag\Queries\Staff\HashtagCreateForStaffQuery;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * HashtagCreateForStaffAction 역할 정의.
+ * 공통 도메인의 Action 계층으로, 컨트롤러에서 넘어온 검증된 입력을 받아 권한 확인, 도메인 흐름 조합, Query 호출을 담당한다.
+ */
+final class HashtagCreateForStaffAction
+{
+    public function __construct(
+        private readonly HashtagCreateForStaffQuery $query,
+    ) {}
+
+    public function execute(array $payload): array
+    {
+        Gate::authorize('create', Hashtag::class);
+
+        $name = Hashtag::sanitizeName((string) ($payload['name'] ?? ''));
+        $normalizedName = Hashtag::normalizeName($name);
+        $status = Hashtag::normalizeStatus((string) ($payload['status'] ?? Hashtag::STATUS_ACTIVE));
+
+        if ($name === '' || $normalizedName === '') {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '해시태그명은 필수입니다.');
+        }
+
+        $exists = Hashtag::query()
+            ->where('normalized_name', $normalizedName)
+            ->exists();
+
+        if ($exists) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '동일한 해시태그가 이미 존재합니다.');
+        }
+
+        $createData = [
+            'name' => $name,
+            'normalized_name' => $normalizedName,
+        ];
+
+        if (Hashtag::supportsStatus()) {
+            $createData['status'] = $status;
+        }
+
+        if (Hashtag::supportsUsageCount()) {
+            $createData['usage_count'] = 0;
+        }
+
+        $created = DB::transaction(fn () => $this->query->create($createData)->fresh());
+
+        Log::info('해시태그 생성', [
+            'hashtag_id' => $created->id,
+            'name' => $created->name,
+            'normalized_name' => $created->normalized_name,
+            'status' => $created->resolveStatus($status),
+        ]);
+
+        return [
+            'hashtag' => HashtagForStaffDto::fromModel($created)->toArray(),
+        ];
+    }
+}

@@ -4,12 +4,12 @@ namespace App\Modules\Staff\Http\Controllers\AdminNote;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\Common\Actions\AdminNote\AdminNoteListAction;
-use App\Domains\Common\Actions\AdminNote\AdminNoteStoreAction;
-use App\Domains\Common\Actions\AdminNote\AdminNoteUpdateAction;
-use App\Domains\Common\Models\AdminNote\AdminNote;
+use App\Domains\Common\AdminNote\Actions\AdminNoteCreateAction;
+use App\Domains\Common\AdminNote\Actions\AdminNoteListAction;
+use App\Domains\Common\AdminNote\Actions\AdminNoteUpdateAction;
+use App\Domains\Common\AdminNote\Models\AdminNote;
 use App\Modules\Staff\Http\Requests\AdminNote\AdminNoteListForStaffRequest;
-use App\Modules\Staff\Http\Requests\AdminNote\AdminNoteStoreForStaffRequest;
+use App\Modules\Staff\Http\Requests\AdminNote\AdminNoteCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\AdminNote\AdminNoteUpdateForStaffRequest;
 
 /**
@@ -27,9 +27,9 @@ final class AdminNoteForStaffController extends Controller
         return ApiResponse::success($result['items'] ?? $result);
     }
 
-    public function storeAdminNoteForStaff(
-        AdminNoteStoreForStaffRequest $request,
-        AdminNoteStoreAction $action
+    public function createAdminNoteForStaff(
+        AdminNoteCreateForStaffRequest $request,
+        AdminNoteCreateAction          $action
     ) {
         $result = $action->execute($request->user(), $request->validated());
 

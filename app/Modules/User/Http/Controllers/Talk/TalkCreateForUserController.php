@@ -11,7 +11,10 @@ final class TalkCreateForUserController extends Controller
 {
     public function createTalkForUser(TalkCreateForUserRequest $request, TalkCreateForUserAction $action)
     {
-        $result = $action->execute($request->user(), $request->validated());
+        $result = $action->execute($request->user(), [
+            ...$request->validated(),
+            'author_ip' => $request->ip(),
+        ]);
 
         return ApiResponse::success($result['talk'] ?? $result);
     }

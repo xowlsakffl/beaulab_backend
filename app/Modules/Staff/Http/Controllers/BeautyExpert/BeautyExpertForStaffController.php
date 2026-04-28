@@ -34,7 +34,7 @@ final class BeautyExpertForStaffController extends Controller
         return ApiResponse::success($result['expert'] ?? $result);
     }
 
-    public function storeExpertForStaff(BeautyExpertCreateForStaffRequest $request, BeautyExpertCreateForStaffAction $action)
+    public function createExpertForStaff(BeautyExpertCreateForStaffRequest $request, BeautyExpertCreateForStaffAction $action)
     {
         $result = $action->execute($request->validated());
 

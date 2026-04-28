@@ -6,7 +6,7 @@ use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Beauty\Queries\Staff\BeautyCreateForStaffQuery;
 use App\Domains\BeautyBusinessRegistration\Actions\BeautyBusinessRegistrationCreateForStaffAction;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;

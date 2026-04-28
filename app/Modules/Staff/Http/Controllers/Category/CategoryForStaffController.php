@@ -6,13 +6,13 @@ namespace App\Modules\Staff\Http\Controllers\Category;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\Common\Actions\Category\Staff\CategoryCreateForStaffAction;
-use App\Domains\Common\Actions\Category\Staff\CategoryDeleteForStaffAction;
-use App\Domains\Common\Actions\Category\Staff\CategoryGetForStaffAction;
-use App\Domains\Common\Actions\Category\Staff\CategoryListForStaffAction;
-use App\Domains\Common\Actions\Category\Staff\CategorySelectorListForStaffAction;
-use App\Domains\Common\Actions\Category\Staff\CategoryUpdateForStaffAction;
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Actions\Staff\CategoryCreateForStaffAction;
+use App\Domains\Common\Category\Actions\Staff\CategoryDeleteForStaffAction;
+use App\Domains\Common\Category\Actions\Staff\CategoryGetForStaffAction;
+use App\Domains\Common\Category\Actions\Staff\CategoryListForStaffAction;
+use App\Domains\Common\Category\Actions\Staff\CategorySelectorListForStaffAction;
+use App\Domains\Common\Category\Actions\Staff\CategoryUpdateForStaffAction;
+use App\Domains\Common\Category\Models\Category;
 use App\Modules\Staff\Http\Requests\Category\CategoryCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Category\CategoryGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Category\CategoryListForStaffRequest;
@@ -53,7 +53,7 @@ final class CategoryForStaffController extends Controller
         return ApiResponse::success($result['category'] ?? $result);
     }
 
-    public function storeCategoryForStaff(
+    public function createCategoryForStaff(
         CategoryCreateForStaffRequest $request,
         CategoryCreateForStaffAction $action,
     ) {

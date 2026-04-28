@@ -2,7 +2,7 @@
 
 namespace App\Domains\HospitalBusinessRegistration\Actions;
 
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
 use App\Domains\HospitalBusinessRegistration\Queries\HospitalBusinessRegistrationCreateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;

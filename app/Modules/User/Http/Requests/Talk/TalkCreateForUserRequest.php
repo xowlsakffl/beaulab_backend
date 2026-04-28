@@ -2,10 +2,9 @@
 
 namespace App\Modules\User\Http\Requests\Talk;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 final class TalkCreateForUserRequest extends FormRequest
@@ -49,29 +48,10 @@ final class TalkCreateForUserRequest extends FormRequest
             'images' => ['nullable', 'array', 'max:' . Talk::MAX_IMAGE_COUNT],
             'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'poll' => ['nullable', 'array'],
-            'poll.allow_multiple' => ['nullable', 'boolean'],
-            'poll.options' => ['nullable', 'array', 'min:2', 'max:10'],
+            'poll.allow_multiple' => ['required_with:poll', 'boolean'],
+            'poll.options' => ['required_with:poll', 'array', 'min:2', 'max:10'],
             'poll.options.*' => ['required', 'string', 'max:100', 'distinct:strict'],
         ];
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function (Validator $validator): void {
-            $poll = $this->input('poll');
-
-            if (! is_array($poll)) {
-                return;
-            }
-
-            if (! array_key_exists('allow_multiple', $poll)) {
-                $validator->errors()->add('poll.allow_multiple', '투표를 등록할 때 복수 선택 허용 여부는 필수입니다.');
-            }
-
-            if (! array_key_exists('options', $poll)) {
-                $validator->errors()->add('poll.options', '투표를 등록할 때 항목 목록은 필수입니다.');
-            }
-        });
     }
 
     public function attributes(): array

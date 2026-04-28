@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountStaff\Models;
 
-use App\Domains\Common\Models\Concerns\HasAuditLogs;
+use App\Domains\Common\Concerns\HasAuditLogs;
 use Database\Factories\AccountStaffFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

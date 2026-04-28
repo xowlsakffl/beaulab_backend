@@ -2,8 +2,8 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Common\Models\Media\Media;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

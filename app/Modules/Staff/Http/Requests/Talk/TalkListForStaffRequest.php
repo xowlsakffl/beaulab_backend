@@ -2,7 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Talk;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -141,5 +141,4 @@ final class TalkListForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : array_values(array_unique($normalized));
     }
-
 }

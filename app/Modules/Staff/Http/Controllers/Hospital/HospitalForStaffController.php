@@ -6,21 +6,20 @@ namespace App\Modules\Staff\Http\Controllers\Hospital;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\Hospital\Actions\Staff\HospitalCheckBusinessNumberForStaffAction;
+use App\Domains\Hospital\Actions\Staff\HospitalCheckNameForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalCreateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalDeleteForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalGetForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalListForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\Hospital\Queries\Staff\HospitalBusinessNumberExistsForStaffQuery;
-use App\Domains\Hospital\Queries\Staff\HospitalNameExistsForStaffQuery;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckBusinessNumberForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckNameForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalListForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalUpdateForStaffRequest;
-use Illuminate\Support\Facades\Gate;
 
 /**
  * HospitalForStaffController 역할 정의.
@@ -59,7 +58,7 @@ final class HospitalForStaffController extends Controller
      * POST /api/v1/staff/hospitals
      * (Beaulab) Staff 전용 병원 생성
      */
-    public function storeHospitalForStaff(
+    public function createHospitalForStaff(
         HospitalCreateForStaffRequest $request,
         HospitalCreateForStaffAction $action,
     ) {
@@ -74,17 +73,11 @@ final class HospitalForStaffController extends Controller
      */
     public function checkHospitalNameDuplicateForStaff(
         HospitalCheckNameForStaffRequest $request,
-        HospitalNameExistsForStaffQuery $query,
+        HospitalCheckNameForStaffAction $action,
     ) {
-        Gate::authorize('create', Hospital::class);
+        $result = $action->execute((string) $request->validated('name'));
 
-        $payload = $request->validated();
-        $exists = $query->exists($payload['name']);
-
-        return ApiResponse::success([
-            'exists' => $exists,
-            'available' => ! $exists,
-        ]);
+        return ApiResponse::success($result);
     }
 
     /**
@@ -93,18 +86,11 @@ final class HospitalForStaffController extends Controller
      */
     public function checkHospitalBusinessNumberDuplicateForStaff(
         HospitalCheckBusinessNumberForStaffRequest $request,
-        HospitalBusinessNumberExistsForStaffQuery $query,
+        HospitalCheckBusinessNumberForStaffAction $action,
     ) {
-        Gate::authorize('create', Hospital::class);
+        $result = $action->execute((string) $request->validated('business_number'));
 
-        $payload = $request->validated();
-        $exists = $query->exists($payload['business_number']);
-
-        return ApiResponse::success([
-            'exists' => $exists,
-            'available' => ! $exists,
-            'business_number' => $payload['business_number'],
-        ]);
+        return ApiResponse::success($result);
     }
 
     /**

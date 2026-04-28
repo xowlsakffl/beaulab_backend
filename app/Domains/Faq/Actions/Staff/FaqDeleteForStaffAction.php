@@ -2,7 +2,7 @@
 
 namespace App\Domains\Faq\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Faq\Models\Faq;
 use App\Domains\Faq\Queries\Staff\FaqDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;

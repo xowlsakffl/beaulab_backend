@@ -2,43 +2,40 @@
 
 namespace App\Domains\Chat\Actions\User;
 
-use App\Common\Exceptions\CustomException;
-use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Dto\User\ChatMessageForUserDto;
 use App\Domains\Chat\Events\ChatMessageCreated;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Queries\User\ChatMessageSendForUserQuery;
-use App\Domains\Chat\Support\ChatMatchKey;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
-use App\Domains\Common\Actions\Notification\CreateNotificationAction;
-use App\Domains\Common\Models\Notification\NotificationDelivery;
-use App\Domains\Common\Models\Notification\NotificationInbox;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
+use App\Domains\Common\Notification\Actions\CreateNotificationAction;
+use App\Domains\Common\Notification\Models\NotificationDelivery;
+use App\Domains\Common\Notification\Models\NotificationInbox;
 use Illuminate\Http\UploadedFile;
 use Throwable;
 
 /**
- * 앱 사용자 메시지 발송 유스케이스.
- * 저장은 Query에 위임하고, 새 메시지일 때만 Reverb 브로드캐스트와 공통 알림 생성을 연결한다.
+ * 앱 사용자 메시지 전송 유스케이스.
+ * 기존 채팅방 전송과 첫 메시지 전송을 같은 흐름으로 처리하고, 첨부 저장과 알림 생성까지 마무리한다.
  */
 final class ChatMessageSendForUserAction
 {
     public function __construct(
+        private readonly ChatMessageSendForUserQuery $query,
         private readonly CreateNotificationAction $createNotificationAction,
         private readonly MediaAttachDeleteAction $mediaAttachDeleteAction,
-        private readonly ChatMessageSendForUserQuery $query,
     ) {}
 
-    public function execute(Chat $chat, AccountUser $user, array $payload): array
+    public function execute(AccountUser $user, array $payload, ?Chat $chat = null): array
     {
-        $result = $this->query->store($chat, $user, $payload);
+        $result = $this->query->create($user, $payload, $chat);
 
         /** @var ChatMessage $message */
         $message = $result['message'];
-        $attachmentsStored = $this->storeAttachments($message, $payload['attachments'] ?? []);
+        $attachmentsCreated = $this->createAttachments($message, $payload['attachments'] ?? []);
 
-        if ((bool) $result['created'] || $attachmentsStored) {
+        if ((bool) $result['created'] || $attachmentsCreated) {
             $message->load(['sender:id,nickname,email', 'attachments']);
 
             ChatMessageCreated::dispatch(
@@ -55,38 +52,7 @@ final class ChatMessageSendForUserAction
         ];
     }
 
-    public function executeFirst(AccountUser $user, int $peerUserId, array $payload): array
-    {
-        if ((int) $user->id === $peerUserId) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '본인과는 채팅방을 만들 수 없습니다.');
-        }
-
-        $peer = $this->query->findActivePeer($peerUserId);
-        $matchKey = ChatMatchKey::forUsers((int) $user->id, $peerUserId);
-        $result = $this->query->storeFirst($user, $peer, $matchKey, $payload);
-
-        /** @var ChatMessage $message */
-        $message = $result['message'];
-        $attachmentsStored = $this->storeAttachments($message, $payload['attachments'] ?? []);
-
-        if ((bool) $result['created'] || $attachmentsStored) {
-            $message->load(['sender:id,nickname,email', 'attachments']);
-
-            ChatMessageCreated::dispatch(
-                (int) $message->id,
-                (int) $message->chat_id,
-                (int) $message->sender_user_id,
-            );
-
-            $this->createPeerNotifications($message, $user);
-        }
-
-        return [
-            'message' => ChatMessageForUserDto::fromModel($message, (int) $user->id)->toArray(),
-        ];
-    }
-
-    private function storeAttachments(ChatMessage $message, mixed $value): bool
+    private function createAttachments(ChatMessage $message, mixed $value): bool
     {
         $attachments = $this->attachments($value);
 

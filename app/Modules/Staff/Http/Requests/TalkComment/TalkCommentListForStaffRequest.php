@@ -2,7 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\TalkComment;
 
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Foundation\Http\FormRequest;
@@ -136,5 +136,4 @@ final class TalkCommentListForStaffRequest extends FormRequest
 
         return $normalized === [] ? null : array_values(array_unique($normalized));
     }
-
 }

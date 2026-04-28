@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Database\Factories\Support\SeedMediaFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

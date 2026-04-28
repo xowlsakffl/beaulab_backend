@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use Illuminate\Database\Seeder;
 
 final class BeautyExpertSeeder extends Seeder

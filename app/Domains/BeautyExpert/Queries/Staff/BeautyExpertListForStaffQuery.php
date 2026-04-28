@@ -3,7 +3,7 @@
 namespace App\Domains\BeautyExpert\Queries\Staff;
 
 use App\Domains\BeautyExpert\Models\BeautyExpert;
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**

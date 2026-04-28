@@ -2,7 +2,7 @@
 
 namespace App\Modules\Hospital\Http\Requests\AdminNote;
 
-use App\Domains\Common\Support\AdminNote\AdminNoteTargetRegistry;
+use App\Domains\Common\AdminNote\Support\AdminNoteTargetRegistry;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

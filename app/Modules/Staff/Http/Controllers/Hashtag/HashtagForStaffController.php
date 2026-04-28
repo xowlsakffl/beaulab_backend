@@ -6,12 +6,12 @@ namespace App\Modules\Staff\Http\Controllers\Hashtag;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\Common\Actions\Hashtag\Staff\HashtagCreateForStaffAction;
-use App\Domains\Common\Actions\Hashtag\Staff\HashtagDeleteForStaffAction;
-use App\Domains\Common\Actions\Hashtag\Staff\HashtagGetForStaffAction;
-use App\Domains\Common\Actions\Hashtag\Staff\HashtagListForStaffAction;
-use App\Domains\Common\Actions\Hashtag\Staff\HashtagUpdateForStaffAction;
-use App\Domains\Common\Models\Hashtag\Hashtag;
+use App\Domains\Common\Hashtag\Actions\Staff\HashtagCreateForStaffAction;
+use App\Domains\Common\Hashtag\Actions\Staff\HashtagDeleteForStaffAction;
+use App\Domains\Common\Hashtag\Actions\Staff\HashtagGetForStaffAction;
+use App\Domains\Common\Hashtag\Actions\Staff\HashtagListForStaffAction;
+use App\Domains\Common\Hashtag\Actions\Staff\HashtagUpdateForStaffAction;
+use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Modules\Staff\Http\Requests\Hashtag\HashtagCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hashtag\HashtagGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hashtag\HashtagListForStaffRequest;
@@ -42,7 +42,7 @@ final class HashtagForStaffController extends Controller
         return ApiResponse::success($result['hashtag'] ?? $result);
     }
 
-    public function storeHashtagForStaff(
+    public function createHashtagForStaff(
         HashtagCreateForStaffRequest $request,
         HashtagCreateForStaffAction $action,
     ) {

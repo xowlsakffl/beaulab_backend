@@ -62,7 +62,7 @@ final class HospitalVideoForStaffController extends Controller
         return $action->execute($video);
     }
 
-    public function storeVideoForStaff(HospitalVideoCreateForStaffRequest $request, HospitalVideoCreateForStaffAction $action)
+    public function createVideoForStaff(HospitalVideoCreateForStaffRequest $request, HospitalVideoCreateForStaffAction $action)
     {
         $result = $action->execute($request->validated());
 

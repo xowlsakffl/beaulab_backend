@@ -4,7 +4,7 @@ namespace App\Domains\BeautyExpert\Actions\Staff;
 
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\BeautyExpert\Queries\Staff\BeautyExpertDeleteForStaffQuery;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 

@@ -2,10 +2,12 @@
 
 namespace App\Domains\Talk\Actions\User;
 
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
-use App\Domains\Common\Models\Category\Category;
-use App\Domains\Talk\Dto\User\TalkCreateForUserDto;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Talk\Dto\User\TalkForUserDetailDto;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkPoll;
 use App\Domains\Talk\Queries\User\TalkCreateForUserQuery;
@@ -23,7 +25,6 @@ final class TalkCreateForUserAction
     {
         $normalized = $payload;
         $normalized['author_id'] = (int) $user->id;
-        $normalized['author_ip'] = request()->ip();
         $normalized['category_id'] = $this->resolveCategoryId($normalized['category_code'] ?? null);
 
         $talk = DB::transaction(function () use ($normalized): Talk {
@@ -42,7 +43,7 @@ final class TalkCreateForUserAction
         });
 
         return [
-            'talk' => TalkCreateForUserDto::fromModel($talk)->toArray(),
+            'talk' => TalkForUserDetailDto::fromModel($talk)->toArray(),
         ];
     }
 
@@ -62,7 +63,7 @@ final class TalkCreateForUserAction
     private function resolveCategoryId(mixed $categoryCode): ?int
     {
         if (! is_string($categoryCode) || trim($categoryCode) === '') {
-            return null;
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '토크 카테고리를 확인해 주세요.');
         }
 
         $categoryId = Category::query()
@@ -73,7 +74,11 @@ final class TalkCreateForUserAction
 
         $categoryId = is_numeric($categoryId) ? (int) $categoryId : 0;
 
-        return $categoryId > 0 ? $categoryId : null;
+        if ($categoryId <= 0) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '토크 카테고리를 확인해 주세요.');
+        }
+
+        return $categoryId;
     }
 
     /**

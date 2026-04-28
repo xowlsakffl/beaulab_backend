@@ -41,7 +41,6 @@ class AccountBeauty extends Authenticatable
     ];
 
     /**
-     * Mass assignable
      *
      * @var list<string>
      */

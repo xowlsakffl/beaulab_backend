@@ -45,7 +45,7 @@ enum ErrorCode: string
             self::PAYLOAD_TOO_LARGE => '요청 용량이 초과되었습니다.',
             self::TOKEN_ERROR => '토큰이 유효하지 않습니다.',
             self::RATE_LIMITED => '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
-            self::DB_ERROR => '서버 오류가 발생했습니다.',
+            self::DB_ERROR => '데이터베이스 오류가 발생했습니다.',
             self::USER_NOT_FOUND => '사용자를 찾을 수 없습니다.',
             default => '서버 오류가 발생했습니다.',
         };

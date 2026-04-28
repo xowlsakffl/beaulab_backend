@@ -40,7 +40,6 @@ class AccountHospital extends Authenticatable
     ];
 
     /**
-     * Mass assignable
      *
      * @var list<string>
      */

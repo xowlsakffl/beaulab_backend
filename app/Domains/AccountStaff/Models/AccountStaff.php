@@ -24,10 +24,16 @@ final class AccountStaff extends Authenticatable
 
     protected $table = 'account_staffs';
 
+    /**
+     * 계정 상태 상수 (migration comment: active, suspended, blocked)
+     */
     public const string STATUS_ACTIVE = 'ACTIVE';
     public const string STATUS_SUSPENDED = 'SUSPENDED';
     public const string STATUS_BLOCKED = 'BLOCKED';
 
+    /**
+     * 기본값 (DB default가 있어도 도메인 기본값은 명시 권장)
+     */
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
     ];
@@ -62,6 +68,9 @@ final class AccountStaff extends Authenticatable
         return AccountStaffFactory::new();
     }
 
+    /**
+     * 운영 상태 헬퍼
+     */
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;

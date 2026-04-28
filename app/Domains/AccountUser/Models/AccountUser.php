@@ -15,9 +15,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * AccountUser 역할 정의.
- * 일반 회원 계정 도메인의 Eloquent 모델로, �
-�븨, 愿怨? ?�
-�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
+ * 일반 회원 계정 도메인
  */
 final class AccountUser extends Authenticatable
 {
@@ -32,6 +30,7 @@ final class AccountUser extends Authenticatable
     public const STATUS_SUSPENDED = 'SUSPENDED';
 
     public const STATUS_BLOCKED = 'BLOCKED';
+    public const STATUS_WITHDRAWN = 'WITHDRAWN';
 
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
@@ -94,5 +93,10 @@ final class AccountUser extends Authenticatable
     public function isBlocked(): bool
     {
         return $this->status === self::STATUS_BLOCKED;
+    }
+
+    public function isWithdrawn(): bool
+    {
+        return $this->status === self::STATUS_WITHDRAWN;
     }
 }

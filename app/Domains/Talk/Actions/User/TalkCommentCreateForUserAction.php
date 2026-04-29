@@ -25,6 +25,7 @@ final class TalkCommentCreateForUserAction
             'author_id' => (int) $user->id,
             'content' => (string) $payload['content'],
             'author_ip' => $payload['author_ip'] ?? null,
+            'mention' => $this->normalizeMention($payload['mention'] ?? null, $user),
         ];
 
         $comment = DB::transaction(function () use ($normalized): TalkComment {
@@ -41,9 +42,10 @@ final class TalkCommentCreateForUserAction
             $this->assertReplyTargetIsWritable($lockedTalk, $normalized['parent_id']);
 
             $comment = $this->query->create($normalized);
+            $this->createMention($comment, $normalized['mention']);
             $this->query->incrementTalkCommentCount($lockedTalk);
 
-            return $comment->fresh(['author']);
+            return $comment->fresh(['author', 'mentions.mentionedUser']);
         });
 
         return [
@@ -56,6 +58,39 @@ final class TalkCommentCreateForUserAction
         $parentId = (int) $parentId;
 
         return $parentId > 0 ? $parentId : null;
+    }
+
+    private function normalizeMention(mixed $mention, AccountUser $user): ?array
+    {
+        if (! is_array($mention)) {
+            return null;
+        }
+
+        $mentionedUserId = (int) ($mention['mentioned_user_id'] ?? 0);
+        if ($mentionedUserId <= 0) {
+            return null;
+        }
+
+        $mentionText = trim((string) ($mention['mention_text'] ?? ''));
+        $startOffset = array_key_exists('start_offset', $mention) ? (int) $mention['start_offset'] : null;
+        $endOffset = array_key_exists('end_offset', $mention) ? (int) $mention['end_offset'] : null;
+
+        return [
+            'mentioned_user_id' => $mentionedUserId,
+            'mentioned_by_user_id' => (int) $user->id,
+            'mention_text' => $mentionText === '' ? null : $mentionText,
+            'start_offset' => $startOffset !== null && $startOffset >= 0 ? $startOffset : null,
+            'end_offset' => $endOffset !== null && $endOffset >= 0 ? $endOffset : null,
+        ];
+    }
+
+    private function createMention(TalkComment $comment, ?array $mention): void
+    {
+        if ($mention === null) {
+            return;
+        }
+
+        $this->query->createMention($comment, $mention);
     }
 
     private function assertReplyTargetIsWritable(Talk $talk, ?int $parentId): void

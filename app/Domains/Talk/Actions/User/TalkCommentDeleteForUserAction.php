@@ -36,7 +36,7 @@ final class TalkCommentDeleteForUserAction
             $beforePostStatus = (string) $lockedComment->post_status;
 
             if ($beforePostStatus === TalkComment::POST_STATUS_USER_DELETE) {
-                return $lockedComment->fresh(['author']);
+                return $lockedComment->fresh(['author', 'mentions.mentionedUser']);
             }
 
             if ($lockedComment->isStatusChangeLocked()) {
@@ -79,7 +79,7 @@ final class TalkCommentDeleteForUserAction
                 ],
             );
 
-            return $updatedComment->fresh(['author']);
+            return $updatedComment->fresh(['author', 'mentions.mentionedUser']);
         });
 
         return [

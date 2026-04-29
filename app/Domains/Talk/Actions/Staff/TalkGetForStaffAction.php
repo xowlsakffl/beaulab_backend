@@ -34,7 +34,7 @@ final class TalkGetForStaffAction
             );
 
         $comments = $talk->comments()
-            ->with(['author', 'operationHistories'])
+            ->with(['author', 'operationHistories', 'mentions.mentionedUser'])
             ->paginate(
                 perPage: (int) ($filters['comments_per_page'] ?? 10),
                 columns: ['*'],

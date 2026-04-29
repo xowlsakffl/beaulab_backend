@@ -7,7 +7,6 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Queries\Staff\CategoryDeleteForStaffQuery;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -26,18 +25,13 @@ final class CategoryDeleteForStaffAction
     {
         Gate::authorize('delete', $category);
 
-        $hasChildren = Category::query()
-            ->where('domain', $category->domain)
-            ->where('parent_id', $category->id)
-            ->exists();
+        $hasChildren = $this->query->hasChildren($category);
 
         if ($hasChildren) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '하위 카테고리가 있어 삭제할 수 없습니다.');
         }
 
-        $hasAssignments = DB::table('category_assignments')
-            ->where('category_id', $category->id)
-            ->exists();
+        $hasAssignments = $this->query->hasAssignments($category);
 
         if ($hasAssignments) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '연결된 데이터가 있어 삭제할 수 없습니다.');

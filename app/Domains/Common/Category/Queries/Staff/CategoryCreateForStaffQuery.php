@@ -10,6 +10,22 @@ use App\Domains\Common\Category\Models\Category;
  */
 final class CategoryCreateForStaffQuery
 {
+    public function findParent(string $domain, int $parentId): ?Category
+    {
+        return Category::query()
+            ->domain($domain)
+            ->find($parentId);
+    }
+
+    public function existsSiblingName(string $domain, ?int $parentId, string $name): bool
+    {
+        return Category::query()
+            ->domain($domain)
+            ->where('parent_id', $parentId)
+            ->where('name', $name)
+            ->exists();
+    }
+
     public function create(array $data): Category
     {
         return Category::create($data);

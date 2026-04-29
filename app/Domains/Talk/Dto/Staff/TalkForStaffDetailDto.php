@@ -8,6 +8,7 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
+use App\Domains\Talk\Models\TalkCommentMention;
 use App\Domains\Talk\Models\TalkPollOption;
 use Illuminate\Support\Collection;
 
@@ -193,6 +194,7 @@ final readonly class TalkForStaffDetailDto
             'post_status' => (string) $comment->post_status,
             'author_ip' => $comment->author_ip,
             'like_count' => (int) $comment->like_count,
+            'mention' => self::commentMention($comment),
             'operation_histories' => self::commentOperationHistories($comment),
             'created_at' => $comment->created_at?->toISOString(),
             'updated_at' => $comment->updated_at?->toISOString(),
@@ -210,6 +212,31 @@ final readonly class TalkForStaffDetailDto
             ->map(fn (OperationHistory $history): array => self::commentOperationHistory($history))
             ->values()
             ->all();
+    }
+
+    private static function commentMention(TalkComment $comment): ?array
+    {
+        if (! $comment->relationLoaded('mentions')) {
+            return null;
+        }
+
+        $mention = $comment->mentions->first();
+
+        if (! $mention instanceof TalkCommentMention) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $mention->id,
+            'mentioned_user_id' => (int) $mention->mentioned_user_id,
+            'mentioned_by_user_id' => $mention->mentioned_by_user_id ? (int) $mention->mentioned_by_user_id : null,
+            'mention_text' => $mention->mention_text,
+            'start_offset' => $mention->start_offset,
+            'end_offset' => $mention->end_offset,
+            'mentioned_user_name' => $mention->relationLoaded('mentionedUser') && $mention->mentionedUser
+                ? (string) $mention->mentionedUser->name
+                : null,
+        ];
     }
 
     private static function commentOperationHistory(OperationHistory $history): array

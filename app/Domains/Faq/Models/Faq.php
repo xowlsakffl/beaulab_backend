@@ -2,9 +2,9 @@
 
 namespace App\Domains\Faq\Models;
 
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Media\Models\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,9 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Faq 역할 정의.
- * FAQ 도메인의 Eloquent 모델로, �
-�븨, 愿怨? ?�
-�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
+ * FAQ 도메인의 Eloquent 모델로, �
+�븨, 愿怨? ?�
+�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
  */
 final class Faq extends Model
 {

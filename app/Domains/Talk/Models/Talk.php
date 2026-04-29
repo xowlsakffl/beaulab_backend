@@ -2,27 +2,27 @@
 
 namespace App\Domains\Talk\Models;
 
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Concerns\HasAuditLogs;
-use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use Database\Factories\TalkFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Talk 역할 정의.
- * 토크 도메인의 Eloquent 모델로, �
-�븨, 愿怨? ?�
-�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
+ * 토크 도메인의 Eloquent 모델로, �
+�븨, 愿怨? ?�
+�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
  */
 final class Talk extends Model
 {

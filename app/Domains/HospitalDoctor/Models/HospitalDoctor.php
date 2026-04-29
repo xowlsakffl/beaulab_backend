@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalDoctor\Models;
 
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\HospitalDoctorFactory;

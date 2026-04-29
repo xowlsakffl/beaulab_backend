@@ -2,8 +2,8 @@
 
 namespace App\Domains\Talk\Models;
 
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use Database\Factories\TalkCommentFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;

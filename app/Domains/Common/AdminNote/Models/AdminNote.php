@@ -2,7 +2,7 @@
 
 namespace App\Domains\Common\AdminNote\Models;
 
-use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\AdminNote\Support\AdminNoteActorRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;

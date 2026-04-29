@@ -2,8 +2,8 @@
 
 namespace App\Domains\HospitalVideo\Models;
 
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
-use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;

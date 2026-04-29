@@ -75,13 +75,10 @@ final class MediaAttachDeleteAction
 
     public function deleteCollectionMedia(Model $owner, string $collection): void
     {
-        Media::query()
-            ->for($owner)
-            ->collection($collection)
-            ->get()
+        $this->query
+            ->collectionMedia($owner, $collection)
             ->each(function (Media $media): void {
-                Storage::disk($media->disk)->delete($media->path);
-                $media->delete();
+                $this->delete($media);
             });
     }
 
@@ -91,6 +88,12 @@ final class MediaAttachDeleteAction
         foreach ($collections as $collection) {
             $this->deleteCollectionMedia($owner, $collection);
         }
+    }
+
+    public function delete(Media $media): void
+    {
+        Storage::disk($media->disk)->delete($media->path);
+        $this->query->delete($media);
     }
 
     private function createOne(

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Chat\Dto\User;
+namespace App\Domains\Chat\Dto;
 
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\Media\Models\Media;
@@ -8,16 +8,15 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * 사용자별 채팅 메시지 응답 DTO.
- * 현재 사용자 기준 is_mine을 포함하므로 브로드캐스트 DTO와 분리한다.
+ * 브로드캐스트 전용 채팅 메시지 DTO.
+ * 모든 구독자에게 동일하게 내려가는 필드만 포함하고, 사용자별 값은 넣지 않는다.
  */
-final readonly class ChatMessageForUserDto
+final readonly class ChatMessageBroadcastDto
 {
     public function __construct(
         public int $id,
         public int $chatId,
         public int $senderUserId,
-        public bool $isMine,
         public string $messageType,
         public ?string $body,
         public ?int $replyToMessageId,
@@ -29,13 +28,12 @@ final readonly class ChatMessageForUserDto
         public ?string $updatedAt,
     ) {}
 
-    public static function fromModel(ChatMessage $message, int $currentUserId): self
+    public static function fromModel(ChatMessage $message): self
     {
         return new self(
             id: (int) $message->id,
             chatId: (int) $message->chat_id,
             senderUserId: (int) $message->sender_user_id,
-            isMine: (int) $message->sender_user_id === $currentUserId,
             messageType: (string) $message->message_type,
             body: $message->body,
             replyToMessageId: $message->reply_to_message_id ? (int) $message->reply_to_message_id : null,
@@ -57,7 +55,6 @@ final readonly class ChatMessageForUserDto
             'id' => $this->id,
             'chat_id' => $this->chatId,
             'sender_user_id' => $this->senderUserId,
-            'is_mine' => $this->isMine,
             'message_type' => $this->messageType,
             'body' => $this->body,
             'reply_to_message_id' => $this->replyToMessageId,

@@ -29,7 +29,7 @@ final class ChatReadForUserQuery
 
             $messageId = (int) ($payload['last_read_message_id'] ?? 0);
             if ($messageId <= 0) {
-                // Omitting the cursor means "mark everything currently visible in this chat as read".
+                // 커서를 보내지 않으면 현재 채팅방에서 보이는 마지막 메시지까지 전부 읽음 처리한다.
                 $messageId = (int) ChatMessage::query()
                     ->where('chat_id', $chat->id)
                     ->max('id');
@@ -47,7 +47,7 @@ final class ChatReadForUserQuery
             }
 
             $currentMessageId = (int) ($participant->last_read_message_id ?? 0);
-            // Read cursors only move forward so stale clients cannot roll back read state.
+            // 읽음 커서는 앞으로만 이동시켜서 오래된 클라이언트가 읽음 상태를 되돌리지 못하게 한다.
             $nextMessageId = max($currentMessageId, $messageId);
 
             $participant->forceFill([

@@ -28,11 +28,11 @@ final class ChatMessageListForUserQuery
             ->with(['sender:id,nickname,email', 'attachments']);
 
         if ($deletedUntilMessageId > 0) {
-            // Hidden history stays hidden even when the client paginates older messages.
+            // 사용자가 숨긴 시점 이전 메시지는 과거 페이지를 내려도 다시 보이지 않게 막는다.
             $builder->where('id', '>', $deletedUntilMessageId);
         }
 
-        // after_id is forward pagination for newly appended messages; default and before_id load newest first.
+        // after_id는 새로 붙은 메시지를 앞으로 따라가는 조회이고, 기본 조회와 before_id는 최신 메시지부터 역순으로 가져온다.
         if ($afterId > 0) {
             $builder->where('id', '>', $afterId)->orderBy('id');
         } else {

@@ -22,7 +22,7 @@ final class ChatListForUserQuery
                 $query
                     ->where('account_user_id', $userId)
                     ->where(function ($query): void {
-                        // A hidden chat reappears only after a newer message passes the user's hide cursor.
+                        // 숨긴 채팅은 사용자별 숨김 커서보다 최신 메시지가 생긴 뒤에만 다시 목록에 나타난다.
                         $query
                             ->whereNull('deleted_until_message_id')
                             ->orWhereColumn('chats.last_message_id', '>', 'chat_participants.deleted_until_message_id');
@@ -35,7 +35,7 @@ final class ChatListForUserQuery
             ])
             ->withCount([
                 'messages as unread_count' => function ($query) use ($userId): void {
-                    // Unread starts after both the read cursor and the per-user hide cursor.
+                    // 미읽음은 읽음 커서와 사용자별 숨김 커서를 모두 지난 메시지부터 계산한다.
                     $query
                         ->where('sender_user_id', '!=', $userId)
                         ->whereRaw(

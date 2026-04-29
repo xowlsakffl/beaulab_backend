@@ -15,12 +15,19 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * 메시지 저장 트랜잭�
+ * 메시지 저장 트랜잭션
  * client_message_id가 있으면 앱 재시도에 대해 멱등성을 보장한다.
  * 채팅방 조회/생성, 발송 가능 여부 검증, 메시지 저장 트랜잭션은 같은 DB 접근을 한 흐름으로 처리한다.
  */
 final class ChatMessageSendForUserQuery
 {
+    /**
+     * 메시지 전송 진입점.
+     * 기존 채팅방 ID가 들어오면 그 방에 바로 전송하고,
+     * 없으면 peer_user_id 기준으로 1:1 채팅방을 찾거나 새로 만든 뒤 전송한다.
+     *
+     * @return array{message: ChatMessage, created: bool}
+     */
     public function create(AccountUser $user, array $payload, ?Chat $chat = null): array
     {
         if ($chat instanceof Chat) {
@@ -34,6 +41,7 @@ final class ChatMessageSendForUserQuery
             });
         }
 
+        // 첫 메시지 전송은 방이 없을 수 있으므로 상대 사용자 정보와 1:1 식별키를 먼저 확정한다.
         $peerUserId = $this->requestedPeerUserId($user, $payload);
         $peer = $this->findActivePeer($peerUserId);
         $matchKey = ChatMatchKey::forUsers((int) $user->id, $peerUserId);
@@ -49,7 +57,7 @@ final class ChatMessageSendForUserQuery
                 throw $exception;
             }
 
-            // Two first-message requests can race on match_key. Retry by reopening the winner row.
+            // 첫 메시지 전송이 동시에 들어오면 match_key 유니크 충돌이 날 수 있으므로, 이미 만들어진 방을 다시 열어 재시도한다.
             return DB::transaction(function () use ($user, $payload, $peer, $matchKey): array {
                 $lockedChat = $this->openOrCreateChat($user, $peer, $matchKey);
 
@@ -72,6 +80,7 @@ final class ChatMessageSendForUserQuery
 
     private function createOnResolvedChat(Chat $lockedChat, AccountUser $user, array $payload): array
     {
+        // 방 상태와 참여 여부를 먼저 확인하고, 그 다음 상대와의 차단 관계를 검사한다.
         $this->assertSendable($lockedChat, (int) $user->id);
         $this->assertCanSendMessage(
             (int) $user->id,
@@ -90,8 +99,7 @@ final class ChatMessageSendForUserQuery
         }
 
         if ((int) $user->id === $peerUserId) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '본인과는 채�
-방을 만들 수 없습니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '본인과는 채팅방을 만들 수 없습니다.');
         }
 
         return $peerUserId;
@@ -106,13 +114,16 @@ final class ChatMessageSendForUserQuery
         }
 
         if (! $peer->isActive()) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '활성 상태의 사용자와만 채�
-할 수 있습니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '활성 상태의 사용자와만 채팅할 수 있습니다.');
         }
 
         return $peer;
     }
 
+    /**
+     * 1:1 채팅방을 찾고 없으면 만든다.
+     * 삭제된 방이면 복구하고, 닫힌 방이면 다시 ACTIVE로 열어 기존 대화를 이어간다.
+     */
     private function openOrCreateChat(AccountUser $user, AccountUser $peer, string $matchKey): Chat
     {
         $chat = Chat::withTrashed()
@@ -140,9 +151,7 @@ final class ChatMessageSendForUserQuery
         }
 
         if ($chat->status === Chat::STATUS_SUSPENDED) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '정지된 채�
-방�
-니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '정지된 채팅방입니다.');
         }
 
         if ($chat->status !== Chat::STATUS_ACTIVE) {
@@ -152,7 +161,7 @@ final class ChatMessageSendForUserQuery
             ])->save();
         }
 
-        // Restored or reopened chats may miss one side's participant row in legacy data.
+        // 복구되거나 다시 열린 방은 레거시 데이터 기준으로 한쪽 participant 행이 비어 있을 수 있어 보정한다.
         $chat->participants()->firstOrCreate(['account_user_id' => $user->id]);
         $chat->participants()->firstOrCreate(['account_user_id' => $peer->id]);
 
@@ -190,7 +199,7 @@ final class ChatMessageSendForUserQuery
 
             if ($existingMessage instanceof ChatMessage) {
                 return [
-                    // Mobile retries must resolve to the original row so the action can stay idempotent.
+                    // 모바일 재시도 요청도 항상 원본 메시지를 돌려줘야 멱등하게 처리된다.
                     'message' => $existingMessage,
                     'created' => false,
                 ];
@@ -200,6 +209,7 @@ final class ChatMessageSendForUserQuery
         $replyToMessageId = (int) ($payload['reply_to_message_id'] ?? 0);
 
         if ($replyToMessageId > 0) {
+            // 답장 대상은 같은 채팅방 안의 메시지여야만 한다.
             $replyExists = ChatMessage::query()
                 ->where('chat_id', $lockedChat->id)
                 ->whereKey($replyToMessageId)
@@ -225,7 +235,7 @@ final class ChatMessageSendForUserQuery
             'last_message_at' => $message->created_at,
         ])->save();
 
-        // The sender has implicitly read their own freshly created message.
+        // 보낸 사람은 방금 보낸 메시지를 이미 읽은 상태로 본다.
         $lockedChat->participants()
             ->where('account_user_id', $user->id)
             ->update([
@@ -256,6 +266,7 @@ final class ChatMessageSendForUserQuery
 
     private function assertCanSendMessage(int $senderUserId, int $peerUserId): void
     {
+        // 양방향 차단을 한 번에 조회한 뒤, 누가 blocker인지로 에러 메시지를 분기한다.
         $blockerIds = AccountUserBlock::query()
             ->where(function ($query) use ($senderUserId, $peerUserId): void {
                 $query

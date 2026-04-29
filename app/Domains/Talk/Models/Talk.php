@@ -20,9 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Talk 역할 정의.
- * 토크 도메인의 Eloquent 모델로, �
-�븨, 愿怨? ?�
-�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
+ * 토크 도메인의 Eloquent 모델
  */
 final class Talk extends Model
 {

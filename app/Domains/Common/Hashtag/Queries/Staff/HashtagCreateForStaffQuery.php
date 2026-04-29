@@ -10,6 +10,13 @@ use App\Domains\Common\Hashtag\Models\Hashtag;
  */
 final class HashtagCreateForStaffQuery
 {
+    public function existsNormalizedName(string $normalizedName): bool
+    {
+        return Hashtag::query()
+            ->where('normalized_name', $normalizedName)
+            ->exists();
+    }
+
     public function create(array $data): Hashtag
     {
         return Hashtag::create($data);

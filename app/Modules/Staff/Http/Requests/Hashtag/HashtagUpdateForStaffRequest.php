@@ -30,7 +30,7 @@ final class HashtagUpdateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'string', 'max:' . Hashtag::NAME_MAX_LENGTH, 'regex:' . Hashtag::VALID_NAME_REGEX],
+            'name' => ['sometimes', 'filled', 'string', 'max:' . Hashtag::NAME_MAX_LENGTH, 'regex:' . Hashtag::VALID_NAME_REGEX],
             'status' => ['sometimes', 'string', 'in:' . implode(',', Hashtag::STATUSES)],
         ];
     }

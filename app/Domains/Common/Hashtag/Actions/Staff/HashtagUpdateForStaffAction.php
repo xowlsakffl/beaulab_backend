@@ -32,15 +32,7 @@ final class HashtagUpdateForStaffAction
         $status = array_key_exists('status', $payload)
             ? Hashtag::normalizeStatus((string) $payload['status'])
             : $hashtag->resolveStatus();
-
-        if ($name === '' || $normalizedName === '') {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '해시태그명은 비워둘 수 없습니다.');
-        }
-
-        $exists = Hashtag::query()
-            ->where('normalized_name', $normalizedName)
-            ->whereKeyNot($hashtag->id)
-            ->exists();
+        $exists = $this->query->existsNormalizedName($hashtag, $normalizedName);
 
         if ($exists) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '동일한 해시태그가 이미 존재합니다.');

@@ -4,7 +4,6 @@ namespace App\Domains\Common\Hashtag\Queries\Staff;
 
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -16,14 +15,6 @@ final class HashtagListForStaffQuery
     public function paginate(array $filters): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 50;
-
-        return $this->buildQuery($filters)
-            ->paginate((int) $perPage)
-            ->withQueryString();
-    }
-
-    private function buildQuery(array $filters): Builder
-    {
         $q = $filters['q'] ?? null;
         $statuses = $filters['statuses'] ?? [];
         $startDate = $filters['start_date'] ?? null;
@@ -90,6 +81,8 @@ final class HashtagListForStaffQuery
             $builder->orderByDesc('id');
         }
 
-        return $builder;
+        return $builder
+            ->paginate((int) $perPage)
+            ->withQueryString();
     }
 }

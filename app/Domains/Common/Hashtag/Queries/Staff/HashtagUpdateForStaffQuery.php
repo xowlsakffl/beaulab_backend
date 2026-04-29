@@ -10,6 +10,14 @@ use App\Domains\Common\Hashtag\Models\Hashtag;
  */
 final class HashtagUpdateForStaffQuery
 {
+    public function existsNormalizedName(Hashtag $hashtag, string $normalizedName): bool
+    {
+        return Hashtag::query()
+            ->where('normalized_name', $normalizedName)
+            ->whereKeyNot($hashtag->id)
+            ->exists();
+    }
+
     public function update(Hashtag $hashtag, array $data): Hashtag
     {
         $hashtag->fill($data);

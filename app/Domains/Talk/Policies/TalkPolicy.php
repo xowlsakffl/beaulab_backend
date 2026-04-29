@@ -28,6 +28,11 @@ final class TalkPolicy
         return $this->delegate($actor)->update($actor, $talk);
     }
 
+    public function delete(mixed $actor, Talk $talk): bool
+    {
+        return $this->delegate($actor)->delete($actor, $talk);
+    }
+
     private function delegate(mixed $actor): object
     {
         return match (true) {
@@ -48,6 +53,12 @@ final class TalkPolicy
                 {
                     return false;
                 }
+
+                public function delete(mixed $actor, Talk $talk): bool
+                {
+                    return $actor instanceof AccountUser
+                        && (int) $actor->id === (int) $talk->author_id;
+                }
             },
             default => new class
             {
@@ -62,6 +73,11 @@ final class TalkPolicy
                 }
 
                 public function update(mixed $actor, ?Talk $talk = null): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, Talk $talk): bool
                 {
                     return false;
                 }

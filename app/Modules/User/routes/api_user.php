@@ -11,6 +11,7 @@ use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
 use App\Modules\User\Http\Controllers\HospitalReview\HospitalReviewCreateForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkCreateForUserController;
+use App\Modules\User\Http\Controllers\Talk\TalkDeleteForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkPollVoteForUserController;
 use App\Modules\User\Http\Middleware\EnsureActiveUser;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
     // 앱 사용자 토크/후기 생성 API.
     Route::post('talks', [TalkCreateForUserController::class, 'createTalkForUser'])
         ->name('talks.createTalkForUser');
+    Route::delete('talks/{talk}', [TalkDeleteForUserController::class, 'deleteTalkForUser'])
+        ->name('talks.deleteTalkForUser');
     Route::post('talks/{talk}/poll-votes', [TalkPollVoteForUserController::class, 'voteTalkPollForUser'])
         ->name('talks.voteTalkPollForUser');
     Route::post('hospital-reviews', [HospitalReviewCreateForUserController::class, 'createHospitalReviewForUser'])

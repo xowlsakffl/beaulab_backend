@@ -10,7 +10,6 @@ use App\Domains\HospitalDoctor\Queries\Staff\HospitalDoctorUpdateForStaffQuery;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * HospitalDoctorUpdateForStaffAction 역할 정의.
@@ -78,7 +77,7 @@ final class HospitalDoctorUpdateForStaffAction
                 'education_certificate_image',
                 'education-certificate-image',
                 $payload['existing_education_certificate_image_ids'] ?? [],
-                $this->onlyFiles($payload['education_certificate_image'] ?? []),
+                $payload['education_certificate_image'] ?? [],
             );
         }
 
@@ -88,19 +87,14 @@ final class HospitalDoctorUpdateForStaffAction
                 'etc_certificate_image',
                 'etc-certificate-image',
                 $payload['existing_etc_certificate_image_ids'] ?? [],
-                $this->onlyFiles($payload['etc_certificate_image'] ?? []),
+                $payload['etc_certificate_image'] ?? [],
             );
         }
     }
 
-    private function onlyFiles(array $files): array
-    {
-        return array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
-    }
-
     /**
      * @param array<int, int|string> $existingMediaIds
-     * @param array<int, UploadedFile> $newFiles
+     * @param array<int, mixed> $newFiles
      */
     private function syncMediaCollection(
         HospitalDoctor $doctor,
@@ -125,12 +119,10 @@ final class HospitalDoctorUpdateForStaffAction
         $deletedMediaIds = $currentMedia->keys()->diff($keptMediaIds);
 
         if ($deletedMediaIds->isNotEmpty()) {
-            Media::query()
-                ->whereIn('id', $deletedMediaIds->all())
-                ->get()
+            $currentMedia
+                ->only($deletedMediaIds->all())
                 ->each(function (Media $media): void {
-                    Storage::disk($media->disk)->delete($media->path);
-                    $media->delete();
+                    $this->mediaAttachAction->delete($media);
                 });
         }
 
@@ -146,6 +138,10 @@ final class HospitalDoctorUpdateForStaffAction
 
         $baseSortOrder = $keptMediaIds->count();
         foreach (array_values($newFiles) as $index => $file) {
+            if (! $file instanceof UploadedFile) {
+                continue;
+            }
+
             $this->mediaAttachAction->attachOne(
                 $doctor,
                 $file,

@@ -16,19 +16,19 @@ final class MediaAttachDeleteQuery
         return Media::create($data);
     }
 
-    public function clearPrimary(Model $owner, string $collection): int
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, Media>
+     */
+    public function collectionMedia(Model $owner, string $collection)
     {
-        $rows = Media::query()
-            ->where('model_type', $owner::class)
-            ->where('model_id', $owner->getKey())
-            ->where('collection', $collection)
-            ->where('is_primary', true)
+        return Media::query()
+            ->for($owner)
+            ->collection($collection)
             ->get();
+    }
 
-        foreach ($rows as $row) {
-            $row->forceFill(['is_primary' => false])->save();
-        }
-
-        return $rows->count();
+    public function delete(Media $media): void
+    {
+        $media->delete();
     }
 }

@@ -6,8 +6,8 @@ use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountBeauty\Actions\Beauty\GetMyProfileForAccountBeautyAction;
 use App\Domains\AccountBeauty\Actions\Beauty\LoginForAccountBeautyAction;
 use App\Domains\AccountBeauty\Actions\Beauty\LogoutForAccountBeautyAction;
-use App\Domains\AccountBeauty\Actions\Beauty\UpdatePasswordForAccountBeautyAction;
-use App\Domains\AccountBeauty\Actions\Beauty\UpdateProfileForAccountBeautyAction;
+use App\Domains\AccountBeauty\Actions\Beauty\PasswordUpdateForAccountBeautyAction;
+use App\Domains\AccountBeauty\Actions\Beauty\ProfileUpdateForAccountBeautyAction;
 use App\Modules\Beauty\Http\Requests\Auth\LoginForAccountBeautyRequest;
 use App\Modules\Beauty\Http\Requests\Auth\UpdatePasswordForAccountBeautyRequest;
 use App\Modules\Beauty\Http\Requests\Auth\UpdateProfileForAccountBeautyRequest;
@@ -42,14 +42,14 @@ final class AuthForBeautyController
 
     public function updateMyProfile(
         UpdateProfileForAccountBeautyRequest $request,
-        UpdateProfileForAccountBeautyAction $action
+        ProfileUpdateForAccountBeautyAction $action
     ) {
         return ApiResponse::success($action->execute($request->user(), $request->filters()));
     }
 
     public function updateMyPassword(
         UpdatePasswordForAccountBeautyRequest $request,
-        UpdatePasswordForAccountBeautyAction $action
+        PasswordUpdateForAccountBeautyAction $action
     ) {
         return ApiResponse::success($action->execute($request->user(), $request->filters()));
     }

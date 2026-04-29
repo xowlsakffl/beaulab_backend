@@ -33,6 +33,7 @@ final class ChatDeleteForUserQuery
 
             $lastMessageId = $lockedChat->last_message_id ? (int) $lockedChat->last_message_id : null;
 
+            // This is a per-user hide cursor, not a global delete of the room or its messages.
             $participant->forceFill([
                 'deleted_until_message_id' => $lastMessageId,
                 'deleted_at' => now(),

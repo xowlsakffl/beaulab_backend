@@ -29,6 +29,7 @@ final class ChatReadForUserQuery
 
             $messageId = (int) ($payload['last_read_message_id'] ?? 0);
             if ($messageId <= 0) {
+                // Omitting the cursor means "mark everything currently visible in this chat as read".
                 $messageId = (int) ChatMessage::query()
                     ->where('chat_id', $chat->id)
                     ->max('id');
@@ -46,6 +47,7 @@ final class ChatReadForUserQuery
             }
 
             $currentMessageId = (int) ($participant->last_read_message_id ?? 0);
+            // Read cursors only move forward so stale clients cannot roll back read state.
             $nextMessageId = max($currentMessageId, $messageId);
 
             $participant->forceFill([

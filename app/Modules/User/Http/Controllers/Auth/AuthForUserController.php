@@ -6,8 +6,8 @@ use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Actions\User\Auth\GetMyProfileForAccountUserAction;
 use App\Domains\AccountUser\Actions\User\Auth\LoginForAccountUserAction;
 use App\Domains\AccountUser\Actions\User\Auth\LogoutForAccountUserAction;
-use App\Domains\AccountUser\Actions\User\Auth\UpdatePasswordForAccountUserAction;
-use App\Domains\AccountUser\Actions\User\Auth\UpdateProfileForAccountUserAction;
+use App\Domains\AccountUser\Actions\User\Auth\PasswordUpdateForAccountUserAction;
+use App\Domains\AccountUser\Actions\User\Auth\ProfileUpdateForAccountUserAction;
 use App\Modules\User\Http\Requests\Auth\LoginForAccountUserRequest;
 use App\Modules\User\Http\Requests\Auth\UpdatePasswordForAccountUserRequest;
 use App\Modules\User\Http\Requests\Auth\UpdateProfileForAccountUserRequest;
@@ -36,14 +36,14 @@ final class AuthForUserController
 
     public function updateMyProfile(
         UpdateProfileForAccountUserRequest $request,
-        UpdateProfileForAccountUserAction $action,
+        ProfileUpdateForAccountUserAction  $action,
     ) {
         return ApiResponse::success($action->execute($request->user(), $request->filters()));
     }
 
     public function updateMyPassword(
         UpdatePasswordForAccountUserRequest $request,
-        UpdatePasswordForAccountUserAction $action,
+        PasswordUpdateForAccountUserAction  $action,
     ) {
         return ApiResponse::success($action->execute($request->user(), $request->filters()));
     }

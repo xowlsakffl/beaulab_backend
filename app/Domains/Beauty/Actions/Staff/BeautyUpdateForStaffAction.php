@@ -3,7 +3,6 @@
 namespace App\Domains\Beauty\Actions\Staff;
 
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
-use App\Domains\Common\Media\Models\Media;
 use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Beauty\Queries\Staff\BeautyUpdateForStaffQuery;
@@ -11,7 +10,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * BeautyUpdateForStaffAction 역할 정의.
@@ -21,7 +19,8 @@ final class BeautyUpdateForStaffAction
 {
     public function __construct(
         private readonly BeautyUpdateForStaffQuery $query,
-        private readonly MediaAttachDeleteAction   $mediaAttachAction,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly BeautyBusinessRegistrationUpdateForStaffAction $businessRegistrationUpdateAction,
     ) {}
 
     /**
@@ -39,7 +38,7 @@ final class BeautyUpdateForStaffAction
             $updatedBeauty = $this->query->update($beauty, $payload);
 
             $this->replaceMedia($updatedBeauty, $payload);
-            $this->updateBusinessRegistration($updatedBeauty, $payload);
+            $this->businessRegistrationUpdateAction->execute($updatedBeauty, $payload);
             if (array_key_exists('category_ids', $payload) && is_array($payload['category_ids'])) {
                 $this->syncCategories($updatedBeauty, $payload['category_ids']);
             }
@@ -49,8 +48,7 @@ final class BeautyUpdateForStaffAction
 
         return [
             'beauty' => BeautyForStaffDetailDto::fromModel(
-                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories']),
-                ['business_registration'],
+                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories'])
             )->toArray(),
         ];
     }
@@ -58,7 +56,7 @@ final class BeautyUpdateForStaffAction
     private function replaceMedia(Beauty $beauty, array $payload): void
     {
         if (isset($payload['logo']) && $payload['logo'] instanceof UploadedFile) {
-            $this->deleteCollectionMedia($beauty, 'logo');
+            $this->mediaAttachAction->deleteCollectionMedia($beauty, 'logo');
             $this->mediaAttachAction->attachOne($beauty, $payload['logo'], 'logo', 'beauty', 'logo');
         }
 
@@ -69,59 +67,10 @@ final class BeautyUpdateForStaffAction
             ));
 
             if ($galleryFiles !== []) {
-                $this->deleteCollectionMedia($beauty, 'gallery');
+                $this->mediaAttachAction->deleteCollectionMedia($beauty, 'gallery');
                 $this->mediaAttachAction->attachMany($beauty, $galleryFiles, 'gallery', 'beauty', 'gallery', true);
             }
         }
-    }
-
-    private function updateBusinessRegistration(Beauty $beauty, array $payload): void
-    {
-        $businessRegistration = $beauty->businessRegistration()->first();
-        if (! $businessRegistration) {
-            return;
-        }
-
-        $updates = [];
-        foreach ([
-                     'business_number',
-                     'company_name',
-                     'ceo_name',
-                     'business_type',
-                     'business_item',
-                     'business_address',
-                     'business_address_detail',
-                 ] as $field) {
-            if (array_key_exists($field, $payload)) {
-                $updates[$field] = $payload[$field];
-            }
-        }
-
-        if ($updates !== []) {
-            $businessRegistration->update($updates);
-        }
-
-        if (isset($payload['business_registration_file']) && $payload['business_registration_file'] instanceof UploadedFile) {
-            $existingCertificate = $businessRegistration->certificateMedia()->first();
-            if ($existingCertificate) {
-                Storage::disk($existingCertificate->disk)->delete($existingCertificate->path);
-                $existingCertificate->delete();
-            }
-
-            $this->mediaAttachAction->attachOne($businessRegistration, $payload['business_registration_file'], 'business_registration_file', 'beauty', 'business-registration');
-        }
-    }
-
-    private function deleteCollectionMedia(Beauty $beauty, string $collection): void
-    {
-        Media::query()
-            ->for($beauty)
-            ->collection($collection)
-            ->get()
-            ->each(function (Media $media): void {
-                Storage::disk($media->disk)->delete($media->path);
-                $media->delete();
-            });
     }
 
     /**

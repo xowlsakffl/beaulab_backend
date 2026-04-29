@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountStaff\Actions\Staff\Auth;
 
-use App\Domains\AccountStaff\Dto\Staff\AuthForStaffDto;
+use App\Domains\AccountStaff\Dto\Staff\AccountStaffForStaffDto;
 use App\Domains\AccountStaff\Queries\Staff\Auth\LoginForStaffQuery;
 use Illuminate\Support\Facades\Log;
 
@@ -31,7 +31,7 @@ final class LoginForStaffAction
         return [
             'token' => $result['token'],
             'actor' => 'staff',
-            'staff' => AuthForStaffDto::fromModel($result['staff'])->toArray(),
+            'staff' => AccountStaffForStaffDto::fromModel($result['staff'])->toArray(),
             'roles' => $result['roles'],
             'permissions' => $result['permissions'],
         ];

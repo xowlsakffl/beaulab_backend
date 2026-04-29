@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountHospital\Actions\Hospital;
 
-use App\Domains\AccountHospital\Dto\Hospital\ProfileForAccountHospitalDto;
+use App\Domains\AccountHospital\Dto\Hospital\AccountHospitalForAccountHospitalDto;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountHospital\Queries\Hospital\ProfileForAccountHospitalQuery;
 
@@ -24,7 +24,7 @@ final class GetMyProfileForAccountHospitalAction
         $authorization = $this->query->authorizationSnapshot($hospital);
 
         return [
-            'profile' => ProfileForAccountHospitalDto::fromModel($hospital)->toArray(),
+            'profile' => AccountHospitalForAccountHospitalDto::fromModel($hospital)->toArray(),
             'roles' => $authorization['roles'],
             'permissions' => $authorization['permissions'],
         ];

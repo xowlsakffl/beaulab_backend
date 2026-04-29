@@ -24,6 +24,7 @@ final class AccountUserBlockCreateForUserAction
         $block = DB::transaction(function () use ($user, $blockedUserId) {
             $block = $this->query->create($user, $blockedUserId);
 
+            // 기존 대화는 내 목록에서 숨기고, 그 시점까지는 읽은 걸로 처리
             $this->chatHideQuery->hideForBlocker((int) $user->id, (int) $block->blocked_user_id);
 
             return $block->load('blocked:id,nickname,email,status');

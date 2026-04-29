@@ -6,7 +6,6 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\BeautyExpert\Dto\Staff\BeautyExpertForStaffDetailDto;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\BeautyExpert\Queries\Staff\BeautyExpertCreateForStaffQuery;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -28,7 +27,10 @@ final class BeautyExpertCreateForStaffAction
         $expert = DB::transaction(function () use ($payload) {
             $expert = $this->query->create($payload);
 
-            $this->attachMedia($expert, $payload);
+            $this->mediaAttachAction->attachOne($expert, $payload['profile_image'] ?? null, 'profile_image', 'expert', 'profile-image');
+            $this->mediaAttachAction->attachMany($expert, $payload['education_certificate_image'] ?? [], 'education_certificate_image', 'expert', 'education-certificate-image');
+            $this->mediaAttachAction->attachMany($expert, $payload['etc_certificate_image'] ?? [], 'etc_certificate_image', 'expert', 'etc-certificate-image');
+
             $this->syncCategories($expert, $payload['category_ids'] ?? []);
 
             return $expert->fresh();
@@ -42,24 +44,6 @@ final class BeautyExpertCreateForStaffAction
                 'categories',
             ]))->toArray(),
         ];
-    }
-
-    private function attachMedia(BeautyExpert $expert, array $payload): void
-    {
-        $this->mediaAttachAction->attachOne($expert, $payload['profile_image'] ?? null, 'profile_image', 'expert', 'profile-image');
-
-        $this->mediaAttachAction->attachMany($expert, $this->onlyFiles($payload['education_certificate_image'] ?? null), 'education_certificate_image', 'expert', 'education-certificate-image');
-
-        $this->mediaAttachAction->attachMany($expert, $this->onlyFiles($payload['etc_certificate_image'] ?? null), 'etc_certificate_image', 'expert', 'etc-certificate-image');
-    }
-
-    private function onlyFiles(mixed $files): array
-    {
-        if (! is_array($files)) {
-            return [];
-        }
-
-        return array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
     }
 
     /**

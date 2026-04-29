@@ -4,7 +4,7 @@ namespace App\Domains\Beauty\Queries\Auth;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Beauty\Models\AccountBeauty;
+use App\Domains\AccountBeauty\Models\AccountBeauty;
 use Illuminate\Support\Facades\Hash;
 
 /**

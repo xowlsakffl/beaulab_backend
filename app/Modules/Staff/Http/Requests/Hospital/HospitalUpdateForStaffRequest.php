@@ -5,7 +5,7 @@ namespace App\Modules\Staff\Http\Requests\Hospital;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
+use App\Domains\Hospital\Models\HospitalBusinessRegistration;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

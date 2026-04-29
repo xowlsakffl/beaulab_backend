@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountBeauty\Actions\Beauty;
 
-use App\Domains\AccountBeauty\Dto\Beauty\AuthForAccountBeautyDto;
+use App\Domains\AccountBeauty\Dto\Beauty\AccountBeautyForAccountBeautyDto;
 use App\Domains\AccountBeauty\Queries\Beauty\LoginForAccountBeautyQuery;
 use Illuminate\Support\Facades\Log;
 
@@ -31,7 +31,7 @@ final class LoginForAccountBeautyAction
         return [
             'token' => $result['token'],
             'actor' => 'beauty',
-            'beauty' => AuthForAccountBeautyDto::fromModel($result['beauty'])->toArray(),
+            'beauty' => AccountBeautyForAccountBeautyDto::fromModel($result['beauty'])->toArray(),
             'roles' => $result['roles'],
             'permissions' => $result['permissions'],
         ];

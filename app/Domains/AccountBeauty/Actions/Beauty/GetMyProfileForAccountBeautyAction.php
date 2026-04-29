@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountBeauty\Actions\Beauty;
 
-use App\Domains\AccountBeauty\Dto\Beauty\ProfileForAccountBeautyDto;
+use App\Domains\AccountBeauty\Dto\Beauty\AccountBeautyForAccountBeautyDto;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\AccountBeauty\Queries\Beauty\ProfileForAccountBeautyQuery;
 
@@ -24,7 +24,7 @@ final class GetMyProfileForAccountBeautyAction
         $authorization = $this->query->authorizationSnapshot($beauty);
 
         return [
-            'profile' => ProfileForAccountBeautyDto::fromModel($beauty)->toArray(),
+            'profile' => AccountBeautyForAccountBeautyDto::fromModel($beauty)->toArray(),
             'roles' => $authorization['roles'],
             'permissions' => $authorization['permissions'],
         ];

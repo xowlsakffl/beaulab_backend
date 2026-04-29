@@ -28,25 +28,12 @@ final class CategoryUpdateForStaffAction
     {
         Gate::authorize('update', $category);
 
-        if (array_key_exists('domain', $payload) && (string) $payload['domain'] !== (string) $category->domain) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '도메인 변경은 지원하지 않습니다.');
-        }
-
-        $parent = $category->parent()->first();
+        $parent = $this->query->parent($category);
         $name = array_key_exists('name', $payload)
             ? trim((string) $payload['name'])
             : (string) $category->name;
 
-        if ($name === '') {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '카테고리명은 비워둘 수 없습니다.');
-        }
-
-        $exists = Category::query()
-            ->domain((string) $category->domain)
-            ->where('parent_id', $category->parent_id)
-            ->where('name', $name)
-            ->whereKeyNot($category->id)
-            ->exists();
+        $exists = $this->query->existsSiblingName($category, $name);
 
         if ($exists) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 상위 카테고리 아래 동일한 이름이 이미 존재합니다.');
@@ -71,7 +58,7 @@ final class CategoryUpdateForStaffAction
             ]);
 
             if ($oldFullPath !== $newFullPath) {
-                $this->syncDescendantPaths((string) $updatedCategory->domain, $oldFullPath, $newFullPath);
+                $this->query->syncDescendantPaths((string) $updatedCategory->domain, $oldFullPath, $newFullPath);
             }
 
             $this->replaceIcon($updatedCategory, $payload);
@@ -99,33 +86,5 @@ final class CategoryUpdateForStaffAction
 
         $this->mediaAttachAction->deleteCollectionMedia($category, 'icon');
         $this->mediaAttachAction->attachOne($category, $icon, 'icon', 'category', 'icon', true);
-    }
-
-    private function syncDescendantPaths(string $domain, string $oldPrefix, string $newPrefix): void
-    {
-        $descendants = Category::query()
-            ->domain($domain)
-            ->where('full_path', 'like', $oldPrefix . ' > %')
-            ->orderBy('depth')
-            ->get();
-
-        foreach ($descendants as $descendant) {
-            $currentPath = (string) ($descendant->full_path ?? '');
-
-            $nextPath = preg_replace(
-                '/^' . preg_quote($oldPrefix, '/') . '/',
-                $newPrefix,
-                $currentPath,
-                1
-            );
-
-            if ($nextPath === null || $nextPath === $currentPath) {
-                continue;
-            }
-
-            $descendant->forceFill([
-                'full_path' => $nextPath,
-            ])->save();
-        }
     }
 }

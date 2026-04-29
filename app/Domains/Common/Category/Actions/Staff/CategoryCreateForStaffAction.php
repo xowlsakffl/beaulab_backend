@@ -31,19 +31,9 @@ final class CategoryCreateForStaffAction
         $domain = (string) $payload['domain'];
         $name = trim((string) $payload['name']);
 
-        if (! in_array($domain, Category::domains(), true)) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 카테고리 도메인입니다.');
-        }
-
-        if ($name === '') {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '카테고리명은 필수입니다.');
-        }
-
         $parent = null;
         if (! empty($payload['parent_id'])) {
-            $parent = Category::query()
-                ->domain($domain)
-                ->find((int) $payload['parent_id']);
+            $parent = $this->query->findParent($domain, (int) $payload['parent_id']);
 
             if (! $parent) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '상위 카테고리를 찾을 수 없습니다.');
@@ -59,11 +49,7 @@ final class CategoryCreateForStaffAction
             ? trim((string) ($parent->full_path ?: $parent->name)) . ' > ' . $name
             : $name;
 
-        $exists = Category::query()
-            ->domain($domain)
-            ->where('parent_id', $parent?->id)
-            ->where('name', $name)
-            ->exists();
+        $exists = $this->query->existsSiblingName($domain, $parent?->id, $name);
 
         if ($exists) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 상위 카테고리 아래 동일한 이름이 이미 존재합니다.');

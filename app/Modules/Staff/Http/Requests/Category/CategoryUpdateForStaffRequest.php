@@ -37,7 +37,7 @@ final class CategoryUpdateForStaffRequest extends FormRequest
         return [
             'domain' => ['prohibited'],
             'parent_id' => ['prohibited'],
-            'name' => ['sometimes', 'string', 'max:120'],
+            'name' => ['sometimes', 'filled', 'string', 'max:120'],
             'code' => [
                 'sometimes',
                 'nullable',

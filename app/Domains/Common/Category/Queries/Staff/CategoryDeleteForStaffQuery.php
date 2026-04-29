@@ -3,6 +3,7 @@
 namespace App\Domains\Common\Category\Queries\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use Illuminate\Support\Facades\DB;
 
 /**
  * CategoryDeleteForStaffQuery 역할 정의.
@@ -10,9 +11,23 @@ use App\Domains\Common\Category\Models\Category;
  */
 final class CategoryDeleteForStaffQuery
 {
+    public function hasChildren(Category $category): bool
+    {
+        return Category::query()
+            ->where('domain', $category->domain)
+            ->where('parent_id', $category->id)
+            ->exists();
+    }
+
+    public function hasAssignments(Category $category): bool
+    {
+        return DB::table('category_assignments')
+            ->where('category_id', $category->id)
+            ->exists();
+    }
+
     public function delete(Category $category): void
     {
         $category->delete();
     }
 }
-

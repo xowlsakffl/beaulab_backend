@@ -9,6 +9,7 @@ use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
@@ -26,13 +27,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Hospital 역할 정의.
- * 병원 도메인의 Eloquent 모델로, �
-�븨, 愿怨? ?�
-�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
+ * 병원 도메인의 Eloquent 모델
  */
 final class Hospital extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes, HasOperationHistories;
 
     // allow_status
     public const ALLOW_PENDING  = 'PENDING';

@@ -1,24 +1,25 @@
 <?php
 
-namespace App\Domains\Common\AdminNote\Support;
+namespace App\Domains\Common\OperationHistory\Support;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
+use App\Domains\Talk\Models\Talk;
+use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * AdminNoteTargetRegistry 역할 정의.
- * 메모가 무엇에 달리는지
- * 공통 도메인의 지원 유틸리티로, 여러 계층에서 반복되는 계산이나 매핑 규칙을 분리해 재사용한다.
- */
-final class AdminNoteTargetRegistry
+final class OperationHistoryTargetRegistry
 {
     public const string ALIAS_HOSPITAL = 'hospital';
     public const string ALIAS_BEAUTY = 'beauty';
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
+    public const string ALIAS_HOSPITAL_REVIEW = 'hospital_review';
+    public const string ALIAS_TALK = 'talk';
+    public const string ALIAS_TALK_COMMENT = 'talk_comment';
 
     /**
      * @var array<string, class-string<Model>>
@@ -27,6 +28,9 @@ final class AdminNoteTargetRegistry
         self::ALIAS_HOSPITAL => Hospital::class,
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
+        self::ALIAS_HOSPITAL_REVIEW => HospitalReview::class,
+        self::ALIAS_TALK => Talk::class,
+        self::ALIAS_TALK_COMMENT => TalkComment::class,
     ];
 
     /**
@@ -71,9 +75,21 @@ final class AdminNoteTargetRegistry
         $className = self::classForAlias($alias);
 
         if ($className === null) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 메모 대상입니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 히스토리 대상입니다.');
         }
 
         return $className::query()->findOrFail($id);
+    }
+
+    public static function assertSupported(Model $target): void
+    {
+        if (self::aliasForModel($target) !== null) {
+            return;
+        }
+
+        throw new \InvalidArgumentException(sprintf(
+            'Unsupported operation history target model: %s',
+            $target::class,
+        ));
     }
 }

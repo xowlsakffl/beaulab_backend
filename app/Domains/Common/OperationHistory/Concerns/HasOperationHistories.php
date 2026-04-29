@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Common\Concerns;
+namespace App\Domains\Common\OperationHistory\Concerns;
 
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use Illuminate\Database\Eloquent\Relations\MorphMany;

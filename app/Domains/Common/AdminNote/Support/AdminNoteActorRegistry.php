@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * AdminNoteActorRegistry 역할 정의.
+ * 메모를 누가 다루는지
  * 공통 도메인의 지원 유틸리티로, 여러 계층에서 반복되는 계산이나 매핑 규칙을 분리해 재사용한다.
  */
 final class AdminNoteActorRegistry

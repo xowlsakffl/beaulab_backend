@@ -3,6 +3,8 @@
 namespace App\Domains\Common\OperationHistory\Dto;
 
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryActorRegistry;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryTargetRegistry;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -16,6 +18,8 @@ final readonly class OperationHistoryDto
         public int $targetId,
         public string $actorKind,
         public ?string $actorType,
+        public ?string $targetAlias,
+        public ?string $actorAlias,
         public ?int $actorId,
         public ?array $actor,
         public string $actorLabel,
@@ -37,6 +41,9 @@ final readonly class OperationHistoryDto
             targetId: (int) $history->target_id,
             actorKind: (string) $history->actor_kind,
             actorType: $history->actor_type,
+            targetAlias: OperationHistoryTargetRegistry::aliasForModel($history->target_type),
+            actorAlias: OperationHistoryActorRegistry::aliasForModel($history->actor_type)
+                ?? OperationHistoryActorRegistry::aliasForKind($history->actor_kind),
             actorId: $history->actor_id ? (int) $history->actor_id : null,
             actor: self::resolveActor($history),
             actorLabel: self::resolveActorLabel($history),
@@ -59,6 +66,8 @@ final readonly class OperationHistoryDto
             'target_id' => $this->targetId,
             'actor_kind' => $this->actorKind,
             'actor_type' => $this->actorType,
+            'target_alias' => $this->targetAlias,
+            'actor_alias' => $this->actorAlias,
             'actor_id' => $this->actorId,
             'actor' => $this->actor,
             'actor_label' => $this->actorLabel,

@@ -6,6 +6,7 @@ use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Database\Eloquent\Model;
@@ -16,13 +17,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * HospitalVideo 역할 정의.
- * 병원 동영상 도메인의 Eloquent 모델로, �
-�븨, 愿怨? ?�
-�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
+ * 병원 동영상 도메인의 Eloquent 모델
  */
 final class HospitalVideo extends Model
 {
-    use SoftDeletes, HasAuditLogs, HasAdminNotes;
+    use SoftDeletes, HasAuditLogs, HasAdminNotes, HasOperationHistories;
 
     public const DISTRIBUTION_CHANNEL_YOUTUBE_APP = 'YOUTUBE_APP';
     public const DISTRIBUTION_CHANNEL_APP = 'APP';

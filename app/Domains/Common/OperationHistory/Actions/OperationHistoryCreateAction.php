@@ -2,12 +2,10 @@
 
 namespace App\Domains\Common\OperationHistory\Actions;
 
-use App\Domains\AccountBeauty\Models\AccountBeauty;
-use App\Domains\AccountHospital\Models\AccountHospital;
-use App\Domains\AccountStaff\Models\AccountStaff;
-use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Queries\OperationHistoryCreateQuery;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryActorRegistry;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryTargetRegistry;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -31,12 +29,14 @@ final class OperationHistoryCreateAction
         array $metadata = [],
         ?string $actorKind = null,
     ): OperationHistory {
+        OperationHistoryTargetRegistry::assertSupported($target);
+
         return $this->query->create([
             'target_type' => $target::class,
             'target_id' => (int) $target->getKey(),
             'actor_type' => $actor?->getMorphClass(),
             'actor_id' => $actor ? (int) $actor->getKey() : null,
-            'actor_kind' => $actorKind ?? $this->inferActorKind($actor),
+            'actor_kind' => $actorKind ?? OperationHistoryActorRegistry::kindForActor($actor),
             'action' => $action,
             'field' => $field,
             'before_value' => $this->normalizeValue($beforeValue),
@@ -44,18 +44,6 @@ final class OperationHistoryCreateAction
             'reason' => $this->normalizeReason($reason),
             'metadata' => $metadata === [] ? null : $metadata,
         ]);
-    }
-
-    private function inferActorKind(?Model $actor): string
-    {
-        return match (true) {
-            $actor instanceof AccountStaff => OperationHistory::ACTOR_KIND_STAFF,
-            $actor instanceof AccountHospital => OperationHistory::ACTOR_KIND_HOSPITAL,
-            $actor instanceof AccountBeauty => OperationHistory::ACTOR_KIND_BEAUTY,
-            $actor instanceof AccountUser => OperationHistory::ACTOR_KIND_USER,
-            $actor === null => OperationHistory::ACTOR_KIND_SYSTEM,
-            default => OperationHistory::ACTOR_KIND_UNKNOWN,
-        };
     }
 
     private function normalizeValue(mixed $value): ?string

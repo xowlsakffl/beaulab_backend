@@ -10,6 +10,7 @@ use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use Database\Factories\BeautyFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -28,7 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class Beauty extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes, HasOperationHistories;
 
     // allow_status
     public const string ALLOW_PENDING  = 'PENDING';

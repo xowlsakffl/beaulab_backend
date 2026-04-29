@@ -28,14 +28,7 @@ final class HashtagCreateForStaffAction
         $name = Hashtag::sanitizeName((string) ($payload['name'] ?? ''));
         $normalizedName = Hashtag::normalizeName($name);
         $status = Hashtag::normalizeStatus((string) ($payload['status'] ?? Hashtag::STATUS_ACTIVE));
-
-        if ($name === '' || $normalizedName === '') {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '해시태그명은 필수입니다.');
-        }
-
-        $exists = Hashtag::query()
-            ->where('normalized_name', $normalizedName)
-            ->exists();
+        $exists = $this->query->existsNormalizedName($normalizedName);
 
         if ($exists) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '동일한 해시태그가 이미 존재합니다.');

@@ -97,6 +97,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'post user/notifications/{notificationInbox}/read' => '알림 읽음 처리',
         'post user/talks' => '토크 생성',
         'delete user/talks/{talk}' => '토크 삭제',
+        'post user/talks/{talk}/comments' => '토크 댓글 생성',
+        'delete user/talks/{talk}/comments/{comment}' => '토크 댓글 삭제',
         'post user/talks/{talk}/poll-votes' => '토크 투표',
 
         'post hospital/auth/login' => '병의원 계정 로그인',

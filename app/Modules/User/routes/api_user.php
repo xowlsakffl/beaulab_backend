@@ -10,6 +10,8 @@ use App\Modules\User\Http\Controllers\Block\AccountUserBlockForUserController;
 use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
 use App\Modules\User\Http\Controllers\HospitalReview\HospitalReviewCreateForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;
+use App\Modules\User\Http\Controllers\Talk\TalkCommentCreateForUserController;
+use App\Modules\User\Http\Controllers\Talk\TalkCommentDeleteForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkCreateForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkDeleteForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkPollVoteForUserController;
@@ -61,6 +63,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
         ->name('talks.createTalkForUser');
     Route::delete('talks/{talk}', [TalkDeleteForUserController::class, 'deleteTalkForUser'])
         ->name('talks.deleteTalkForUser');
+    Route::post('talks/{talk}/comments', [TalkCommentCreateForUserController::class, 'createTalkCommentForUser'])
+        ->name('talks.createTalkCommentForUser');
+    Route::delete('talks/{talk}/comments/{comment}', [TalkCommentDeleteForUserController::class, 'deleteTalkCommentForUser'])
+        ->name('talks.deleteTalkCommentForUser');
     Route::post('talks/{talk}/poll-votes', [TalkPollVoteForUserController::class, 'voteTalkPollForUser'])
         ->name('talks.voteTalkPollForUser');
     Route::post('hospital-reviews', [HospitalReviewCreateForUserController::class, 'createHospitalReviewForUser'])

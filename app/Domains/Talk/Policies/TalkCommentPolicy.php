@@ -28,19 +28,59 @@ final class TalkCommentPolicy
         return $this->delegate($actor)->update($actor, $comment);
     }
 
+    public function delete(mixed $actor, TalkComment $comment): bool
+    {
+        return $this->delegate($actor)->delete($actor, $comment);
+    }
+
     private function delegate(mixed $actor): object
     {
         return match (true) {
             $actor instanceof AccountStaff => app(TalkCommentForStaffPolicy::class),
-            $actor instanceof AccountUser => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, TalkComment $comment): bool { return false; }
-                public function update(mixed $actor, ?TalkComment $comment = null): bool { return false; }
+            $actor instanceof AccountUser => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, TalkComment $comment): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, ?TalkComment $comment = null): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, TalkComment $comment): bool
+                {
+                    return $actor instanceof AccountUser
+                        && (int) $actor->id === (int) $comment->author_id;
+                }
             },
-            default => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, TalkComment $comment): bool { return false; }
-                public function update(mixed $actor, ?TalkComment $comment = null): bool { return false; }
+            default => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, TalkComment $comment): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, ?TalkComment $comment = null): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, TalkComment $comment): bool
+                {
+                    return false;
+                }
             },
         };
     }

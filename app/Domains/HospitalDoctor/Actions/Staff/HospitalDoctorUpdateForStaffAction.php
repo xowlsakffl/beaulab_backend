@@ -52,24 +52,24 @@ final class HospitalDoctorUpdateForStaffAction
     private function replaceMedia(HospitalDoctor $doctor, array $payload): void
     {
         if (($payload['profile_image'] ?? null) instanceof UploadedFile) {
-            $this->deleteCollectionMedia($doctor, 'profile_image');
+            $this->mediaAttachAction->deleteCollectionMedia($doctor, 'profile_image');
             $this->mediaAttachAction->attachOne($doctor, $payload['profile_image'], 'profile_image', 'doctor', 'profile-image');
         } elseif (array_key_exists('existing_profile_image_id', $payload) && empty($payload['existing_profile_image_id'])) {
-            $this->deleteCollectionMedia($doctor, 'profile_image');
+            $this->mediaAttachAction->deleteCollectionMedia($doctor, 'profile_image');
         }
 
         if (($payload['license_image'] ?? null) instanceof UploadedFile) {
-            $this->deleteCollectionMedia($doctor, 'license_image');
+            $this->mediaAttachAction->deleteCollectionMedia($doctor, 'license_image');
             $this->mediaAttachAction->attachOne($doctor, $payload['license_image'], 'license_image', 'doctor', 'license-image');
         } elseif (array_key_exists('existing_license_image_id', $payload) && empty($payload['existing_license_image_id'])) {
-            $this->deleteCollectionMedia($doctor, 'license_image');
+            $this->mediaAttachAction->deleteCollectionMedia($doctor, 'license_image');
         }
 
         if (($payload['specialist_certificate_image'] ?? null) instanceof UploadedFile) {
-            $this->deleteCollectionMedia($doctor, 'specialist_certificate_image');
+            $this->mediaAttachAction->deleteCollectionMedia($doctor, 'specialist_certificate_image');
             $this->mediaAttachAction->attachOne($doctor, $payload['specialist_certificate_image'], 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
         } elseif (array_key_exists('existing_specialist_certificate_image_id', $payload) && empty($payload['existing_specialist_certificate_image_id'])) {
-            $this->deleteCollectionMedia($doctor, 'specialist_certificate_image');
+            $this->mediaAttachAction->deleteCollectionMedia($doctor, 'specialist_certificate_image');
         }
 
         if (array_key_exists('existing_education_certificate_image_ids', $payload) || array_key_exists('education_certificate_image', $payload)) {
@@ -91,14 +91,6 @@ final class HospitalDoctorUpdateForStaffAction
                 $this->onlyFiles($payload['etc_certificate_image'] ?? []),
             );
         }
-    }
-
-    private function deleteCollectionMedia(HospitalDoctor $doctor, string $collection): void
-    {
-        Media::query()->for($doctor)->collection($collection)->get()->each(function (Media $media): void {
-            Storage::disk($media->disk)->delete($media->path);
-            $media->delete();
-        });
     }
 
     private function onlyFiles(array $files): array

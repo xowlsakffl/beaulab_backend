@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountUser\Actions\User\Auth;
 
-use App\Domains\AccountUser\Dto\User\Auth\ProfileForAccountUserDto;
+use App\Domains\AccountUser\Dto\User\Auth\AccountUserForAccountUserDto;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\AccountUser\Queries\User\Auth\ProfileForAccountUserQuery;
 
@@ -24,7 +24,7 @@ final class GetMyProfileForAccountUserAction
         $authorization = $this->query->authorizationSnapshot($user);
 
         return [
-            'profile' => ProfileForAccountUserDto::fromModel($user)->toArray(),
+            'profile' => AccountUserForAccountUserDto::fromModel($user)->toArray(),
             'roles' => $authorization['roles'],
             'permissions' => $authorization['permissions'],
         ];

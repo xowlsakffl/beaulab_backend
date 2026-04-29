@@ -2,7 +2,6 @@
 
 namespace App\Domains\Hospital\Actions\Staff;
 
-use App\Domains\HospitalBusinessRegistration\Actions\HospitalBusinessRegistrationCreateForStaffAction;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
@@ -18,8 +17,8 @@ use Illuminate\Support\Facades\Log;
 final class HospitalCreateForStaffAction
 {
     public function __construct(
-        private readonly HospitalCreateForStaffQuery                      $query,
-        private readonly MediaAttachDeleteAction                          $mediaAttachAction,
+        private readonly HospitalCreateForStaffQuery $query,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalBusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
     ) {}
 
@@ -31,7 +30,7 @@ final class HospitalCreateForStaffAction
         Gate::authorize('create', Hospital::class);
 
         Log::info('병원 생성', [
-            'filters' => array_diff_key($filters, array_flip(['owner_password'])),
+            'filters' => $filters,
         ]);
 
         $hospital = DB::transaction(function () use ($filters) {
@@ -52,8 +51,7 @@ final class HospitalCreateForStaffAction
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
-                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features']),
-                ['business_registration'],
+                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features'])
             )->toArray(),
         ];
     }

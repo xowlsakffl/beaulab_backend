@@ -22,6 +22,7 @@ final class ChatListForUserQuery
                 $query
                     ->where('account_user_id', $userId)
                     ->where(function ($query): void {
+                        // A hidden chat reappears only after a newer message passes the user's hide cursor.
                         $query
                             ->whereNull('deleted_until_message_id')
                             ->orWhereColumn('chats.last_message_id', '>', 'chat_participants.deleted_until_message_id');
@@ -34,6 +35,7 @@ final class ChatListForUserQuery
             ])
             ->withCount([
                 'messages as unread_count' => function ($query) use ($userId): void {
+                    // Unread starts after both the read cursor and the per-user hide cursor.
                     $query
                         ->where('sender_user_id', '!=', $userId)
                         ->whereRaw(

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Hospital\Queries\Staff;
 
-use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
+use App\Domains\Hospital\Models\HospitalBusinessRegistration;
 
 /**
  * HospitalBusinessNumberExistsForStaffQuery 역할 정의.

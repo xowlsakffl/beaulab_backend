@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountUser\Actions\User\Auth;
 
-use App\Domains\AccountUser\Dto\User\Auth\AuthForAccountUserDto;
+use App\Domains\AccountUser\Dto\User\Auth\AccountUserForAccountUserDto;
 use App\Domains\AccountUser\Queries\User\Auth\LoginForAccountUserQuery;
 use Illuminate\Support\Facades\Log;
 
@@ -31,7 +31,7 @@ final class LoginForAccountUserAction
         return [
             'token' => $result['token'],
             'actor' => 'user',
-            'user' => AuthForAccountUserDto::fromModel($result['user'])->toArray(),
+            'user' => AccountUserForAccountUserDto::fromModel($result['user'])->toArray(),
             'roles' => $result['roles'],
             'permissions' => $result['permissions'],
         ];

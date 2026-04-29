@@ -6,7 +6,6 @@ namespace App\Domains\Beauty\Models;
 
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
-use App\Domains\BeautyBusinessRegistration\Models\BeautyBusinessRegistration;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\Category\Models\Category;

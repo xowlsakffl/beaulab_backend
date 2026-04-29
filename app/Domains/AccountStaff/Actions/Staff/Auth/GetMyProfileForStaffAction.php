@@ -3,7 +3,7 @@
 
 namespace App\Domains\AccountStaff\Actions\Staff\Auth;
 
-use App\Domains\AccountStaff\Dto\Staff\ProfileForStaffDto;
+use App\Domains\AccountStaff\Dto\Staff\AccountStaffForStaffDto;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountStaff\Queries\Staff\Auth\ProfileForStaffQuery;
 
@@ -25,7 +25,7 @@ final class GetMyProfileForStaffAction
         $authorization = $this->query->authorizationSnapshot($staff);
 
         return [
-            'profile' => ProfileForStaffDto::fromModel($staff)->toArray(),
+            'profile' => AccountStaffForStaffDto::fromModel($staff)->toArray(),
             'roles' => $authorization['roles'],
             'permissions' => $authorization['permissions'],
         ];

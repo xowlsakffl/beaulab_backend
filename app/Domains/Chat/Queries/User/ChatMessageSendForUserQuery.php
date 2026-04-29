@@ -17,9 +17,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * 메시지 저장 트랜잭�
  * client_message_id가 있으면 앱 재시도에 대해 멱등성을 보장한다.
- * 채�
-방 조회/생성, 발송 가능 여부 검증, 메시지 저장 트랜잭�
-� 같은 DB 접근을 한 흐름으로 처리한다.
+ * 채팅방 조회/생성, 발송 가능 여부 검증, 메시지 저장 트랜잭션은 같은 DB 접근을 한 흐름으로 처리한다.
  */
 final class ChatMessageSendForUserQuery
 {
@@ -51,6 +49,7 @@ final class ChatMessageSendForUserQuery
                 throw $exception;
             }
 
+            // Two first-message requests can race on match_key. Retry by reopening the winner row.
             return DB::transaction(function () use ($user, $payload, $peer, $matchKey): array {
                 $lockedChat = $this->openOrCreateChat($user, $peer, $matchKey);
 
@@ -153,6 +152,7 @@ final class ChatMessageSendForUserQuery
             ])->save();
         }
 
+        // Restored or reopened chats may miss one side's participant row in legacy data.
         $chat->participants()->firstOrCreate(['account_user_id' => $user->id]);
         $chat->participants()->firstOrCreate(['account_user_id' => $peer->id]);
 
@@ -171,7 +171,8 @@ final class ChatMessageSendForUserQuery
 
         return (int) $peerUserId;
     }
-            // 모바일 네트워크 재시도로 같은 메시지가 다시 들어와도 중복 저장하지 않는다.
+
+    // 모바일 네트워크 재시도로 같은 메시지가 다시 들어와도 중복 저장하지 않는다.
     /**
      * @return array{message: ChatMessage, created: bool}
      */
@@ -189,6 +190,8 @@ final class ChatMessageSendForUserQuery
 
             if ($existingMessage instanceof ChatMessage) {
                 return [
+                    // Mobile retries must resolve to the original row so the action can stay idempotent.
+                    'message' => $existingMessage,
                     'created' => false,
                 ];
             }
@@ -222,6 +225,7 @@ final class ChatMessageSendForUserQuery
             'last_message_at' => $message->created_at,
         ])->save();
 
+        // The sender has implicitly read their own freshly created message.
         $lockedChat->participants()
             ->where('account_user_id', $user->id)
             ->update([
@@ -238,8 +242,7 @@ final class ChatMessageSendForUserQuery
     private function assertSendable(Chat $chat, int $userId): void
     {
         if ($chat->status !== Chat::STATUS_ACTIVE) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '활성 채�
-방에만 메시지를 보낼 수 있습니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '활성 채팅방에만 메시지를 보낼 수 있습니다.');
         }
 
         $isParticipant = $chat->participants()
@@ -247,8 +250,7 @@ final class ChatMessageSendForUserQuery
             ->exists();
 
         if (! $isParticipant) {
-            throw new CustomException(ErrorCode::FORBIDDEN, '채�
-방 참여자만 메시지를 보낼 수 있습니다.');
+            throw new CustomException(ErrorCode::FORBIDDEN, '채팅방 참여자만 메시지를 보낼 수 있습니다.');
         }
     }
 

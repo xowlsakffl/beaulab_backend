@@ -33,6 +33,7 @@ final class ChatHideForUserBlockQuery
 
         $lastMessageId = $chat->last_message_id ? (int) $chat->last_message_id : null;
 
+        // Blocking reuses the same hide cursor so the blocker stops seeing prior history immediately.
         $participant->forceFill([
             'deleted_until_message_id' => $lastMessageId,
             'deleted_at' => now(),

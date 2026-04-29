@@ -2,7 +2,7 @@
 
 namespace App\Domains\AccountHospital\Actions\Hospital;
 
-use App\Domains\AccountHospital\Dto\Hospital\AuthForAccountHospitalDto;
+use App\Domains\AccountHospital\Dto\Hospital\AccountHospitalForAccountHospitalDto;
 use App\Domains\AccountHospital\Queries\Hospital\LoginForAccountHospitalQuery;
 use Illuminate\Support\Facades\Log;
 
@@ -31,7 +31,7 @@ final class LoginForAccountHospitalAction
         return [
             'token' => $result['token'],
             'actor' => 'hospital',
-            'hospital' => AuthForAccountHospitalDto::fromModel($result['hospital'])->toArray(),
+            'hospital' => AccountHospitalForAccountHospitalDto::fromModel($result['hospital'])->toArray(),
             'roles' => $result['roles'],
             'permissions' => $result['permissions'],
         ];

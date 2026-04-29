@@ -5,7 +5,6 @@ namespace App\Domains\Beauty\Actions\Staff;
 use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Beauty\Queries\Staff\BeautyCreateForStaffQuery;
-use App\Domains\BeautyBusinessRegistration\Actions\BeautyBusinessRegistrationCreateForStaffAction;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -18,20 +17,20 @@ use Illuminate\Support\Facades\Log;
 final class BeautyCreateForStaffAction
 {
     public function __construct(
-        private readonly BeautyCreateForStaffQuery                      $query,
-        private readonly MediaAttachDeleteAction                        $mediaAttachAction,
+        private readonly BeautyCreateForStaffQuery $query,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly BeautyBusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
     ) {}
 
     /**
-     * @return array{hospital: array}
+     * @return array{beauty: array}
      */
     public function execute(array $filters): array
     {
         Gate::authorize('create', Beauty::class);
 
         Log::info('뷰티 생성', [
-            'filters' => array_diff_key($filters, array_flip(['owner_password'])),
+            'filters' => $filters,
         ]);
 
         $beauty = DB::transaction(function () use ($filters) {
@@ -51,8 +50,7 @@ final class BeautyCreateForStaffAction
 
         return [
             'beauty' => BeautyForStaffDetailDto::fromModel(
-                $beauty->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories']),
-                ['business_registration'],
+                $beauty->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories'])
             )->toArray(),
         ];
     }

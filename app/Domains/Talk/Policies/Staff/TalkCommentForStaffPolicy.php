@@ -27,4 +27,8 @@ final class TalkCommentForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_TALK_UPDATE);
     }
 
+    public function delete(AccountStaff $actor, TalkComment $comment): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_TALK_UPDATE);
+    }
 }

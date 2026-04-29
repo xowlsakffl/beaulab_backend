@@ -31,6 +31,7 @@ final class TalkDeleteForUserAction
                 throw new CustomException(ErrorCode::FORBIDDEN, '본인이 작성한 토크만 삭제할 수 있습니다.');
             }
 
+            $beforeStatus = (string) $lockedTalk->status;
             $beforePostStatus = (string) $lockedTalk->post_status;
 
             if ($beforePostStatus === Talk::POST_STATUS_USER_DELETE) {
@@ -46,7 +47,27 @@ final class TalkDeleteForUserAction
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '현재 상태의 토크는 삭제할 수 없습니다.');
             }
 
-            $updatedTalk = $this->query->updatePostStatus($lockedTalk, Talk::POST_STATUS_USER_DELETE);
+            $updatedTalk = $this->query->markDeleted(
+                $lockedTalk,
+                Talk::STATUS_INACTIVE,
+                Talk::POST_STATUS_USER_DELETE,
+            );
+
+            if ($beforeStatus !== Talk::STATUS_INACTIVE) {
+                $this->historyCreateAction->execute(
+                    target: $updatedTalk,
+                    action: OperationHistory::ACTION_STATUS_UPDATED,
+                    actor: $user,
+                    field: 'status',
+                    beforeValue: $beforeStatus,
+                    afterValue: Talk::STATUS_INACTIVE,
+                    metadata: [
+                        'before_label' => $beforeStatus,
+                        'after_label' => Talk::STATUS_INACTIVE,
+                        'source' => 'user.talk.status',
+                    ],
+                );
+            }
 
             $this->historyCreateAction->execute(
                 target: $updatedTalk,

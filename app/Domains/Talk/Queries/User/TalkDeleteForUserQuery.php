@@ -15,9 +15,10 @@ final class TalkDeleteForUserQuery
             ->first();
     }
 
-    public function updatePostStatus(Talk $talk, string $postStatus): Talk
+    public function markDeleted(Talk $talk, string $status, string $postStatus): Talk
     {
         $talk->forceFill([
+            'status' => $status,
             'post_status' => $postStatus,
         ]);
 

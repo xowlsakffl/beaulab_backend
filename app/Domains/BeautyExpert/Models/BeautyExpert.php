@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\BeautyExpert\Models;
 
-use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;

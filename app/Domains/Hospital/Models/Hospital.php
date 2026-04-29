@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domains\Hospital\Models;
 
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountHospital\Models\AccountHospital;
-use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
-use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
-use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
+use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
 use Database\Factories\HospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,8 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**

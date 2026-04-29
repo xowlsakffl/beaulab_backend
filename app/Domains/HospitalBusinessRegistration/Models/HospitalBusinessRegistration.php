@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalBusinessRegistration\Models;
 
-use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Media\Models\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;

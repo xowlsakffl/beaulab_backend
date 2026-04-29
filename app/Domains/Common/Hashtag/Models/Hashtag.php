@@ -2,7 +2,7 @@
 
 namespace App\Domains\Common\Hashtag\Models;
 
-use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Common\Concerns\HasAuditLogs;
 use Database\Factories\HashtagFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;

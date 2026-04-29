@@ -2,7 +2,7 @@
 
 namespace App\Domains\Common\Category\Models;
 
-use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\CategoryFactory;

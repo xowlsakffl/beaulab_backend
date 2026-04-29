@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\Common\Concerns;
+namespace App\Common\Concerns;
 
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;

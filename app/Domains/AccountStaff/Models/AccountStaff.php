@@ -2,13 +2,13 @@
 
 namespace App\Domains\AccountStaff\Models;
 
-use App\Domains\Common\Concerns\HasAuditLogs;
+use App\Common\Concerns\HasAuditLogs;
 use Database\Factories\AccountStaffFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 

@@ -7,7 +7,6 @@ use App\Domains\Beauty\Models\Beauty;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
-use Illuminate\Support\Collection;
 
 /**
  * BeautyForStaffDetailDto 역할 정의.
@@ -66,19 +65,12 @@ final readonly class BeautyForStaffDetailDto
             status: (string) $beauty->status,
             createdAt: $beauty->created_at?->toISOString(),
             updatedAt: $beauty->updated_at?->toISOString(),
-            logo: self::formatMedia(self::resolveLogo($beauty)),
-            gallery: self::resolveGallery($beauty)->map(fn (Media $media): array => self::formatMedia($media))->all(),
-            categories: self::resolveCategories($beauty)
-                ->map(fn (Category $category): array => [
-                    'id' => (int) $category->id,
-                    'name' => (string) $category->name,
-                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-                ])
-                ->values()
-                ->all(),
-            accountBeauties: $beauty->relationLoaded('accountBeauties') ? self::formatAccountBeauties($beauty) : null,
-            experts: $beauty->relationLoaded('experts') ? self::formatExperts($beauty) : null,
-            businessRegistration: $beauty->relationLoaded('businessRegistration') ? self::formatBusinessRegistration($beauty) : null,
+            logo: self::logo($beauty),
+            gallery: self::gallery($beauty),
+            categories: self::categories($beauty),
+            accountBeauties: self::accountBeauties($beauty),
+            experts: self::experts($beauty),
+            businessRegistration: self::businessRegistration($beauty),
         );
     }
 
@@ -122,52 +114,68 @@ final readonly class BeautyForStaffDetailDto
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>>|null
      */
-    private static function formatAccountBeauties(Beauty $beauty): array
+    private static function accountBeauties(Beauty $beauty): ?array
     {
-        return $beauty->accountBeauties->map(fn (AccountBeauty $accountBeauty): array => [
-            'id' => $accountBeauty->id,
-            'name' => $accountBeauty->name,
-            'nickname' => $accountBeauty->nickname,
-            'email' => $accountBeauty->email,
-            'status' => $accountBeauty->status,
-            'roles' => $accountBeauty->getRoleNames()->values()->all(),
-            'last_login_at' => $accountBeauty->last_login_at?->toISOString(),
-            'created_at' => $accountBeauty->created_at?->toISOString(),
-            'updated_at' => $accountBeauty->updated_at?->toISOString(),
-        ])->all();
+        if (! $beauty->relationLoaded('accountBeauties')) {
+            return null;
+        }
+
+        return $beauty->accountBeauties
+            ->map(fn (AccountBeauty $accountBeauty): array => [
+                'id' => $accountBeauty->id,
+                'name' => $accountBeauty->name,
+                'nickname' => $accountBeauty->nickname,
+                'email' => $accountBeauty->email,
+                'status' => $accountBeauty->status,
+                'roles' => $accountBeauty->getRoleNames()->values()->all(),
+                'last_login_at' => $accountBeauty->last_login_at?->toISOString(),
+                'created_at' => $accountBeauty->created_at?->toISOString(),
+                'updated_at' => $accountBeauty->updated_at?->toISOString(),
+            ])
+            ->all();
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>>|null
      */
-    private static function formatExperts(Beauty $beauty): array
+    private static function experts(Beauty $beauty): ?array
     {
-        return $beauty->experts->map(fn (BeautyExpert $expert): array => [
-            'id' => $expert->id,
-            'beauty_id' => $expert->beauty_id,
-            'sort_order' => (int) $expert->sort_order,
-            'name' => $expert->name,
-            'gender' => $expert->gender,
-            'position' => $expert->position,
-            'career_started_at' => $expert->career_started_at?->toDateString(),
-            'educations' => self::arrayValue($expert->educations),
-            'careers' => self::arrayValue($expert->careers),
-            'etc_contents' => self::arrayValue($expert->etc_contents),
-            'status' => $expert->status,
-            'allow_status' => $expert->allow_status,
-            'profile_image' => self::formatMedia($expert->profileImage),
-            'created_at' => $expert->created_at?->toISOString(),
-            'updated_at' => $expert->updated_at?->toISOString(),
-        ])->all();
+        if (! $beauty->relationLoaded('experts')) {
+            return null;
+        }
+
+        return $beauty->experts
+            ->map(fn (BeautyExpert $expert): array => [
+                'id' => $expert->id,
+                'beauty_id' => $expert->beauty_id,
+                'sort_order' => (int) $expert->sort_order,
+                'name' => $expert->name,
+                'gender' => $expert->gender,
+                'position' => $expert->position,
+                'career_started_at' => $expert->career_started_at?->toDateString(),
+                'educations' => $expert->educations ?? [],
+                'careers' => $expert->careers ?? [],
+                'etc_contents' => $expert->etc_contents ?? [],
+                'status' => $expert->status,
+                'allow_status' => $expert->allow_status,
+                'profile_image' => self::media($expert->profileImage),
+                'created_at' => $expert->created_at?->toISOString(),
+                'updated_at' => $expert->updated_at?->toISOString(),
+            ])
+            ->all();
     }
 
     /**
      * @return array<string, mixed>|null
      */
-    private static function formatBusinessRegistration(Beauty $beauty): ?array
+    private static function businessRegistration(Beauty $beauty): ?array
     {
+        if (! $beauty->relationLoaded('businessRegistration')) {
+            return null;
+        }
+
         $businessRegistration = $beauty->businessRegistration;
 
         if (! $businessRegistration) {
@@ -185,40 +193,35 @@ final readonly class BeautyForStaffDetailDto
             'business_address_detail' => $businessRegistration->business_address_detail,
             'issued_at' => $businessRegistration->issued_at?->toDateString(),
             'status' => $businessRegistration->status,
-            'certificate_media' => self::formatMedia($businessRegistration->certificateMedia),
+            'certificate_media' => self::media($businessRegistration->certificateMedia),
         ];
     }
 
-    /**
-     * @return array<int, mixed>
-     */
-    private static function arrayValue(mixed $value): array
-    {
-        return is_array($value) ? $value : [];
-    }
-
-    private static function resolveLogo(Beauty $beauty): ?Media
+    private static function logo(Beauty $beauty): ?array
     {
         if (! $beauty->relationLoaded('logoMedia')) {
             return null;
         }
 
-        return $beauty->logoMedia;
+        return self::media($beauty->logoMedia);
     }
 
     /**
-     * @return Collection<int, Media>
+     * @return array<int, array<string, mixed>>
      */
-    private static function resolveGallery(Beauty $beauty): Collection
+    private static function gallery(Beauty $beauty): array
     {
         if (! $beauty->relationLoaded('galleryMedia')) {
-            return collect();
+            return [];
         }
 
-        return $beauty->galleryMedia;
+        return $beauty->galleryMedia
+            ->map(fn (Media $media): array => self::media($media) ?? [])
+            ->values()
+            ->all();
     }
 
-    private static function formatMedia(?Media $media): ?array
+    private static function media(?Media $media): ?array
     {
         if (! $media) {
             return null;
@@ -242,14 +245,21 @@ final readonly class BeautyForStaffDetailDto
     }
 
     /**
-     * @return Collection<int, Category>
+     * @return array<int, array<string, mixed>>
      */
-    private static function resolveCategories(Beauty $beauty): Collection
+    private static function categories(Beauty $beauty): array
     {
         if (! $beauty->relationLoaded('categories')) {
-            return collect();
+            return [];
         }
 
-        return $beauty->categories;
+        return $beauty->categories
+            ->map(fn (Category $category): array => [
+                'id' => (int) $category->id,
+                'name' => (string) $category->name,
+                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+            ])
+            ->values()
+            ->all();
     }
 }

@@ -5,7 +5,6 @@ namespace App\Domains\HospitalDoctor\Dto\Staff;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
-use Illuminate\Support\Collection;
 
 /**
  * HospitalDoctorForStaffDetailDto DTO.
@@ -63,26 +62,17 @@ final readonly class HospitalDoctorForStaffDetailDto
             licenseNumber: $doctor->license_number,
             isSpecialist: (bool) $doctor->is_specialist,
             viewCount: (int) $doctor->view_count,
-            educations: self::arrayValue($doctor->educations),
-            careers: self::arrayValue($doctor->careers),
-            etcContents: self::arrayValue($doctor->etc_contents),
+            educations: $doctor->educations ?? [],
+            careers: $doctor->careers ?? [],
+            etcContents: $doctor->etc_contents ?? [],
             status: (string) $doctor->status,
             allowStatus: (string) $doctor->allow_status,
-            profileImage: self::formatMedia($doctor->profileImage),
-            licenseImage: self::formatMedia($doctor->licenseImage),
-            specialistCertificateImage: self::formatMedia($doctor->specialistCertificateImages->first()),
-            educationCertificateImage: self::formatMediaList($doctor->educationCertificateImages),
-            etcCertificateImage: self::formatMediaList($doctor->etcCertificateImages),
-            categories: self::resolveCategories($doctor)
-                ->map(fn (Category $category): array => [
-                    'id' => (int) $category->id,
-                    'domain' => (string) $category->domain,
-                    'name' => (string) $category->name,
-                    'full_path' => (string) ($category->full_path ?: $category->name),
-                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-                ])
-                ->values()
-                ->all(),
+            profileImage: self::profileImage($doctor),
+            licenseImage: self::licenseImage($doctor),
+            specialistCertificateImage: self::specialistCertificateImage($doctor),
+            educationCertificateImage: self::educationCertificateImage($doctor),
+            etcCertificateImage: self::etcCertificateImage($doctor),
+            categories: self::categories($doctor),
             createdAt: $doctor->created_at?->toISOString(),
             updatedAt: $doctor->updated_at?->toISOString(),
         );
@@ -121,15 +111,58 @@ final readonly class HospitalDoctorForStaffDetailDto
         return $data;
     }
 
-    /**
-     * @return array<int, mixed>
-     */
-    private static function arrayValue(mixed $value): array
+    private static function profileImage(HospitalDoctor $doctor): ?array
     {
-        return is_array($value) ? $value : [];
+        if (! $doctor->relationLoaded('profileImage')) {
+            return null;
+        }
+
+        return self::media($doctor->profileImage);
     }
 
-    private static function formatMedia(?Media $media): ?array
+    private static function licenseImage(HospitalDoctor $doctor): ?array
+    {
+        if (! $doctor->relationLoaded('licenseImage')) {
+            return null;
+        }
+
+        return self::media($doctor->licenseImage);
+    }
+
+    private static function specialistCertificateImage(HospitalDoctor $doctor): ?array
+    {
+        if (! $doctor->relationLoaded('specialistCertificateImages')) {
+            return null;
+        }
+
+        return self::media($doctor->specialistCertificateImages->first());
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function educationCertificateImage(HospitalDoctor $doctor): array
+    {
+        if (! $doctor->relationLoaded('educationCertificateImages')) {
+            return [];
+        }
+
+        return self::mediaList($doctor->educationCertificateImages);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function etcCertificateImage(HospitalDoctor $doctor): array
+    {
+        if (! $doctor->relationLoaded('etcCertificateImages')) {
+            return [];
+        }
+
+        return self::mediaList($doctor->etcCertificateImages);
+    }
+
+    private static function media(?Media $media): ?array
     {
         if (! $media) {
             return null;
@@ -153,20 +186,32 @@ final readonly class HospitalDoctorForStaffDetailDto
     }
 
     /** @return array<int, array<string, mixed>> */
-    private static function formatMediaList(Collection $mediaList): array
+    private static function mediaList(iterable $mediaList): array
     {
-        return $mediaList->map(fn (Media $media): array => self::formatMedia($media) ?? [])->all();
+        return collect($mediaList)
+            ->map(fn (Media $media): array => self::media($media) ?? [])
+            ->values()
+            ->all();
     }
 
     /**
-     * @return Collection<int, Category>
+     * @return array<int, array<string, mixed>>
      */
-    private static function resolveCategories(HospitalDoctor $doctor): Collection
+    private static function categories(HospitalDoctor $doctor): array
     {
         if (! $doctor->relationLoaded('categories')) {
-            return collect();
+            return [];
         }
 
-        return $doctor->categories;
+        return $doctor->categories
+            ->map(fn (Category $category): array => [
+                'id' => (int) $category->id,
+                'domain' => (string) $category->domain,
+                'name' => (string) $category->name,
+                'full_path' => (string) ($category->full_path ?: $category->name),
+                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+            ])
+            ->values()
+            ->all();
     }
 }

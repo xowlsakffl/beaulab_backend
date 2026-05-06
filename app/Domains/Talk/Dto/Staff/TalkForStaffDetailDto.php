@@ -10,7 +10,6 @@ use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use App\Domains\Talk\Models\TalkCommentMention;
 use App\Domains\Talk\Models\TalkPollOption;
-use Illuminate\Support\Collection;
 
 /**
  * TalkForStaffDetailDto 역할 정의.
@@ -20,7 +19,8 @@ final readonly class TalkForStaffDetailDto
 {
     public function __construct(
         public int $id,
-        public ?int $authorId,
+        public ?array $author,
+        public ?array $category,
         public string $title,
         public string $content,
         public string $status,
@@ -32,8 +32,6 @@ final readonly class TalkForStaffDetailDto
         public int $commentCount,
         public int $likeCount,
         public int $saveCount,
-        public ?array $author,
-        public ?int $categoryId,
         public array $images,
         public ?array $poll,
         public array $operationHistories,
@@ -51,7 +49,8 @@ final readonly class TalkForStaffDetailDto
     {
         return new self(
             id: (int) $talk->id,
-            authorId: $talk->author_id ? (int) $talk->author_id : null,
+            author: self::author($talk),
+            category: self::category($talk),
             title: (string) $talk->title,
             content: (string) $talk->content,
             status: (string) $talk->status,
@@ -63,8 +62,6 @@ final readonly class TalkForStaffDetailDto
             commentCount: (int) $talk->comment_count,
             likeCount: (int) $talk->like_count,
             saveCount: (int) $talk->save_count,
-            author: self::author($talk),
-            categoryId: self::categoryId($talk),
             images: self::images($talk),
             poll: self::poll($talk),
             operationHistories: $operationHistories,
@@ -79,8 +76,8 @@ final readonly class TalkForStaffDetailDto
     {
         $data = [
             'id' => $this->id,
-            'author_id' => $this->authorId,
             'author' => $this->author,
+            'category' => $this->category,
             'title' => $this->title,
             'content' => $this->content,
             'status' => $this->status,
@@ -92,7 +89,6 @@ final readonly class TalkForStaffDetailDto
             'comment_count' => $this->commentCount,
             'like_count' => $this->likeCount,
             'save_count' => $this->saveCount,
-            'category_id' => $this->categoryId,
             'images' => $this->images,
             'poll' => $this->poll,
             'operation_histories' => $this->operationHistories,
@@ -114,24 +110,45 @@ final readonly class TalkForStaffDetailDto
         return [
             'id' => (int) $talk->author->id,
             'name' => (string) $talk->author->name,
+            'nickname' => $talk->author->nickname ? (string) $talk->author->nickname : null,
             'email' => (string) $talk->author->email,
         ];
     }
 
-    private static function categoryId(Talk $talk): ?int
+    private static function category(Talk $talk): ?array
     {
-        $id = self::resolveCategories($talk)
+        if (! $talk->relationLoaded('categories')) {
+            return null;
+        }
+
+        $category = $talk->categories
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
-            ->map(fn (Category $category): int => (int) $category->id)
-            ->filter(static fn (int $id): bool => $id > 0)
+            ->values()
             ->first();
 
-        return is_int($id) && $id > 0 ? $id : null;
+        if (! $category instanceof Category) {
+            return null;
+        }
+
+        $attributes = $category->getAttributes();
+
+        return [
+            'id' => (int) $category->id,
+            'code' => (string) ($attributes['code'] ?? ''),
+            'domain' => (string) ($attributes['domain'] ?? Talk::CATEGORY_DOMAIN),
+            'name' => (string) $category->name,
+            'full_path' => (string) ($attributes['full_path'] ?? ''),
+            'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+        ];
     }
 
     private static function images(Talk $talk): array
     {
-        return self::resolveImages($talk)
+        if (! $talk->relationLoaded('images')) {
+            return [];
+        }
+
+        return $talk->images
             ->map(fn (Media $media): array => [
                 'id' => (int) $media->id,
                 'collection' => (string) $media->collection,
@@ -185,10 +202,7 @@ final readonly class TalkForStaffDetailDto
             'id' => (int) $comment->id,
             'parent_id' => $comment->parent_id ? (int) $comment->parent_id : null,
             'is_reply' => $comment->isReply(),
-            'author_id' => $comment->author_id ? (int) $comment->author_id : null,
-            'author_name' => $comment->relationLoaded('author') && $comment->author
-                ? (string) $comment->author->name
-                : null,
+            'author' => self::commentAuthor($comment),
             'content' => (string) $comment->content,
             'status' => (string) $comment->status,
             'post_status' => (string) $comment->post_status,
@@ -199,6 +213,26 @@ final readonly class TalkForStaffDetailDto
             'created_at' => $comment->created_at?->toISOString(),
             'updated_at' => $comment->updated_at?->toISOString(),
             'deleted_at' => $comment->deleted_at?->toISOString(),
+        ];
+    }
+
+    private static function commentAuthor(TalkComment $comment): ?array
+    {
+        if (! $comment->relationLoaded('author') || ! $comment->author) {
+            return null;
+        }
+
+        $attributes = $comment->author->getAttributes();
+
+        return [
+            'id' => (int) $comment->author->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
+                ? (string) $attributes['nickname']
+                : null,
+            'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
+                ? (string) $attributes['email']
+                : null,
         ];
     }
 
@@ -249,30 +283,6 @@ final readonly class TalkForStaffDetailDto
             'created_at' => $history->created_at?->toISOString(),
             'reason' => $history->reason,
         ];
-    }
-
-    /**
-     * @return Collection<int, Category>
-     */
-    private static function resolveCategories(Talk $talk): Collection
-    {
-        if (! $talk->relationLoaded('categories')) {
-            return collect();
-        }
-
-        return $talk->categories;
-    }
-
-    /**
-     * @return Collection<int, Media>
-     */
-    private static function resolveImages(Talk $talk): Collection
-    {
-        if (! $talk->relationLoaded('images')) {
-            return collect();
-        }
-
-        return $talk->images;
     }
 
 }

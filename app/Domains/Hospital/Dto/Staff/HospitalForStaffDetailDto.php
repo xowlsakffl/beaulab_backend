@@ -8,7 +8,6 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
-use Illuminate\Support\Collection;
 
 /**
  * HospitalForStaffDetailDto 역할 정의.
@@ -69,31 +68,13 @@ final readonly class HospitalForStaffDetailDto
             status: (string) $hospital->status,
             createdAt: $hospital->created_at?->toISOString(),
             updatedAt: $hospital->updated_at?->toISOString(),
-            logo: self::formatMedia(self::resolveLogo($hospital)),
-            gallery: self::resolveGallery($hospital)->map(fn (Media $media): array => self::formatMedia($media))->all(),
-            categories: self::resolveCategories($hospital)
-                ->map(fn (Category $category): array => [
-                    'id' => (int) $category->id,
-                    'domain' => (string) $category->domain,
-                    'name' => (string) $category->name,
-                    'full_path' => (string) ($category->full_path ?: $category->name),
-                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-                ])
-                ->values()
-                ->all(),
-            features: self::resolveFeatures($hospital)
-                ->map(fn (HospitalFeature $feature): array => [
-                    'id' => (int) $feature->id,
-                    'code' => (string) $feature->code,
-                    'name' => (string) $feature->name,
-                    'sort_order' => (int) $feature->sort_order,
-                    'status' => (string) $feature->status,
-                ])
-                ->values()
-                ->all(),
-            accountHospitals: $hospital->relationLoaded('accountHospitals') ? self::formatAccountHospitals($hospital) : null,
-            doctors: $hospital->relationLoaded('doctors') ? self::formatDoctors($hospital) : null,
-            businessRegistration: $hospital->relationLoaded('businessRegistration') ? self::formatBusinessRegistration($hospital) : null,
+            logo: self::logo($hospital),
+            gallery: self::gallery($hospital),
+            categories: self::categories($hospital),
+            features: self::features($hospital),
+            accountHospitals: self::accountHospitals($hospital),
+            doctors: self::doctors($hospital),
+            businessRegistration: self::businessRegistration($hospital),
         );
     }
 
@@ -138,47 +119,63 @@ final readonly class HospitalForStaffDetailDto
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>>|null
      */
-    private static function formatAccountHospitals(Hospital $hospital): array
+    private static function accountHospitals(Hospital $hospital): ?array
     {
-        return $hospital->accountHospitals->map(fn (AccountHospital $accountHospital): array => [
-            'id' => $accountHospital->id,
-            'name' => $accountHospital->name,
-            'nickname' => $accountHospital->nickname,
-            'email' => $accountHospital->email,
-            'status' => $accountHospital->status,
-            'roles' => $accountHospital->getRoleNames()->values()->all(),
-            'last_login_at' => $accountHospital->last_login_at?->toISOString(),
-            'created_at' => $accountHospital->created_at?->toISOString(),
-            'updated_at' => $accountHospital->updated_at?->toISOString(),
-        ])->all();
+        if (! $hospital->relationLoaded('accountHospitals')) {
+            return null;
+        }
+
+        return $hospital->accountHospitals
+            ->map(fn (AccountHospital $accountHospital): array => [
+                'id' => $accountHospital->id,
+                'name' => $accountHospital->name,
+                'nickname' => $accountHospital->nickname,
+                'email' => $accountHospital->email,
+                'status' => $accountHospital->status,
+                'roles' => $accountHospital->getRoleNames()->values()->all(),
+                'last_login_at' => $accountHospital->last_login_at?->toISOString(),
+                'created_at' => $accountHospital->created_at?->toISOString(),
+                'updated_at' => $accountHospital->updated_at?->toISOString(),
+            ])
+            ->all();
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>>|null
      */
-    private static function formatDoctors(Hospital $hospital): array
+    private static function doctors(Hospital $hospital): ?array
     {
-        return $hospital->doctors->map(fn (HospitalDoctor $doctor): array => [
-            'id' => $doctor->id,
-            'hospital_id' => $doctor->hospital_id,
-            'name' => $doctor->name,
-            'position' => $doctor->position,
-            'is_specialist' => (bool) $doctor->is_specialist,
-            'sort_order' => (int) $doctor->sort_order,
-            'allow_status' => $doctor->allow_status,
-            'status' => $doctor->status,
-            'created_at' => $doctor->created_at?->toISOString(),
-            'updated_at' => $doctor->updated_at?->toISOString(),
-        ])->all();
+        if (! $hospital->relationLoaded('doctors')) {
+            return null;
+        }
+
+        return $hospital->doctors
+            ->map(fn (HospitalDoctor $doctor): array => [
+                'id' => $doctor->id,
+                'hospital_id' => $doctor->hospital_id,
+                'name' => $doctor->name,
+                'position' => $doctor->position,
+                'is_specialist' => (bool) $doctor->is_specialist,
+                'sort_order' => (int) $doctor->sort_order,
+                'allow_status' => $doctor->allow_status,
+                'status' => $doctor->status,
+                'created_at' => $doctor->created_at?->toISOString(),
+                'updated_at' => $doctor->updated_at?->toISOString(),
+            ])
+            ->all();
     }
 
     /**
      * @return array<string, mixed>|null
      */
-    private static function formatBusinessRegistration(Hospital $hospital): ?array
+    private static function businessRegistration(Hospital $hospital): ?array
     {
+        if (! $hospital->relationLoaded('businessRegistration')) {
+            return null;
+        }
+
         $businessRegistration = $hospital->businessRegistration;
 
         if (! $businessRegistration) {
@@ -196,32 +193,35 @@ final readonly class HospitalForStaffDetailDto
             'business_address_detail' => $businessRegistration->business_address_detail,
             'issued_at' => $businessRegistration->issued_at?->toDateString(),
             'status' => $businessRegistration->status,
-            'certificate_media' => self::formatMedia($businessRegistration->certificateMedia),
+            'certificate_media' => self::media($businessRegistration->certificateMedia),
         ];
     }
 
-    private static function resolveLogo(Hospital $hospital): ?Media
+    private static function logo(Hospital $hospital): ?array
     {
         if (! $hospital->relationLoaded('logoMedia')) {
             return null;
         }
 
-        return $hospital->logoMedia;
+        return self::media($hospital->logoMedia);
     }
 
     /**
-     * @return Collection<int, Media>
+     * @return array<int, array<string, mixed>>
      */
-    private static function resolveGallery(Hospital $hospital): Collection
+    private static function gallery(Hospital $hospital): array
     {
         if (! $hospital->relationLoaded('galleryMedia')) {
-            return collect();
+            return [];
         }
 
-        return $hospital->galleryMedia;
+        return $hospital->galleryMedia
+            ->map(fn (Media $media): array => self::media($media) ?? [])
+            ->values()
+            ->all();
     }
 
-    private static function formatMedia(?Media $media): ?array
+    private static function media(?Media $media): ?array
     {
         if (! $media) {
             return null;
@@ -245,26 +245,44 @@ final readonly class HospitalForStaffDetailDto
     }
 
     /**
-     * @return Collection<int, Category>
+     * @return array<int, array<string, mixed>>
      */
-    private static function resolveCategories(Hospital $hospital): Collection
+    private static function categories(Hospital $hospital): array
     {
         if (! $hospital->relationLoaded('categories')) {
-            return collect();
+            return [];
         }
 
-        return $hospital->categories;
+        return $hospital->categories
+            ->map(fn (Category $category): array => [
+                'id' => (int) $category->id,
+                'domain' => (string) $category->domain,
+                'name' => (string) $category->name,
+                'full_path' => (string) ($category->full_path ?: $category->name),
+                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+            ])
+            ->values()
+            ->all();
     }
 
     /**
-     * @return Collection<int, HospitalFeature>
+     * @return array<int, array<string, mixed>>
      */
-    private static function resolveFeatures(Hospital $hospital): Collection
+    private static function features(Hospital $hospital): array
     {
         if (! $hospital->relationLoaded('features')) {
-            return collect();
+            return [];
         }
 
-        return $hospital->features;
+        return $hospital->features
+            ->map(fn (HospitalFeature $feature): array => [
+                'id' => (int) $feature->id,
+                'code' => (string) $feature->code,
+                'name' => (string) $feature->name,
+                'sort_order' => (int) $feature->sort_order,
+                'status' => (string) $feature->status,
+            ])
+            ->values()
+            ->all();
     }
 }

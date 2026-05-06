@@ -3,6 +3,7 @@
 namespace App\Domains\Talk\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 
 /**
@@ -13,8 +14,8 @@ final readonly class TalkCommentForStaffDto
     public function __construct(
         public int $id,
         public string $createdAt,
-        public ?string $nickname,
-        public ?int $categoryId,
+        public ?array $author,
+        public ?array $category,
         public ?string $parentTalkTitle,
         public string $content,
         public string $status,
@@ -27,8 +28,8 @@ final readonly class TalkCommentForStaffDto
         return new self(
             id: (int) $comment->id,
             createdAt: $comment->created_at?->toISOString() ?? '',
-            nickname: self::nickname($comment),
-            categoryId: self::categoryId($comment),
+            author: self::author($comment),
+            category: self::category($comment),
             parentTalkTitle: $comment->relationLoaded('talk') && $comment->talk
                 ? (string) $comment->talk->title
                 : null,
@@ -44,8 +45,8 @@ final readonly class TalkCommentForStaffDto
         $data = [
             'id' => $this->id,
             'created_at' => $this->createdAt,
-            'nickname' => $this->nickname,
-            'category_id' => $this->categoryId,
+            'author' => $this->author,
+            'category' => $this->category,
             'parent_talk_title' => $this->parentTalkTitle,
             'content' => $this->content,
             'status' => $this->status,
@@ -56,29 +57,50 @@ final readonly class TalkCommentForStaffDto
         return $data;
     }
 
-    private static function nickname(TalkComment $comment): ?string
+    private static function author(TalkComment $comment): ?array
     {
         if (! $comment->relationLoaded('author') || ! $comment->author) {
             return null;
         }
 
-        $nickname = trim((string) $comment->author->nickname);
+        $attributes = $comment->author->getAttributes();
 
-        return $nickname !== '' ? $nickname : (string) $comment->author->name;
+        return [
+            'id' => (int) $comment->author->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
+                ? (string) $attributes['nickname']
+                : null,
+            'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
+                ? (string) $attributes['email']
+                : null,
+        ];
     }
 
-    private static function categoryId(TalkComment $comment): ?int
+    private static function category(TalkComment $comment): ?array
     {
         if (! $comment->relationLoaded('talk') || ! $comment->talk || ! $comment->talk->relationLoaded('categories')) {
             return null;
         }
 
-        $id = $comment->talk->categories
+        $category = $comment->talk->categories
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
-            ->map(fn (Category $category): int => (int) $category->id)
-            ->filter(static fn (int $id): bool => $id > 0)
+            ->values()
             ->first();
 
-        return is_int($id) && $id > 0 ? $id : null;
+        if (! $category instanceof Category) {
+            return null;
+        }
+
+        $attributes = $category->getAttributes();
+
+        return [
+            'id' => (int) $category->id,
+            'code' => (string) ($attributes['code'] ?? ''),
+            'domain' => (string) ($attributes['domain'] ?? Talk::CATEGORY_DOMAIN),
+            'name' => (string) $category->name,
+            'full_path' => (string) ($attributes['full_path'] ?? ''),
+            'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+        ];
     }
 }

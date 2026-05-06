@@ -4,7 +4,6 @@ namespace App\Domains\Faq\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Faq\Models\Faq;
-use Illuminate\Support\Collection;
 
 /**
  * FaqForStaffDetailDto DTO.
@@ -13,7 +12,6 @@ final readonly class FaqForStaffDetailDto
 {
     public function __construct(
         public int $id,
-        public ?int $categoryId,
         public ?array $category,
         public string $channel,
         public string $question,
@@ -31,12 +29,9 @@ final readonly class FaqForStaffDetailDto
 
     public static function fromModel(Faq $faq): self
     {
-        $primaryCategory = self::resolvePrimaryCategory($faq);
-
         return new self(
             id: (int) $faq->id,
-            categoryId: $primaryCategory ? (int) $primaryCategory->id : null,
-            category: self::category($primaryCategory),
+            category: self::category($faq),
             channel: (string) $faq->channel,
             question: (string) $faq->question,
             status: (string) $faq->status,
@@ -56,7 +51,6 @@ final readonly class FaqForStaffDetailDto
     {
         $data = [
             'id' => $this->id,
-            'category_id' => $this->categoryId,
             'category' => $this->category,
             'channel' => $this->channel,
             'question' => $this->question,
@@ -75,8 +69,15 @@ final readonly class FaqForStaffDetailDto
         return $data;
     }
 
-    private static function category(?Category $category): ?array
+    private static function category(Faq $faq): ?array
     {
+        if (! $faq->relationLoaded('categories')) {
+            return null;
+        }
+
+        $category = $faq->categories->first(static fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
+            ?? $faq->categories->first();
+
         if (! $category) {
             return null;
         }
@@ -115,25 +116,5 @@ final readonly class FaqForStaffDetailDto
             'name' => (string) $faq->updater->name,
             'email' => (string) $faq->updater->email,
         ];
-    }
-
-    /**
-     * @return Collection<int, Category>
-     */
-    private static function resolveCategories(Faq $faq): Collection
-    {
-        if (! $faq->relationLoaded('categories')) {
-            return collect();
-        }
-
-        return $faq->categories;
-    }
-
-    private static function resolvePrimaryCategory(Faq $faq): ?Category
-    {
-        $categories = self::resolveCategories($faq);
-
-        return $categories->first(static fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
-            ?? $categories->first();
     }
 }

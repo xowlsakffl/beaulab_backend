@@ -31,6 +31,10 @@ final class HospitalVideoCancelForHospitalAction
         }
 
         $video = DB::transaction(fn () => $this->query->cancel($video)->load([
+            'hospital',
+            'hospital.businessRegistration',
+            'doctor',
+            'submittedByAccount',
             'thumbnailMedia',
             'videoFileMedia',
             'categories',

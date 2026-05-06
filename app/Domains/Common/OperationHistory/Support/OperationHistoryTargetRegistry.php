@@ -7,6 +7,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalReview\Models\HospitalReview;
+use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
@@ -18,6 +19,7 @@ final class OperationHistoryTargetRegistry
     public const string ALIAS_BEAUTY = 'beauty';
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
     public const string ALIAS_HOSPITAL_REVIEW = 'hospital_review';
+    public const string ALIAS_HOSPITAL_REVIEW_COMMENT = 'hospital_review_comment';
     public const string ALIAS_TALK = 'talk';
     public const string ALIAS_TALK_COMMENT = 'talk_comment';
 
@@ -29,6 +31,7 @@ final class OperationHistoryTargetRegistry
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
         self::ALIAS_HOSPITAL_REVIEW => HospitalReview::class,
+        self::ALIAS_HOSPITAL_REVIEW_COMMENT => HospitalReviewComment::class,
         self::ALIAS_TALK => Talk::class,
         self::ALIAS_TALK_COMMENT => TalkComment::class,
     ];

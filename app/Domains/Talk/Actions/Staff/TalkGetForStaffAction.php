@@ -28,7 +28,6 @@ final class TalkGetForStaffAction
             ->with('actor')
             ->paginate(
                 perPage: (int) ($filters['operation_histories_per_page'] ?? 15),
-                columns: ['*'],
                 pageName: 'operation_histories_page',
                 page: (int) ($filters['operation_histories_page'] ?? 1),
             );
@@ -37,7 +36,6 @@ final class TalkGetForStaffAction
             ->with(['author', 'operationHistories', 'mentions.mentionedUser'])
             ->paginate(
                 perPage: (int) ($filters['comments_per_page'] ?? 10),
-                columns: ['*'],
                 pageName: 'comments_page',
                 page: (int) ($filters['comments_page'] ?? 1),
             );

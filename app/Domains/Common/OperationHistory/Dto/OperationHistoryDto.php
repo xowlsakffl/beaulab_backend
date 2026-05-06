@@ -45,8 +45,8 @@ final readonly class OperationHistoryDto
             actorAlias: OperationHistoryActorRegistry::aliasForModel($history->actor_type)
                 ?? OperationHistoryActorRegistry::aliasForKind($history->actor_kind),
             actorId: $history->actor_id ? (int) $history->actor_id : null,
-            actor: self::resolveActor($history),
-            actorLabel: self::resolveActorLabel($history),
+            actor: self::actor($history),
+            actorLabel: self::actorLabel($history),
             action: (string) $history->action,
             field: $history->field,
             beforeValue: $history->before_value,
@@ -84,7 +84,7 @@ final readonly class OperationHistoryDto
         return $data;
     }
 
-    private static function resolveActor(OperationHistory $history): ?array
+    private static function actor(OperationHistory $history): ?array
     {
         if (! $history->relationLoaded('actor') || ! $history->actor instanceof Model) {
             return null;
@@ -97,7 +97,7 @@ final readonly class OperationHistoryDto
         ];
     }
 
-    private static function resolveActorLabel(OperationHistory $history): string
+    private static function actorLabel(OperationHistory $history): string
     {
         if ($history->actor_kind === OperationHistory::ACTOR_KIND_SYSTEM) {
             return '시스템';

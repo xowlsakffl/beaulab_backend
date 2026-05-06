@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalVideo\Models;
 
 use App\Common\Concerns\HasAuditLogs;
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
@@ -93,6 +94,11 @@ final class HospitalVideo extends Model
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(HospitalDoctor::class, 'doctor_id');
+    }
+
+    public function submittedByAccount(): BelongsTo
+    {
+        return $this->belongsTo(AccountHospital::class, 'submitted_by_account_id');
     }
 
     public function thumbnailMedia(): MorphOne

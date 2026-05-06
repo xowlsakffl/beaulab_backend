@@ -21,9 +21,8 @@ final readonly class NoticeForStaffDto
         public bool $isImportant,
         public int $viewCount,
         public int $attachmentsCount,
-        public ?int $createdByStaffId,
-        public ?string $creatorName,
-        public ?int $updatedByStaffId,
+        public ?array $creator,
+        public ?array $updater,
         public ?string $createdAt,
         public ?string $updatedAt,
     ) {}
@@ -42,11 +41,8 @@ final readonly class NoticeForStaffDto
             isImportant: (bool) $notice->is_important,
             viewCount: (int) $notice->view_count,
             attachmentsCount: (int) ($notice->attachments_count ?? 0),
-            createdByStaffId: $notice->created_by_staff_id ? (int) $notice->created_by_staff_id : null,
-            creatorName: $notice->relationLoaded('creator') && $notice->creator
-                ? (string) $notice->creator->name
-                : null,
-            updatedByStaffId: $notice->updated_by_staff_id ? (int) $notice->updated_by_staff_id : null,
+            creator: self::creator($notice),
+            updater: self::updater($notice),
             createdAt: $notice->created_at?->toISOString(),
             updatedAt: $notice->updated_at?->toISOString(),
         );
@@ -66,13 +62,38 @@ final readonly class NoticeForStaffDto
             'is_important' => $this->isImportant,
             'view_count' => $this->viewCount,
             'attachments_count' => $this->attachmentsCount,
-            'created_by_staff_id' => $this->createdByStaffId,
-            'creator_name' => $this->creatorName,
-            'updated_by_staff_id' => $this->updatedByStaffId,
+            'creator' => $this->creator,
+            'updater' => $this->updater,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];
 
         return $data;
+    }
+
+    private static function creator(Notice $notice): ?array
+    {
+        if (! $notice->relationLoaded('creator') || ! $notice->creator) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $notice->creator->id,
+            'name' => (string) $notice->creator->name,
+            'email' => (string) $notice->creator->email,
+        ];
+    }
+
+    private static function updater(Notice $notice): ?array
+    {
+        if (! $notice->relationLoaded('updater') || ! $notice->updater) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $notice->updater->id,
+            'name' => (string) $notice->updater->name,
+            'email' => (string) $notice->updater->email,
+        ];
     }
 }

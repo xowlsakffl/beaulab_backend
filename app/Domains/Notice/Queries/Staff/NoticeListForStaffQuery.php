@@ -32,7 +32,8 @@ final class NoticeListForStaffQuery
                 'updated_at',
             ])
             ->with([
-                'creator:id,name',
+                'creator:id,name,email',
+                'updater:id,name,email',
             ])
             ->withCount([
                 'attachments',

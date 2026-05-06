@@ -45,7 +45,7 @@ final readonly class CategoryForStaffDto
             status: (string) $category->status,
             isMenuVisible: (bool) $category->is_menu_visible,
             hasChildren: self::hasChildren($category),
-            icon: self::formatMedia($category->relationLoaded('iconMedia') ? $category->iconMedia : null),
+            icon: self::icon($category),
             createdAt: $category->created_at?->toISOString(),
             updatedAt: $category->updated_at?->toISOString(),
             parent: $category->relationLoaded('parent') && $category->parent
@@ -115,7 +115,7 @@ final readonly class CategoryForStaffDto
             'status' => (string) $category->status,
             'is_menu_visible' => (bool) $category->is_menu_visible,
             'has_children' => self::hasChildren($category),
-            'icon' => self::formatMedia($category->relationLoaded('iconMedia') ? $category->iconMedia : null),
+            'icon' => self::icon($category),
             'created_at' => $category->created_at?->toISOString(),
             'updated_at' => $category->updated_at?->toISOString(),
         ];
@@ -130,7 +130,16 @@ final readonly class CategoryForStaffDto
         return $data;
     }
 
-    private static function formatMedia(?Media $media): ?array
+    private static function icon(Category $category): ?array
+    {
+        if (! $category->relationLoaded('iconMedia')) {
+            return null;
+        }
+
+        return self::media($category->iconMedia);
+    }
+
+    private static function media(?Media $media): ?array
     {
         if (! $media) {
             return null;

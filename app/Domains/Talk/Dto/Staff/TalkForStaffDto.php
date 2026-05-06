@@ -13,7 +13,8 @@ final readonly class TalkForStaffDto
 {
     public function __construct(
         public int $id,
-        public ?int $authorId,
+        public ?array $author,
+        public ?array $category,
         public string $title,
         public string $content,
         public string $status,
@@ -26,15 +27,14 @@ final readonly class TalkForStaffDto
         public int $saveCount,
         public string $createdAt,
         public string $updatedAt,
-        public ?string $nickname,
-        public ?int $categoryId,
     ) {}
 
     public static function fromModel(Talk $talk): self
     {
         return new self(
             id: (int) $talk->id,
-            authorId: $talk->author_id ? (int) $talk->author_id : null,
+            author: self::author($talk),
+            category: self::category($talk),
             title: (string) $talk->title,
             content: (string) $talk->content,
             status: (string) $talk->status,
@@ -47,8 +47,6 @@ final readonly class TalkForStaffDto
             saveCount: (int) $talk->save_count,
             createdAt: $talk->created_at?->toISOString() ?? '',
             updatedAt: $talk->updated_at?->toISOString() ?? '',
-            nickname: self::nickname($talk),
-            categoryId: self::categoryId($talk),
         );
     }
 
@@ -56,9 +54,8 @@ final readonly class TalkForStaffDto
     {
         $data = [
             'id' => $this->id,
-            'author_id' => $this->authorId,
-            'nickname' => $this->nickname,
-            'category_id' => $this->categoryId,
+            'author' => $this->author,
+            'category' => $this->category,
             'title' => $this->title,
             'content' => $this->content,
             'status' => $this->status,
@@ -76,29 +73,50 @@ final readonly class TalkForStaffDto
         return $data;
     }
 
-    private static function nickname(Talk $talk): ?string
+    private static function author(Talk $talk): ?array
     {
         if (! $talk->relationLoaded('author') || ! $talk->author) {
             return null;
         }
 
-        $nickname = trim((string) $talk->author->nickname);
+        $attributes = $talk->author->getAttributes();
 
-        return $nickname !== '' ? $nickname : (string) $talk->author->name;
+        return [
+            'id' => (int) $talk->author->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
+                ? (string) $attributes['nickname']
+                : null,
+            'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
+                ? (string) $attributes['email']
+                : null,
+        ];
     }
 
-    private static function categoryId(Talk $talk): ?int
+    private static function category(Talk $talk): ?array
     {
         if (! $talk->relationLoaded('categories')) {
             return null;
         }
 
-        $id = $talk->categories
+        $category = $talk->categories
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
-            ->map(fn (Category $category): int => (int) $category->id)
-            ->filter(static fn (int $id): bool => $id > 0)
+            ->values()
             ->first();
 
-        return is_int($id) && $id > 0 ? $id : null;
+        if (! $category instanceof Category) {
+            return null;
+        }
+
+        $attributes = $category->getAttributes();
+
+        return [
+            'id' => (int) $category->id,
+            'code' => (string) ($attributes['code'] ?? ''),
+            'domain' => (string) ($attributes['domain'] ?? Talk::CATEGORY_DOMAIN),
+            'name' => (string) $category->name,
+            'full_path' => (string) ($attributes['full_path'] ?? ''),
+            'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+        ];
     }
 }

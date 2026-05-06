@@ -5,7 +5,6 @@ namespace App\Domains\BeautyExpert\Dto\Staff;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
-use Illuminate\Support\Collection;
 
 /**
  * BeautyExpertForStaffDetailDto DTO.
@@ -51,22 +50,15 @@ final readonly class BeautyExpertForStaffDetailDto
             gender: $expert->gender,
             position: $expert->position,
             careerStartedAt: $expert->career_started_at?->toDateString(),
-            educations: self::arrayValue($expert->educations),
-            careers: self::arrayValue($expert->careers),
-            etcContents: self::arrayValue($expert->etc_contents),
+            educations: $expert->educations ?? [],
+            careers: $expert->careers ?? [],
+            etcContents: $expert->etc_contents ?? [],
             status: (string) $expert->status,
             allowStatus: (string) $expert->allow_status,
-            profileImage: self::formatMedia($expert->profileImage),
-            educationCertificateImage: self::formatMediaList($expert->educationCertificateImages),
-            etcCertificateImage: self::formatMediaList($expert->etcCertificateImages),
-            categories: self::resolveCategories($expert)
-                ->map(fn (Category $category): array => [
-                    'id' => (int) $category->id,
-                    'name' => (string) $category->name,
-                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-                ])
-                ->values()
-                ->all(),
+            profileImage: self::profileImage($expert),
+            educationCertificateImage: self::educationCertificateImage($expert),
+            etcCertificateImage: self::etcCertificateImage($expert),
+            categories: self::categories($expert),
             createdAt: $expert->created_at?->toISOString(),
             updatedAt: $expert->updated_at?->toISOString(),
         );
@@ -98,15 +90,40 @@ final readonly class BeautyExpertForStaffDetailDto
         return $data;
     }
 
-    /**
-     * @return array<int, mixed>
-     */
-    private static function arrayValue(mixed $value): array
+    private static function profileImage(BeautyExpert $expert): ?array
     {
-        return is_array($value) ? $value : [];
+        if (! $expert->relationLoaded('profileImage')) {
+            return null;
+        }
+
+        return self::media($expert->profileImage);
     }
 
-    private static function formatMedia(?Media $media): ?array
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function educationCertificateImage(BeautyExpert $expert): array
+    {
+        if (! $expert->relationLoaded('educationCertificateImages')) {
+            return [];
+        }
+
+        return self::mediaList($expert->educationCertificateImages);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function etcCertificateImage(BeautyExpert $expert): array
+    {
+        if (! $expert->relationLoaded('etcCertificateImages')) {
+            return [];
+        }
+
+        return self::mediaList($expert->etcCertificateImages);
+    }
+
+    private static function media(?Media $media): ?array
     {
         if (! $media) {
             return null;
@@ -130,22 +147,33 @@ final readonly class BeautyExpertForStaffDetailDto
     }
 
     /**
-     * @param Collection<int, Media>|iterable<int, Media>|null $mediaList
+     * @param iterable<int, Media> $mediaList
+     * @return array<int, array<string, mixed>>
      */
-    private static function formatMediaList(Collection|iterable|null $mediaList): array
+    private static function mediaList(iterable $mediaList): array
     {
-        return collect($mediaList)->map(fn (Media $media): array => self::formatMedia($media))->values()->all();
+        return collect($mediaList)
+            ->map(fn (Media $media): array => self::media($media) ?? [])
+            ->values()
+            ->all();
     }
 
     /**
-     * @return Collection<int, Category>
+     * @return array<int, array<string, mixed>>
      */
-    private static function resolveCategories(BeautyExpert $expert): Collection
+    private static function categories(BeautyExpert $expert): array
     {
         if (! $expert->relationLoaded('categories')) {
-            return collect();
+            return [];
         }
 
-        return $expert->categories;
+        return $expert->categories
+            ->map(fn (Category $category): array => [
+                'id' => (int) $category->id,
+                'name' => (string) $category->name,
+                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+            ])
+            ->values()
+            ->all();
     }
 }

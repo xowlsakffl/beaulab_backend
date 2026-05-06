@@ -28,9 +28,7 @@ return new class extends Migration
                 ->constrained('account_users')
                 ->nullOnDelete();
 
-            $table->string('mention_text', 120)->nullable()->comment('멘션 표시 텍스트(@닉네임)');
-            $table->unsignedInteger('start_offset')->nullable()->comment('본문 기준 멘션 시작 위치');
-            $table->unsignedInteger('end_offset')->nullable()->comment('본문 기준 멘션 끝 위치');
+            $table->string('mention_text', 120)->nullable()->comment('멘션 표시 텍스트(닉네임)');
 
             $table->timestamps();
 

@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalReview\Queries\User;
 
+use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalReview\Models\HospitalReviewCommentMention;
@@ -47,9 +48,16 @@ final class HospitalReviewCommentCreateForUserQuery
                 ? (int) $payload['mentioned_by_user_id']
                 : null,
             'mention_text' => $payload['mention_text'] ?? null,
-            'start_offset' => isset($payload['start_offset']) ? (int) $payload['start_offset'] : null,
-            'end_offset' => isset($payload['end_offset']) ? (int) $payload['end_offset'] : null,
         ]);
+    }
+
+    public function mentionTextByUserId(int $userId): ?string
+    {
+        $nickname = AccountUser::query()
+            ->whereKey($userId)
+            ->value('nickname');
+
+        return is_string($nickname) && trim($nickname) !== '' ? trim($nickname) : null;
     }
 
     public function incrementReviewCommentCount(HospitalReview $review): void

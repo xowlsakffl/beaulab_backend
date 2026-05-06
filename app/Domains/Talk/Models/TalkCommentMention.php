@@ -25,16 +25,12 @@ final class TalkCommentMention extends Model
         'mentioned_user_id',
         'mentioned_by_user_id',
         'mention_text',
-        'start_offset',
-        'end_offset',
     ];
 
     protected $casts = [
         'talk_comment_id' => 'integer',
         'mentioned_user_id' => 'integer',
         'mentioned_by_user_id' => 'integer',
-        'start_offset' => 'integer',
-        'end_offset' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

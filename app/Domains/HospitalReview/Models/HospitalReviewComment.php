@@ -142,7 +142,7 @@ final class HospitalReviewComment extends Model
             'hospital_review_comment_mentions',
             'hospital_review_comment_id',
             'mentioned_user_id'
-        )->withPivot(['mentioned_by_user_id', 'mention_text', 'start_offset', 'end_offset'])
+        )->withPivot(['mentioned_by_user_id', 'mention_text'])
             ->withTimestamps();
     }
 

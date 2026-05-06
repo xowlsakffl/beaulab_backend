@@ -26,12 +26,6 @@ final class TalkCommentCreateForUserRequest extends FormRequest
             }
         }
 
-        if (isset($data['mention']) && is_array($data['mention'])) {
-            if (array_key_exists('mention_text', $data['mention']) && is_string($data['mention']['mention_text'])) {
-                $data['mention']['mention_text'] = trim($data['mention']['mention_text']);
-            }
-        }
-
         $this->replace($data);
     }
 
@@ -57,9 +51,6 @@ final class TalkCommentCreateForUserRequest extends FormRequest
                     ->whereNull('deleted_at')
                     ->where('status', AccountUser::STATUS_ACTIVE)),
             ],
-            'mention.mention_text' => ['required_with:mention', 'string', 'max:120'],
-            'mention.start_offset' => ['nullable', 'integer', 'min:0'],
-            'mention.end_offset' => ['nullable', 'integer', 'gte:mention.start_offset'],
         ];
     }
 
@@ -70,9 +61,6 @@ final class TalkCommentCreateForUserRequest extends FormRequest
             'content' => '댓글 내용',
             'mention' => '멘션',
             'mention.mentioned_user_id' => '멘션 대상 사용자',
-            'mention.mention_text' => '멘션 텍스트',
-            'mention.start_offset' => '멘션 시작 위치',
-            'mention.end_offset' => '멘션 끝 위치',
         ];
     }
 }

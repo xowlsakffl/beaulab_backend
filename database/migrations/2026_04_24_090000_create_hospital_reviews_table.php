@@ -50,15 +50,15 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['post_status', 'status', 'created_at'], 'hospital_reviews_post_status_status_created_idx');
-            $table->index(['author_id', 'created_at'], 'hospital_reviews_author_created_idx');
-            $table->index(['hospital_id', 'created_at'], 'hospital_reviews_hospital_created_idx');
-            $table->index(['doctor_id', 'created_at'], 'hospital_reviews_doctor_created_idx');
-            $table->index(['category_domain', 'created_at'], 'hospital_reviews_domain_created_idx');
-            $table->index(['category_domain', 'is_main_featured', 'created_at'], 'hospital_reviews_domain_main_featured_created_idx');
-            $table->index(['category_domain', 'is_sub_featured', 'created_at'], 'hospital_reviews_domain_sub_featured_created_idx');
-            $table->index(['rating', 'created_at'], 'hospital_reviews_rating_created_idx');
-            $table->index(['cost', 'created_at'], 'hospital_reviews_cost_created_idx');
+            $table->index(['post_status', 'status', 'created_at'], 'h_reviews_post_status_status_created_idx');
+            $table->index(['author_id', 'created_at'], 'h_reviews_author_created_idx');
+            $table->index(['hospital_id', 'created_at'], 'h_reviews_hospital_created_idx');
+            $table->index(['doctor_id', 'created_at'], 'h_reviews_doctor_created_idx');
+            $table->index(['category_domain', 'created_at'], 'h_reviews_domain_created_idx');
+            $table->index(['category_domain', 'is_main_featured', 'created_at'], 'h_reviews_domain_main_featured_created_idx');
+            $table->index(['category_domain', 'is_sub_featured', 'created_at'], 'h_reviews_domain_sub_featured_created_idx');
+            $table->index(['rating', 'created_at'], 'h_reviews_rating_created_idx');
+            $table->index(['cost', 'created_at'], 'h_reviews_cost_created_idx');
         });
 
         DB::statement("ALTER TABLE hospital_reviews COMMENT = '병의원 성형/시술 후기'");

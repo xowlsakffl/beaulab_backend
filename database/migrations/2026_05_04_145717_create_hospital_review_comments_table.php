@@ -41,10 +41,10 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['hospital_review_id', 'parent_id'], 'hospital_review_comments_post_parent_idx');
-            $table->index(['status', 'created_at'], 'hospital_review_comments_status_created_idx');
-            $table->index(['post_status', 'status', 'created_at'], 'hospital_review_comments_post_status_status_created_idx');
-            $table->index(['author_id', 'created_at'], 'hospital_review_comments_author_created_idx');
+            $table->index(['hospital_review_id', 'parent_id'], 'h_review_comments_post_parent_idx');
+            $table->index(['status', 'created_at'], 'h_review_comments_status_created_idx');
+            $table->index(['post_status', 'status', 'created_at'], 'h_review_comments_post_status_status_created_idx');
+            $table->index(['author_id', 'created_at'], 'h_review_comments_author_created_idx');
         });
 
         DB::statement("ALTER TABLE hospital_review_comments COMMENT = '병의원후기 댓글'");

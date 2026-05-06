@@ -5,8 +5,8 @@ namespace Database\Factories;
 use App\Common\Authorization\AccessRoles;
 use App\Domains\AccountBeauty\Models\AccountBeauty;
 use App\Domains\Beauty\Models\Beauty;
-use App\Domains\BeautyBusinessRegistration\Models\BeautyBusinessRegistration;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Beauty\Models\BeautyBusinessRegistration;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Database\Factories\Support\SeedMediaFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

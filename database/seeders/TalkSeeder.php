@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Models\Category\Category;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Seeder;

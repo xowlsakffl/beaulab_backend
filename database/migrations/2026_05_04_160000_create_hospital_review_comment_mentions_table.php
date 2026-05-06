@@ -14,7 +14,7 @@ return new class extends Migration
 
             $table->foreignId('hospital_review_comment_id')
                 ->comment('병의원 후기 댓글 ID')
-                ->constrained('hospital_review_comments')
+                ->constrained('hospital_review_comments', 'id', 'hrc_mentions_comment_id_foreign')
                 ->cascadeOnDelete();
 
             $table->foreignId('mentioned_user_id')
@@ -34,9 +34,9 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique('hospital_review_comment_id', 'hospital_review_comment_mentions_comment_unique');
-            $table->index(['mentioned_user_id', 'created_at'], 'hospital_review_comment_mentions_user_created_idx');
-            $table->index(['mentioned_by_user_id', 'created_at'], 'hospital_review_comment_mentions_by_user_created_idx');
+            $table->unique('hospital_review_comment_id', 'h_review_comment_mentions_comment_unique');
+            $table->index(['mentioned_user_id', 'created_at'], 'h_review_comment_mentions_user_created_idx');
+            $table->index(['mentioned_by_user_id', 'created_at'], 'h_review_comment_mentions_by_user_created_idx');
         });
 
         DB::statement("ALTER TABLE hospital_review_comment_mentions COMMENT = '병의원 후기 댓글 멘션 매핑'");

@@ -39,6 +39,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'doctors' => '의사',
         'experts' => '뷰티전문가',
         'videos' => '동영상',
+        'hospital-reviews' => '병의원 후기',
+        'hospital-review-comments' => '병의원 후기 댓글',
         'talks' => '토크',
         'talk-comments' => '토크 댓글',
         'notices' => '공지사항',

@@ -27,7 +27,7 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => '뷰랩 API 문서입니다. 라우트별 업무 목적과 요청/응답 속성 설명을 한글로 제공합니다.',
+        'description' => '뷰랩 API 문서입니다.',
     ],
 
     /*

@@ -2,10 +2,22 @@
 
 namespace App\Domains\Talk\Queries\User;
 
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Models\Talk;
 
 final class TalkCreateForUserQuery
 {
+    public function categoryIdByCode(string $categoryCode): int
+    {
+        $categoryId = Category::query()
+            ->where('domain', Talk::CATEGORY_DOMAIN)
+            ->where('status', Category::STATUS_ACTIVE)
+            ->where('code', $categoryCode)
+            ->value('id');
+
+        return is_numeric($categoryId) ? (int) $categoryId : 0;
+    }
+
     public function create(array $payload): Talk
     {
         return Talk::query()->create([

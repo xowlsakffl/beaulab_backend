@@ -2,7 +2,6 @@
 
 namespace App\Domains\HospitalReview\Dto\Staff;
 
-use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalReview\Models\HospitalReviewCommentMention;
@@ -68,16 +67,14 @@ final readonly class HospitalReviewCommentForStaffDetailDto
 
     private static function author(HospitalReviewComment $comment): ?array
     {
-        $author = $comment->getRelations()['author'] ?? null;
-
-        if (! $author instanceof AccountUser) {
+        if (! $comment->relationLoaded('author') || ! $comment->author) {
             return null;
         }
 
-        $attributes = $author->getAttributes();
+        $attributes = $comment->author->getAttributes();
 
         return [
-            'id' => (int) $author->getKey(),
+            'id' => (int) $comment->author->getKey(),
             'name' => (string) ($attributes['name'] ?? ''),
             'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
                 ? (string) $attributes['nickname']
@@ -90,13 +87,15 @@ final readonly class HospitalReviewCommentForStaffDetailDto
 
     private static function mention(HospitalReviewComment $comment): ?array
     {
-        $mention = collect($comment->getRelations()['mentions'] ?? [])->first();
+        if (! $comment->relationLoaded('mentions')) {
+            return null;
+        }
+
+        $mention = $comment->mentions->first();
 
         if (! $mention instanceof HospitalReviewCommentMention) {
             return null;
         }
-
-        $mentionedUser = $mention->getRelations()['mentionedUser'] ?? null;
 
         return [
             'id' => (int) $mention->id,
@@ -105,15 +104,19 @@ final readonly class HospitalReviewCommentForStaffDetailDto
             'mention_text' => $mention->mention_text,
             'start_offset' => $mention->start_offset,
             'end_offset' => $mention->end_offset,
-            'mentioned_user_name' => $mentionedUser instanceof AccountUser
-                ? (string) $mentionedUser->name
+            'mentioned_user_name' => $mention->relationLoaded('mentionedUser') && $mention->mentionedUser
+                ? (string) $mention->mentionedUser->name
                 : null,
         ];
     }
 
     private static function operationHistories(HospitalReviewComment $comment): array
     {
-        return collect($comment->getRelations()['operationHistories'] ?? [])
+        if (! $comment->relationLoaded('operationHistories')) {
+            return [];
+        }
+
+        return $comment->operationHistories
             ->map(function (OperationHistory $history): array {
                 $field = (string) $history->field;
 

@@ -7,10 +7,6 @@ use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * HospitalReviewListForStaffRequest 역할 정의.
- * 병의원 후기 도메인의 HTTP 요청 검증 객체로, 관리자 목록 필터 입력값을 정규화하고 검증한다.
- */
 final class HospitalReviewListForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
@@ -39,7 +35,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
-            'category_domain' => ['nullable', Rule::in(HospitalReview::categoryDomains())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -79,7 +74,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'doctor_id' => $validated['doctor_id'] ?? null,
-            'category_domain' => $validated['category_domain'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'ratings' => $validated['ratings'] ?? null,
             'is_main_featured' => $this->has('is_main_featured') ? $this->boolean('is_main_featured') : null,
@@ -109,7 +103,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => '작성자',
             'hospital_id' => '병의원',
             'doctor_id' => '의료진',
-            'category_domain' => '후기 유형',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'ratings' => '평점 목록',

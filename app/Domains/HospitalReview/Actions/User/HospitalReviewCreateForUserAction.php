@@ -5,9 +5,8 @@ namespace App\Domains\HospitalReview\Actions\User;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\HospitalDoctor\Models\HospitalDoctor;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalReview\Dto\User\HospitalReviewForUserDetailDto;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Queries\User\HospitalReviewCreateForUserQuery;
@@ -15,10 +14,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-/**
- * HospitalReviewCreateForUserAction 역할 정의.
- * 병의원 후기 도메인의 Action 계층으로, 사용자 후기 등록 흐름과 도메인 정합성 검증을 조합한다.
- */
 final class HospitalReviewCreateForUserAction
 {
     public function __construct(
@@ -28,13 +23,24 @@ final class HospitalReviewCreateForUserAction
 
     public function execute(AccountUser $user, array $payload): array
     {
-        $normalized = $this->normalizePayload($user, $payload);
+        if (! empty($payload['doctor_id'])) {
+            if (! $this->query->doctorBelongsToHospital((int) $payload['doctor_id'], (int) $payload['hospital_id'])) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병의원에 소속된 의료진이 아닙니다.');
+            }
+        }
 
-        $review = DB::transaction(function () use ($normalized): HospitalReview {
-            $review = $this->query->create($normalized);
+        $categories = $this->resolveCategories($payload['category_codes'] ?? []);
+        $categoryDomain = (string) $categories->first()->domain;
 
-            $this->syncCategories($review, $normalized['resolved_categories']);
-            $this->attachImages($review, $normalized);
+        $review = DB::transaction(function () use ($user, $payload, $categories, $categoryDomain): HospitalReview {
+            $review = $this->query->create([
+                ...$payload,
+                'author_id' => (int) $user->id,
+                'category_domain' => $categoryDomain,
+            ]);
+
+            $this->syncCategories($review, $categories);
+            $this->attachImages($review, $payload);
 
             return $review->fresh([
                 'author',
@@ -51,73 +57,17 @@ final class HospitalReviewCreateForUserAction
         ];
     }
 
-    private function normalizePayload(AccountUser $user, array $payload): array
-    {
-        $payload['author_id'] = (int) $user->id;
-
-        if (! empty($payload['doctor_id'])) {
-            $doctor = HospitalDoctor::query()->find($payload['doctor_id']);
-
-            if (! $doctor || (int) $doctor->hospital_id !== (int) $payload['hospital_id']) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병의원에 소속된 의료진이 아닙니다.');
-            }
-        }
-
-        $resolvedCategories = $this->resolveCategories(
-            $payload['category_domain'] ?? null,
-            $payload['category_codes'] ?? [],
-        );
-
-        if ($resolvedCategories->isEmpty()) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '카테고리를 선택해 주세요.');
-        }
-
-        $requestedCategoryCount = collect($payload['category_codes'] ?? [])
-            ->filter(static fn ($code): bool => is_string($code) && trim($code) !== '')
-            ->count();
-
-        if ($resolvedCategories->count() !== $requestedCategoryCount) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '유효한 후기 카테고리만 선택할 수 있습니다.');
-        }
-
-        if ($resolvedCategories->contains(static fn (Category $category): bool => (int) ($category->children_count ?? 0) > 0)) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '후기 카테고리는 최하위 카테고리만 선택할 수 있습니다.');
-        }
-
-        $payload['resolved_categories'] = $resolvedCategories;
-
-        return $payload;
-    }
-
     /**
      * @param array<int, string> $categoryCodes
      * @return Collection<int, Category>
      */
-    private function resolveCategories(mixed $categoryDomain, array $categoryCodes): Collection
+    private function resolveCategories(array $categoryCodes): Collection
     {
-        if (! is_string($categoryDomain) || ! in_array($categoryDomain, HospitalReview::categoryDomains(), true)) {
-            return collect();
-        }
+        $codes = array_values($categoryCodes);
 
-        $codes = collect($categoryCodes)
-            ->map(static fn ($code): ?string => is_string($code) ? trim($code) : null)
-            ->filter(static fn (?string $code): bool => $code !== null && $code !== '')
-            ->unique()
-            ->values();
+        $categoriesByCode = $this->query->categoriesByCodes($codes)->keyBy('code');
 
-        if ($codes->isEmpty()) {
-            return collect();
-        }
-
-        $categoriesByCode = Category::query()
-            ->where('domain', $categoryDomain)
-            ->where('status', Category::STATUS_ACTIVE)
-            ->whereIn('code', $codes->all())
-            ->withCount('children')
-            ->get()
-            ->keyBy('code');
-
-        return $codes
+        return collect($codes)
             ->map(static fn (string $code) => $categoriesByCode->get($code))
             ->filter(static fn ($category): bool => $category instanceof Category)
             ->values();
@@ -128,18 +78,22 @@ final class HospitalReviewCreateForUserAction
      */
     private function syncCategories(HospitalReview $review, Collection $categories): void
     {
-        $payload = $categories
-            ->values()
-            ->mapWithKeys(static fn (Category $category, int $index): array => [
-                (int) $category->id => ['is_primary' => $index === 0],
-            ])
-            ->all();
+        $categoryIds = $categories
+            ->map(static fn (Category $category): int => (int) $category->id)
+            ->filter(static fn (int $categoryId): bool => $categoryId > 0)
+            ->values();
 
-        if ($payload === []) {
+        if ($categoryIds->isEmpty()) {
             return;
         }
 
-        $review->categories()->sync($payload);
+        $review->categories()->sync(
+            $categoryIds
+                ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                    $categoryId => ['is_primary' => $index === 0],
+                ])
+                ->all(),
+        );
     }
 
     private function attachImages(HospitalReview $review, array $payload): void

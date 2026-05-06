@@ -6,7 +6,6 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
-use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Dto\User\TalkForUserDetailDto;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkPoll;
@@ -47,6 +46,21 @@ final class TalkCreateForUserAction
         ];
     }
 
+    private function resolveCategoryId(mixed $categoryCode): ?int
+    {
+        if (! is_string($categoryCode) || trim($categoryCode) === '') {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '토크 카테고리를 확인해 주세요.');
+        }
+
+        $categoryId = $this->query->categoryIdByCode(trim($categoryCode));
+
+        if ($categoryId <= 0) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '토크 카테고리를 확인해 주세요.');
+        }
+
+        return $categoryId;
+    }
+
     private function syncCategory(Talk $talk, mixed $categoryId): void
     {
         $categoryId = (int) $categoryId;
@@ -58,27 +72,6 @@ final class TalkCreateForUserAction
         $talk->categories()->sync([
             $categoryId => ['is_primary' => true],
         ]);
-    }
-
-    private function resolveCategoryId(mixed $categoryCode): ?int
-    {
-        if (! is_string($categoryCode) || trim($categoryCode) === '') {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '토크 카테고리를 확인해 주세요.');
-        }
-
-        $categoryId = Category::query()
-            ->where('domain', Talk::CATEGORY_DOMAIN)
-            ->where('status', Category::STATUS_ACTIVE)
-            ->where('code', trim($categoryCode))
-            ->value('id');
-
-        $categoryId = is_numeric($categoryId) ? (int) $categoryId : 0;
-
-        if ($categoryId <= 0) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '토크 카테고리를 확인해 주세요.');
-        }
-
-        return $categoryId;
     }
 
     /**

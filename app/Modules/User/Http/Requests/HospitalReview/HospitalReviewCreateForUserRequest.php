@@ -6,11 +6,8 @@ use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
-/**
- * HospitalReviewCreateForUserRequest 역할 정의.
- * 병의원 후기 도메인의 HTTP 요청 검증 객체로, 사용자 입력의 형식과 기본 제약을 검증한다.
- */
 final class HospitalReviewCreateForUserRequest extends FormRequest
 {
     protected function prepareForValidation(): void
@@ -38,15 +35,14 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
         return [
             'hospital_id' => ['required', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
-            'category_domain' => ['required', Rule::in(HospitalReview::categoryDomains())],
             'category_codes' => ['required', 'array', 'min:1', 'max:' . HospitalReview::MAX_CATEGORY_COUNT],
             'category_codes.*' => [
                 'required',
                 'string',
                 'max:80',
                 'distinct:strict',
-                Rule::exists('categories', 'code')->where(fn ($query) => $query
-                    ->where('domain', (string) $this->input('category_domain'))
+                Rule::exists('categories', 'code')->where(static fn ($query) => $query
+                    ->whereIn('domain', HospitalReview::categoryDomains())
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'title' => ['required', 'string', 'max:255'],
@@ -65,7 +61,6 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
         return [
             'hospital_id' => '병의원',
             'doctor_id' => '의료진',
-            'category_domain' => '후기 유형',
             'category_codes' => '카테고리 목록',
             'category_codes.*' => '카테고리',
             'title' => '제목',
@@ -79,6 +74,19 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
         ];
     }
 
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($validator->errors()->count() > 0) {
+                    return;
+                }
+
+                $this->validateReviewCategories($validator);
+            },
+        ];
+    }
+
     /**
      * @return array<int, string>
      */
@@ -89,7 +97,9 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
         }
 
         if (is_string($value)) {
-            $value = explode(',', $value);
+            $trimmed = trim($value);
+            $decoded = json_decode($trimmed, true);
+            $value = is_array($decoded) ? $decoded : explode(',', $trimmed);
         }
 
         if (! is_array($value)) {
@@ -101,5 +111,30 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
             ->filter(static fn (?string $item): bool => $item !== null && $item !== '')
             ->values()
             ->all();
+    }
+
+    private function validateReviewCategories(Validator $validator): void
+    {
+        $codes = $this->input('category_codes', []);
+        if (! is_array($codes) || $codes === []) {
+            return;
+        }
+
+        $categories = Category::query()
+            ->whereIn('domain', HospitalReview::categoryDomains())
+            ->where('status', Category::STATUS_ACTIVE)
+            ->whereIn('code', $codes)
+            ->withCount('children')
+            ->get();
+
+        if ($categories->count() !== count($codes) || $categories->pluck('domain')->unique()->count() !== 1) {
+            $validator->errors()->add('category_codes', '후기 카테고리 유형을 확인해 주세요.');
+
+            return;
+        }
+
+        if ($categories->contains(static fn (Category $category): bool => (int) ($category->children_count ?? 0) > 0)) {
+            $validator->errors()->add('category_codes', '후기 카테고리는 최하위 카테고리만 선택할 수 있습니다.');
+        }
     }
 }

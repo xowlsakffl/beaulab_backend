@@ -19,7 +19,6 @@ final class HospitalReviewListForStaffQuery
                 'author_id',
                 'hospital_id',
                 'doctor_id',
-                'category_domain',
                 'title',
                 'content',
                 'cost',
@@ -77,10 +76,6 @@ final class HospitalReviewListForStaffQuery
             $builder->where('doctor_id', (int) $filters['doctor_id']);
         }
 
-        if (! empty($filters['category_domain'])) {
-            $builder->where('category_domain', (string) $filters['category_domain']);
-        }
-
         $categoryIds = $filters['category_ids'] ?? null;
         if (is_array($categoryIds) && $categoryIds !== []) {
             $normalizedCategoryIds = collect($categoryIds)
@@ -93,12 +88,10 @@ final class HospitalReviewListForStaffQuery
             if ($normalizedCategoryIds === []) {
                 $builder->whereRaw('1 = 0');
             } else {
-                $builder->whereHas('categories', function ($query) use ($normalizedCategoryIds, $filters): void {
-                    $query->whereIn('categories.id', $normalizedCategoryIds);
-
-                    if (! empty($filters['category_domain'])) {
-                        $query->where('categories.domain', (string) $filters['category_domain']);
-                    }
+                $builder->whereHas('categories', function ($query) use ($normalizedCategoryIds): void {
+                    $query
+                        ->whereIn('categories.domain', HospitalReview::categoryDomains())
+                        ->whereIn('categories.id', $normalizedCategoryIds);
                 });
             }
         }

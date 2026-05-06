@@ -292,7 +292,6 @@ final class KoreanOpenApiDescriptions
             'size' => '파일 크기',
             'width' => '이미지 너비',
             'height' => '이미지 높이',
-            'sort_order' => '정렬 순서',
         ];
     }
 }

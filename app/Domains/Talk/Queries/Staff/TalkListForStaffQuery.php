@@ -33,7 +33,7 @@ final class TalkListForStaffQuery
             ->with([
                 'author:id,name,nickname,email',
                 'categories' => fn ($query) => $query
-                    ->select(['categories.id', 'categories.code', 'categories.depth', 'categories.sort_order'])
+                    ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')
                     ->orderBy('sort_order')
                     ->orderBy('id'),

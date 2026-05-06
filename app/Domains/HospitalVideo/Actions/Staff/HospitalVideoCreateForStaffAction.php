@@ -46,6 +46,7 @@ final class HospitalVideoCreateForStaffAction
 
             return $video->fresh([
                 'hospital',
+                'hospital.businessRegistration',
                 'doctor',
                 'thumbnailMedia',
                 'videoFileMedia',

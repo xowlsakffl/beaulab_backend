@@ -4,7 +4,6 @@ namespace App\Domains\Talk\Dto\Staff;
 
 use App\Domains\Talk\Models\TalkComment;
 use App\Domains\Talk\Models\TalkCommentMention;
-use Illuminate\Support\Collection;
 
 /**
  * TalkCommentForStaffDetailDto 역할 정의.
@@ -17,7 +16,6 @@ final readonly class TalkCommentForStaffDetailDto
         public int $talkId,
         public ?int $parentId,
         public bool $isReply,
-        public ?int $authorId,
         public string $content,
         public string $status,
         public ?string $authorIp,
@@ -39,7 +37,6 @@ final readonly class TalkCommentForStaffDetailDto
             talkId: (int) $comment->talk_id,
             parentId: $comment->parent_id ? (int) $comment->parent_id : null,
             isReply: $comment->isReply(),
-            authorId: $comment->author_id ? (int) $comment->author_id : null,
             content: (string) $comment->content,
             status: (string) $comment->status,
             authorIp: $comment->author_ip,
@@ -48,10 +45,10 @@ final readonly class TalkCommentForStaffDetailDto
             createdAt: $comment->created_at?->toISOString(),
             updatedAt: $comment->updated_at?->toISOString(),
             deletedAt: $comment->deleted_at?->toISOString(),
-            author: $comment->relationLoaded('author') ? self::author($comment) : null,
-            talk: $comment->relationLoaded('talk') ? self::talk($comment) : null,
-            mentions: $comment->relationLoaded('mentions') ? self::mentions($comment) : null,
-            children: $comment->relationLoaded('children') && $comment->isRootComment() ? self::children($comment) : null,
+            author: self::author($comment),
+            talk: self::talk($comment),
+            mentions: self::mentions($comment),
+            children: self::children($comment),
         );
     }
 
@@ -62,7 +59,6 @@ final readonly class TalkCommentForStaffDetailDto
             'talk_id' => $this->talkId,
             'parent_id' => $this->parentId,
             'is_reply' => $this->isReply,
-            'author_id' => $this->authorId,
             'content' => $this->content,
             'status' => $this->status,
             'author_ip' => $this->authorIp,
@@ -101,6 +97,7 @@ final readonly class TalkCommentForStaffDetailDto
         return [
             'id' => (int) $comment->author->id,
             'name' => (string) $comment->author->name,
+            'nickname' => $comment->author->nickname ? (string) $comment->author->nickname : null,
             'email' => (string) $comment->author->email,
         ];
     }
@@ -117,9 +114,13 @@ final readonly class TalkCommentForStaffDetailDto
         ];
     }
 
-    private static function mentions(TalkComment $comment): array
+    private static function mentions(TalkComment $comment): ?array
     {
-        return self::resolveMentions($comment)
+        if (! $comment->relationLoaded('mentions')) {
+            return null;
+        }
+
+        return $comment->mentions
             ->map(fn (TalkCommentMention $mention): array => [
                 'id' => (int) $mention->id,
                 'mentioned_user_id' => (int) $mention->mentioned_user_id,
@@ -135,17 +136,18 @@ final readonly class TalkCommentForStaffDetailDto
             ->all();
     }
 
-    private static function children(TalkComment $comment): array
+    private static function children(TalkComment $comment): ?array
     {
-        return self::resolveChildren($comment)
+        if (! $comment->isRootComment() || ! $comment->relationLoaded('children')) {
+            return null;
+        }
+
+        return $comment->children
             ->map(fn (TalkComment $child): array => [
                 'id' => (int) $child->id,
                 'parent_id' => $child->parent_id ? (int) $child->parent_id : null,
                 'is_reply' => $child->isReply(),
-                'author_id' => $child->author_id ? (int) $child->author_id : null,
-                'author_name' => $child->relationLoaded('author') && $child->author
-                    ? (string) $child->author->name
-                    : null,
+                'author' => self::author($child),
                 'content' => (string) $child->content,
                 'status' => (string) $child->status,
                 'like_count' => (int) $child->like_count,
@@ -155,29 +157,5 @@ final readonly class TalkCommentForStaffDetailDto
             ])
             ->values()
             ->all();
-    }
-
-    /**
-     * @return Collection<int, TalkComment>
-     */
-    private static function resolveChildren(TalkComment $comment): Collection
-    {
-        if (! $comment->relationLoaded('children')) {
-            return collect();
-        }
-
-        return $comment->children;
-    }
-
-    /**
-     * @return Collection<int, TalkCommentMention>
-     */
-    private static function resolveMentions(TalkComment $comment): Collection
-    {
-        if (! $comment->relationLoaded('mentions')) {
-            return collect();
-        }
-
-        return $comment->mentions;
     }
 }

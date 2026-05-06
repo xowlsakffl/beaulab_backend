@@ -27,7 +27,7 @@ final class TalkCommentListForStaffQuery
                 'talk:id,title',
                 'author:id,name,nickname,email',
                 'talk.categories' => fn ($categoryQuery) => $categoryQuery
-                    ->select(['categories.id', 'categories.code', 'categories.depth', 'categories.sort_order'])
+                    ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')
                     ->orderBy('sort_order')
                     ->orderBy('id'),

@@ -51,7 +51,15 @@ final class HospitalVideoCreateForHospitalAction
 
             $this->syncCategories($video, $normalized['category_ids']);
 
-            return $video->fresh(['thumbnailMedia', 'videoFileMedia', 'categories']);
+            return $video->fresh([
+                'hospital',
+                'hospital.businessRegistration',
+                'doctor',
+                'submittedByAccount',
+                'thumbnailMedia',
+                'videoFileMedia',
+                'categories',
+            ]);
         });
 
         return [

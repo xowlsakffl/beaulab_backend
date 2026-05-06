@@ -56,6 +56,7 @@ final class HospitalVideoUpdateForStaffAction
 
             return $updated->fresh([
                 'hospital',
+                'hospital.businessRegistration',
                 'doctor',
                 'thumbnailMedia',
                 'videoFileMedia',

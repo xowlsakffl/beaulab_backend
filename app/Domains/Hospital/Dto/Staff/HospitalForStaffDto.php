@@ -38,24 +38,9 @@ final readonly class HospitalForStaffDto
             status: $hospital->status,
             createdAt: $hospital->created_at?->toISOString() ?? '',
             updatedAt: $hospital->updated_at?->toISOString() ?? '',
-            logo: self::formatMedia($hospital->relationLoaded('logoMedia') ? $hospital->logoMedia : null),
-            categories: $hospital->relationLoaded('categories')
-                ? $hospital->categories
-                    ->map(fn (Category $category): array => [
-                        'name' => (string) $category->name,
-                    ])
-                    ->values()
-                    ->all()
-                : null,
-            features: $hospital->relationLoaded('features')
-                ? $hospital->features
-                    ->map(fn (HospitalFeature $feature): array => [
-                        'code' => (string) $feature->code,
-                        'name' => (string) $feature->name,
-                    ])
-                    ->values()
-                    ->all()
-                : null,
+            logo: self::logo($hospital),
+            categories: self::categories($hospital),
+            features: self::features($hospital),
         );
     }
 
@@ -84,7 +69,45 @@ final readonly class HospitalForStaffDto
         return $data;
     }
 
-    private static function formatMedia(?Media $media): ?array
+    private static function logo(Hospital $hospital): ?array
+    {
+        if (! $hospital->relationLoaded('logoMedia')) {
+            return null;
+        }
+
+        return self::media($hospital->logoMedia);
+    }
+
+    private static function categories(Hospital $hospital): ?array
+    {
+        if (! $hospital->relationLoaded('categories')) {
+            return null;
+        }
+
+        return $hospital->categories
+            ->map(fn (Category $category): array => [
+                'name' => (string) $category->name,
+            ])
+            ->values()
+            ->all();
+    }
+
+    private static function features(Hospital $hospital): ?array
+    {
+        if (! $hospital->relationLoaded('features')) {
+            return null;
+        }
+
+        return $hospital->features
+            ->map(fn (HospitalFeature $feature): array => [
+                'code' => (string) $feature->code,
+                'name' => (string) $feature->name,
+            ])
+            ->values()
+            ->all();
+    }
+
+    private static function media(?Media $media): ?array
     {
         if (! $media) {
             return null;

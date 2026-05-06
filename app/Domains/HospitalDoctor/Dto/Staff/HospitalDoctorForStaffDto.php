@@ -48,15 +48,8 @@ final readonly class HospitalDoctorForStaffDto
             viewCount: (int) $doctor->view_count,
             createdAt: $doctor->created_at?->toISOString() ?? '',
             updatedAt: $doctor->updated_at?->toISOString() ?? '',
-            profileImage: self::formatMedia($doctor->relationLoaded('profileImage') ? $doctor->profileImage : null),
-            categories: $doctor->relationLoaded('categories')
-                ? $doctor->categories
-                    ->map(fn (Category $category): array => [
-                        'name' => (string) $category->name,
-                    ])
-                    ->values()
-                    ->all()
-                : null,
+            profileImage: self::profileImage($doctor),
+            categories: self::categories($doctor),
         );
     }
 
@@ -87,7 +80,30 @@ final readonly class HospitalDoctorForStaffDto
         return $data;
     }
 
-    private static function formatMedia(?Media $media): ?array
+    private static function profileImage(HospitalDoctor $doctor): ?array
+    {
+        if (! $doctor->relationLoaded('profileImage')) {
+            return null;
+        }
+
+        return self::media($doctor->profileImage);
+    }
+
+    private static function categories(HospitalDoctor $doctor): ?array
+    {
+        if (! $doctor->relationLoaded('categories')) {
+            return null;
+        }
+
+        return $doctor->categories
+            ->map(fn (Category $category): array => [
+                'name' => (string) $category->name,
+            ])
+            ->values()
+            ->all();
+    }
+
+    private static function media(?Media $media): ?array
     {
         if (! $media) {
             return null;

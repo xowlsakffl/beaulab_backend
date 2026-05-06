@@ -6,13 +6,11 @@ use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkPollOption;
-use Illuminate\Support\Collection;
 
 final readonly class TalkForUserDetailDto
 {
     public function __construct(
         public int $id,
-        public ?int $authorId,
         public string $title,
         public string $content,
         public string $status,
@@ -24,7 +22,7 @@ final readonly class TalkForUserDetailDto
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?array $author = null,
-        public ?string $categoryCode = null,
+        public ?array $category = null,
         public ?array $images = null,
         public ?array $poll = null,
     ) {}
@@ -33,7 +31,6 @@ final readonly class TalkForUserDetailDto
     {
         return new self(
             id: (int) $talk->id,
-            authorId: $talk->author_id ? (int) $talk->author_id : null,
             title: (string) $talk->title,
             content: (string) $talk->content,
             status: (string) $talk->status,
@@ -44,10 +41,10 @@ final readonly class TalkForUserDetailDto
             saveCount: (int) $talk->save_count,
             createdAt: $talk->created_at?->toISOString(),
             updatedAt: $talk->updated_at?->toISOString(),
-            author: $talk->relationLoaded('author') ? self::author($talk) : null,
-            categoryCode: $talk->relationLoaded('categories') ? self::categoryCode($talk) : null,
-            images: $talk->relationLoaded('images') ? self::images($talk) : null,
-            poll: $talk->relationLoaded('poll') ? self::poll($talk) : null,
+            author: self::author($talk),
+            category: self::category($talk),
+            images: self::images($talk),
+            poll: self::poll($talk),
         );
     }
 
@@ -55,7 +52,6 @@ final readonly class TalkForUserDetailDto
     {
         $data = [
             'id' => $this->id,
-            'author_id' => $this->authorId,
             'title' => $this->title,
             'content' => $this->content,
             'status' => $this->status,
@@ -72,8 +68,8 @@ final readonly class TalkForUserDetailDto
             $data['author'] = $this->author;
         }
 
-        if ($this->categoryCode !== null) {
-            $data['category_code'] = $this->categoryCode;
+        if ($this->category !== null) {
+            $data['category'] = $this->category;
         }
 
         if ($this->images !== null) {
@@ -100,20 +96,39 @@ final readonly class TalkForUserDetailDto
         ];
     }
 
-    private static function categoryCode(Talk $talk): ?string
+    private static function category(Talk $talk): ?array
     {
-        $code = self::resolveCategories($talk)
+        if (! $talk->relationLoaded('categories')) {
+            return null;
+        }
+
+        $category = $talk->categories
             ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
-            ->map(fn (Category $category): string => (string) $category->code)
-            ->filter(static fn (string $code): bool => $code !== '')
             ->first();
 
-        return is_string($code) && $code !== '' ? $code : null;
+        if (! $category instanceof Category) {
+            return null;
+        }
+
+        $attributes = $category->getAttributes();
+
+        return [
+            'id' => (int) $category->id,
+            'code' => (string) ($attributes['code'] ?? ''),
+            'domain' => (string) ($attributes['domain'] ?? Talk::CATEGORY_DOMAIN),
+            'name' => (string) $category->name,
+            'full_path' => (string) ($attributes['full_path'] ?? ''),
+            'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+        ];
     }
 
-    private static function images(Talk $talk): array
+    private static function images(Talk $talk): ?array
     {
-        return self::resolveImages($talk)
+        if (! $talk->relationLoaded('images')) {
+            return null;
+        }
+
+        return $talk->images
             ->map(fn (Media $media): array => [
                 'id' => (int) $media->id,
                 'collection' => (string) $media->collection,
@@ -156,29 +171,5 @@ final readonly class TalkForUserDetailDto
             'created_at' => $talk->poll->created_at?->toISOString(),
             'updated_at' => $talk->poll->updated_at?->toISOString(),
         ];
-    }
-
-    /**
-     * @return Collection<int, Category>
-     */
-    private static function resolveCategories(Talk $talk): Collection
-    {
-        if (! $talk->relationLoaded('categories')) {
-            return collect();
-        }
-
-        return $talk->categories;
-    }
-
-    /**
-     * @return Collection<int, Media>
-     */
-    private static function resolveImages(Talk $talk): Collection
-    {
-        if (! $talk->relationLoaded('images')) {
-            return collect();
-        }
-
-        return $talk->images;
     }
 }

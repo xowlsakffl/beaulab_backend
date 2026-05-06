@@ -5,7 +5,6 @@ namespace App\Domains\HospitalVideo\Dto\Staff;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
-use Illuminate\Support\Collection;
 
 /**
  * HospitalVideoForStaffDetailDto DTO.
@@ -14,19 +13,14 @@ final readonly class HospitalVideoForStaffDetailDto
 {
     public function __construct(
         public int $id,
-        public int $hospitalId,
-        public ?string $hospitalName,
-        public ?string $hospitalBusinessNumber,
-        public ?int $doctorId,
-        public ?string $doctorName,
+        public ?array $hospital,
+        public ?array $doctor,
         public string $title,
         public ?string $description,
         public string $distributionChannel,
         public ?string $externalVideoId,
         public ?string $externalVideoUrl,
-        public ?int $thumbnailMediaId,
         public ?array $thumbnailFile,
-        public ?int $videoFileMediaId,
         public ?array $videoFile,
         public int $durationSeconds,
         public string $status,
@@ -47,20 +41,15 @@ final readonly class HospitalVideoForStaffDetailDto
     {
         return new self(
             id: (int) $video->id,
-            hospitalId: (int) $video->hospital_id,
-            hospitalName: $video->hospital?->name,
-            hospitalBusinessNumber: $video->hospital?->businessRegistration?->business_number,
-            doctorId: $video->doctor_id ? (int) $video->doctor_id : null,
-            doctorName: $video->doctor?->name,
+            hospital: self::hospital($video),
+            doctor: self::doctor($video),
             title: (string) $video->title,
             description: $video->description,
             distributionChannel: (string) $video->distribution_channel,
             externalVideoId: $video->external_video_id,
             externalVideoUrl: $video->external_video_url,
-            thumbnailMediaId: $video->thumbnailMedia?->id ? (int) $video->thumbnailMedia->id : null,
-            thumbnailFile: self::formatMedia($video->thumbnailMedia),
-            videoFileMediaId: $video->videoFileMedia?->id ? (int) $video->videoFileMedia->id : null,
-            videoFile: self::formatMedia($video->videoFileMedia),
+            thumbnailFile: self::thumbnailFile($video),
+            videoFile: self::videoFile($video),
             durationSeconds: (int) $video->duration_seconds,
             status: (string) $video->status,
             allowStatus: (string) $video->allow_status,
@@ -81,19 +70,14 @@ final readonly class HospitalVideoForStaffDetailDto
     {
         $data = [
             'id' => $this->id,
-            'hospital_id' => $this->hospitalId,
-            'hospital_name' => $this->hospitalName,
-            'hospital_business_number' => $this->hospitalBusinessNumber,
-            'doctor_id' => $this->doctorId,
-            'doctor_name' => $this->doctorName,
+            'hospital' => $this->hospital,
+            'doctor' => $this->doctor,
             'title' => $this->title,
             'description' => $this->description,
             'distribution_channel' => $this->distributionChannel,
             'external_video_id' => $this->externalVideoId,
             'external_video_url' => $this->externalVideoUrl,
-            'thumbnail_media_id' => $this->thumbnailMediaId,
             'thumbnail_file' => $this->thumbnailFile,
-            'video_file_media_id' => $this->videoFileMediaId,
             'video_file' => $this->videoFile,
             'duration_seconds' => $this->durationSeconds,
             'status' => $this->status,
@@ -113,11 +97,49 @@ final readonly class HospitalVideoForStaffDetailDto
         return $data;
     }
 
+    private static function hospital(HospitalVideo $video): ?array
+    {
+        if (! $video->relationLoaded('hospital') || ! $video->hospital) {
+            return null;
+        }
+
+        $businessNumber = null;
+        if ($video->hospital->relationLoaded('businessRegistration') && $video->hospital->businessRegistration) {
+            $businessNumber = $video->hospital->businessRegistration->business_number;
+        }
+
+        return [
+            'id' => (int) $video->hospital->id,
+            'name' => (string) $video->hospital->name,
+            'business_number' => $businessNumber,
+        ];
+    }
+
+    private static function doctor(HospitalVideo $video): ?array
+    {
+        if (! $video->relationLoaded('doctor') || ! $video->doctor) {
+            return null;
+        }
+
+        $attributes = $video->doctor->getAttributes();
+
+        return [
+            'id' => (int) $video->doctor->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'position' => $attributes['position'] ?? null,
+        ];
+    }
+
     private static function categories(HospitalVideo $video): array
     {
-        return self::resolveCategories($video)
+        if (! $video->relationLoaded('categories')) {
+            return [];
+        }
+
+        return $video->categories
             ->map(fn (Category $category): array => [
                 'id' => (int) $category->id,
+                'code' => (string) ($category->code ?? ''),
                 'domain' => (string) ($category->domain ?? ''),
                 'name' => (string) $category->name,
                 'full_path' => (string) ($category->full_path ?? ''),
@@ -127,7 +149,25 @@ final readonly class HospitalVideoForStaffDetailDto
             ->all();
     }
 
-    private static function formatMedia(?Media $media): ?array
+    private static function thumbnailFile(HospitalVideo $video): ?array
+    {
+        if (! $video->relationLoaded('thumbnailMedia')) {
+            return null;
+        }
+
+        return self::media($video->thumbnailMedia);
+    }
+
+    private static function videoFile(HospitalVideo $video): ?array
+    {
+        if (! $video->relationLoaded('videoFileMedia')) {
+            return null;
+        }
+
+        return self::media($video->videoFileMedia);
+    }
+
+    private static function media(?Media $media): ?array
     {
         if (! $media) {
             return null;
@@ -148,17 +188,5 @@ final readonly class HospitalVideoForStaffDetailDto
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];
-    }
-
-    /**
-     * @return Collection<int, Category>
-     */
-    private static function resolveCategories(HospitalVideo $video): Collection
-    {
-        if (! $video->relationLoaded('categories')) {
-            return collect();
-        }
-
-        return $video->categories;
     }
 }

@@ -101,6 +101,11 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'delete user/talks/{talk}/comments/{comment}' => '토크 댓글 삭제',
         'post user/talks/{talk}/poll-votes' => '토크 투표',
 
+        'post user/hospital-reviews' => '후기 생성',
+        'delete user/hospital-reviews/{hospitalReview}' => '후기 삭제',
+        'post user/hospital-reviews/{hospitalReview}/comments' => '후기 댓글 생성',
+        'delete user/hospital-reviews/{hospitalReview}/comments/{comment}' => '후기 댓글 삭제',
+
         'post hospital/auth/login' => '병의원 계정 로그인',
         'post hospital/auth/logout' => '병의원 계정 로그아웃',
         'get hospital/profile' => '병의원 계정 프로필 조회',

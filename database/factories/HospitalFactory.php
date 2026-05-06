@@ -3,10 +3,10 @@
 namespace Database\Factories;
 
 use App\Common\Authorization\AccessRoles;
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\HospitalBusinessRegistration\Models\HospitalBusinessRegistration;
+use App\Domains\Hospital\Models\HospitalBusinessRegistration;
 use Database\Factories\Support\SeedMediaFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

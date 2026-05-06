@@ -11,6 +11,7 @@ use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -156,6 +157,12 @@ final class HospitalReview extends Model
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(HospitalDoctor::class, 'doctor_id');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(HospitalReviewComment::class, 'hospital_review_id')
+            ->orderBy('id');
     }
 
     public function beforeImages(): MorphMany

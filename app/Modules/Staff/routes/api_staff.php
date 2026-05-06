@@ -18,6 +18,7 @@ use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalReviewComment\HospitalReviewCommentForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
 use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\Talk\TalkForStaffController;
@@ -184,7 +185,12 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-reviews.getHospitalReviewsForStaff');
     Route::patch('hospital-reviews/status', [HospitalReviewForStaffController::class, 'updateHospitalReviewStatusForStaff'])
         ->name('hospital-reviews.updateHospitalReviewStatusForStaff');
-
+    Route::get('hospital-reviews/{hospitalReview}', [HospitalReviewForStaffController::class, 'getHospitalReviewForStaff'])
+        ->name('hospital-reviews.getHospitalReviewForStaff');
+    Route::get('hospital-review-comments', [HospitalReviewCommentForStaffController::class, 'getCommentsForStaff'])
+        ->name('hospital-review-comments.getCommentsForStaff');
+    Route::patch('hospital-review-comments/status', [HospitalReviewCommentForStaffController::class, 'updateHospitalReviewCommentStatusForStaff'])
+        ->name('hospital-review-comments.updateHospitalReviewCommentStatusForStaff');
     /**
      * 토크 관리
      **/

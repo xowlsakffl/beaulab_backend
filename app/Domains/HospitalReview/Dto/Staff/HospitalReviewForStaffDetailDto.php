@@ -6,54 +6,66 @@ use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalReview\Models\HospitalReview;
 
-/**
- * HospitalReviewForStaffDto 역할 정의.
- * 병의원 후기 도메인의 DTO로, 모델 값을 관리자 리스트 응답에 맞는 단순한 구조로 정규화한다.
- */
-final readonly class HospitalReviewForStaffDto
+final readonly class HospitalReviewForStaffDetailDto
 {
     public function __construct(
         public int $id,
-        public string $createdAt,
         public ?array $author,
         public ?array $hospital,
         public ?array $doctor,
         public ?array $category,
-        public array $beforeImages,
-        public array $afterImages,
+        public string $title,
+        public string $content,
         public int $cost,
         public int $rating,
         public string $status,
+        public string $postStatus,
         public bool $isMainFeatured,
         public bool $isSubFeatured,
+        public int $viewCount,
+        public int $commentCount,
         public int $likeCount,
         public int $saveCount,
-        public int $commentCount,
-        public int $viewCount,
-        public string $postStatus,
+        public array $beforeImages,
+        public array $afterImages,
+        public array $operationHistories,
+        public array $comments,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+        public ?string $deletedAt,
     ) {}
 
-    public static function fromModel(HospitalReview $review): self
+    public static function fromModel(
+        HospitalReview $review,
+        array $operationHistories,
+        array $comments,
+    ): self
     {
         return new self(
             id: (int) $review->id,
-            createdAt: $review->created_at?->toISOString() ?? '',
             author: self::author($review),
             hospital: self::hospital($review),
             doctor: self::doctor($review),
             category: self::category($review),
-            beforeImages: self::beforeImages($review),
-            afterImages: self::afterImages($review),
+            title: (string) $review->title,
+            content: (string) $review->content,
             cost: (int) $review->cost,
             rating: (int) $review->rating,
             status: (string) $review->status,
+            postStatus: (string) $review->post_status,
             isMainFeatured: (bool) $review->is_main_featured,
             isSubFeatured: (bool) $review->is_sub_featured,
+            viewCount: (int) $review->view_count,
+            commentCount: (int) $review->comment_count,
             likeCount: (int) $review->like_count,
             saveCount: (int) $review->save_count,
-            commentCount: (int) $review->comment_count,
-            viewCount: (int) $review->view_count,
-            postStatus: (string) $review->post_status,
+            beforeImages: self::beforeImages($review),
+            afterImages: self::afterImages($review),
+            operationHistories: $operationHistories,
+            comments: $comments,
+            createdAt: $review->created_at?->toISOString(),
+            updatedAt: $review->updated_at?->toISOString(),
+            deletedAt: $review->deleted_at?->toISOString(),
         );
     }
 
@@ -61,23 +73,29 @@ final readonly class HospitalReviewForStaffDto
     {
         return [
             'id' => $this->id,
-            'created_at' => $this->createdAt,
             'author' => $this->author,
             'hospital' => $this->hospital,
             'doctor' => $this->doctor,
             'category' => $this->category,
-            'before_images' => $this->beforeImages,
-            'after_images' => $this->afterImages,
+            'title' => $this->title,
+            'content' => $this->content,
             'cost' => $this->cost,
             'rating' => $this->rating,
             'status' => $this->status,
+            'post_status' => $this->postStatus,
             'is_main_featured' => $this->isMainFeatured,
             'is_sub_featured' => $this->isSubFeatured,
+            'view_count' => $this->viewCount,
+            'comment_count' => $this->commentCount,
             'like_count' => $this->likeCount,
             'save_count' => $this->saveCount,
-            'comment_count' => $this->commentCount,
-            'view_count' => $this->viewCount,
-            'post_status' => $this->postStatus,
+            'before_images' => $this->beforeImages,
+            'after_images' => $this->afterImages,
+            'operation_histories' => $this->operationHistories,
+            'comments' => $this->comments,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'deleted_at' => $this->deletedAt,
         ];
     }
 
@@ -113,7 +131,7 @@ final readonly class HospitalReviewForStaffDto
         }
 
         return [
-            'id' => (int) $review->hospital->getKey(),
+            'id' => (int) $review->hospital->id,
             'name' => (string) $review->hospital->name,
             'business_number' => $businessNumber,
         ];
@@ -126,7 +144,7 @@ final readonly class HospitalReviewForStaffDto
         }
 
         return [
-            'id' => (int) $review->doctor->getKey(),
+            'id' => (int) $review->doctor->id,
             'name' => (string) $review->doctor->name,
             'position' => $review->doctor->position,
         ];
@@ -208,4 +226,5 @@ final readonly class HospitalReviewForStaffDto
             ->values()
             ->all();
     }
+
 }

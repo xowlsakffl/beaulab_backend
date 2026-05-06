@@ -4,8 +4,11 @@ namespace App\Modules\Staff\Http\Controllers\HospitalReview;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\HospitalReview\Actions\Staff\HospitalReviewGetForStaffAction;
 use App\Domains\HospitalReview\Actions\Staff\HospitalReviewListForStaffAction;
 use App\Domains\HospitalReview\Actions\Staff\HospitalReviewStatusUpdateForStaffAction;
+use App\Domains\HospitalReview\Models\HospitalReview;
+use App\Modules\Staff\Http\Requests\HospitalReview\HospitalReviewGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalReview\HospitalReviewListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalReview\HospitalReviewStatusUpdateForStaffRequest;
 
@@ -20,6 +23,12 @@ final class HospitalReviewForStaffController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getHospitalReviewForStaff(HospitalReview $hospitalReview, HospitalReviewGetForStaffRequest $request, HospitalReviewGetForStaffAction $action){
+        $result = $action->execute($hospitalReview, $request->filters());
+
+        return ApiResponse::success($result['review'] ?? $result);
     }
 
     public function updateHospitalReviewStatusForStaff(

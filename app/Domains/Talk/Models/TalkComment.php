@@ -157,7 +157,7 @@ final class TalkComment extends Model
             'talk_comment_mentions',
             'talk_comment_id',
             'mentioned_user_id'
-        )->withPivot(['mentioned_by_user_id', 'mention_text', 'start_offset', 'end_offset'])
+        )->withPivot(['mentioned_by_user_id', 'mention_text'])
             ->withTimestamps();
     }
 

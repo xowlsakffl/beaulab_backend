@@ -96,8 +96,6 @@ final readonly class HospitalReviewCommentForUserDto
             'mentioned_user_id' => (int) $mention->mentioned_user_id,
             'mentioned_by_user_id' => $mention->mentioned_by_user_id ? (int) $mention->mentioned_by_user_id : null,
             'mention_text' => $mention->mention_text,
-            'start_offset' => $mention->start_offset,
-            'end_offset' => $mention->end_offset,
             'mentioned_user' => $mention->relationLoaded('mentionedUser') && $mention->mentionedUser
                 ? [
                     'id' => (int) $mention->mentionedUser->id,

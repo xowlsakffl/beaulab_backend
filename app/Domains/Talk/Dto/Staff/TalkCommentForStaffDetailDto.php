@@ -129,8 +129,6 @@ final readonly class TalkCommentForStaffDetailDto
                     : null,
                 'mentioned_by_user_id' => $mention->mentioned_by_user_id ? (int) $mention->mentioned_by_user_id : null,
                 'mention_text' => $mention->mention_text,
-                'start_offset' => $mention->start_offset,
-                'end_offset' => $mention->end_offset,
             ])
             ->values()
             ->all();

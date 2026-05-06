@@ -71,16 +71,12 @@ final class TalkCommentCreateForUserAction
             return null;
         }
 
-        $mentionText = trim((string) ($mention['mention_text'] ?? ''));
-        $startOffset = array_key_exists('start_offset', $mention) ? (int) $mention['start_offset'] : null;
-        $endOffset = array_key_exists('end_offset', $mention) ? (int) $mention['end_offset'] : null;
+        $mentionText = trim((string) $this->query->mentionTextByUserId($mentionedUserId));
 
         return [
             'mentioned_user_id' => $mentionedUserId,
             'mentioned_by_user_id' => (int) $user->id,
             'mention_text' => $mentionText === '' ? null : $mentionText,
-            'start_offset' => $startOffset !== null && $startOffset >= 0 ? $startOffset : null,
-            'end_offset' => $endOffset !== null && $endOffset >= 0 ? $endOffset : null,
         ];
     }
 

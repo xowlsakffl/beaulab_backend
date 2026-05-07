@@ -11,7 +11,7 @@ final readonly class HospitalReviewCommentForStaffDto
         public int $id,
         public string $createdAt,
         public ?array $author,
-        public ?array $category,
+        public array $categories,
         public ?string $parentHospitalReviewTitle,
         public string $content,
         public string $status,
@@ -25,7 +25,7 @@ final readonly class HospitalReviewCommentForStaffDto
             id: (int) $comment->id,
             createdAt: $comment->created_at?->toISOString() ?? '',
             author: self::author($comment),
-            category: self::category($comment),
+            categories: self::categories($comment),
             parentHospitalReviewTitle: $comment->relationLoaded('review') && $comment->review
                 ? (string) $comment->review->title
                 : null,
@@ -42,7 +42,7 @@ final readonly class HospitalReviewCommentForStaffDto
             'id' => $this->id,
             'created_at' => $this->createdAt,
             'author' => $this->author,
-            'category' => $this->category,
+            'categories' => $this->categories,
             'parent_hospital_review_title' => $this->parentHospitalReviewTitle,
             'content' => $this->content,
             'status' => $this->status,
@@ -71,30 +71,29 @@ final readonly class HospitalReviewCommentForStaffDto
         ];
     }
 
-    private static function category(HospitalReviewComment $comment): ?array
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function categories(HospitalReviewComment $comment): array
     {
         if (! $comment->relationLoaded('review') || ! $comment->review || ! $comment->review->relationLoaded('categories')) {
-            return null;
+            return [];
         }
 
-        $category = $comment->review->categories
-            ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
+        return $comment->review->categories
+            ->map(static function (Category $category) use ($comment): array {
+                $attributes = $category->getAttributes();
+
+                return [
+                    'id' => (int) $category->id,
+                    'code' => (string) ($attributes['code'] ?? ''),
+                    'domain' => (string) ($attributes['domain'] ?? $comment->review->category_domain),
+                    'name' => (string) $category->name,
+                    'full_path' => (string) ($attributes['full_path'] ?? ''),
+                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+                ];
+            })
             ->values()
-            ->first();
-
-        if (! $category instanceof Category) {
-            return null;
-        }
-
-        $attributes = $category->getAttributes();
-
-        return [
-            'id' => (int) $category->id,
-            'code' => (string) ($attributes['code'] ?? ''),
-            'domain' => (string) ($attributes['domain'] ?? $comment->review->category_domain),
-            'name' => (string) $category->name,
-            'full_path' => (string) ($attributes['full_path'] ?? ''),
-            'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-        ];
+            ->all();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalReview\Dto\Staff;
 
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalReview\Models\HospitalReviewCommentMention;
@@ -13,6 +14,7 @@ final readonly class HospitalReviewCommentForStaffDetailDto
         public ?int $parentId,
         public bool $isReply,
         public ?array $author,
+        public array $categories,
         public string $content,
         public string $status,
         public string $postStatus,
@@ -32,6 +34,7 @@ final readonly class HospitalReviewCommentForStaffDetailDto
             parentId: $comment->parent_id ? (int) $comment->parent_id : null,
             isReply: $comment->isReply(),
             author: self::author($comment),
+            categories: self::categories($comment),
             content: (string) $comment->content,
             status: (string) $comment->status,
             postStatus: (string) $comment->post_status,
@@ -52,6 +55,7 @@ final readonly class HospitalReviewCommentForStaffDetailDto
             'parent_id' => $this->parentId,
             'is_reply' => $this->isReply,
             'author' => $this->author,
+            'categories' => $this->categories,
             'content' => $this->content,
             'status' => $this->status,
             'post_status' => $this->postStatus,
@@ -83,6 +87,32 @@ final readonly class HospitalReviewCommentForStaffDetailDto
                 ? (string) $attributes['email']
                 : null,
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function categories(HospitalReviewComment $comment): array
+    {
+        if (! $comment->relationLoaded('review') || ! $comment->review || ! $comment->review->relationLoaded('categories')) {
+            return [];
+        }
+
+        return $comment->review->categories
+            ->map(static function (Category $category) use ($comment): array {
+                $attributes = $category->getAttributes();
+
+                return [
+                    'id' => (int) $category->id,
+                    'code' => (string) ($attributes['code'] ?? ''),
+                    'domain' => (string) ($attributes['domain'] ?? $comment->review->category_domain),
+                    'name' => (string) $category->name,
+                    'full_path' => (string) ($attributes['full_path'] ?? ''),
+                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     private static function mention(HospitalReviewComment $comment): ?array

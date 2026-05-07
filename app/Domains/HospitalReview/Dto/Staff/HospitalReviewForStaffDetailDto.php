@@ -13,7 +13,7 @@ final readonly class HospitalReviewForStaffDetailDto
         public ?array $author,
         public ?array $hospital,
         public ?array $doctor,
-        public ?array $category,
+        public array $categories,
         public string $title,
         public string $content,
         public int $cost,
@@ -46,7 +46,7 @@ final readonly class HospitalReviewForStaffDetailDto
             author: self::author($review),
             hospital: self::hospital($review),
             doctor: self::doctor($review),
-            category: self::category($review),
+            categories: self::categories($review),
             title: (string) $review->title,
             content: (string) $review->content,
             cost: (int) $review->cost,
@@ -76,7 +76,7 @@ final readonly class HospitalReviewForStaffDetailDto
             'author' => $this->author,
             'hospital' => $this->hospital,
             'doctor' => $this->doctor,
-            'category' => $this->category,
+            'categories' => $this->categories,
             'title' => $this->title,
             'content' => $this->content,
             'cost' => $this->cost,
@@ -150,31 +150,30 @@ final readonly class HospitalReviewForStaffDetailDto
         ];
     }
 
-    private static function category(HospitalReview $review): ?array
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function categories(HospitalReview $review): array
     {
         if (! $review->relationLoaded('categories')) {
-            return null;
+            return [];
         }
 
-        $category = $review->categories
-            ->sortByDesc(fn (Category $category): bool => (bool) ($category->pivot?->is_primary ?? false))
+        return $review->categories
+            ->map(static function (Category $category) use ($review): array {
+                $attributes = $category->getAttributes();
+
+                return [
+                    'id' => (int) $category->id,
+                    'code' => (string) ($attributes['code'] ?? ''),
+                    'domain' => (string) ($attributes['domain'] ?? $review->category_domain),
+                    'name' => (string) $category->name,
+                    'full_path' => (string) ($attributes['full_path'] ?? ''),
+                    'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+                ];
+            })
             ->values()
-            ->first();
-
-        if (! $category instanceof Category) {
-            return null;
-        }
-
-        $attributes = $category->getAttributes();
-
-        return [
-            'id' => (int) $category->id,
-            'code' => (string) ($attributes['code'] ?? ''),
-            'domain' => (string) ($attributes['domain'] ?? $review->category_domain),
-            'name' => (string) $category->name,
-            'full_path' => (string) ($attributes['full_path'] ?? ''),
-            'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-        ];
+            ->all();
     }
 
     /**

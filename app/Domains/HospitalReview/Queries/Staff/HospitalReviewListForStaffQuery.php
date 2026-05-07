@@ -76,6 +76,10 @@ final class HospitalReviewListForStaffQuery
             $builder->where('doctor_id', (int) $filters['doctor_id']);
         }
 
+        if (! empty($filters['category_domain'])) {
+            $builder->where('category_domain', (string) $filters['category_domain']);
+        }
+
         $categoryIds = $filters['category_ids'] ?? null;
         if (is_array($categoryIds) && $categoryIds !== []) {
             $normalizedCategoryIds = collect($categoryIds)

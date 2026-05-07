@@ -56,8 +56,17 @@ final class HashtagListForStaffRequest extends FormRequest
     public function filters(): array
     {
         $validated = $this->validated();
-        $statuses = collect(explode(',', (string) ($validated['status'] ?? '')))
-            ->map(static fn (string $value): string => strtoupper(trim($value)))
+        $statusValue = trim((string) ($validated['status'] ?? ''));
+        $decodedStatuses = json_decode($statusValue, true);
+        $statusValues = str_starts_with($statusValue, '[')
+            && json_last_error() === JSON_ERROR_NONE
+            && is_array($decodedStatuses)
+            && array_is_list($decodedStatuses)
+            ? $decodedStatuses
+            : explode(',', $statusValue);
+
+        $statuses = collect($statusValues)
+            ->map(static fn ($value): string => strtoupper(trim((string) $value)))
             ->filter(static fn (string $value): bool => Hashtag::isValidStatus($value))
             ->unique()
             ->values()

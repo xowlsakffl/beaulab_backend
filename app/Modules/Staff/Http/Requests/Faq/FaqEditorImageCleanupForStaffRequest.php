@@ -12,21 +12,40 @@ final class FaqEditorImageCleanupForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        $paths = $this->input('paths');
-        $urls = $this->input('urls');
-
-        if (is_string($paths)) {
-            $paths = array_values(array_filter(array_map('trim', explode(',', $paths))));
-        }
-
-        if (is_string($urls)) {
-            $urls = array_values(array_filter(array_map('trim', explode(',', $urls))));
-        }
+        $paths = $this->normalizeToArray($this->input('paths'));
+        $urls = $this->normalizeToArray($this->input('urls'));
 
         $this->merge([
-            'paths' => is_array($paths) ? $paths : null,
-            'urls' => is_array($urls) ? $urls : null,
+            'paths' => $paths,
+            'urls' => $urls,
         ]);
+    }
+
+    private function normalizeToArray(mixed $value): ?array
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $trimmed = trim($value);
+            $decoded = json_decode($trimmed, true);
+            $value = str_starts_with($trimmed, '[')
+                && json_last_error() === JSON_ERROR_NONE
+                && is_array($decoded)
+                && array_is_list($decoded)
+                ? $decoded
+                : explode(',', $trimmed);
+        }
+
+        if (! is_array($value)) {
+            return null;
+        }
+
+        return array_values(array_filter(
+            array_map(static fn ($item) => is_string($item) ? trim($item) : $item, $value),
+            static fn ($item): bool => $item !== null && $item !== ''
+        ));
     }
 
     public function authorize(): bool

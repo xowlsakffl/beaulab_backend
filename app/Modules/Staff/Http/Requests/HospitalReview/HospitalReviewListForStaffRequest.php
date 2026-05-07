@@ -35,11 +35,12 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
+            'category_domain' => ['required', Rule::in(HospitalReview::categoryDomains())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                Rule::exists('categories', 'id')->where(fn ($query) => $query
                     ->whereIn('domain', HospitalReview::categoryDomains())
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
@@ -74,6 +75,7 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'doctor_id' => $validated['doctor_id'] ?? null,
+            'category_domain' => $validated['category_domain'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'ratings' => $validated['ratings'] ?? null,
             'is_main_featured' => $this->has('is_main_featured') ? $this->boolean('is_main_featured') : null,
@@ -103,6 +105,7 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => '작성자',
             'hospital_id' => '병의원',
             'doctor_id' => '의료진',
+            'category_domain' => '후기 도메인',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'ratings' => '평점 목록',
@@ -127,7 +130,14 @@ final class HospitalReviewListForStaffRequest extends FormRequest
         }
 
         if (is_string($value)) {
-            $value = explode(',', $value);
+            $trimmed = trim($value);
+            $decoded = json_decode($trimmed, true);
+            $value = str_starts_with($trimmed, '[')
+                && json_last_error() === JSON_ERROR_NONE
+                && is_array($decoded)
+                && array_is_list($decoded)
+                ? $decoded
+                : explode(',', $trimmed);
         } elseif (is_int($value)) {
             $value = [(string) $value];
         }

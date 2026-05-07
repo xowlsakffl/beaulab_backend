@@ -355,7 +355,14 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         }
 
         if (is_string($value)) {
-            $value = explode(',', $value);
+            $trimmed = trim($value);
+            $decoded = json_decode($trimmed, true);
+            $value = str_starts_with($trimmed, '[')
+                && json_last_error() === JSON_ERROR_NONE
+                && is_array($decoded)
+                && array_is_list($decoded)
+                ? $decoded
+                : explode(',', $trimmed);
         }
 
         if (! is_array($value)) {

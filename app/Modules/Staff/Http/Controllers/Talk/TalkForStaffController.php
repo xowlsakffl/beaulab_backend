@@ -9,6 +9,7 @@ use App\Domains\Talk\Actions\Staff\TalkGetForStaffAction;
 use App\Domains\Talk\Actions\Staff\TalkListForStaffAction;
 use App\Domains\Talk\Actions\Staff\TalkStatusUpdateForStaffAction;
 use App\Domains\Talk\Models\Talk;
+use App\Modules\Staff\Http\Requests\Talk\TalkExcelDownloadForStaffRequest;
 use App\Modules\Staff\Http\Requests\Talk\TalkGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Talk\TalkListForStaffRequest;
 use App\Modules\Staff\Http\Requests\Talk\TalkStatusUpdateForStaffRequest;
@@ -26,7 +27,7 @@ final class TalkForStaffController extends Controller
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
-    public function downloadTalksExcelForStaff(TalkListForStaffRequest $request, TalkExcelDownloadForStaffAction $action)
+    public function downloadTalksExcelForStaff(TalkExcelDownloadForStaffRequest $request, TalkExcelDownloadForStaffAction $action)
     {
         return $action->execute($request->filters());
     }

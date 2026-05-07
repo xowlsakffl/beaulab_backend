@@ -22,7 +22,7 @@ final class TalkExcelDownloadForStaffAction
     {
         Gate::authorize('viewAny', Talk::class);
 
-        $fileName = 'talks_' . now()->format('Ymd_His') . '.csv';
+        $fileName = '토크_' . now()->format('Ymd_His') . '.xls';
 
         return response()->streamDownload(function () use ($filters): void {
             $output = fopen('php://output', 'wb');
@@ -32,17 +32,18 @@ final class TalkExcelDownloadForStaffAction
             }
 
             fwrite($output, "\xEF\xBB\xBF");
-            fputcsv($output, [
+            fwrite($output, $this->workbookStart());
+            $this->writeRow($output, [
                 'id',
                 '작성일',
-                '카테고리',
+                '토크유형',
                 '닉네임',
                 '제목',
                 '내용',
                 '댓글(5개까지)',
-                '노출상태',
-                '게시상태',
-            ]);
+                '노출여부',
+                '상태',
+            ], 'Header');
 
             $this->query->chunkForExport($filters, self::CHUNK_SIZE, function (Collection $talks) use ($output): void {
                 $commentsByTalkId = $this->query->commentsForTalkIds(
@@ -55,15 +56,16 @@ final class TalkExcelDownloadForStaffAction
                         continue;
                     }
 
-                    fputcsv($output, $this->row($talk, $commentsByTalkId));
+                    $this->writeRow($output, $this->row($talk, $commentsByTalkId));
                 }
 
                 fflush($output);
             });
 
+            fwrite($output, $this->workbookEnd());
             fclose($output);
         }, $fileName, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
         ]);
     }
 
@@ -81,8 +83,8 @@ final class TalkExcelDownloadForStaffAction
             (string) $talk->title,
             (string) $talk->content,
             $this->comments($commentsByTalkId->get((int) $talk->id, collect())),
-            (string) $talk->status,
-            (string) $talk->post_status,
+            $this->statusLabel((string) $talk->status),
+            $this->postStatusLabel((string) $talk->post_status),
         ];
     }
 
@@ -107,8 +109,8 @@ final class TalkExcelDownloadForStaffAction
     private function comments(Collection $comments): string
     {
         return $comments
-            ->map(fn (TalkComment $comment): string => $this->nickname($comment->author) . ',' . (string) $comment->content)
-            ->implode(' / ');
+            ->map(fn (TalkComment $comment): string => $this->nickname($comment->author) . ': ' . (string) $comment->content)
+            ->implode("\n");
     }
 
     private function nickname(mixed $author): string
@@ -125,5 +127,112 @@ final class TalkExcelDownloadForStaffAction
         }
 
         return trim((string) ($attributes['name'] ?? ''));
+    }
+
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            Talk::STATUS_ACTIVE => '노출',
+            Talk::STATUS_INACTIVE => '미노출',
+            default => $status,
+        };
+    }
+
+    private function postStatusLabel(string $postStatus): string
+    {
+        return match ($postStatus) {
+            Talk::POST_STATUS_NORMAL => '정상',
+            Talk::POST_STATUS_AUTO_BLIND => '자동 블라인드',
+            Talk::POST_STATUS_USER_DELETE => '본인삭제',
+            Talk::POST_STATUS_ADMIN_STOP => '게시중단',
+            default => $postStatus,
+        };
+    }
+
+    /**
+     * @param resource $output
+     * @param array<int, string|int|null> $values
+     */
+    private function writeRow($output, array $values, string $style = 'Text'): void
+    {
+        fwrite($output, '<Row ss:AutoFitHeight="1">');
+
+        foreach ($values as $value) {
+            fwrite($output, $this->cell($value, $style));
+        }
+
+        fwrite($output, "</Row>\n");
+    }
+
+    private function cell(string|int|null $value, string $style): string
+    {
+        return sprintf(
+            '<Cell ss:StyleID="%s"><Data ss:Type="String">%s</Data></Cell>',
+            $style,
+            $this->xml((string) $value),
+        );
+    }
+
+    private function xml(string $value): string
+    {
+        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', $value) ?? '';
+        $value = str_replace(["\r\n", "\r"], "\n", $value);
+
+        return str_replace(
+            "\n",
+            '&#10;',
+            htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8'),
+        );
+    }
+
+    private function workbookStart(): string
+    {
+        return <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <?mso-application progid="Excel.Sheet"?>
+            <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+                xmlns:o="urn:schemas-microsoft-com:office:office"
+                xmlns:x="urn:schemas-microsoft-com:office:excel"
+                xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+                xmlns:html="http://www.w3.org/TR/REC-html40">
+            <Styles>
+                <Style ss:ID="Header">
+                    <Font ss:Bold="1"/>
+                    <Interior ss:Color="#D9EAF7" ss:Pattern="Solid"/>
+                    <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
+                </Style>
+                <Style ss:ID="Text">
+                    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
+                </Style>
+            </Styles>
+            <Worksheet ss:Name="Talks">
+            <Table>
+                <Column ss:Width="55"/>
+                <Column ss:Width="125"/>
+                <Column ss:Width="180"/>
+                <Column ss:Width="130"/>
+                <Column ss:Width="240"/>
+                <Column ss:Width="520"/>
+                <Column ss:Width="640"/>
+                <Column ss:Width="85"/>
+                <Column ss:Width="110"/>
+
+            XML;
+    }
+
+    private function workbookEnd(): string
+    {
+        return <<<'XML'
+            </Table>
+            <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+                <FreezePanes/>
+                <FrozenNoSplit/>
+                <SplitHorizontal>1</SplitHorizontal>
+                <TopRowBottomPane>1</TopRowBottomPane>
+                <ActivePane>2</ActivePane>
+            </WorksheetOptions>
+            </Worksheet>
+            </Workbook>
+            XML;
     }
 }

@@ -53,9 +53,7 @@ class HospitalReviewGetForStaffAction
                 ),
                 comments: $this->paginated(
                     $comments,
-                    fn ($comment): array => HospitalReviewCommentForStaffDetailDto::fromModel(
-                        $comment->setRelation('review', $review),
-                    )->toArray(),
+                    fn ($comment): array => HospitalReviewCommentForStaffDetailDto::fromModel($comment)->toArray(),
                 ),
             )->toArray(),
         ];

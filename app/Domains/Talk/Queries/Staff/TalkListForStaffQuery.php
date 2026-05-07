@@ -3,7 +3,11 @@
 namespace App\Domains\Talk\Queries\Staff;
 
 use App\Domains\Talk\Models\Talk;
+use App\Domains\Talk\Models\TalkComment;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * TalkListForStaffQuery 역할 정의.
@@ -12,6 +16,62 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 final class TalkListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator
+    {
+        return $this->builder($filters)
+            ->paginate((int) ($filters['per_page'] ?? 15))
+            ->withQueryString();
+    }
+
+    public function chunkForExport(array $filters, int $chunkSize, callable $callback): bool
+    {
+        return $this->builder($filters)->chunk($chunkSize, $callback);
+    }
+
+    /**
+     * @param array<int, int> $talkIds
+     * @return Collection<int, Collection<int, TalkComment>>
+     */
+    public function commentsForTalkIds(array $talkIds, int $limitPerTalk = 5): Collection
+    {
+        $talkIds = collect($talkIds)
+            ->map(static fn (int|string $talkId): int => (int) $talkId)
+            ->filter(static fn (int $talkId): bool => $talkId > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($talkIds === []) {
+            return collect();
+        }
+
+        $rankedCommentIds = TalkComment::query()
+            ->select(['id', 'talk_id'])
+            ->selectRaw('ROW_NUMBER() OVER (PARTITION BY talk_id ORDER BY id ASC) AS comment_rank')
+            ->whereIn('talk_id', $talkIds);
+
+        $commentIds = DB::query()
+            ->fromSub($rankedCommentIds, 'ranked_talk_comments')
+            ->where('comment_rank', '<=', $limitPerTalk)
+            ->pluck('id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
+
+        if ($commentIds === []) {
+            return collect();
+        }
+
+        return TalkComment::query()
+            ->select(['id', 'talk_id', 'author_id', 'content'])
+            ->whereIn('id', $commentIds)
+            ->with('author:id,name,nickname,email')
+            ->orderBy('talk_id')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('talk_id')
+            ->map(static fn (Collection $comments): Collection => $comments->values());
+    }
+
+    private function builder(array $filters): Builder
     {
         $builder = Talk::query()
             ->select([
@@ -107,6 +167,6 @@ final class TalkListForStaffQuery
 
         $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');
 
-        return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+        return $builder;
     }
 }

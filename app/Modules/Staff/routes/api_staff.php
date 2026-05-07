@@ -196,6 +196,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
      **/
     Route::get('talks', [TalkForStaffController::class, 'getTalksForStaff'])
         ->name('talks.getTalksForStaff');
+    Route::get('talks/excel-download', [TalkForStaffController::class, 'downloadTalksExcelForStaff'])
+        ->name('talks.downloadTalksExcelForStaff');
     Route::patch('talks/status', [TalkForStaffController::class, 'updateTalkStatusForStaff'])
         ->name('talks.updateTalkStatusForStaff');
     Route::get('talks/{talk}', [TalkForStaffController::class, 'getTalkForStaff'])

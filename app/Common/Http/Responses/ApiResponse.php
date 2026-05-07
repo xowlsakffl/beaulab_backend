@@ -7,6 +7,8 @@ use Illuminate\Http\JsonResponse;
 
 final class ApiResponse
 {
+    private const JSON_OPTIONS = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+
     public static function success(
         mixed $data = null,
         mixed $meta = null,
@@ -20,7 +22,7 @@ final class ApiResponse
             'data' => $data,
             'meta' => $meta,
             'traceId' => $traceId,
-        ], $status);
+        ], $status, [], self::JSON_OPTIONS);
     }
 
     /**
@@ -69,7 +71,7 @@ final class ApiResponse
             $payload['error']['details'] = $details;
         }
 
-        return response()->json($payload, $status);
+        return response()->json($payload, $status, [], self::JSON_OPTIONS);
     }
 
     private static function traceId(): ?string

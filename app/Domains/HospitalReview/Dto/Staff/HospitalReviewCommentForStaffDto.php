@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalReview\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 
 final readonly class HospitalReviewCommentForStaffDto
@@ -12,7 +13,7 @@ final readonly class HospitalReviewCommentForStaffDto
         public string $createdAt,
         public ?array $author,
         public array $categories,
-        public ?string $parentHospitalReviewTitle,
+        public ?array $parent,
         public string $content,
         public string $status,
         public int $likeCount,
@@ -26,9 +27,7 @@ final readonly class HospitalReviewCommentForStaffDto
             createdAt: $comment->created_at?->toISOString() ?? '',
             author: self::author($comment),
             categories: self::categories($comment),
-            parentHospitalReviewTitle: $comment->relationLoaded('review') && $comment->review
-                ? (string) $comment->review->title
-                : null,
+            parent: self::parent($comment),
             content: (string) $comment->content,
             status: (string) $comment->status,
             likeCount: (int) $comment->like_count,
@@ -43,7 +42,7 @@ final readonly class HospitalReviewCommentForStaffDto
             'created_at' => $this->createdAt,
             'author' => $this->author,
             'categories' => $this->categories,
-            'parent_hospital_review_title' => $this->parentHospitalReviewTitle,
+            'parent' => $this->parent,
             'content' => $this->content,
             'status' => $this->status,
             'like_count' => $this->likeCount,
@@ -71,6 +70,20 @@ final readonly class HospitalReviewCommentForStaffDto
         ];
     }
 
+    private static function parent(HospitalReviewComment $comment): ?array
+    {
+        if (! $comment->relationLoaded('review') || ! $comment->review) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $comment->review->id,
+            'title' => (string) $comment->review->title,
+            'before_images' => self::beforeImages($comment),
+            'after_images' => self::afterImages($comment),
+        ];
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -93,6 +106,56 @@ final readonly class HospitalReviewCommentForStaffDto
                     'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
                 ];
             })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function beforeImages(HospitalReviewComment $comment): array
+    {
+        if (! $comment->review->relationLoaded('beforeImages')) {
+            return [];
+        }
+
+        return self::mediaList($comment->review->beforeImages);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function afterImages(HospitalReviewComment $comment): array
+    {
+        if (! $comment->review->relationLoaded('afterImages')) {
+            return [];
+        }
+
+        return self::mediaList($comment->review->afterImages);
+    }
+
+    /**
+     * @param iterable<int, Media> $mediaList
+     * @return array<int, array<string, mixed>>
+     */
+    private static function mediaList(iterable $mediaList): array
+    {
+        return collect($mediaList)
+            ->map(fn (Media $media): array => [
+                'id' => (int) $media->id,
+                'collection' => (string) $media->collection,
+                'disk' => (string) $media->disk,
+                'path' => (string) $media->path,
+                'mime_type' => (string) $media->mime_type,
+                'size' => (int) $media->size,
+                'width' => $media->width !== null ? (int) $media->width : null,
+                'height' => $media->height !== null ? (int) $media->height : null,
+                'sort_order' => (int) $media->sort_order,
+                'is_primary' => (bool) $media->is_primary,
+                'metadata' => $media->metadata,
+                'created_at' => $media->created_at?->toISOString(),
+                'updated_at' => $media->updated_at?->toISOString(),
+            ])
             ->values()
             ->all();
     }

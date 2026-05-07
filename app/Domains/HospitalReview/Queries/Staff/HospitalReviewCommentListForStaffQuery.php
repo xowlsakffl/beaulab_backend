@@ -25,6 +25,8 @@ final class HospitalReviewCommentListForStaffQuery
             ->with([
                 'review:id,title,category_domain',
                 'author:id,name,nickname,email',
+                'review.beforeImages',
+                'review.afterImages',
                 'review.categories' => fn ($categoryQuery) => $categoryQuery
                     ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')

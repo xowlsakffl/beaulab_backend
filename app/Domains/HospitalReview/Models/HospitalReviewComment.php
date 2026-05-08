@@ -5,6 +5,9 @@ namespace App\Domains\HospitalReview\Models;
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
+use Database\Factories\HospitalReviewCommentFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,7 +17,7 @@ use InvalidArgumentException;
 
 final class HospitalReviewComment extends Model
 {
-    use HasAuditLogs, HasOperationHistories, SoftDeletes;
+    use HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
     public const STATUS_ACTIVE = 'ACTIVE';
 
@@ -180,5 +183,10 @@ final class HospitalReviewComment extends Model
                 throw new InvalidArgumentException('대댓글은 부모 댓글과 같은 병원후기에만 작성할 수 있습니다.');
             }
         });
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return HospitalReviewCommentFactory::new();
     }
 }

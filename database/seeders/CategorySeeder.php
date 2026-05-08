@@ -10,6 +10,7 @@ final class CategorySeeder extends Seeder
     public function run(): void
     {
         CategoryFactory::seedHospitalCategories();
+        CategoryFactory::seedHospitalEvaluationCategories();
         CategoryFactory::seedBeautyCategories();
         CategoryFactory::seedTalkCategories();
         CategoryFactory::seedFaqCategories();

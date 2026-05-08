@@ -12,7 +12,7 @@ final class HospitalDoctorSeeder extends Seeder
     public function run(): void
     {
         $fallbackCategoryIds = Category::query()
-            ->whereIn('domain', [Category::DOMAIN_HOSPITAL_SURGERY, Category::DOMAIN_HOSPITAL_TREATMENT])
+            ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_SURGERY, Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT])
             ->whereDoesntHave('children')
             ->pluck('id')
             ->all();

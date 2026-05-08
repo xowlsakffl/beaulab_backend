@@ -143,7 +143,7 @@ final class HospitalListForStaffQuery
         $selectedCategories = Category::query()
             ->select(['id', 'domain', 'name', 'full_path'])
             ->whereIn('id', $selectedCategoryIds)
-            ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
+                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])
             ->get();
 
         if ($selectedCategories->isEmpty()) {

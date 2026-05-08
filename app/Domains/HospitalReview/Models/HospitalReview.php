@@ -24,9 +24,9 @@ final class HospitalReview extends Model
 {
     use HasAuditLogs, HasOperationHistories, SoftDeletes;
 
-    public const CATEGORY_DOMAIN_SURGERY = Category::DOMAIN_HOSPITAL_SURGERY;
+    public const CATEGORY_DOMAIN_SURGERY = Category::DOMAIN_HOSPITAL_REVIEW_SURGERY;
 
-    public const CATEGORY_DOMAIN_TREATMENT = Category::DOMAIN_HOSPITAL_TREATMENT;
+    public const CATEGORY_DOMAIN_TREATMENT = Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT;
 
     public const STATUS_ACTIVE = 'ACTIVE';
 

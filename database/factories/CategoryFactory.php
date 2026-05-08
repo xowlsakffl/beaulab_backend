@@ -19,7 +19,7 @@ final class CategoryFactory extends Factory
         $name = $this->faker->unique()->word();
 
         return [
-            'domain' => Category::DOMAIN_HOSPITAL_SURGERY,
+            'domain' => Category::DOMAIN_HOSPITAL_REVIEW_SURGERY,
             'parent_id' => null,
             'depth' => 1,
             'name' => $name,
@@ -41,8 +41,8 @@ final class CategoryFactory extends Factory
     public static function seedHospitalCategories(): void
     {
         DB::transaction(function (): void {
-            self::seedDomainTree(Category::DOMAIN_HOSPITAL_SURGERY, self::hospitalSurgeryTree());
-            self::seedDomainTree(Category::DOMAIN_HOSPITAL_TREATMENT, self::hospitalTreatmentTree());
+            self::seedDomainTree(Category::DOMAIN_HOSPITAL_REVIEW_SURGERY, self::hospitalSurgeryTree());
+            self::seedDomainTree(Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, self::hospitalTreatmentTree());
         });
     }
 

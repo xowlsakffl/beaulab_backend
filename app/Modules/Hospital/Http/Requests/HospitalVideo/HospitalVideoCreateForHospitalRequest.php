@@ -53,7 +53,7 @@ final class HospitalVideoCreateForHospitalRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])
+                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'distribution_channel' => ['nullable', 'in:'.implode(',', [

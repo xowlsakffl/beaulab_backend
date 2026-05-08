@@ -48,7 +48,7 @@ final class HospitalListForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_TREATMENT, Category::DOMAIN_HOSPITAL_SURGERY])),
+                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])),
             ],
             'include' => ['nullable', 'array'],
             'include.*' => ['in:categories,features'],

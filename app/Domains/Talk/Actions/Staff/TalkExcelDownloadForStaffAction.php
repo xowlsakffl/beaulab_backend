@@ -41,8 +41,6 @@ final class TalkExcelDownloadForStaffAction
                 '제목',
                 '내용',
                 '댓글(5개까지)',
-                '노출여부',
-                '상태',
             ], 'Header');
 
             $this->query->chunkForExport($filters, self::CHUNK_SIZE, function (Collection $talks) use ($output): void {
@@ -83,8 +81,6 @@ final class TalkExcelDownloadForStaffAction
             (string) $talk->title,
             (string) $talk->content,
             $this->comments($commentsByTalkId->get((int) $talk->id, collect())),
-            $this->statusLabel((string) $talk->status),
-            $this->postStatusLabel((string) $talk->post_status),
         ];
     }
 
@@ -129,26 +125,6 @@ final class TalkExcelDownloadForStaffAction
         return trim((string) ($attributes['name'] ?? ''));
     }
 
-    private function statusLabel(string $status): string
-    {
-        return match ($status) {
-            Talk::STATUS_ACTIVE => '노출',
-            Talk::STATUS_INACTIVE => '미노출',
-            default => $status,
-        };
-    }
-
-    private function postStatusLabel(string $postStatus): string
-    {
-        return match ($postStatus) {
-            Talk::POST_STATUS_NORMAL => '정상',
-            Talk::POST_STATUS_AUTO_BLIND => '자동 블라인드',
-            Talk::POST_STATUS_USER_DELETE => '본인삭제',
-            Talk::POST_STATUS_ADMIN_STOP => '게시중단',
-            default => $postStatus,
-        };
-    }
-
     /**
      * @param resource $output
      * @param array<int, string|int|null> $values
@@ -188,51 +164,49 @@ final class TalkExcelDownloadForStaffAction
     private function workbookStart(): string
     {
         return <<<'XML'
-            <?xml version="1.0" encoding="UTF-8"?>
-            <?mso-application progid="Excel.Sheet"?>
-            <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-                xmlns:o="urn:schemas-microsoft-com:office:office"
-                xmlns:x="urn:schemas-microsoft-com:office:excel"
-                xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
-                xmlns:html="http://www.w3.org/TR/REC-html40">
-            <Styles>
-                <Style ss:ID="Header">
-                    <Font ss:Bold="1"/>
-                    <Interior ss:Color="#D9EAF7" ss:Pattern="Solid"/>
-                    <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
-                </Style>
-                <Style ss:ID="Text">
-                    <Alignment ss:Vertical="Top" ss:WrapText="1"/>
-                </Style>
-            </Styles>
-            <Worksheet ss:Name="Talks">
-            <Table>
-                <Column ss:Width="55"/>
-                <Column ss:Width="125"/>
-                <Column ss:Width="180"/>
-                <Column ss:Width="130"/>
-                <Column ss:Width="240"/>
-                <Column ss:Width="520"/>
-                <Column ss:Width="640"/>
-                <Column ss:Width="85"/>
-                <Column ss:Width="110"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+    xmlns:o="urn:schemas-microsoft-com:office:office"
+    xmlns:x="urn:schemas-microsoft-com:office:excel"
+    xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+    xmlns:html="http://www.w3.org/TR/REC-html40">
+<Styles>
+    <Style ss:ID="Header">
+        <Font ss:Bold="1"/>
+        <Interior ss:Color="#D9EAF7" ss:Pattern="Solid"/>
+        <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
+    </Style>
+    <Style ss:ID="Text">
+        <Alignment ss:Vertical="Top" ss:WrapText="1"/>
+    </Style>
+</Styles>
+<Worksheet ss:Name="Talks">
+<Table>
+    <Column ss:Width="55"/>
+    <Column ss:Width="125"/>
+    <Column ss:Width="180"/>
+    <Column ss:Width="130"/>
+    <Column ss:Width="240"/>
+    <Column ss:Width="520"/>
+    <Column ss:Width="640"/>
 
-            XML;
+XML;
     }
 
     private function workbookEnd(): string
     {
         return <<<'XML'
-            </Table>
-            <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
-                <FreezePanes/>
-                <FrozenNoSplit/>
-                <SplitHorizontal>1</SplitHorizontal>
-                <TopRowBottomPane>1</TopRowBottomPane>
-                <ActivePane>2</ActivePane>
-            </WorksheetOptions>
-            </Worksheet>
-            </Workbook>
-            XML;
+</Table>
+<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+    <FreezePanes/>
+    <FrozenNoSplit/>
+    <SplitHorizontal>1</SplitHorizontal>
+    <TopRowBottomPane>1</TopRowBottomPane>
+    <ActivePane>2</ActivePane>
+</WorksheetOptions>
+</Worksheet>
+</Workbook>
+XML;
     }
 }

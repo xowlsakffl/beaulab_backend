@@ -41,6 +41,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'videos' => '동영상',
         'hospital-reviews' => '병의원 후기',
         'hospital-review-comments' => '병의원 후기 댓글',
+        'hospital-evaluations' => '병의원 평가',
         'talks' => '토크',
         'talk-comments' => '토크 댓글',
         'notices' => '공지사항',
@@ -71,6 +72,11 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'get staff/videos/{video}/download-video-file' => '동영상 파일 다운로드',
         'patch staff/talks/status' => '토크 상태 일괄 수정',
         'patch staff/talk-comments/status' => '토크 댓글 상태 일괄 수정',
+        'get staff/hospital-evaluations' => '병의원 평가 목록 조회',
+        'patch staff/hospital-evaluations/status' => '병의원 평가 상태 일괄 수정',
+        'get staff/hospital-evaluations/{hospitalEvaluation}' => '병의원 평가 상세 조회',
+        'patch staff/hospital-evaluations/{hospitalEvaluation}/receipt/verify' => '병의원 평가 영수증 인증 처리',
+        'patch staff/hospital-evaluations/{hospitalEvaluation}/receipt/reject' => '병의원 평가 영수증 부적합 처리',
         'post staff/notices/editor-images' => '공지사항 에디터 이미지 업로드',
         'delete staff/notices/editor-images' => '공지사항 에디터 임시 이미지 정리',
         'post staff/faqs/editor-images' => 'FAQ 에디터 이미지 업로드',
@@ -296,6 +302,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
 
         return [
             'hospital' => '병의원 ID',
+            'hospitalEvaluation' => '병의원 평가 ID',
             'beauty' => '뷰티업체 ID',
             'doctor' => '의사 ID',
             'expert' => '뷰티전문가 ID',

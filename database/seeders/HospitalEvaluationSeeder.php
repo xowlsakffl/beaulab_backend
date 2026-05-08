@@ -7,6 +7,7 @@ use App\Domains\Common\Category\Models\Category;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
+use Database\Factories\CategoryFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 
@@ -14,11 +15,17 @@ final class HospitalEvaluationSeeder extends Seeder
 {
     public function run(): void
     {
+        CategoryFactory::seedHospitalEvaluationCategories();
+        $this->ensureSeedUsers();
+        $this->ensureSeedHospitals();
+
         $authorIds = $this->activeUserIds();
         $hospitalIds = $this->approvedHospitalIds();
         $categoryIdsByDomain = $this->categoryIdsByDomain(HospitalEvaluation::categoryDomains());
 
         if ($authorIds === [] || $hospitalIds === [] || $categoryIdsByDomain === []) {
+            $this->command?->warn('HospitalEvaluationSeeder skipped: active users, approved hospitals, or evaluation categories are missing.');
+
             return;
         }
 
@@ -29,10 +36,46 @@ final class HospitalEvaluationSeeder extends Seeder
         $this->seedEvaluations(8, $authorIds, $hospitalIds, $categoryIdsByDomain, 'inactive');
     }
 
+    private function ensureSeedUsers(): void
+    {
+        if (AccountUser::query()->where('status', AccountUser::STATUS_ACTIVE)->exists()) {
+            return;
+        }
+
+        AccountUser::factory()->count(10)->create();
+    }
+
+    private function ensureSeedHospitals(): void
+    {
+        if (Hospital::query()
+            ->where('status', Hospital::STATUS_ACTIVE)
+            ->where('allow_status', Hospital::ALLOW_APPROVED)
+            ->exists()
+        ) {
+            return;
+        }
+
+        $hospitals = Hospital::factory()
+            ->count(5)
+            ->active()
+            ->approved()
+            ->withBusinessRegistration()
+            ->create();
+
+        foreach ($hospitals as $hospital) {
+            HospitalDoctor::factory()
+                ->count(2)
+                ->forHospital($hospital)
+                ->active()
+                ->approved()
+                ->create();
+        }
+    }
+
     /**
-     * @param array<int, int> $authorIds
-     * @param array<int, int> $hospitalIds
-     * @param array<string, array<int, int>> $categoryIdsByDomain
+     * @param  array<int, int>  $authorIds
+     * @param  array<int, int>  $hospitalIds
+     * @param  array<string, array<int, int>>  $categoryIdsByDomain
      * @return Collection<int, HospitalEvaluation>
      */
     private function seedEvaluations(
@@ -85,7 +128,7 @@ final class HospitalEvaluationSeeder extends Seeder
     }
 
     /**
-     * @param array<int, int> $categoryIds
+     * @param  array<int, int>  $categoryIds
      */
     private function syncCategories(HospitalEvaluation $evaluation, array $categoryIds): void
     {
@@ -142,14 +185,20 @@ final class HospitalEvaluationSeeder extends Seeder
             ->all();
 
         if ($doctorIds === []) {
-            return null;
+            $doctor = HospitalDoctor::factory()
+                ->forHospital($hospitalId)
+                ->active()
+                ->approved()
+                ->create();
+
+            return (int) $doctor->id;
         }
 
         return $doctorIds[array_rand($doctorIds)];
     }
 
     /**
-     * @param array<int, string> $domains
+     * @param  array<int, string>  $domains
      * @return array<string, array<int, int>>
      */
     private function categoryIdsByDomain(array $domains): array

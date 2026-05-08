@@ -167,7 +167,13 @@ final class HospitalReviewFactory extends Factory
             ->all();
 
         if ($doctorIds === []) {
-            return null;
+            $created = HospitalDoctor::factory()
+                ->forHospital($hospitalId)
+                ->active()
+                ->approved()
+                ->create();
+
+            return (int) $created->id;
         }
 
         return $doctorIds[array_rand($doctorIds)];

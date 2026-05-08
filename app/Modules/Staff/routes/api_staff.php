@@ -16,6 +16,7 @@ use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReviewComment\HospitalReviewCommentForStaffController;
@@ -191,6 +192,20 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-review-comments.getCommentsForStaff');
     Route::patch('hospital-review-comments/status', [HospitalReviewCommentForStaffController::class, 'updateHospitalReviewCommentStatusForStaff'])
         ->name('hospital-review-comments.updateHospitalReviewCommentStatusForStaff');
+
+    /**
+     * 병의원 평가 관리
+     **/
+    Route::get('hospital-evaluations', [HospitalEvaluationForStaffController::class, 'getHospitalEvaluationsForStaff'])
+        ->name('hospital-evaluations.getHospitalEvaluationsForStaff');
+    Route::patch('hospital-evaluations/status', [HospitalEvaluationForStaffController::class, 'updateHospitalEvaluationStatusForStaff'])
+        ->name('hospital-evaluations.updateHospitalEvaluationStatusForStaff');
+    Route::patch('hospital-evaluations/{hospitalEvaluation}/receipt/verify', [HospitalEvaluationForStaffController::class, 'verifyHospitalEvaluationReceiptForStaff'])
+        ->name('hospital-evaluations.verifyHospitalEvaluationReceiptForStaff');
+    Route::patch('hospital-evaluations/{hospitalEvaluation}/receipt/reject', [HospitalEvaluationForStaffController::class, 'rejectHospitalEvaluationReceiptForStaff'])
+        ->name('hospital-evaluations.rejectHospitalEvaluationReceiptForStaff');
+    Route::get('hospital-evaluations/{hospitalEvaluation}', [HospitalEvaluationForStaffController::class, 'getHospitalEvaluationForStaff'])
+        ->name('hospital-evaluations.getHospitalEvaluationForStaff');
     /**
      * 토크 관리
      **/

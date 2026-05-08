@@ -23,8 +23,11 @@ final class Category extends Model
 {
     use HasFactory, HasAuditLogs;
 
-    public const DOMAIN_HOSPITAL_SURGERY = 'HOSPITAL_SURGERY';
-    public const DOMAIN_HOSPITAL_TREATMENT = 'HOSPITAL_TREATMENT';
+    public const DOMAIN_HOSPITAL_REVIEW_SURGERY = 'HOSPITAL_REVIEW_SURGERY';
+    public const DOMAIN_HOSPITAL_REVIEW_TREATMENT = 'HOSPITAL_REVIEW_TREATMENT';
+    public const DOMAIN_HOSPITAL_EVALUATION_SURGERY = 'HOSPITAL_EVALUATION_SURGERY';
+    public const DOMAIN_HOSPITAL_EVALUATION_TREATMENT = 'HOSPITAL_EVALUATION_TREATMENT';
+    public const DOMAIN_HOSPITAL_EVALUATION_CONSULTATION = 'HOSPITAL_EVALUATION_CONSULTATION';
     public const DOMAIN_TALK = 'TALK';
 
     public const DOMAIN_BEAUTY = 'BEAUTY';
@@ -100,8 +103,11 @@ final class Category extends Model
     public static function domains(): array
     {
         return [
-            self::DOMAIN_HOSPITAL_SURGERY,
-            self::DOMAIN_HOSPITAL_TREATMENT,
+            self::DOMAIN_HOSPITAL_REVIEW_SURGERY,
+            self::DOMAIN_HOSPITAL_REVIEW_TREATMENT,
+            self::DOMAIN_HOSPITAL_EVALUATION_SURGERY,
+            self::DOMAIN_HOSPITAL_EVALUATION_TREATMENT,
+            self::DOMAIN_HOSPITAL_EVALUATION_CONSULTATION,
             self::DOMAIN_TALK,
             self::DOMAIN_BEAUTY,
             self::DOMAIN_FAQ,

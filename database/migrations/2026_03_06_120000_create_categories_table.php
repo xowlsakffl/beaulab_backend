@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id()->comment('카테고리 고유 ID');
 
-            $table->string('domain', 40)->comment('카테고리 도메인(HOSPITAL_SURGERY, HOSPITAL_TREATMENT, TALK, BEAUTY, FAQ)');
+            $table->string('domain', 40)->comment('카테고리 도메인(HOSPITAL_REVIEW_SURGERY, HOSPITAL_REVIEW_TREATMENT, HOSPITAL_EVALUATION_SURGERY, HOSPITAL_EVALUATION_TREATMENT, HOSPITAL_EVALUATION_CONSULTATION, TALK, BEAUTY, FAQ)');
             $table->foreignId('parent_id')->nullable()->comment('상위 카테고리 ID(대분류는 null)')->constrained('categories')->restrictOnDelete();
 
             $table->unsignedTinyInteger('depth')->comment('카테고리 깊이(1:대분류, 2:중분류, 3:소분류)');

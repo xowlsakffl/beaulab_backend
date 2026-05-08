@@ -9,6 +9,9 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
+use Database\Factories\HospitalEvaluationFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -17,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalEvaluation extends Model
 {
-    use HasAuditLogs, HasOperationHistories, SoftDeletes;
+    use HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
     public const CATEGORY_DOMAIN_SURGERY = Category::DOMAIN_HOSPITAL_EVALUATION_SURGERY;
 
@@ -286,5 +289,10 @@ final class HospitalEvaluation extends Model
         return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')
             ->withPivot('is_primary')
             ->withTimestamps();
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return HospitalEvaluationFactory::new();
     }
 }

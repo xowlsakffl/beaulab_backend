@@ -46,6 +46,24 @@ final class CategoryFactory extends Factory
         });
     }
 
+    public static function seedHospitalEvaluationCategories(): void
+    {
+        DB::transaction(function (): void {
+            self::seedDomainTree(
+                Category::DOMAIN_HOSPITAL_EVALUATION_SURGERY,
+                self::replaceCodePrefix(self::hospitalSurgeryTree(), 'HS_', 'HE_SURGERY_'),
+            );
+            self::seedDomainTree(
+                Category::DOMAIN_HOSPITAL_EVALUATION_TREATMENT,
+                self::replaceCodePrefix(self::hospitalTreatmentTree(), 'HT_', 'HE_TREATMENT_'),
+            );
+            self::seedDomainTree(
+                Category::DOMAIN_HOSPITAL_EVALUATION_CONSULTATION,
+                self::hospitalEvaluationConsultationTree(),
+            );
+        });
+    }
+
     public static function seedBeautyCategories(): void
     {
         DB::transaction(function (): void {
@@ -122,6 +140,25 @@ final class CategoryFactory extends Factory
         }
 
         return $category;
+    }
+
+    /**
+     * @param array<int, array{name:string, code:string, children?:array<int, mixed>}> $tree
+     * @return array<int, array{name:string, code:string, children?:array<int, mixed>}>
+     */
+    private static function replaceCodePrefix(array $tree, string $from, string $to): array
+    {
+        return array_map(static function (array $node) use ($from, $to): array {
+            $node['code'] = str_starts_with($node['code'], $from)
+                ? $to.substr($node['code'], strlen($from))
+                : $to.$node['code'];
+
+            if (isset($node['children']) && is_array($node['children'])) {
+                $node['children'] = self::replaceCodePrefix($node['children'], $from, $to);
+            }
+
+            return $node;
+        }, $tree);
     }
 
     /**
@@ -426,6 +463,59 @@ final class CategoryFactory extends Factory
                         'children' => [
                             ['name' => '겨드랑이제모', 'code' => 'HT_HAIR_REMOVAL_AXILLA'],
                             ['name' => '종아리제모', 'code' => 'HT_HAIR_REMOVAL_CALF'],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, array{name:string, code:string, children:array<int, array{name:string, code:string, children:array<int, array{name:string, code:string}>}>}>
+     */
+    public static function hospitalEvaluationConsultationTree(): array
+    {
+        return [
+            [
+                'name' => '성형 상담',
+                'code' => 'HE_CONSULTATION_SURGERY',
+                'children' => [
+                    [
+                        'name' => '눈 상담',
+                        'code' => 'HE_CONSULTATION_SURGERY_EYE',
+                        'children' => [
+                            ['name' => '쌍꺼풀 상담', 'code' => 'HE_CONSULTATION_SURGERY_EYE_DOUBLE'],
+                            ['name' => '눈매교정 상담', 'code' => 'HE_CONSULTATION_SURGERY_EYE_PTOSIS'],
+                        ],
+                    ],
+                    [
+                        'name' => '코 상담',
+                        'code' => 'HE_CONSULTATION_SURGERY_NOSE',
+                        'children' => [
+                            ['name' => '코끝 상담', 'code' => 'HE_CONSULTATION_SURGERY_NOSE_TIP'],
+                            ['name' => '콧대 상담', 'code' => 'HE_CONSULTATION_SURGERY_NOSE_BRIDGE'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => '시술 상담',
+                'code' => 'HE_CONSULTATION_TREATMENT',
+                'children' => [
+                    [
+                        'name' => '리프팅 상담',
+                        'code' => 'HE_CONSULTATION_TREATMENT_LIFTING',
+                        'children' => [
+                            ['name' => '인모드 상담', 'code' => 'HE_CONSULTATION_TREATMENT_LIFTING_INMODE'],
+                            ['name' => '울쎄라 상담', 'code' => 'HE_CONSULTATION_TREATMENT_LIFTING_ULTHERA'],
+                        ],
+                    ],
+                    [
+                        'name' => '주사 상담',
+                        'code' => 'HE_CONSULTATION_TREATMENT_INJECTION',
+                        'children' => [
+                            ['name' => '보톡스 상담', 'code' => 'HE_CONSULTATION_TREATMENT_INJECTION_BOTOX'],
+                            ['name' => '필러 상담', 'code' => 'HE_CONSULTATION_TREATMENT_INJECTION_FILLER'],
                         ],
                     ],
                 ],

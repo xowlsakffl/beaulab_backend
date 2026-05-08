@@ -6,20 +6,31 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
+use App\Domains\Talk\Models\TalkCommentMention;
+use Database\Factories\CategoryFactory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 final class TalkSeeder extends Seeder
 {
     public function run(): void
     {
-        $authorIds = AccountUser::query()
-            ->where('status', AccountUser::STATUS_ACTIVE)
-            ->pluck('id')
-            ->all();
+        CategoryFactory::seedTalkCategories();
 
-        if ($authorIds === []) {
+        $usersById = AccountUser::query()
+            ->where('status', AccountUser::STATUS_ACTIVE)
+            ->get(['id', 'name', 'nickname'])
+            ->keyBy('id');
+
+        if ($usersById->isEmpty()) {
             return;
         }
+
+        $authorIds = $usersById
+            ->keys()
+            ->map(static fn (int|string $id): int => (int) $id)
+            ->values()
+            ->all();
 
         $talkCategoryIds = $this->loadTalkCategoryIds();
 
@@ -36,7 +47,7 @@ final class TalkSeeder extends Seeder
         $talks = $normalTalks->merge($statusSampleTalks);
 
         $this->attachRandomCategories($talks, $talkCategoryIds);
-        $this->seedComments($talks, $authorIds);
+        $this->seedComments($talks, $authorIds, $usersById);
     }
 
     /**
@@ -124,8 +135,9 @@ final class TalkSeeder extends Seeder
     /**
      * @param  iterable<int, Talk>  $talks
      * @param  array<int, int>  $authorIds
+     * @param  Collection<int|string, AccountUser>  $usersById
      */
-    private function seedComments(iterable $talks, array $authorIds): void
+    private function seedComments(iterable $talks, array $authorIds, Collection $usersById): void
     {
         foreach ($talks as $talk) {
             $topLevelCount = random_int(0, 12);
@@ -155,6 +167,7 @@ final class TalkSeeder extends Seeder
             }
 
             $this->seedCommentPostStatusSamples($talk, $authorIds, $topLevelComments);
+            $this->seedMentions($talk, $usersById);
 
             $talk->forceFill([
                 'comment_count' => (int) TalkComment::query()
@@ -162,6 +175,66 @@ final class TalkSeeder extends Seeder
                     ->count(),
             ])->save();
         }
+    }
+
+    /**
+     * @param  Collection<int|string, AccountUser>  $usersById
+     */
+    private function seedMentions(Talk $talk, Collection $usersById): void
+    {
+        if ($usersById->count() < 2) {
+            return;
+        }
+
+        $mentionCount = random_int(0, 5);
+        if ($mentionCount === 0) {
+            return;
+        }
+
+        $comments = TalkComment::query()
+            ->where('talk_id', $talk->id)
+            ->where('status', TalkComment::STATUS_ACTIVE)
+            ->where('post_status', TalkComment::POST_STATUS_NORMAL)
+            ->whereDoesntHave('mentions')
+            ->inRandomOrder()
+            ->limit($mentionCount)
+            ->get(['id', 'author_id']);
+
+        foreach ($comments as $comment) {
+            $this->createMentionForComment($comment, $usersById);
+        }
+    }
+
+    /**
+     * @param  Collection<int|string, AccountUser>  $usersById
+     */
+    private function createMentionForComment(TalkComment $comment, Collection $usersById): void
+    {
+        $authorId = $comment->author_id !== null ? (int) $comment->author_id : null;
+        $candidates = $usersById
+            ->reject(static fn (AccountUser $user): bool => $authorId !== null && (int) $user->id === $authorId)
+            ->values();
+
+        if ($candidates->isEmpty()) {
+            return;
+        }
+
+        /** @var AccountUser $mentionedUser */
+        $mentionedUser = $candidates->random();
+
+        TalkCommentMention::query()->updateOrCreate(
+            ['talk_comment_id' => (int) $comment->id],
+            [
+                'mentioned_user_id' => (int) $mentionedUser->id,
+                'mentioned_by_user_id' => $authorId,
+                'mention_text' => $this->mentionText($mentionedUser),
+            ],
+        );
+    }
+
+    private function mentionText(AccountUser $user): string
+    {
+        return (string) ($user->nickname ?: $user->name ?: "user_{$user->id}");
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalReview\Queries\Staff;
 
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -50,7 +51,21 @@ final class HospitalReviewCommentListForStaffQuery
             $q = (string) $filters['q'];
             $builder->where(function ($query) use ($q): void {
                 $query->where('content', 'like', "%{$q}%")
-                    ->orWhereHas('review', fn ($reviewQuery) => $reviewQuery->where('title', 'like', "%{$q}%"));
+                    ->orWhereHas('author', fn ($authorQuery) => $authorQuery
+                        ->where('name', 'like', "%{$q}%")
+                        ->orWhere('nickname', 'like', "%{$q}%")
+                        ->orWhere('email', 'like', "%{$q}%"))
+                    ->orWhereHas('review', function ($reviewQuery) use ($q): void {
+                        $reviewQuery->where('title', 'like', "%{$q}%");
+
+                        if (ctype_digit($q)) {
+                            $reviewQuery->orWhere('id', (int) $q);
+                        }
+                    });
+
+                if (ctype_digit($q)) {
+                    $query->orWhere('id', (int) $q);
+                }
             });
         }
 
@@ -75,6 +90,7 @@ final class HospitalReviewCommentListForStaffQuery
 
         $categoryIds = $filters['category_ids'] ?? null;
         if (is_array($categoryIds) && $categoryIds !== []) {
+            $categoryDomain = (string) ($filters['category_domain'] ?? '');
             $normalizedCategoryIds = collect($categoryIds)
                 ->map(static fn (int|string $value): int => (int) $value)
                 ->filter(static fn (int $value): bool => $value > 0)
@@ -85,11 +101,13 @@ final class HospitalReviewCommentListForStaffQuery
             if ($normalizedCategoryIds === []) {
                 $builder->whereRaw('1 = 0');
             } else {
-                $builder->whereHas('review.categories', function ($query) use ($normalizedCategoryIds, $filters): void {
-                    $query->whereIn('categories.id', $normalizedCategoryIds);
+                $expandedCategoryIds = $this->expandCategoryIdsWithDescendants($normalizedCategoryIds, $categoryDomain);
 
-                    if (! empty($filters['category_domain'])) {
-                        $query->where('categories.domain', (string) $filters['category_domain']);
+                $builder->whereHas('review.categories', function ($query) use ($expandedCategoryIds, $categoryDomain): void {
+                    $query->whereIn('categories.id', $expandedCategoryIds);
+
+                    if ($categoryDomain !== '') {
+                        $query->where('categories.domain', $categoryDomain);
                     }
                 });
             }
@@ -114,5 +132,35 @@ final class HospitalReviewCommentListForStaffQuery
         $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+    }
+
+    /**
+     * @param  array<int, int>  $categoryIds
+     * @return array<int, int>
+     */
+    private function expandCategoryIdsWithDescendants(array $categoryIds, string $categoryDomain): array
+    {
+        if ($categoryDomain === '') {
+            return $categoryIds;
+        }
+
+        return Category::query()
+            ->where('domain', $categoryDomain)
+            ->where(function ($query) use ($categoryIds, $categoryDomain): void {
+                $query
+                    ->whereIn('id', $categoryIds)
+                    ->orWhereIn('parent_id', $categoryIds)
+                    ->orWhereIn('parent_id', function ($subQuery) use ($categoryIds, $categoryDomain): void {
+                        $subQuery
+                            ->select('id')
+                            ->from('categories')
+                            ->where('domain', $categoryDomain)
+                            ->whereIn('parent_id', $categoryIds);
+                    });
+            })
+            ->pluck('id')
+            ->map(static fn ($id): int => (int) $id)
+            ->values()
+            ->all();
     }
 }

@@ -4,8 +4,8 @@ namespace App\Domains\Talk\Queries\Staff;
 
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -28,7 +28,7 @@ final class TalkListForStaffQuery
     }
 
     /**
-     * @param array<int, int> $talkIds
+     * @param  array<int, int>  $talkIds
      * @return Collection<int, Collection<int, TalkComment>>
      */
     public function commentsForTalkIds(array $talkIds, int $limitPerTalk = 5): Collection
@@ -103,7 +103,9 @@ final class TalkListForStaffQuery
             $q = (string) $filters['q'];
             $builder->where(function ($query) use ($q): void {
                 $query->where('title', 'like', "%{$q}%")
-                    ->orWhere('content', 'like', "%{$q}%");
+                    ->orWhere('content', 'like', "%{$q}%")
+                    ->orWhereHas('author', fn ($authorQuery) => $authorQuery
+                        ->where('nickname', 'like', "%{$q}%"));
             });
         }
 

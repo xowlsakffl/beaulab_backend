@@ -35,13 +35,12 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
-            'category_domain' => ['required', Rule::in(HospitalReview::categoryDomains())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->whereIn('domain', HospitalReview::categoryDomains())
+                    ->where('domain', $this->categoryDomain())
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'ratings' => ['nullable', 'array', 'min:1', 'max:5'],
@@ -75,7 +74,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'doctor_id' => $validated['doctor_id'] ?? null,
-            'category_domain' => $validated['category_domain'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'ratings' => $validated['ratings'] ?? null,
             'is_main_featured' => $this->has('is_main_featured') ? $this->boolean('is_main_featured') : null,
@@ -105,7 +103,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'author_id' => '작성자',
             'hospital_id' => '병의원',
             'doctor_id' => '의료진',
-            'category_domain' => '후기 도메인',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'ratings' => '평점 목록',
@@ -164,5 +161,24 @@ final class HospitalReviewListForStaffRequest extends FormRequest
         )));
 
         return $normalized === [] ? null : array_values(array_unique($normalized));
+    }
+
+    private function categoryDomain(): string
+    {
+        $routeName = (string) $this->route()?->getName();
+
+        if (str_ends_with($routeName, 'hospital-reviews.getTreatmentHospitalReviewsForStaff')) {
+            return HospitalReview::CATEGORY_DOMAIN_TREATMENT;
+        }
+
+        if (str_ends_with($routeName, 'hospital-reviews.getSurgeryHospitalReviewsForStaff')) {
+            return HospitalReview::CATEGORY_DOMAIN_SURGERY;
+        }
+
+        $categoryDomain = $this->route('category_domain');
+
+        return is_string($categoryDomain) && in_array($categoryDomain, HospitalReview::categoryDomains(), true)
+            ? $categoryDomain
+            : HospitalReview::CATEGORY_DOMAIN_SURGERY;
     }
 }

@@ -18,14 +18,40 @@ use App\Modules\Staff\Http\Requests\HospitalReview\HospitalReviewStatusUpdateFor
  */
 final class HospitalReviewForStaffController extends Controller
 {
-    public function getHospitalReviewsForStaff(HospitalReviewListForStaffRequest $request, HospitalReviewListForStaffAction $action)
-    {
-        $result = $action->execute($request->filters());
+    public function getSurgeryHospitalReviewsForStaff(
+        HospitalReviewListForStaffRequest $request,
+        HospitalReviewListForStaffAction $action,
+    ) {
+        return $this->listHospitalReviewsForStaff(
+            $request,
+            $action,
+            HospitalReview::CATEGORY_DOMAIN_SURGERY,
+        );
+    }
+
+    public function getTreatmentHospitalReviewsForStaff(
+        HospitalReviewListForStaffRequest $request,
+        HospitalReviewListForStaffAction $action,
+    ) {
+        return $this->listHospitalReviewsForStaff(
+            $request,
+            $action,
+            HospitalReview::CATEGORY_DOMAIN_TREATMENT,
+        );
+    }
+
+    private function listHospitalReviewsForStaff(
+        HospitalReviewListForStaffRequest $request,
+        HospitalReviewListForStaffAction $action,
+        string $categoryDomain,
+    ) {
+        $result = $action->execute($request->filters(), $categoryDomain);
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
-    public function getHospitalReviewForStaff(HospitalReview $hospitalReview, HospitalReviewGetForStaffRequest $request, HospitalReviewGetForStaffAction $action){
+    public function getHospitalReviewForStaff(HospitalReview $hospitalReview, HospitalReviewGetForStaffRequest $request, HospitalReviewGetForStaffAction $action)
+    {
         $result = $action->execute($hospitalReview, $request->filters());
 
         return ApiResponse::success($result['review'] ?? $result);

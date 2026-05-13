@@ -2,9 +2,9 @@
 
 namespace App\Domains\Talk\Dto\Staff;
 
-use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
@@ -45,8 +45,7 @@ final readonly class TalkForStaffDetailDto
         Talk $talk,
         array $operationHistories,
         array $comments,
-    ): self
-    {
+    ): self {
         return new self(
             id: (int) $talk->id,
             author: self::author($talk),
@@ -274,13 +273,14 @@ final readonly class TalkForStaffDetailDto
     private static function commentOperationHistory(OperationHistory $history): array
     {
         $field = (string) $history->field;
+        $historyDto = OperationHistoryDto::fromModel($history);
 
         return [
+            'actor_label' => $historyDto->actorLabel,
             'status' => $field === 'status' ? $history->after_value : null,
             'post_status' => $field === 'post_status' ? $history->after_value : null,
             'created_at' => $history->created_at?->toISOString(),
             'reason' => $history->reason,
         ];
     }
-
 }

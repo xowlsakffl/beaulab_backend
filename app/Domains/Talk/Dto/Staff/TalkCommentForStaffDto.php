@@ -5,6 +5,7 @@ namespace App\Domains\Talk\Dto\Staff;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
+use App\Domains\Talk\Models\TalkCommentMention;
 
 /**
  * TalkCommentForStaffDto DTO.
@@ -16,6 +17,7 @@ final readonly class TalkCommentForStaffDto
         public string $createdAt,
         public ?array $author,
         public ?array $category,
+        public ?array $mention,
         public ?string $parentTalkTitle,
         public string $content,
         public string $status,
@@ -30,6 +32,7 @@ final readonly class TalkCommentForStaffDto
             createdAt: $comment->created_at?->toISOString() ?? '',
             author: self::author($comment),
             category: self::category($comment),
+            mention: self::mention($comment),
             parentTalkTitle: $comment->relationLoaded('talk') && $comment->talk
                 ? (string) $comment->talk->title
                 : null,
@@ -47,6 +50,7 @@ final readonly class TalkCommentForStaffDto
             'created_at' => $this->createdAt,
             'author' => $this->author,
             'category' => $this->category,
+            'mention' => $this->mention,
             'parent_talk_title' => $this->parentTalkTitle,
             'content' => $this->content,
             'status' => $this->status,
@@ -101,6 +105,29 @@ final readonly class TalkCommentForStaffDto
             'name' => (string) $category->name,
             'full_path' => (string) ($attributes['full_path'] ?? ''),
             'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+        ];
+    }
+
+    private static function mention(TalkComment $comment): ?array
+    {
+        if (! $comment->relationLoaded('mentions')) {
+            return null;
+        }
+
+        $mention = $comment->mentions->first();
+
+        if (! $mention instanceof TalkCommentMention) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $mention->id,
+            'mentioned_user_id' => (int) $mention->mentioned_user_id,
+            'mentioned_user_name' => $mention->relationLoaded('mentionedUser') && $mention->mentionedUser
+                ? (string) $mention->mentionedUser->name
+                : null,
+            'mentioned_by_user_id' => $mention->mentioned_by_user_id ? (int) $mention->mentioned_by_user_id : null,
+            'mention_text' => $mention->mention_text,
         ];
     }
 }

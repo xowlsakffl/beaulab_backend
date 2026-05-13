@@ -5,6 +5,7 @@
  * 인증/권한 미들웨어와 컨트롤러 매핑만 두고 비즈니스 로직은 컨트롤러와 Action 계층으로 위임한다.
  */
 
+use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController;
 use App\Modules\Staff\Http\Controllers\AdminNote\AdminNoteForStaffController;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
@@ -182,8 +183,12 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 병의원 후기 관리
      **/
-    Route::get('hospital-reviews', [HospitalReviewForStaffController::class, 'getHospitalReviewsForStaff'])
-        ->name('hospital-reviews.getHospitalReviewsForStaff');
+    Route::get('hospital-reviews/surgery', [HospitalReviewForStaffController::class, 'getSurgeryHospitalReviewsForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+        ->name('hospital-reviews.getSurgeryHospitalReviewsForStaff');
+    Route::get('hospital-reviews/treatment', [HospitalReviewForStaffController::class, 'getTreatmentHospitalReviewsForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+        ->name('hospital-reviews.getTreatmentHospitalReviewsForStaff');
     Route::patch('hospital-reviews/status', [HospitalReviewForStaffController::class, 'updateHospitalReviewStatusForStaff'])
         ->name('hospital-reviews.updateHospitalReviewStatusForStaff');
     Route::get('hospital-reviews/{hospitalReview}', [HospitalReviewForStaffController::class, 'getHospitalReviewForStaff'])

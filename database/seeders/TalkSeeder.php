@@ -37,6 +37,7 @@ final class TalkSeeder extends Seeder
         $normalTalks = Talk::factory()
             ->count(160)
             ->active()
+            ->withSeedMedia(random_int(1, Talk::MAX_IMAGE_COUNT))
             ->create()
             ->each(function (Talk $talk) use ($authorIds): void {
                 $talk->forceFill([
@@ -82,6 +83,7 @@ final class TalkSeeder extends Seeder
 
         foreach ($samples as $sample) {
             $createdTalks = Talk::factory()
+                ->withSeedMedia(random_int(1, Talk::MAX_IMAGE_COUNT))
                 ->count($sample['count'])
                 ->create([
                     'author_id' => fn () => $authorIds[array_rand($authorIds)],

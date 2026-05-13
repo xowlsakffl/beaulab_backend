@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalReview\Queries\Staff;
 
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -52,7 +53,14 @@ final class HospitalReviewListForStaffQuery
             $q = (string) $filters['q'];
             $builder->where(function ($query) use ($q): void {
                 $query->where('title', 'like', "%{$q}%")
-                    ->orWhere('content', 'like', "%{$q}%");
+                    ->orWhere('content', 'like', "%{$q}%")
+                    ->orWhereHas('author', function ($authorQuery) use ($q): void {
+                        $authorQuery
+                            ->where('name', 'like', "%{$q}%")
+                            ->orWhere('nickname', 'like', "%{$q}%");
+                    })
+                    ->orWhereHas('hospital', fn ($hospitalQuery) => $hospitalQuery->where('name', 'like', "%{$q}%"))
+                    ->orWhereHas('doctor', fn ($doctorQuery) => $doctorQuery->where('name', 'like', "%{$q}%"));
             });
         }
 
@@ -82,6 +90,7 @@ final class HospitalReviewListForStaffQuery
 
         $categoryIds = $filters['category_ids'] ?? null;
         if (is_array($categoryIds) && $categoryIds !== []) {
+            $categoryDomain = (string) ($filters['category_domain'] ?? '');
             $normalizedCategoryIds = collect($categoryIds)
                 ->map(static fn (int|string $value): int => (int) $value)
                 ->filter(static fn (int $value): bool => $value > 0)
@@ -92,10 +101,12 @@ final class HospitalReviewListForStaffQuery
             if ($normalizedCategoryIds === []) {
                 $builder->whereRaw('1 = 0');
             } else {
-                $builder->whereHas('categories', function ($query) use ($normalizedCategoryIds): void {
+                $expandedCategoryIds = $this->expandCategoryIdsWithDescendants($normalizedCategoryIds, $categoryDomain);
+
+                $builder->whereHas('categories', function ($query) use ($expandedCategoryIds, $categoryDomain): void {
                     $query
-                        ->whereIn('categories.domain', HospitalReview::categoryDomains())
-                        ->whereIn('categories.id', $normalizedCategoryIds);
+                        ->where('categories.domain', $categoryDomain)
+                        ->whereIn('categories.id', $expandedCategoryIds);
                 });
             }
         }
@@ -152,5 +163,35 @@ final class HospitalReviewListForStaffQuery
         $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+    }
+
+    /**
+     * @param  array<int, int>  $categoryIds
+     * @return array<int, int>
+     */
+    private function expandCategoryIdsWithDescendants(array $categoryIds, string $categoryDomain): array
+    {
+        if ($categoryDomain === '') {
+            return $categoryIds;
+        }
+
+        return Category::query()
+            ->where('domain', $categoryDomain)
+            ->where(function ($query) use ($categoryIds, $categoryDomain): void {
+                $query
+                    ->whereIn('id', $categoryIds)
+                    ->orWhereIn('parent_id', $categoryIds)
+                    ->orWhereIn('parent_id', function ($subQuery) use ($categoryIds, $categoryDomain): void {
+                        $subQuery
+                            ->select('id')
+                            ->from('categories')
+                            ->where('domain', $categoryDomain)
+                            ->whereIn('parent_id', $categoryIds);
+                    });
+            })
+            ->pluck('id')
+            ->map(static fn ($id): int => (int) $id)
+            ->values()
+            ->all();
     }
 }

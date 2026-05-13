@@ -79,6 +79,7 @@ final readonly class HospitalReviewCommentForStaffDto
         return [
             'id' => (int) $comment->review->id,
             'title' => (string) $comment->review->title,
+            'categories' => self::categories($comment),
             'before_images' => self::beforeImages($comment),
             'after_images' => self::afterImages($comment),
         ];
@@ -135,7 +136,7 @@ final readonly class HospitalReviewCommentForStaffDto
     }
 
     /**
-     * @param iterable<int, Media> $mediaList
+     * @param  iterable<int, Media>  $mediaList
      * @return array<int, array<string, mixed>>
      */
     private static function mediaList(iterable $mediaList): array

@@ -22,9 +22,10 @@
 - 비즈니스 로직은 `app/Domains/*`, API 진입점은 `app/Modules/*`에 둔다.
 - 공지사항/FAQ 도메인은 현재 Staff API 기준으로 CRUD와 에디터 이미지를 지원한다.
 - FAQ 카테고리는 전용 테이블이 아니라 공통 `Category` 도메인의 `FAQ` 분류를 사용한다.
+- 토크/병의원 후기/병의원 평가는 Staff 운영 API와 User 작성 API를 Actor 기준으로 분리한다.
+- 병의원 후기는 `HospitalReview`, 댓글은 `HospitalReviewComment`, 병의원 평가는 `HospitalEvaluation` 도메인이 소유한다.
 - 권한 단일 소스는 `AccessPermissions` / `AccessRoles`이며 Seeder로 동기화한다.
 - Queue 표준 런타임은 Redis + Horizon이며, Scheduler/Monitor는 별도 문서로 분리 관리한다.
 - 모든 예외 응답은 공통 예외 핸들러/응답 포맷 규칙을 따른다.
 
-작성 기준: 2026-03-13
-
+작성 기준: 2026-05-13

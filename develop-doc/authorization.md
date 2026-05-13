@@ -57,24 +57,28 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 - User: `beaulab.user.show|update|delete`
 - Doctor: `beaulab.doctor.show|create|update|delete`
 - Expert: `beaulab.expert.show|create|update|delete`
-- Video Request: `beaulab.video-request.show|update|delete`
-- Talk: `beaulab.talk.show|create|update|delete`
-- Talk Comment: 별도 권한 없음 (Talk 권한 `beaulab.talk.show|create|update|delete` 사용)
+- Video: `beaulab.video.show|create|update|delete`
+- Hospital Review: `beaulab.hospital_review.show|update`
+- Hospital Review Comment: 별도 권한 없음 (Hospital Review 권한 `beaulab.hospital_review.show|update` 사용)
+- Hospital Evaluation: `beaulab.hospital_evaluation.show|update`
+- Talk: `beaulab.talk.show|update`
+- Talk Comment: 별도 권한 없음 (Talk 권한 `beaulab.talk.show|update` 사용)
 - Notice: `beaulab.notice.show|create|update|delete`
 - FAQ: `beaulab.faq.show|create|update|delete`
 - Category: `beaulab.category.manage`
+- Hashtag: `beaulab.hashtag.manage`
 
 ### 3.3 Hospital 전용
 
 - `hospital.profile.show|update|delete`
 - `hospital.members.manage`
-- `hospital.video-request.show|create|update|cancel`
+- `hospital.video.show|create|update|cancel`
 
 ### 3.4 Beauty 전용
 
 - `beauty.profile.show|update|delete`
 - `beauty.members.manage`
-- `beauty.video-request.show|create|update|cancel`
+- `beauty.video.show|create|update|cancel`
 
 ### 3.5 User 전용
 
@@ -146,4 +150,4 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 php artisan db:seed --class=AuthorizationSeeder
 ```
 
-작성 기준: 2026-03-13
+작성 기준: 2026-05-13

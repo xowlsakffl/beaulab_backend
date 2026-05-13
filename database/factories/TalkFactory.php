@@ -3,7 +3,9 @@
 namespace Database\Factories;
 
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Talk\Models\Talk;
+use Database\Factories\Support\SeedMediaFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -49,6 +51,25 @@ final class TalkFactory extends Factory
             'is_pinned' => true,
             'pinned_order' => $this->faker->numberBetween(1, 20),
         ]);
+    }
+
+    public function withSeedMedia(int $imageCount = 2): self
+    {
+        return $this->afterCreating(function (Talk $talk) use ($imageCount): void {
+            $mediaAttachAction = app(MediaAttachDeleteAction::class);
+
+            $mediaAttachAction->attachMany(
+                $talk,
+                SeedMediaFactory::images(
+                    "talk-{$talk->id}",
+                    min(Talk::MAX_IMAGE_COUNT, max(1, $imageCount)),
+                ),
+                'images',
+                'talk',
+                'images',
+                true,
+            );
+        });
     }
 
     private function randomAuthorId(): int

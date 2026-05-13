@@ -26,6 +26,7 @@ final class TalkCommentListForStaffQuery
             ->with([
                 'talk:id,title',
                 'author:id,name,nickname,email',
+                'mentions.mentionedUser',
                 'talk.categories' => fn ($categoryQuery) => $categoryQuery
                     ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')
@@ -49,7 +50,8 @@ final class TalkCommentListForStaffQuery
             $q = (string) $filters['q'];
             $builder->where(function ($query) use ($q): void {
                 $query->where('content', 'like', "%{$q}%")
-                    ->orWhereHas('talk', fn ($talkQuery) => $talkQuery->where('title', 'like', "%{$q}%"));
+                    ->orWhereHas('talk', fn ($talkQuery) => $talkQuery->where('title', 'like', "%{$q}%"))
+                    ->orWhereHas('author', fn ($authorQuery) => $authorQuery->where('nickname', 'like', "%{$q}%"));
             });
         }
 

@@ -13,11 +13,14 @@ final class HospitalReviewListForStaffAction
         private readonly HospitalReviewListForStaffQuery $query,
     ) {}
 
-    public function execute(array $filters): array
+    public function execute(array $filters, string $categoryDomain): array
     {
         Gate::authorize('viewAny', HospitalReview::class);
 
-        $paginator = $this->query->paginate($filters);
+        $paginator = $this->query->paginate([
+            ...$filters,
+            'category_domain' => $categoryDomain,
+        ]);
 
         return [
             'items' => collect($paginator->items())

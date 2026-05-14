@@ -17,7 +17,6 @@ final readonly class HospitalReviewCommentForStaffDto
         public string $content,
         public string $status,
         public int $likeCount,
-        public string $postStatus,
     ) {}
 
     public static function fromModel(HospitalReviewComment $comment): self
@@ -31,7 +30,6 @@ final readonly class HospitalReviewCommentForStaffDto
             content: (string) $comment->content,
             status: (string) $comment->status,
             likeCount: (int) $comment->like_count,
-            postStatus: (string) $comment->post_status,
         );
     }
 
@@ -46,7 +44,6 @@ final readonly class HospitalReviewCommentForStaffDto
             'content' => $this->content,
             'status' => $this->status,
             'like_count' => $this->likeCount,
-            'post_status' => $this->postStatus,
         ];
     }
 

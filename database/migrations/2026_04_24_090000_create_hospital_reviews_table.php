@@ -32,12 +32,12 @@ return new class extends Migration
             $table->string('category_domain', 40)->comment('후기 카테고리 도메인(HOSPITAL_REVIEW_SURGERY, HOSPITAL_REVIEW_TREATMENT)');
             $table->string('title', 255)->comment('후기 제목');
             $table->longText('content')->comment('후기 내용');
+            $table->string('author_ip', 45)->nullable()->comment('작성자 IP(v4/v6)');
 
             $table->unsignedInteger('cost')->default(0)->comment('시술/수술 비용(만원 단위)');
             $table->unsignedTinyInteger('rating')->comment('평점(1~5)');
 
             $table->string('status', 20)->default('ACTIVE')->comment('노출상태(ACTIVE, INACTIVE)');
-            $table->string('post_status', 30)->default('POST_NORMAL')->comment('게시상태(POST_NORMAL, POST_AUTO_BLIND, POST_USER_DELETE, POST_ADMIN_STOP)');
 
             $table->boolean('is_main_featured')->default(false)->comment('후기 전체 상단 노출 여부');
             $table->boolean('is_sub_featured')->default(false)->comment('후기 카테고리 상단 노출 여부');
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['post_status', 'status', 'created_at'], 'h_reviews_post_status_status_created_idx');
+            $table->index(['status', 'created_at'], 'h_reviews_status_created_idx');
             $table->index(['author_id', 'created_at'], 'h_reviews_author_created_idx');
             $table->index(['hospital_id', 'created_at'], 'h_reviews_hospital_created_idx');
             $table->index(['doctor_id', 'created_at'], 'h_reviews_doctor_created_idx');

@@ -25,7 +25,6 @@ final class HospitalReviewListForStaffQuery
                 'cost',
                 'rating',
                 'status',
-                'post_status',
                 'is_main_featured',
                 'is_sub_featured',
                 'view_count',
@@ -66,10 +65,6 @@ final class HospitalReviewListForStaffQuery
 
         if (is_array($filters['status'] ?? null) && $filters['status'] !== []) {
             $builder->whereIn('status', $filters['status']);
-        }
-
-        if (is_array($filters['post_status'] ?? null) && $filters['post_status'] !== []) {
-            $builder->whereIn('post_status', $filters['post_status']);
         }
 
         if (! empty($filters['author_id'])) {

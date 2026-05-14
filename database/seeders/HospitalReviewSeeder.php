@@ -41,9 +41,6 @@ final class HospitalReviewSeeder extends Seeder
         );
 
         $sampleReviews = collect()
-            ->merge($this->seedReviews(12, $authorIds, $hospitalIds, $categoryIdsByDomain, 'autoBlind'))
-            ->merge($this->seedReviews(8, $authorIds, $hospitalIds, $categoryIdsByDomain, 'adminStopped'))
-            ->merge($this->seedReviews(6, $authorIds, $hospitalIds, $categoryIdsByDomain, 'userDeleted'))
             ->merge($this->seedReviews(8, $authorIds, $hospitalIds, $categoryIdsByDomain, 'inactive'));
 
         $this->seedComments($normalReviews->merge($sampleReviews), $authorIds, $usersById);
@@ -176,7 +173,6 @@ final class HospitalReviewSeeder extends Seeder
         $comments = HospitalReviewComment::query()
             ->where('hospital_review_id', $review->id)
             ->where('status', HospitalReviewComment::STATUS_ACTIVE)
-            ->where('post_status', HospitalReviewComment::POST_STATUS_NORMAL)
             ->whereDoesntHave('mentions')
             ->inRandomOrder()
             ->limit($mentionCount)
@@ -225,9 +221,6 @@ final class HospitalReviewSeeder extends Seeder
             ->all();
 
         $samples = [
-            ['chance' => 10, 'factory_state' => 'autoBlind', 'prefix' => '[자동 블라인드 샘플]'],
-            ['chance' => 8, 'factory_state' => 'adminStopped', 'prefix' => '[게시중단 샘플]'],
-            ['chance' => 6, 'factory_state' => 'userDeleted', 'prefix' => '[본인삭제 샘플]'],
             ['chance' => 8, 'factory_state' => 'inactive', 'prefix' => '[비노출 샘플]'],
         ];
 
@@ -365,8 +358,9 @@ final class HospitalReviewSeeder extends Seeder
         $categories = Category::query()
             ->whereIn('domain', $domains)
             ->where('status', Category::STATUS_ACTIVE)
+            ->where('depth', 3)
+            ->whereDoesntHave('children')
             ->orderBy('domain')
-            ->orderBy('depth')
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get(['id', 'domain']);

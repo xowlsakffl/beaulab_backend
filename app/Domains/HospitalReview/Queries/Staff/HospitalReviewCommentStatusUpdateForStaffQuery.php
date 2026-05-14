@@ -23,7 +23,7 @@ final class HospitalReviewCommentStatusUpdateForStaffQuery
             ->whereIn('id', $ids)
             ->orderBy('id')
             ->lockForUpdate()
-            ->get(['id', 'status', 'post_status']);
+            ->get(['id', 'status']);
     }
 
     /**
@@ -39,7 +39,6 @@ final class HospitalReviewCommentStatusUpdateForStaffQuery
 
         return HospitalReviewComment::query()
             ->whereIn('id', $ids)
-            ->whereNotIn('post_status', HospitalReviewComment::STATUS_CHANGE_LOCKED_POST_STATUSES)
             ->update(['status' => $status]);
     }
 

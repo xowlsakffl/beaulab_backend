@@ -15,11 +15,10 @@ final class HospitalReviewDeleteForUserQuery
             ->first();
     }
 
-    public function markDeleted(HospitalReview $review, string $status, string $postStatus): HospitalReview
+    public function markDeleted(HospitalReview $review, string $status): HospitalReview
     {
         $review->forceFill([
             'status' => $status,
-            'post_status' => $postStatus,
         ]);
 
         if ($review->isDirty()) {

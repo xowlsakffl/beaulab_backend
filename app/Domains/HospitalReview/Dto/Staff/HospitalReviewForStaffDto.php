@@ -30,7 +30,6 @@ final readonly class HospitalReviewForStaffDto
         public int $saveCount,
         public int $commentCount,
         public int $viewCount,
-        public string $postStatus,
     ) {}
 
     public static function fromModel(HospitalReview $review): self
@@ -53,7 +52,6 @@ final readonly class HospitalReviewForStaffDto
             saveCount: (int) $review->save_count,
             commentCount: (int) $review->comment_count,
             viewCount: (int) $review->view_count,
-            postStatus: (string) $review->post_status,
         );
     }
 
@@ -77,7 +75,6 @@ final readonly class HospitalReviewForStaffDto
             'save_count' => $this->saveCount,
             'comment_count' => $this->commentCount,
             'view_count' => $this->viewCount,
-            'post_status' => $this->postStatus,
         ];
     }
 
@@ -97,6 +94,9 @@ final readonly class HospitalReviewForStaffDto
                 : null,
             'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
                 ? (string) $attributes['email']
+                : null,
+            'phone' => isset($attributes['phone']) && trim((string) $attributes['phone']) !== ''
+                ? (string) $attributes['phone']
                 : null,
         ];
     }
@@ -151,6 +151,8 @@ final readonly class HospitalReviewForStaffDto
                     'domain' => (string) ($attributes['domain'] ?? $review->category_domain),
                     'name' => (string) $category->name,
                     'full_path' => (string) ($attributes['full_path'] ?? ''),
+                    'parent_id' => $category->parent_id ? (int) $category->parent_id : null,
+                    'depth' => isset($attributes['depth']) ? (int) $attributes['depth'] : null,
                     'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
                 ];
             })
@@ -183,7 +185,7 @@ final readonly class HospitalReviewForStaffDto
     }
 
     /**
-     * @param iterable<int, Media> $mediaList
+     * @param  iterable<int, Media>  $mediaList
      * @return array<int, array<string, mixed>>
      */
     private static function mediaList(iterable $mediaList): array

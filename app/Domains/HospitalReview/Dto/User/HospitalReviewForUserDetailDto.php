@@ -18,7 +18,6 @@ final readonly class HospitalReviewForUserDetailDto
         public int $cost,
         public int $rating,
         public string $status,
-        public string $postStatus,
         public bool $isMainFeatured,
         public bool $isSubFeatured,
         public int $viewCount,
@@ -44,7 +43,6 @@ final readonly class HospitalReviewForUserDetailDto
             cost: (int) $review->cost,
             rating: (int) $review->rating,
             status: (string) $review->status,
-            postStatus: (string) $review->post_status,
             isMainFeatured: (bool) $review->is_main_featured,
             isSubFeatured: (bool) $review->is_sub_featured,
             viewCount: (int) $review->view_count,
@@ -71,7 +69,6 @@ final readonly class HospitalReviewForUserDetailDto
             'cost' => $this->cost,
             'rating' => $this->rating,
             'status' => $this->status,
-            'post_status' => $this->postStatus,
             'is_main_featured' => $this->isMainFeatured,
             'is_sub_featured' => $this->isSubFeatured,
             'view_count' => $this->viewCount,
@@ -205,7 +202,7 @@ final readonly class HospitalReviewForUserDetailDto
     }
 
     /**
-     * @param iterable<int, Media> $mediaList
+     * @param  iterable<int, Media>  $mediaList
      * @return array<int, array<string, mixed>>
      */
     private static function mediaList(iterable $mediaList): array

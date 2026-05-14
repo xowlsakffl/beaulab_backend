@@ -32,60 +32,41 @@ final class HospitalReviewDeleteForUserAction
             }
 
             $beforeStatus = (string) $lockedReview->status;
-            $beforePostStatus = (string) $lockedReview->post_status;
 
-            if ($beforePostStatus === HospitalReview::POST_STATUS_USER_DELETE) {
+            if ((string) $lockedReview->status === HospitalReview::STATUS_INACTIVE) {
                 return $lockedReview->fresh([
                     'author',
                     'categories',
-                    'images',
+                    'beforeImages',
+                    'afterImages',
                 ]);
-            }
-
-            if ($lockedReview->isStatusChangeLocked()) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '현재 상태의 후기는 삭제할 수 없습니다.');
             }
 
             $updatedReview = $this->query->markDeleted(
                 $lockedReview,
                 HospitalReview::STATUS_INACTIVE,
-                HospitalReview::POST_STATUS_USER_DELETE,
             );
-
-            if ($beforeStatus !== HospitalReview::STATUS_INACTIVE) {
-                $this->historyCreateAction->execute(
-                    target: $updatedReview,
-                    action: OperationHistory::ACTION_STATUS_UPDATED,
-                    actor: $user,
-                    field: 'status',
-                    beforeValue: $beforeStatus,
-                    afterValue: HospitalReview::STATUS_INACTIVE,
-                    metadata: [
-                        'before_label' => $beforeStatus,
-                        'after_label' => HospitalReview::STATUS_INACTIVE,
-                        'source' => 'user.hospital_review.status',
-                    ],
-                );
-            }
 
             $this->historyCreateAction->execute(
                 target: $updatedReview,
                 action: OperationHistory::ACTION_STATUS_UPDATED,
                 actor: $user,
-                field: 'post_status',
-                beforeValue: $beforePostStatus,
-                afterValue: HospitalReview::POST_STATUS_USER_DELETE,
+                field: 'status',
+                beforeValue: $beforeStatus,
+                afterValue: HospitalReview::STATUS_INACTIVE,
+                reason: '본인삭제',
                 metadata: [
-                    'before_label' => $beforePostStatus,
-                    'after_label' => HospitalReview::POST_STATUS_USER_DELETE,
-                    'source' => 'user.hospital_review.post_status',
+                    'before_label' => $beforeStatus === HospitalReview::STATUS_ACTIVE ? '노출' : '미노출',
+                    'after_label' => '미노출',
+                    'source' => 'user.hospital_review.status',
                 ],
             );
 
             return $updatedReview->fresh([
                 'author',
                 'categories',
-                'images',
+                'beforeImages',
+                'afterImages',
             ]);
         });
 

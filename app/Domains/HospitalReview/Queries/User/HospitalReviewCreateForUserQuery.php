@@ -18,7 +18,7 @@ final class HospitalReviewCreateForUserQuery
     }
 
     /**
-     * @param array<int, string> $categoryCodes
+     * @param  array<int, string>  $categoryCodes
      * @return Collection<int, Category>
      */
     public function categoriesByCodes(array $categoryCodes): Collection
@@ -39,10 +39,10 @@ final class HospitalReviewCreateForUserQuery
             'category_domain' => (string) $payload['category_domain'],
             'title' => (string) $payload['title'],
             'content' => (string) $payload['content'],
+            'author_ip' => $payload['author_ip'] ?? null,
             'cost' => (int) $payload['cost'],
             'rating' => (int) $payload['rating'],
             'status' => HospitalReview::STATUS_ACTIVE,
-            'post_status' => HospitalReview::POST_STATUS_NORMAL,
             'is_main_featured' => false,
             'is_sub_featured' => false,
             'view_count' => 0,

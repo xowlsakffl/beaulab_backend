@@ -16,10 +16,10 @@ final readonly class HospitalReviewForStaffDetailDto
         public array $categories,
         public string $title,
         public string $content,
+        public ?string $authorIp,
         public int $cost,
         public int $rating,
         public string $status,
-        public string $postStatus,
         public bool $isMainFeatured,
         public bool $isSubFeatured,
         public int $viewCount,
@@ -39,8 +39,7 @@ final readonly class HospitalReviewForStaffDetailDto
         HospitalReview $review,
         array $operationHistories,
         array $comments,
-    ): self
-    {
+    ): self {
         return new self(
             id: (int) $review->id,
             author: self::author($review),
@@ -49,10 +48,10 @@ final readonly class HospitalReviewForStaffDetailDto
             categories: self::categories($review),
             title: (string) $review->title,
             content: (string) $review->content,
+            authorIp: $review->author_ip,
             cost: (int) $review->cost,
             rating: (int) $review->rating,
             status: (string) $review->status,
-            postStatus: (string) $review->post_status,
             isMainFeatured: (bool) $review->is_main_featured,
             isSubFeatured: (bool) $review->is_sub_featured,
             viewCount: (int) $review->view_count,
@@ -79,10 +78,10 @@ final readonly class HospitalReviewForStaffDetailDto
             'categories' => $this->categories,
             'title' => $this->title,
             'content' => $this->content,
+            'author_ip' => $this->authorIp,
             'cost' => $this->cost,
             'rating' => $this->rating,
             'status' => $this->status,
-            'post_status' => $this->postStatus,
             'is_main_featured' => $this->isMainFeatured,
             'is_sub_featured' => $this->isSubFeatured,
             'view_count' => $this->viewCount,
@@ -115,6 +114,9 @@ final readonly class HospitalReviewForStaffDetailDto
                 : null,
             'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
                 ? (string) $attributes['email']
+                : null,
+            'phone' => isset($attributes['phone']) && trim((string) $attributes['phone']) !== ''
+                ? (string) $attributes['phone']
                 : null,
         ];
     }
@@ -169,6 +171,8 @@ final readonly class HospitalReviewForStaffDetailDto
                     'domain' => (string) ($attributes['domain'] ?? $review->category_domain),
                     'name' => (string) $category->name,
                     'full_path' => (string) ($attributes['full_path'] ?? ''),
+                    'parent_id' => $category->parent_id ? (int) $category->parent_id : null,
+                    'depth' => isset($attributes['depth']) ? (int) $attributes['depth'] : null,
                     'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
                 ];
             })
@@ -201,7 +205,7 @@ final readonly class HospitalReviewForStaffDetailDto
     }
 
     /**
-     * @param iterable<int, Media> $mediaList
+     * @param  iterable<int, Media>  $mediaList
      * @return array<int, array<string, mixed>>
      */
     private static function mediaList(iterable $mediaList): array
@@ -225,5 +229,4 @@ final readonly class HospitalReviewForStaffDetailDto
             ->values()
             ->all();
     }
-
 }

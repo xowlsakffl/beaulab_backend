@@ -2,8 +2,6 @@
 
 namespace App\Domains\HospitalReview\Actions\Staff;
 
-use App\Common\Exceptions\CustomException;
-use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalReview\Models\HospitalReview;
@@ -30,33 +28,16 @@ final class HospitalReviewStatusUpdateForStaffAction
             ->values()
             ->all();
         $status = (string) $payload['status'];
-        $hiddenReason = $status === HospitalReview::STATUS_ACTIVE ? null : $this->normalizeReason($payload['hidden_reason'] ?? null);
+        $historyReason = $status === HospitalReview::STATUS_ACTIVE ? null : $this->normalizeReason($payload['hidden_reason'] ?? null);
         $actor = auth()->user();
 
-        return DB::transaction(function () use ($ids, $status, $hiddenReason, $actor): array {
+        return DB::transaction(function () use ($ids, $status, $historyReason, $actor): array {
             $reviews = $this->query->getForUpdate($ids);
             $existingIds = $reviews
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)
                 ->values()
                 ->all();
-
-            $lockedIds = $reviews
-                ->filter(static fn (HospitalReview $review): bool => $review->isStatusChangeLocked())
-                ->pluck('id')
-                ->map(static fn (int|string $id): int => (int) $id)
-                ->values()
-                ->all();
-
-            if ($lockedIds !== []) {
-                throw new CustomException(
-                    ErrorCode::INVALID_REQUEST,
-                    sprintf(
-                        '자동 블라인드, 게시중단, 본인삭제 상태의 후기는 상태를 변경할 수 없습니다. (ID: %s)',
-                        implode(', ', $lockedIds),
-                    ),
-                );
-            }
 
             $updatedCount = $this->query->update($existingIds, $status);
 
@@ -73,11 +54,11 @@ final class HospitalReviewStatusUpdateForStaffAction
                     field: 'status',
                     beforeValue: $beforeStatus,
                     afterValue: $status,
-                    reason: $hiddenReason,
+                    reason: $historyReason,
                     metadata: [
                         'before_label' => $beforeStatus === HospitalReview::STATUS_ACTIVE ? '노출' : '미노출',
                         'after_label' => $status === HospitalReview::STATUS_ACTIVE ? '노출' : '미노출',
-                        'source' => 'staff.hospital-review.status',
+                        'source' => 'staff.hospital_review.status',
                         'bulk' => count($existingIds) > 1,
                     ],
                 );

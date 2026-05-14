@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalReview\Dto\Staff;
 
+use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalReview\Models\HospitalReviewCommentMention;
@@ -15,7 +16,6 @@ final readonly class HospitalReviewCommentForStaffDetailDto
         public ?array $author,
         public string $content,
         public string $status,
-        public string $postStatus,
         public ?string $authorIp,
         public int $likeCount,
         public ?array $mention,
@@ -34,7 +34,6 @@ final readonly class HospitalReviewCommentForStaffDetailDto
             author: self::author($comment),
             content: (string) $comment->content,
             status: (string) $comment->status,
-            postStatus: (string) $comment->post_status,
             authorIp: $comment->author_ip,
             likeCount: (int) $comment->like_count,
             mention: self::mention($comment),
@@ -54,7 +53,6 @@ final readonly class HospitalReviewCommentForStaffDetailDto
             'author' => $this->author,
             'content' => $this->content,
             'status' => $this->status,
-            'post_status' => $this->postStatus,
             'author_ip' => $this->authorIp,
             'like_count' => $this->likeCount,
             'mention' => $this->mention,
@@ -117,10 +115,11 @@ final readonly class HospitalReviewCommentForStaffDetailDto
         return $comment->operationHistories
             ->map(function (OperationHistory $history): array {
                 $field = (string) $history->field;
+                $historyDto = OperationHistoryDto::fromModel($history);
 
                 return [
+                    'actor_label' => $historyDto->actorLabel,
                     'status' => $field === 'status' ? $history->after_value : null,
-                    'post_status' => $field === 'post_status' ? $history->after_value : null,
                     'created_at' => $history->created_at?->toISOString(),
                     'reason' => $history->reason,
                 ];

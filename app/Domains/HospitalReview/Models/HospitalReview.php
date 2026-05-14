@@ -35,25 +35,11 @@ final class HospitalReview extends Model
 
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    public const POST_STATUS_NORMAL = 'POST_NORMAL';
-
-    public const POST_STATUS_AUTO_BLIND = 'POST_AUTO_BLIND';
-
-    public const POST_STATUS_USER_DELETE = 'POST_USER_DELETE';
-
-    public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
-
     public const MAX_BEFORE_IMAGE_COUNT = 4;
 
     public const MAX_AFTER_IMAGE_COUNT = 4;
 
     public const MAX_CATEGORY_COUNT = 10;
-
-    public const STATUS_CHANGE_LOCKED_POST_STATUSES = [
-        self::POST_STATUS_AUTO_BLIND,
-        self::POST_STATUS_USER_DELETE,
-        self::POST_STATUS_ADMIN_STOP,
-    ];
 
     protected $table = 'hospital_reviews';
 
@@ -67,10 +53,10 @@ final class HospitalReview extends Model
         'category_domain',
         'title',
         'content',
+        'author_ip',
         'cost',
         'rating',
         'status',
-        'post_status',
         'is_main_featured',
         'is_sub_featured',
         'view_count',
@@ -98,7 +84,6 @@ final class HospitalReview extends Model
 
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
-        'post_status' => self::POST_STATUS_NORMAL,
         'is_main_featured' => false,
         'is_sub_featured' => false,
         'view_count' => 0,
@@ -121,19 +106,6 @@ final class HospitalReview extends Model
     /**
      * @return list<string>
      */
-    public static function postStatuses(): array
-    {
-        return [
-            self::POST_STATUS_NORMAL,
-            self::POST_STATUS_AUTO_BLIND,
-            self::POST_STATUS_USER_DELETE,
-            self::POST_STATUS_ADMIN_STOP,
-        ];
-    }
-
-    /**
-     * @return list<string>
-     */
     public static function categoryDomains(): array
     {
         return [
@@ -144,7 +116,7 @@ final class HospitalReview extends Model
 
     public function isStatusChangeLocked(): bool
     {
-        return in_array((string) $this->post_status, self::STATUS_CHANGE_LOCKED_POST_STATUSES, true);
+        return false;
     }
 
     public function author(): BelongsTo

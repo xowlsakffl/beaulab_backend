@@ -23,20 +23,6 @@ final class HospitalReviewComment extends Model
 
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    public const POST_STATUS_NORMAL = 'POST_NORMAL';
-
-    public const POST_STATUS_AUTO_BLIND = 'POST_AUTO_BLIND';
-
-    public const POST_STATUS_USER_DELETE = 'POST_USER_DELETE';
-
-    public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
-
-    public const array STATUS_CHANGE_LOCKED_POST_STATUSES = [
-        self::POST_STATUS_AUTO_BLIND,
-        self::POST_STATUS_USER_DELETE,
-        self::POST_STATUS_ADMIN_STOP,
-    ];
-
     protected $table = 'hospital_review_comments';
 
     /**
@@ -48,7 +34,6 @@ final class HospitalReviewComment extends Model
         'author_id',
         'content',
         'status',
-        'post_status',
         'author_ip',
         'like_count',
     ];
@@ -71,7 +56,6 @@ final class HospitalReviewComment extends Model
      */
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
-        'post_status' => self::POST_STATUS_NORMAL,
         'like_count' => 0,
     ];
 
@@ -93,22 +77,9 @@ final class HospitalReviewComment extends Model
         ];
     }
 
-    /**
-     * @return list<string>
-     */
-    public static function postStatuses(): array
-    {
-        return [
-            self::POST_STATUS_NORMAL,
-            self::POST_STATUS_AUTO_BLIND,
-            self::POST_STATUS_USER_DELETE,
-            self::POST_STATUS_ADMIN_STOP,
-        ];
-    }
-
     public function isStatusChangeLocked(): bool
     {
-        return in_array((string) $this->post_status, self::STATUS_CHANGE_LOCKED_POST_STATUSES, true);
+        return false;
     }
 
     public function review(): BelongsTo
@@ -166,7 +137,7 @@ final class HospitalReviewComment extends Model
 
     protected static function booted(): void
     {
-        static::saving(static function (self $comment): void {
+        self::saving(static function (self $comment): void {
             if ($comment->parent_id === null) {
                 return;
             }

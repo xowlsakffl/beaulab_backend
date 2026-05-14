@@ -35,7 +35,7 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
         return [
             'hospital_id' => ['required', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
-            'category_codes' => ['required', 'array', 'min:1', 'max:' . HospitalReview::MAX_CATEGORY_COUNT],
+            'category_codes' => ['required', 'array', 'min:1', 'max:'.HospitalReview::MAX_CATEGORY_COUNT],
             'category_codes.*' => [
                 'required',
                 'string',
@@ -49,9 +49,9 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
             'content' => ['required', 'string', 'max:20000'],
             'cost' => ['required', 'integer', 'min:0'],
             'rating' => ['required', 'integer', Rule::in([1, 2, 3, 4, 5])],
-            'before_images' => ['nullable', 'array', 'max:' . HospitalReview::MAX_BEFORE_IMAGE_COUNT],
+            'before_images' => ['nullable', 'array', 'max:'.HospitalReview::MAX_BEFORE_IMAGE_COUNT],
             'before_images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
-            'after_images' => ['nullable', 'array', 'max:' . HospitalReview::MAX_AFTER_IMAGE_COUNT],
+            'after_images' => ['nullable', 'array', 'max:'.HospitalReview::MAX_AFTER_IMAGE_COUNT],
             'after_images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ];
     }
@@ -138,8 +138,8 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
             return;
         }
 
-        if ($categories->contains(static fn (Category $category): bool => (int) ($category->children_count ?? 0) > 0)) {
-            $validator->errors()->add('category_codes', '후기 카테고리는 최하위 카테고리만 선택할 수 있습니다.');
+        if ($categories->contains(static fn (Category $category): bool => (int) $category->depth !== 3 || (int) ($category->children_count ?? 0) > 0)) {
+            $validator->errors()->add('category_codes', '후기 카테고리는 소분류만 선택할 수 있습니다.');
         }
     }
 }

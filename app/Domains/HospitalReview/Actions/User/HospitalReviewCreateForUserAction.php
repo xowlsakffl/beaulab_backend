@@ -58,7 +58,7 @@ final class HospitalReviewCreateForUserAction
     }
 
     /**
-     * @param array<int, string> $categoryCodes
+     * @param  array<int, string>  $categoryCodes
      * @return Collection<int, Category>
      */
     private function resolveCategories(array $categoryCodes): Collection
@@ -74,7 +74,7 @@ final class HospitalReviewCreateForUserAction
     }
 
     /**
-     * @param Collection<int, Category> $categories
+     * @param  Collection<int, Category>  $categories
      */
     private function syncCategories(HospitalReview $review, Collection $categories): void
     {

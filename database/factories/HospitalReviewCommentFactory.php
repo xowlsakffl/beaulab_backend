@@ -16,17 +16,12 @@ final class HospitalReviewCommentFactory extends Factory
 
     public function definition(): array
     {
-        $postStatus = $this->faker->randomElement(HospitalReviewComment::postStatuses());
-
         return [
             'hospital_review_id' => null,
             'parent_id' => null,
             'author_id' => $this->randomAuthorId(),
             'content' => $this->faker->sentence(18),
-            'status' => $postStatus === HospitalReviewComment::POST_STATUS_NORMAL
-                ? $this->faker->randomElement(HospitalReviewComment::statuses())
-                : HospitalReviewComment::STATUS_INACTIVE,
-            'post_status' => $postStatus,
+            'status' => HospitalReviewComment::STATUS_ACTIVE,
             'author_ip' => $this->faker->ipv4(),
             'like_count' => $this->faker->numberBetween(0, 80),
         ];
@@ -36,7 +31,6 @@ final class HospitalReviewCommentFactory extends Factory
     {
         return $this->state(fn (): array => [
             'status' => HospitalReviewComment::STATUS_ACTIVE,
-            'post_status' => HospitalReviewComment::POST_STATUS_NORMAL,
         ]);
     }
 
@@ -63,32 +57,22 @@ final class HospitalReviewCommentFactory extends Factory
     {
         return $this->state(fn (): array => [
             'status' => HospitalReviewComment::STATUS_INACTIVE,
-            'post_status' => HospitalReviewComment::POST_STATUS_NORMAL,
         ]);
     }
 
     public function autoBlind(): self
     {
-        return $this->state(fn (): array => [
-            'status' => HospitalReviewComment::STATUS_INACTIVE,
-            'post_status' => HospitalReviewComment::POST_STATUS_AUTO_BLIND,
-        ]);
+        return $this->inactive();
     }
 
     public function adminStopped(): self
     {
-        return $this->state(fn (): array => [
-            'status' => HospitalReviewComment::STATUS_INACTIVE,
-            'post_status' => HospitalReviewComment::POST_STATUS_ADMIN_STOP,
-        ]);
+        return $this->inactive();
     }
 
     public function userDeleted(): self
     {
-        return $this->state(fn (): array => [
-            'status' => HospitalReviewComment::STATUS_INACTIVE,
-            'post_status' => HospitalReviewComment::POST_STATUS_USER_DELETE,
-        ]);
+        return $this->inactive();
     }
 
     private function randomAuthorId(): int

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
@@ -19,7 +20,6 @@ final class HospitalReviewFactory extends Factory
 
     public function definition(): array
     {
-        $postStatus = $this->faker->randomElement(HospitalReview::postStatuses());
         $hospitalId = $this->randomHospitalId();
 
         return [
@@ -29,12 +29,10 @@ final class HospitalReviewFactory extends Factory
             'category_domain' => $this->faker->randomElement(HospitalReview::categoryDomains()),
             'title' => $this->faker->sentence(6),
             'content' => $this->faker->paragraphs(4, true),
+            'author_ip' => $this->faker->ipv4(),
             'cost' => $this->faker->numberBetween(20, 1500),
             'rating' => $this->faker->numberBetween(1, 5),
-            'status' => $postStatus === HospitalReview::POST_STATUS_NORMAL
-                ? $this->faker->randomElement(HospitalReview::statuses())
-                : HospitalReview::STATUS_INACTIVE,
-            'post_status' => $postStatus,
+            'status' => HospitalReview::STATUS_ACTIVE,
             'is_main_featured' => $this->faker->boolean(8),
             'is_sub_featured' => $this->faker->boolean(12),
             'view_count' => $this->faker->numberBetween(0, 20000),
@@ -48,7 +46,6 @@ final class HospitalReviewFactory extends Factory
     {
         return $this->state(fn (): array => [
             'status' => HospitalReview::STATUS_ACTIVE,
-            'post_status' => HospitalReview::POST_STATUS_NORMAL,
         ]);
     }
 
@@ -56,32 +53,45 @@ final class HospitalReviewFactory extends Factory
     {
         return $this->state(fn (): array => [
             'status' => HospitalReview::STATUS_INACTIVE,
-            'post_status' => HospitalReview::POST_STATUS_NORMAL,
         ]);
     }
 
     public function autoBlind(): self
     {
-        return $this->state(fn (): array => [
-            'status' => HospitalReview::STATUS_INACTIVE,
-            'post_status' => HospitalReview::POST_STATUS_AUTO_BLIND,
-        ]);
+        return $this->inactive();
     }
 
     public function adminStopped(): self
     {
-        return $this->state(fn (): array => [
-            'status' => HospitalReview::STATUS_INACTIVE,
-            'post_status' => HospitalReview::POST_STATUS_ADMIN_STOP,
-        ]);
+        return $this->inactive();
     }
 
     public function userDeleted(): self
     {
-        return $this->state(fn (): array => [
-            'status' => HospitalReview::STATUS_INACTIVE,
-            'post_status' => HospitalReview::POST_STATUS_USER_DELETE,
-        ]);
+        return $this->inactive();
+    }
+
+    public function withSmallCategories(?int $count = null): self
+    {
+        return $this->afterCreating(function (HospitalReview $review) use ($count): void {
+            $categoryIds = $this->smallCategoryIdsByDomain((string) $review->category_domain);
+            if ($categoryIds === []) {
+                return;
+            }
+
+            $selectedIds = collect($categoryIds)
+                ->shuffle()
+                ->take($count ?? random_int(1, min(3, count($categoryIds))))
+                ->values();
+
+            $review->categories()->sync(
+                $selectedIds
+                    ->mapWithKeys(static fn (int $categoryId, int $index): array => [
+                        $categoryId => ['is_primary' => $index === 0],
+                    ])
+                    ->all(),
+            );
+        });
     }
 
     public function withSeedMedia(int $beforeImageCount = 2, int $afterImageCount = 2): self
@@ -177,5 +187,41 @@ final class HospitalReviewFactory extends Factory
         }
 
         return $doctorIds[array_rand($doctorIds)];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function smallCategoryIdsByDomain(string $domain): array
+    {
+        /** @var array<string, array<int, int>> $categoryIdsByDomain */
+        static $categoryIdsByDomain = [];
+
+        if (! array_key_exists($domain, $categoryIdsByDomain)) {
+            $categoryIdsByDomain[$domain] = $this->loadSmallCategoryIdsByDomain($domain);
+        }
+
+        if ($categoryIdsByDomain[$domain] === []) {
+            CategoryFactory::seedHospitalCategories();
+            $categoryIdsByDomain[$domain] = $this->loadSmallCategoryIdsByDomain($domain);
+        }
+
+        return $categoryIdsByDomain[$domain];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function loadSmallCategoryIdsByDomain(string $domain): array
+    {
+        return Category::query()
+            ->where('domain', $domain)
+            ->where('status', Category::STATUS_ACTIVE)
+            ->where('depth', 3)
+            ->whereDoesntHave('children')
+            ->pluck('id')
+            ->map(static fn (int|string $id): int => (int) $id)
+            ->values()
+            ->all();
     }
 }

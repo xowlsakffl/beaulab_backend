@@ -13,7 +13,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
-            'post_status' => $this->normalizeToArray($this->input('post_status')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
             'ratings' => $this->normalizeToArray($this->input('ratings') ?? $this->input('rating')),
         ]);
@@ -30,8 +29,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::in(HospitalReview::statuses())],
-            'post_status' => ['nullable', 'array'],
-            'post_status.*' => [Rule::in(HospitalReview::postStatuses())],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
@@ -57,7 +54,7 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'metric_max' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d'],
-            'sort' => ['nullable', 'in:id,cost,rating,status,post_status,is_main_featured,is_sub_featured,view_count,comment_count,like_count,save_count,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,cost,rating,status,is_main_featured,is_sub_featured,view_count,comment_count,like_count,save_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -70,7 +67,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
         return [
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
-            'post_status' => $validated['post_status'] ?? null,
             'author_id' => $validated['author_id'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'doctor_id' => $validated['doctor_id'] ?? null,
@@ -98,8 +94,6 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'q' => '검색어',
             'status' => '노출 여부',
             'status.*' => '노출 여부',
-            'post_status' => '게시 상태',
-            'post_status.*' => '게시 상태',
             'author_id' => '작성자',
             'hospital_id' => '병의원',
             'doctor_id' => '의료진',

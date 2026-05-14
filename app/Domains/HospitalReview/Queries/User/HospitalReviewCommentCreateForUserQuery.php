@@ -23,7 +23,7 @@ final class HospitalReviewCommentCreateForUserQuery
             ->whereKey($parentId)
             ->where('hospital_review_id', $reviewId)
             ->lockForUpdate()
-            ->first(['id', 'hospital_review_id', 'parent_id', 'status', 'post_status']);
+            ->first(['id', 'hospital_review_id', 'parent_id', 'status']);
     }
 
     public function create(array $payload): HospitalReviewComment
@@ -34,7 +34,6 @@ final class HospitalReviewCommentCreateForUserQuery
             'author_id' => (int) $payload['author_id'],
             'content' => (string) $payload['content'],
             'status' => HospitalReviewComment::STATUS_ACTIVE,
-            'post_status' => HospitalReviewComment::POST_STATUS_NORMAL,
             'author_ip' => $payload['author_ip'] ?? null,
             'like_count' => 0,
         ]);

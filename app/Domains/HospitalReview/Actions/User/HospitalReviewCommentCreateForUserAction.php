@@ -35,7 +35,7 @@ final class HospitalReviewCommentCreateForUserAction
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '병의원 후기를 찾을 수 없습니다.');
             }
 
-            if ($lockedReview->status !== HospitalReview::STATUS_ACTIVE || $lockedReview->post_status !== HospitalReview::POST_STATUS_NORMAL) {
+            if ($lockedReview->status !== HospitalReview::STATUS_ACTIVE || $lockedReview->isStatusChangeLocked()) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '댓글을 작성할 수 없는 병의원 후기입니다.');
             }
 
@@ -101,7 +101,7 @@ final class HospitalReviewCommentCreateForUserAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '부모 댓글을 확인해 주세요.');
         }
 
-        if ($parent->status !== HospitalReviewComment::STATUS_ACTIVE || $parent->post_status !== HospitalReviewComment::POST_STATUS_NORMAL) {
+        if ($parent->status !== HospitalReviewComment::STATUS_ACTIVE || $parent->isStatusChangeLocked()) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '답글을 작성할 수 없는 댓글입니다.');
         }
     }

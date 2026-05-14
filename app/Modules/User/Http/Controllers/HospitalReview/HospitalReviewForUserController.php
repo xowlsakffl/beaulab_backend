@@ -18,7 +18,10 @@ final class HospitalReviewForUserController extends Controller
 {
     public function createHospitalReviewForUser(HospitalReviewCreateForUserRequest $request, HospitalReviewCreateForUserAction $action)
     {
-        $result = $action->execute($request->user(), $request->validated());
+        $result = $action->execute($request->user(), [
+            ...$request->validated(),
+            'author_ip' => $request->ip(),
+        ]);
 
         return ApiResponse::success($result['hospital_review'] ?? $result);
     }

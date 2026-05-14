@@ -13,12 +13,12 @@ final readonly class HospitalEvaluationForStaffDto
         public ?array $author,
         public ?array $hospital,
         public ?array $doctor,
+        public string $categoryDomain,
         public array $categories,
         public ?string $phone,
         public int $cost,
         public float $averageRating,
         public string $status,
-        public string $postStatus,
         public int $viewCount,
         public array $receipt,
     ) {}
@@ -31,12 +31,12 @@ final readonly class HospitalEvaluationForStaffDto
             author: self::author($evaluation),
             hospital: self::hospital($evaluation),
             doctor: self::doctor($evaluation),
+            categoryDomain: (string) $evaluation->category_domain,
             categories: self::categories($evaluation),
             phone: $evaluation->phone,
             cost: (int) $evaluation->cost,
             averageRating: $evaluation->averageRating(),
             status: (string) $evaluation->status,
-            postStatus: (string) $evaluation->post_status,
             viewCount: (int) $evaluation->view_count,
             receipt: self::receipt($evaluation),
         );
@@ -50,12 +50,12 @@ final readonly class HospitalEvaluationForStaffDto
             'author' => $this->author,
             'hospital' => $this->hospital,
             'doctor' => $this->doctor,
+            'category_domain' => $this->categoryDomain,
             'categories' => $this->categories,
             'phone' => $this->phone,
             'cost' => $this->cost,
             'average_rating' => $this->averageRating,
             'status' => $this->status,
-            'post_status' => $this->postStatus,
             'view_count' => $this->viewCount,
             'receipt' => $this->receipt,
         ];
@@ -148,4 +148,5 @@ final readonly class HospitalEvaluationForStaffDto
             'label' => $evaluation->receiptStatusLabel(),
         ];
     }
+
 }

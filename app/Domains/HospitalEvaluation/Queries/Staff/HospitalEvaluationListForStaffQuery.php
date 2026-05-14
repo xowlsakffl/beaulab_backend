@@ -58,6 +58,10 @@ final class HospitalEvaluationListForStaffQuery
                         ->where('name', 'like', "%{$q}%"))
                     ->orWhereHas('doctor', fn ($doctorQuery) => $doctorQuery
                         ->where('name', 'like', "%{$q}%"));
+
+                if (ctype_digit($q)) {
+                    $query->orWhere('id', (int) $q);
+                }
             });
         }
 
@@ -103,7 +107,7 @@ final class HospitalEvaluationListForStaffQuery
             } else {
                 $builder->whereHas('categories', function ($query) use ($normalizedCategoryIds, $filters): void {
                     $query
-                        ->where('categories.domain', (string) $filters['category_domain'])
+                        ->when(! empty($filters['category_domain']), fn ($categoryQuery) => $categoryQuery->where('categories.domain', (string) $filters['category_domain']))
                         ->whereIn('categories.id', $normalizedCategoryIds);
                 });
             }

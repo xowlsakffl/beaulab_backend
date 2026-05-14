@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 final class HospitalEvaluationStatusUpdateForStaffQuery
 {
     /**
-     * @param array<int, int> $evaluationIds
+     * @param  array<int, int>  $evaluationIds
      * @return Collection<int, HospitalEvaluation>
      */
     public function getForUpdate(array $evaluationIds): Collection
@@ -27,7 +27,7 @@ final class HospitalEvaluationStatusUpdateForStaffQuery
     }
 
     /**
-     * @param array<int, int> $evaluationIds
+     * @param  array<int, int>  $evaluationIds
      */
     public function update(array $evaluationIds, string $status): int
     {
@@ -39,12 +39,11 @@ final class HospitalEvaluationStatusUpdateForStaffQuery
 
         return HospitalEvaluation::query()
             ->whereIn('id', $ids)
-            ->whereNotIn('post_status', HospitalEvaluation::STATUS_CHANGE_LOCKED_POST_STATUSES)
             ->update(['status' => $status]);
     }
 
     /**
-     * @param array<int, int|string> $evaluationIds
+     * @param  array<int, int|string>  $evaluationIds
      * @return array<int, int>
      */
     private function normalizeIds(array $evaluationIds): array

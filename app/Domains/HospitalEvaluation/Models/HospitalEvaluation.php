@@ -252,7 +252,7 @@ final class HospitalEvaluation extends Model
 
     public function isStatusChangeLocked(): bool
     {
-        return in_array((string) $this->post_status, self::STATUS_CHANGE_LOCKED_POST_STATUSES, true);
+        return false;
     }
 
     public function author(): BelongsTo

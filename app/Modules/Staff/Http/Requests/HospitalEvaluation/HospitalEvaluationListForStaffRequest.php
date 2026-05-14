@@ -38,13 +38,13 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
-            'category_domain' => ['required', Rule::in(HospitalEvaluation::categoryDomains())],
+            'category_domain' => ['nullable', Rule::in(HospitalEvaluation::categoryDomains())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->where('domain', $this->input('category_domain'))
+                    ->when($this->input('category_domain'), fn ($domainQuery, $domain) => $domainQuery->where('domain', $domain))
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'cost_min' => ['nullable', 'integer', 'min:0'],
@@ -73,7 +73,7 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'doctor_id' => $validated['doctor_id'] ?? null,
-            'category_domain' => $validated['category_domain'],
+            'category_domain' => $validated['category_domain'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'cost_min' => isset($validated['cost_min']) ? (int) $validated['cost_min'] : null,
             'cost_max' => isset($validated['cost_max']) ? (int) $validated['cost_max'] : null,

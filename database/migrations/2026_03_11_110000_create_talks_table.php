@@ -22,7 +22,6 @@ return new class extends Migration
             $table->longText('content')->comment('게시글 내용');
 
             $table->string('status', 20)->default('ACTIVE')->comment('노출상태(ACTIVE=노출, INACTIVE=미노출)');
-            $table->string('post_status', 30)->default('POST_NORMAL')->comment('게시상태(POST_NORMAL, POST_AUTO_BLIND, POST_USER_DELETE, POST_ADMIN_STOP)');
             $table->string('author_ip', 45)->nullable()->comment('작성자 IP(v4/v6)');
 
             $table->boolean('is_pinned')->default(false)->comment('상단 고정 여부');
@@ -36,7 +35,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['post_status', 'status', 'created_at'], 'talks_post_status_status_created_idx');
+            $table->index(['status', 'created_at'], 'talks_status_created_idx');
             $table->index(['is_pinned', 'pinned_order', 'created_at'], 'talks_pinned_created_idx');
             $table->index(['author_id', 'created_at'], 'talks_author_created_idx');
         });

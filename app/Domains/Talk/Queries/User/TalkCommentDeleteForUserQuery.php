@@ -16,11 +16,10 @@ final class TalkCommentDeleteForUserQuery
             ->first();
     }
 
-    public function markDeleted(TalkComment $comment, string $status, string $postStatus): TalkComment
+    public function markDeleted(TalkComment $comment, string $status): TalkComment
     {
         $comment->forceFill([
             'status' => $status,
-            'post_status' => $postStatus,
         ]);
 
         if ($comment->isDirty()) {

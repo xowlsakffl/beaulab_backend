@@ -18,7 +18,6 @@ final readonly class TalkForStaffDto
         public string $title,
         public string $content,
         public string $status,
-        public string $postStatus,
         public bool $isPinned,
         public int $pinnedOrder,
         public int $viewCount,
@@ -38,7 +37,6 @@ final readonly class TalkForStaffDto
             title: (string) $talk->title,
             content: (string) $talk->content,
             status: (string) $talk->status,
-            postStatus: (string) $talk->post_status,
             isPinned: (bool) $talk->is_pinned,
             pinnedOrder: (int) $talk->pinned_order,
             viewCount: (int) $talk->view_count,
@@ -59,7 +57,6 @@ final readonly class TalkForStaffDto
             'title' => $this->title,
             'content' => $this->content,
             'status' => $this->status,
-            'post_status' => $this->postStatus,
             'is_pinned' => $this->isPinned,
             'pinned_order' => $this->pinnedOrder,
             'view_count' => $this->viewCount,
@@ -119,4 +116,5 @@ final readonly class TalkForStaffDto
             'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
         ];
     }
+
 }

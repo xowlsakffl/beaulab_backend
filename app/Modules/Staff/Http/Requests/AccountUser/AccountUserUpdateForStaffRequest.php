@@ -25,6 +25,10 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
             $data['nickname'] = trim($data['nickname']);
         }
 
+        if (array_key_exists('phone', $data) && is_string($data['phone'])) {
+            $data['phone'] = trim($data['phone']);
+        }
+
         $this->replace($data);
     }
 
@@ -44,6 +48,7 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
                 'max:50',
                 Rule::unique('account_users', 'nickname')->ignore($this->route('user')?->getKey()),
             ],
+            'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
             'status' => ['sometimes', 'required', 'in:ACTIVE,SUSPENDED,BLOCKED'],
         ];
     }
@@ -53,6 +58,7 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
         return [
             'name' => '실명',
             'nickname' => '닉네임',
+            'phone' => '전화번호',
             'status' => '운영 상태',
         ];
     }

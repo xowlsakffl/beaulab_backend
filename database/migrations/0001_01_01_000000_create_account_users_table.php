@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name')->comment('사용자 실명');
             $table->string('nickname')->unique()->comment('사용자 닉네임');
             $table->string('email')->unique()->comment('로그인 이메일');
+            $table->string('phone', 30)->nullable()->comment('사용자 연락처');
             $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
             $table->string('password')->comment('암호화된 비밀번호');
             $table->string('status')->default('ACTIVE')->comment('계정 상태(ACTIVE, SUSPENDED, BLOCKED)');

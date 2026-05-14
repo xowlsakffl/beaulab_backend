@@ -30,6 +30,7 @@ final class AccountUser extends Authenticatable
     public const STATUS_SUSPENDED = 'SUSPENDED';
 
     public const STATUS_BLOCKED = 'BLOCKED';
+
     public const STATUS_WITHDRAWN = 'WITHDRAWN';
 
     protected $attributes = [
@@ -43,6 +44,7 @@ final class AccountUser extends Authenticatable
         'name',
         'nickname',
         'email',
+        'phone',
         'password',
         'status',
         'email_verified_at',

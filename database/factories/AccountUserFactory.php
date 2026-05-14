@@ -19,6 +19,7 @@ final class AccountUserFactory extends Factory
             'name' => $this->faker->name(),
             'nickname' => $this->faker->unique()->userName(),
             'email' => $this->faker->unique()->safeEmail(),
+            'phone' => $this->faker->phoneNumber(),
 
             'password' => Hash::make('password'),
 
@@ -43,6 +44,13 @@ final class AccountUserFactory extends Factory
             'name' => $name,
             'nickname' => $nickname,
             'email' => $email,
+        ]);
+    }
+
+    public function withPhone(?string $phone): self
+    {
+        return $this->state(fn () => [
+            'phone' => $phone,
         ]);
     }
 

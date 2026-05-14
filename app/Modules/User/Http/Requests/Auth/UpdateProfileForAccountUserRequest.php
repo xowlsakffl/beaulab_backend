@@ -27,6 +27,10 @@ final class UpdateProfileForAccountUserRequest extends FormRequest
             $data['nickname'] = trim($data['nickname']);
         }
 
+        if (array_key_exists('phone', $data) && is_string($data['phone'])) {
+            $data['phone'] = trim($data['phone']);
+        }
+
         $this->replace($data);
     }
 
@@ -52,6 +56,7 @@ final class UpdateProfileForAccountUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('account_users', 'email')->ignore($this->user()?->getAuthIdentifier()),
             ],
+            'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
         ];
     }
 
@@ -61,6 +66,7 @@ final class UpdateProfileForAccountUserRequest extends FormRequest
             'name' => '실명',
             'nickname' => '닉네임',
             'email' => '이메일',
+            'phone' => '전화번호',
         ];
     }
 

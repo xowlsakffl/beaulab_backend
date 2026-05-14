@@ -17,7 +17,6 @@ class TalkListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
-            'post_status' => $this->normalizeToArray($this->input('post_status')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
         ]);
     }
@@ -33,8 +32,6 @@ class TalkListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::in(Talk::statuses())],
-            'post_status' => ['nullable', 'array'],
-            'post_status.*' => [Rule::in(Talk::postStatuses())],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
@@ -54,7 +51,7 @@ class TalkListForStaffRequest extends FormRequest
             'metric_max' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d'],
-            'sort' => ['nullable', 'in:id,title,status,post_status,is_pinned,view_count,comment_count,like_count,save_count,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,title,status,is_pinned,view_count,comment_count,like_count,save_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -67,7 +64,6 @@ class TalkListForStaffRequest extends FormRequest
         return [
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
-            'post_status' => $validated['post_status'] ?? null,
             'author_id' => $validated['author_id'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'metric' => $validated['metric'] ?? null,
@@ -90,8 +86,6 @@ class TalkListForStaffRequest extends FormRequest
             'q' => '검색어',
             'status' => '노출 여부',
             'status.*' => '노출 여부',
-            'post_status' => '상태',
-            'post_status.*' => '상태',
             'author_id' => '작성자',
             'category_ids' => '토크 유형',
             'category_ids.*' => '토크 유형',

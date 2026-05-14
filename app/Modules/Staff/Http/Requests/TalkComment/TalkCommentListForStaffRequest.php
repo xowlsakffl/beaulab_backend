@@ -14,7 +14,6 @@ final class TalkCommentListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
-            'post_status' => $this->normalizeToArray($this->input('post_status')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
         ]);
     }
@@ -33,8 +32,6 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::in(TalkComment::statuses())],
-            'post_status' => ['nullable', 'array'],
-            'post_status.*' => [Rule::in(TalkComment::postStatuses())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -47,7 +44,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'metric_max' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d'],
-            'sort' => ['nullable', 'in:id,status,post_status,like_count,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,status,like_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -63,7 +60,6 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
-            'post_status' => $validated['post_status'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'metric_min' => isset($validated['metric_min']) ? (int) $validated['metric_min'] : null,
             'metric_max' => isset($validated['metric_max']) ? (int) $validated['metric_max'] : null,
@@ -87,8 +83,6 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'q' => '검색어',
             'status' => '노출 여부',
             'status.*' => '노출 여부',
-            'post_status' => '상태',
-            'post_status.*' => '상태',
             'category_ids' => '토크 유형',
             'category_ids.*' => '토크 유형',
             'metric_min' => '좋아요 수 최소값',

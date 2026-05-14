@@ -25,7 +25,6 @@ final class TalkCreateForUserQuery
             'title' => (string) $payload['title'],
             'content' => (string) $payload['content'],
             'status' => Talk::STATUS_ACTIVE,
-            'post_status' => Talk::POST_STATUS_NORMAL,
             'author_ip' => $payload['author_ip'] ?? null,
             'is_pinned' => false,
             'pinned_order' => 0,

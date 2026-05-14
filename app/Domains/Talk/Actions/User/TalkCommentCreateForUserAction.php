@@ -35,7 +35,7 @@ final class TalkCommentCreateForUserAction
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '토크를 찾을 수 없습니다.');
             }
 
-            if ($lockedTalk->status !== Talk::STATUS_ACTIVE || $lockedTalk->post_status !== Talk::POST_STATUS_NORMAL) {
+            if ($lockedTalk->status !== Talk::STATUS_ACTIVE) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '댓글을 작성할 수 없는 토크입니다.');
             }
 
@@ -101,7 +101,7 @@ final class TalkCommentCreateForUserAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '부모 댓글을 확인해 주세요.');
         }
 
-        if ($parent->status !== TalkComment::STATUS_ACTIVE || $parent->post_status !== TalkComment::POST_STATUS_NORMAL) {
+        if ($parent->status !== TalkComment::STATUS_ACTIVE) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '답글을 작성할 수 없는 댓글입니다.');
         }
     }

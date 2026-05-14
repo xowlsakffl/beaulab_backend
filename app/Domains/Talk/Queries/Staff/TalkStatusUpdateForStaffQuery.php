@@ -26,7 +26,7 @@ final class TalkStatusUpdateForStaffQuery
             ->whereIn('id', $ids)
             ->orderBy('id')
             ->lockForUpdate()
-            ->get(['id', 'status', 'post_status']);
+            ->get(['id', 'status']);
     }
 
     /**
@@ -42,7 +42,6 @@ final class TalkStatusUpdateForStaffQuery
 
         return Talk::query()
             ->whereIn('id', $ids)
-            ->whereNotIn('post_status', Talk::STATUS_CHANGE_LOCKED_POST_STATUSES)
             ->update(['status' => $status]);
     }
 

@@ -17,16 +17,11 @@ final class TalkFactory extends Factory
 
     public function definition(): array
     {
-        $postStatus = $this->faker->randomElement(Talk::postStatuses());
-
         return [
             'author_id' => $this->randomAuthorId(),
             'title' => $this->faker->sentence(6),
             'content' => $this->faker->paragraphs(3, true),
-            'status' => $postStatus === Talk::POST_STATUS_NORMAL
-                ? $this->faker->randomElement(Talk::statuses())
-                : Talk::STATUS_INACTIVE,
-            'post_status' => $postStatus,
+            'status' => Talk::STATUS_ACTIVE,
             'author_ip' => $this->faker->ipv4(),
             'is_pinned' => $this->faker->boolean(8),
             'pinned_order' => $this->faker->numberBetween(0, 20),
@@ -41,7 +36,13 @@ final class TalkFactory extends Factory
     {
         return $this->state(fn () => [
             'status' => Talk::STATUS_ACTIVE,
-            'post_status' => Talk::POST_STATUS_NORMAL,
+        ]);
+    }
+
+    public function inactive(): self
+    {
+        return $this->state(fn () => [
+            'status' => Talk::STATUS_INACTIVE,
         ]);
     }
 

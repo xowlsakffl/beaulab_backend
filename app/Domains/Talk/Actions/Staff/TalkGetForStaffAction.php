@@ -24,21 +24,20 @@ final class TalkGetForStaffAction
             'poll.options',
         ]);
 
-        $operationHistories = $talk->operationHistories()
-            ->with('actor')
-            ->paginate(
-                perPage: (int) ($filters['operation_histories_per_page'] ?? 15),
-                pageName: 'operation_histories_page',
-                page: (int) ($filters['operation_histories_page'] ?? 1),
-            );
+        $operationHistories = $this->paginateWithFallback(
+            queryFactory: fn () => $talk->operationHistories()->with('actor'),
+            perPage: (int) ($filters['operation_histories_per_page'] ?? 15),
+            pageName: 'operation_histories_page',
+            page: (int) ($filters['operation_histories_page'] ?? 1),
+        );
 
-        $comments = $talk->comments()
-            ->with(['author', 'operationHistories.actor', 'mentions.mentionedUser'])
-            ->paginate(
-                perPage: (int) ($filters['comments_per_page'] ?? 10),
-                pageName: 'comments_page',
-                page: (int) ($filters['comments_page'] ?? 1),
-            );
+        $comments = $this->paginateWithFallback(
+            queryFactory: fn () => $talk->comments()
+                ->with(['author', 'operationHistories.actor', 'mentions.mentionedUser']),
+            perPage: (int) ($filters['comments_per_page'] ?? 10),
+            pageName: 'comments_page',
+            page: (int) ($filters['comments_page'] ?? 1),
+        );
 
         return [
             'talk' => TalkForStaffDetailDto::fromModel(
@@ -72,5 +71,29 @@ final class TalkGetForStaffAction
                 'last_page' => $paginator->lastPage(),
             ],
         ];
+    }
+
+    private function paginateWithFallback(
+        callable $queryFactory,
+        int $perPage,
+        string $pageName,
+        int $page,
+    ): LengthAwarePaginator {
+        $page = max(1, $page);
+        $paginator = $queryFactory()->paginate(
+            perPage: $perPage,
+            pageName: $pageName,
+            page: $page,
+        );
+
+        if ($page === 1 || $paginator->total() === 0 || $paginator->items() !== []) {
+            return $paginator;
+        }
+
+        return $queryFactory()->paginate(
+            perPage: $perPage,
+            pageName: $pageName,
+            page: 1,
+        );
     }
 }

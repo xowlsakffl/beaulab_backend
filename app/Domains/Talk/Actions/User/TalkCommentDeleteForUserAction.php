@@ -33,49 +33,28 @@ final class TalkCommentDeleteForUserAction
             }
 
             $beforeStatus = (string) $lockedComment->status;
-            $beforePostStatus = (string) $lockedComment->post_status;
 
-            if ($beforePostStatus === TalkComment::POST_STATUS_USER_DELETE) {
+            if ((string) $lockedComment->status === TalkComment::STATUS_INACTIVE) {
                 return $lockedComment->fresh(['author', 'mentions.mentionedUser']);
-            }
-
-            if ($lockedComment->isStatusChangeLocked()) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '현재 상태의 토크 댓글은 삭제할 수 없습니다.');
             }
 
             $updatedComment = $this->query->markDeleted(
                 $lockedComment,
                 TalkComment::STATUS_INACTIVE,
-                TalkComment::POST_STATUS_USER_DELETE,
             );
-
-            if ($beforeStatus !== TalkComment::STATUS_INACTIVE) {
-                $this->historyCreateAction->execute(
-                    target: $updatedComment,
-                    action: OperationHistory::ACTION_STATUS_UPDATED,
-                    actor: $user,
-                    field: 'status',
-                    beforeValue: $beforeStatus,
-                    afterValue: TalkComment::STATUS_INACTIVE,
-                    metadata: [
-                        'before_label' => $beforeStatus,
-                        'after_label' => TalkComment::STATUS_INACTIVE,
-                        'source' => 'user.talk_comment.status',
-                    ],
-                );
-            }
 
             $this->historyCreateAction->execute(
                 target: $updatedComment,
                 action: OperationHistory::ACTION_STATUS_UPDATED,
                 actor: $user,
-                field: 'post_status',
-                beforeValue: $beforePostStatus,
-                afterValue: TalkComment::POST_STATUS_USER_DELETE,
+                field: 'status',
+                beforeValue: $beforeStatus,
+                afterValue: TalkComment::STATUS_INACTIVE,
+                reason: '본인삭제',
                 metadata: [
-                    'before_label' => $beforePostStatus,
-                    'after_label' => TalkComment::POST_STATUS_USER_DELETE,
-                    'source' => 'user.talk_comment.post_status',
+                    'before_label' => $beforeStatus === TalkComment::STATUS_ACTIVE ? '노출' : '미노출',
+                    'after_label' => '미노출',
+                    'source' => 'user.talk_comment.status',
                 ],
             );
 

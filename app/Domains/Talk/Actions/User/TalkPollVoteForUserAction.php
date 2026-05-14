@@ -20,7 +20,7 @@ final class TalkPollVoteForUserAction
 {
     public function execute(AccountUser $user, Talk $talk, array $payload): array
     {
-        if ($talk->status !== Talk::STATUS_ACTIVE || $talk->post_status !== Talk::POST_STATUS_NORMAL) {
+        if ($talk->status !== Talk::STATUS_ACTIVE) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '투표할 수 없는 토크입니다.');
         }
 

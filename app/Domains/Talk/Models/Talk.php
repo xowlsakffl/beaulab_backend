@@ -30,14 +30,6 @@ final class Talk extends Model
 
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    public const POST_STATUS_NORMAL = 'POST_NORMAL';
-
-    public const POST_STATUS_AUTO_BLIND = 'POST_AUTO_BLIND';
-
-    public const POST_STATUS_USER_DELETE = 'POST_USER_DELETE';
-
-    public const POST_STATUS_ADMIN_STOP = 'POST_ADMIN_STOP';
-
     public const CATEGORY_DOMAIN = Category::DOMAIN_TALK;
 
     public const CATEGORY_CODE_PLASTIC_PETIT = 'TALK_PLASTIC_PETIT';
@@ -57,12 +49,6 @@ final class Talk extends Model
 
     public const int MAX_IMAGE_COUNT = 4;
 
-    public const array STATUS_CHANGE_LOCKED_POST_STATUSES = [
-        self::POST_STATUS_AUTO_BLIND,
-        self::POST_STATUS_USER_DELETE,
-        self::POST_STATUS_ADMIN_STOP,
-    ];
-
     protected $table = 'talks';
 
     /**
@@ -73,7 +59,6 @@ final class Talk extends Model
         'title',
         'content',
         'status',
-        'post_status',
         'author_ip',
         'is_pinned',
         'pinned_order',
@@ -98,7 +83,6 @@ final class Talk extends Model
 
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
-        'post_status' => self::POST_STATUS_NORMAL,
         'is_pinned' => false,
         'pinned_order' => 0,
         'view_count' => 0,
@@ -121,19 +105,6 @@ final class Talk extends Model
     /**
      * @return list<string>
      */
-    public static function postStatuses(): array
-    {
-        return [
-            self::POST_STATUS_NORMAL,
-            self::POST_STATUS_AUTO_BLIND,
-            self::POST_STATUS_USER_DELETE,
-            self::POST_STATUS_ADMIN_STOP,
-        ];
-    }
-
-    /**
-     * @return list<string>
-     */
     public static function categoryCodes(): array
     {
         return self::CATEGORY_CODES;
@@ -141,7 +112,7 @@ final class Talk extends Model
 
     public function isStatusChangeLocked(): bool
     {
-        return in_array((string) $this->post_status, self::STATUS_CHANGE_LOCKED_POST_STATUSES, true);
+        return false;
     }
 
     public function author(): BelongsTo

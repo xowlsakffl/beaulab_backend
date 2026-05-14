@@ -32,7 +32,6 @@ return new class extends Migration
             $table->longText('content')->comment('댓글 내용');
 
             $table->string('status', 20)->default('ACTIVE')->comment('노출상태(ACTIVE=노출, INACTIVE=미노출)');
-            $table->string('post_status', 30)->default('POST_NORMAL')->comment('게시상태(POST_NORMAL, POST_AUTO_BLIND, POST_USER_DELETE, POST_ADMIN_STOP)');
             $table->string('author_ip', 45)->nullable()->comment('작성자 IP(v4/v6)');
             $table->unsignedInteger('like_count')->default(0)->comment('좋아요 수');
 
@@ -41,7 +40,6 @@ return new class extends Migration
 
             $table->index(['talk_id', 'parent_id'], 'talk_comments_post_parent_idx');
             $table->index(['status', 'created_at'], 'talk_comments_status_created_idx');
-            $table->index(['post_status', 'status', 'created_at'], 'talk_comments_post_status_status_created_idx');
             $table->index(['author_id', 'created_at'], 'talk_comments_author_created_idx');
         });
 

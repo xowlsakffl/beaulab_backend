@@ -80,6 +80,7 @@ final class HospitalEvaluation extends Model
         'category_domain',
         'content',
         'phone',
+        'author_ip',
         'cost',
         'rating_staff_kindness',
         'rating_surgery_satisfaction',

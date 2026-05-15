@@ -21,7 +21,6 @@ final class HospitalReviewListForStaffQuery
                 'hospital_id',
                 'doctor_id',
                 'title',
-                'content',
                 'cost',
                 'rating',
                 'status',
@@ -39,8 +38,6 @@ final class HospitalReviewListForStaffQuery
                 'hospital:id,name',
                 'hospital.businessRegistration:id,hospital_id,business_number',
                 'doctor:id,name,position',
-                'beforeImages',
-                'afterImages',
                 'categories' => fn ($query) => $query
                     ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')

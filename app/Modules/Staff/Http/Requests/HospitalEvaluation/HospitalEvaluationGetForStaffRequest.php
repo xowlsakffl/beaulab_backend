@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\HospitalEvaluation;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class HospitalEvaluationGetForStaffRequest extends FormRequest
 {
@@ -23,7 +24,7 @@ final class HospitalEvaluationGetForStaffRequest extends FormRequest
     {
         return [
             'operation_histories_page' => ['nullable', 'integer', 'min:1'],
-            'operation_histories_per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'operation_histories_per_page' => ['nullable', 'integer', Rule::in([10])],
         ];
     }
 
@@ -33,7 +34,7 @@ final class HospitalEvaluationGetForStaffRequest extends FormRequest
 
         return [
             'operation_histories_page' => (int) ($validated['operation_histories_page'] ?? 1),
-            'operation_histories_per_page' => (int) ($validated['operation_histories_per_page'] ?? 15),
+            'operation_histories_per_page' => 10,
         ];
     }
 

@@ -29,6 +29,7 @@ final class HospitalEvaluationFactory extends Factory
             'category_domain' => $this->faker->randomElement(HospitalEvaluation::categoryDomains()),
             'content' => $this->faker->paragraphs(4, true),
             'phone' => $this->faker->phoneNumber(),
+            'author_ip' => $this->faker->ipv4(),
             'cost' => $this->faker->numberBetween(20, 1500),
             'rating_staff_kindness' => $this->faker->numberBetween(1, 5),
             'rating_surgery_satisfaction' => $this->faker->numberBetween(1, 5),

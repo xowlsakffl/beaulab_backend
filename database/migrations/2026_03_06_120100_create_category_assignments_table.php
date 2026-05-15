@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -26,6 +26,7 @@ return new class extends Migration
                 'category_assignments_model_category_unique'
             );
             $table->index(['categorizable_type', 'categorizable_id'], 'category_assignments_model_index');
+            $table->index(['category_id', 'categorizable_type', 'categorizable_id'], 'category_assignments_category_model_idx');
             $table->index('category_id');
             $table->index('is_primary');
         });
@@ -38,4 +39,3 @@ return new class extends Migration
         Schema::dropIfExists('category_assignments');
     }
 };
-

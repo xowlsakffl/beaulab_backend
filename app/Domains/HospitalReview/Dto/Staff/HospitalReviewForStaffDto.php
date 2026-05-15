@@ -19,8 +19,8 @@ final readonly class HospitalReviewForStaffDto
         public ?array $hospital,
         public ?array $doctor,
         public array $categories,
-        public array $beforeImages,
-        public array $afterImages,
+        public ?array $firstImage,
+        public int $imageCount,
         public int $cost,
         public int $rating,
         public string $status,
@@ -32,8 +32,13 @@ final readonly class HospitalReviewForStaffDto
         public int $viewCount,
     ) {}
 
-    public static function fromModel(HospitalReview $review): self
+    /**
+     * @param  array{first_image?: ?Media, image_count?: int}|null  $imageSummary
+     */
+    public static function fromModel(HospitalReview $review, ?array $imageSummary = null): self
     {
+        $imageSummary ??= self::relationImageSummary($review);
+
         return new self(
             id: (int) $review->id,
             createdAt: $review->created_at?->toISOString() ?? '',
@@ -41,8 +46,8 @@ final readonly class HospitalReviewForStaffDto
             hospital: self::hospital($review),
             doctor: self::doctor($review),
             categories: self::categories($review),
-            beforeImages: self::beforeImages($review),
-            afterImages: self::afterImages($review),
+            firstImage: self::media($imageSummary['first_image'] ?? null),
+            imageCount: (int) ($imageSummary['image_count'] ?? 0),
             cost: (int) $review->cost,
             rating: (int) $review->rating,
             status: (string) $review->status,
@@ -64,8 +69,8 @@ final readonly class HospitalReviewForStaffDto
             'hospital' => $this->hospital,
             'doctor' => $this->doctor,
             'categories' => $this->categories,
-            'before_images' => $this->beforeImages,
-            'after_images' => $this->afterImages,
+            'first_image' => $this->firstImage,
+            'image_count' => $this->imageCount,
             'cost' => $this->cost,
             'rating' => $this->rating,
             'status' => $this->status,
@@ -160,53 +165,40 @@ final readonly class HospitalReviewForStaffDto
             ->all();
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private static function beforeImages(HospitalReview $review): array
+    private static function media(?Media $media): ?array
     {
-        if (! $review->relationLoaded('beforeImages')) {
-            return [];
+        if (! $media instanceof Media) {
+            return null;
         }
 
-        return self::mediaList($review->beforeImages);
+        return [
+            'id' => (int) $media->id,
+            'collection' => (string) $media->collection,
+            'disk' => (string) $media->disk,
+            'path' => (string) $media->path,
+            'mime_type' => (string) $media->mime_type,
+            'size' => (int) $media->size,
+            'width' => $media->width !== null ? (int) $media->width : null,
+            'height' => $media->height !== null ? (int) $media->height : null,
+            'sort_order' => (int) $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
+            'created_at' => $media->created_at?->toISOString(),
+            'updated_at' => $media->updated_at?->toISOString(),
+        ];
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array{first_image: ?Media, image_count: int}
      */
-    private static function afterImages(HospitalReview $review): array
+    private static function relationImageSummary(HospitalReview $review): array
     {
-        if (! $review->relationLoaded('afterImages')) {
-            return [];
-        }
+        $beforeImages = $review->relationLoaded('beforeImages') ? $review->beforeImages : collect();
+        $afterImages = $review->relationLoaded('afterImages') ? $review->afterImages : collect();
 
-        return self::mediaList($review->afterImages);
-    }
-
-    /**
-     * @param  iterable<int, Media>  $mediaList
-     * @return array<int, array<string, mixed>>
-     */
-    private static function mediaList(iterable $mediaList): array
-    {
-        return collect($mediaList)
-            ->map(fn (Media $media): array => [
-                'id' => (int) $media->id,
-                'collection' => (string) $media->collection,
-                'disk' => (string) $media->disk,
-                'path' => (string) $media->path,
-                'mime_type' => (string) $media->mime_type,
-                'size' => (int) $media->size,
-                'width' => $media->width !== null ? (int) $media->width : null,
-                'height' => $media->height !== null ? (int) $media->height : null,
-                'sort_order' => (int) $media->sort_order,
-                'is_primary' => (bool) $media->is_primary,
-                'metadata' => $media->metadata,
-                'created_at' => $media->created_at?->toISOString(),
-                'updated_at' => $media->updated_at?->toISOString(),
-            ])
-            ->values()
-            ->all();
+        return [
+            'first_image' => $beforeImages->first() ?? $afterImages->first(),
+            'image_count' => $beforeImages->count() + $afterImages->count(),
+        ];
     }
 }

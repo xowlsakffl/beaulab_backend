@@ -1,0 +1,157 @@
+<?php
+
+namespace App\Domains\Common\ContentReport\Dto\Staff;
+
+use App\Domains\Common\ContentReport\Models\ContentReport;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
+use Illuminate\Support\Collection;
+
+final readonly class ContentReportStateForStaffDto
+{
+    /**
+     * @param  array<int, array<string, mixed>>  $reasonCounts
+     */
+    public function __construct(
+        public int $id,
+        public string $status,
+        public string $label,
+        public int $reportCount,
+        public int $recentHourReportCount,
+        public int $normalVisibleCount,
+        public bool $isAutoActionLocked,
+        public ?string $firstReportedAt,
+        public ?string $lastReportedAt,
+        public ?string $autoBlockedAt,
+        public ?string $adminHiddenAt,
+        public ?string $normalVisibleAt,
+        public ?array $processedBy,
+        public ?string $processReason,
+        public ?array $latestReport,
+        public array $reasonCounts,
+    ) {}
+
+    /**
+     * @param  Collection<int, object>|array<int, object|array<string, mixed>>  $reasonCounts
+     */
+    public static function fromModel(
+        ContentReportState $state,
+        ?ContentReport $latestReport = null,
+        Collection|array $reasonCounts = [],
+    ): self {
+        return new self(
+            id: (int) $state->id,
+            status: (string) $state->report_status,
+            label: $state->statusLabel(),
+            reportCount: (int) $state->report_count,
+            recentHourReportCount: (int) $state->recent_hour_report_count,
+            normalVisibleCount: (int) $state->normal_visible_count,
+            isAutoActionLocked: $state->isAutoActionLocked(),
+            firstReportedAt: $state->first_reported_at?->toISOString(),
+            lastReportedAt: $state->last_reported_at?->toISOString(),
+            autoBlockedAt: $state->auto_blocked_at?->toISOString(),
+            adminHiddenAt: $state->admin_hidden_at?->toISOString(),
+            normalVisibleAt: $state->normal_visible_at?->toISOString(),
+            processedBy: self::processedBy($state),
+            processReason: $state->process_reason,
+            latestReport: self::latestReport($latestReport),
+            reasonCounts: self::reasonCounts($reasonCounts),
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'status' => $this->status,
+            'label' => $this->label,
+            'report_count' => $this->reportCount,
+            'recent_hour_report_count' => $this->recentHourReportCount,
+            'normal_visible_count' => $this->normalVisibleCount,
+            'is_auto_action_locked' => $this->isAutoActionLocked,
+            'first_reported_at' => $this->firstReportedAt,
+            'last_reported_at' => $this->lastReportedAt,
+            'auto_blocked_at' => $this->autoBlockedAt,
+            'admin_hidden_at' => $this->adminHiddenAt,
+            'normal_visible_at' => $this->normalVisibleAt,
+            'processed_by' => $this->processedBy,
+            'process_reason' => $this->processReason,
+            'latest_report' => $this->latestReport,
+            'reason_counts' => $this->reasonCounts,
+        ];
+    }
+
+    private static function processedBy(ContentReportState $state): ?array
+    {
+        if (! $state->relationLoaded('processedBy') || ! $state->processedBy) {
+            return null;
+        }
+
+        $attributes = $state->processedBy->getAttributes();
+
+        return [
+            'id' => (int) $state->processedBy->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
+                ? (string) $attributes['email']
+                : null,
+        ];
+    }
+
+    private static function latestReport(?ContentReport $report): ?array
+    {
+        if (! $report instanceof ContentReport) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $report->id,
+            'reason' => (string) $report->reason,
+            'reason_label' => $report->reasonLabel(),
+            'reason_text' => $report->reason_text,
+            'reporter_ip' => $report->reporter_ip,
+            'reporter' => self::reporter($report),
+            'created_at' => $report->created_at?->toISOString(),
+        ];
+    }
+
+    private static function reporter(ContentReport $report): ?array
+    {
+        if (! $report->relationLoaded('reporter') || ! $report->reporter) {
+            return null;
+        }
+
+        $attributes = $report->reporter->getAttributes();
+
+        return [
+            'id' => (int) $report->reporter->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
+                ? (string) $attributes['nickname']
+                : null,
+            'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
+                ? (string) $attributes['email']
+                : null,
+        ];
+    }
+
+    /**
+     * @param  Collection<int, object>|array<int, object|array<string, mixed>>  $reasonCounts
+     * @return array<int, array<string, mixed>>
+     */
+    private static function reasonCounts(Collection|array $reasonCounts): array
+    {
+        return collect($reasonCounts)
+            ->map(static function (object|array $row): array {
+                $reason = is_array($row) ? (string) ($row['reason'] ?? '') : (string) ($row->reason ?? '');
+                $count = is_array($row) ? (int) ($row['count'] ?? 0) : (int) ($row->count ?? 0);
+
+                return [
+                    'reason' => $reason,
+                    'label' => ContentReport::reasonLabels()[$reason] ?? $reason,
+                    'count' => $count,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+}

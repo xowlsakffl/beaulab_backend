@@ -17,14 +17,14 @@ final class TalkListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator
     {
-        return $this->builder($filters)
+        return $this->builder($filters, includeContent: false)
             ->paginate((int) ($filters['per_page'] ?? 15))
             ->withQueryString();
     }
 
     public function chunkForExport(array $filters, int $chunkSize, callable $callback): bool
     {
-        return $this->builder($filters)->chunk($chunkSize, $callback);
+        return $this->builder($filters, includeContent: true)->chunk($chunkSize, $callback);
     }
 
     /**
@@ -71,14 +71,13 @@ final class TalkListForStaffQuery
             ->map(static fn (Collection $comments): Collection => $comments->values());
     }
 
-    private function builder(array $filters): Builder
+    private function builder(array $filters, bool $includeContent): Builder
     {
         $builder = Talk::query()
             ->select([
                 'id',
                 'author_id',
                 'title',
-                'content',
                 'status',
                 'is_pinned',
                 'pinned_order',
@@ -89,6 +88,11 @@ final class TalkListForStaffQuery
                 'created_at',
                 'updated_at',
             ])
+            ->when(
+                $includeContent,
+                fn (Builder $query) => $query->addSelect('content'),
+                fn (Builder $query) => $query->selectRaw('LEFT(content, 180) AS content_preview')
+            )
             ->with([
                 'author:id,name,nickname,email',
                 'categories' => fn ($query) => $query

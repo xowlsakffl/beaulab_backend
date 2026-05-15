@@ -2,11 +2,8 @@
 
 namespace App\Domains\HospitalReview\Actions\Staff;
 
-use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
-use App\Domains\HospitalReview\Dto\Staff\HospitalReviewCommentForStaffDetailDto;
 use App\Domains\HospitalReview\Dto\Staff\HospitalReviewForStaffDetailDto;
 use App\Domains\HospitalReview\Models\HospitalReview;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -28,76 +25,8 @@ class HospitalReviewGetForStaffAction
             'afterImages',
         ]);
 
-        $operationHistories = $this->paginateWithFallback(
-            queryFactory: fn () => $review->operationHistories()->with('actor'),
-            perPage: (int) ($filters['operation_histories_per_page'] ?? 15),
-            pageName: 'operation_histories_page',
-            page: (int) ($filters['operation_histories_page'] ?? 1),
-        );
-
-        $comments = $this->paginateWithFallback(
-            queryFactory: fn () => $review->comments()
-                ->with(['author', 'operationHistories.actor', 'mentions.mentionedUser']),
-            perPage: (int) ($filters['comments_per_page'] ?? 10),
-            pageName: 'comments_page',
-            page: (int) ($filters['comments_page'] ?? 1),
-        );
-
         return [
-            'review' => HospitalReviewForStaffDetailDto::fromModel(
-                $review,
-                operationHistories: $this->paginated(
-                    $operationHistories,
-                    fn ($history): array => OperationHistoryDto::fromModel($history)->toArray(),
-                ),
-                comments: $this->paginated(
-                    $comments,
-                    fn ($comment): array => HospitalReviewCommentForStaffDetailDto::fromModel($comment)->toArray(),
-                ),
-            )->toArray(),
+            'review' => HospitalReviewForStaffDetailDto::fromModel($review)->toArray(),
         ];
-    }
-
-    /**
-     * @return array{items: array<int, array<string, mixed>>, meta: array<string, int>}
-     */
-    private function paginated(LengthAwarePaginator $paginator, callable $mapper): array
-    {
-        return [
-            'items' => collect($paginator->items())
-                ->map($mapper)
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
-    }
-
-    private function paginateWithFallback(
-        callable $queryFactory,
-        int $perPage,
-        string $pageName,
-        int $page,
-    ): LengthAwarePaginator {
-        $page = max(1, $page);
-        $paginator = $queryFactory()->paginate(
-            perPage: $perPage,
-            pageName: $pageName,
-            page: $page,
-        );
-
-        if ($page === 1 || $paginator->total() === 0 || $paginator->items() !== []) {
-            return $paginator;
-        }
-
-        return $queryFactory()->paginate(
-            perPage: $perPage,
-            pageName: $pageName,
-            page: 1,
-        );
     }
 }

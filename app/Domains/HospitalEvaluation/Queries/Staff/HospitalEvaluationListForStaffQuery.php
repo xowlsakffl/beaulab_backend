@@ -17,7 +17,6 @@ final class HospitalEvaluationListForStaffQuery
                 'doctor_id',
                 'category_domain',
                 'phone',
-                'content',
                 'cost',
                 'rating_staff_kindness',
                 'rating_surgery_satisfaction',

@@ -14,8 +14,10 @@ final readonly class HospitalEvaluationForStaffDetailDto
         public ?array $hospital,
         public ?array $doctor,
         public array $categories,
+        public string $categoryDomain,
         public string $content,
         public ?string $phone,
+        public ?string $authorIp,
         public int $cost,
         public array $ratings,
         public array $assessment,
@@ -25,13 +27,13 @@ final readonly class HospitalEvaluationForStaffDetailDto
         public array $receipt,
         public array $images,
         public array $receiptImages,
-        public array $operationHistories,
+        public ?array $operationHistories,
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?string $deletedAt,
     ) {}
 
-    public static function fromModel(HospitalEvaluation $evaluation, array $operationHistories): self
+    public static function fromModel(HospitalEvaluation $evaluation, ?array $operationHistories = null): self
     {
         return new self(
             id: (int) $evaluation->id,
@@ -39,8 +41,10 @@ final readonly class HospitalEvaluationForStaffDetailDto
             hospital: self::hospital($evaluation),
             doctor: self::doctor($evaluation),
             categories: self::categories($evaluation),
+            categoryDomain: (string) $evaluation->category_domain,
             content: (string) $evaluation->content,
             phone: $evaluation->phone,
+            authorIp: $evaluation->author_ip,
             cost: (int) $evaluation->cost,
             ratings: self::ratings($evaluation),
             assessment: self::assessment($evaluation),
@@ -59,14 +63,16 @@ final readonly class HospitalEvaluationForStaffDetailDto
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'author' => $this->author,
             'hospital' => $this->hospital,
             'doctor' => $this->doctor,
             'categories' => $this->categories,
+            'category_domain' => $this->categoryDomain,
             'content' => $this->content,
             'phone' => $this->phone,
+            'author_ip' => $this->authorIp,
             'cost' => $this->cost,
             'ratings' => $this->ratings,
             'assessment' => $this->assessment,
@@ -76,11 +82,16 @@ final readonly class HospitalEvaluationForStaffDetailDto
             'receipt' => $this->receipt,
             'images' => $this->images,
             'receipt_images' => $this->receiptImages,
-            'operation_histories' => $this->operationHistories,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'deleted_at' => $this->deletedAt,
         ];
+
+        if ($this->operationHistories !== null) {
+            $data['operation_histories'] = $this->operationHistories;
+        }
+
+        return $data;
     }
 
     private static function author(HospitalEvaluation $evaluation): ?array
@@ -239,7 +250,7 @@ final readonly class HospitalEvaluationForStaffDetailDto
     }
 
     /**
-     * @param iterable<int, Media> $mediaList
+     * @param  iterable<int, Media>  $mediaList
      * @return array<int, array<string, mixed>>
      */
     private static function mediaList(iterable $mediaList): array

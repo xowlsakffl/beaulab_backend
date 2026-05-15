@@ -8,6 +8,7 @@
 use App\Modules\User\Http\Controllers\Auth\AuthForUserController;
 use App\Modules\User\Http\Controllers\Block\AccountUserBlockForUserController;
 use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
+use App\Modules\User\Http\Controllers\ContentReport\ContentReportForUserController;
 use App\Modules\User\Http\Controllers\HospitalReview\HospitalReviewForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkForUserController;
@@ -57,10 +58,14 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
     // 앱 사용자 토크 생성 API.
     Route::post('talks', [TalkForUserController::class, 'createTalkForUser'])
         ->name('talks.createTalkForUser');
+    Route::post('talks/{talk}/reports', [ContentReportForUserController::class, 'reportTalkForUser'])
+        ->name('talks.reportTalkForUser');
     Route::delete('talks/{talk}', [TalkForUserController::class, 'deleteTalkForUser'])
         ->name('talks.deleteTalkForUser');
     Route::post('talks/{talk}/comments', [TalkForUserController::class, 'createTalkCommentForUser'])
         ->name('talks.createTalkCommentForUser');
+    Route::post('talks/{talk}/comments/{comment}/reports', [ContentReportForUserController::class, 'reportTalkCommentForUser'])
+        ->name('talks.reportTalkCommentForUser');
     Route::delete('talks/{talk}/comments/{comment}', [TalkForUserController::class, 'deleteTalkCommentForUser'])
         ->name('talks.deleteTalkCommentForUser');
     Route::post('talks/{talk}/poll-votes', [TalkForUserController::class, 'voteTalkPollForUser'])
@@ -69,12 +74,19 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
     // 앱 사용자 후기 생성 API.
     Route::post('hospital-reviews', [HospitalReviewForUserController::class, 'createHospitalReviewForUser'])
         ->name('hospital-reviews.createHospitalReviewForUser');
+    Route::post('hospital-reviews/{hospitalReview}/reports', [ContentReportForUserController::class, 'reportHospitalReviewForUser'])
+        ->name('hospital-reviews.reportHospitalReviewForUser');
     Route::delete('hospital-reviews/{hospitalReview}', [HospitalReviewForUserController::class, 'deleteHospitalReviewForUser'])
         ->name('hospital-reviews.deleteHospitalReviewForUser');
     Route::post('hospital-reviews/{hospitalReview}/comments', [HospitalReviewForUserController::class, 'createHospitalReviewCommentForUser'])
         ->name('hospital-reviews.createHospitalReviewCommentForUser');
+    Route::post('hospital-reviews/{hospitalReview}/comments/{comment}/reports', [ContentReportForUserController::class, 'reportHospitalReviewCommentForUser'])
+        ->name('hospital-reviews.reportHospitalReviewCommentForUser');
     Route::delete('hospital-reviews/{hospitalReview}/comments/{comment}', [HospitalReviewForUserController::class, 'deleteHospitalReviewCommentForUser'])
         ->name('hospital-reviews.deleteHospitalReviewCommentForUser');
+
+    Route::post('hospital-evaluations/{hospitalEvaluation}/reports', [ContentReportForUserController::class, 'reportHospitalEvaluationForUser'])
+        ->name('hospital-evaluations.reportHospitalEvaluationForUser');
 
     // 앱 사용자 차단 API. 차단은 방향성 있는 유저 관계로 저장하고, 메시지 발송 전 검증에 사용한다.
     Route::get('blocks', [AccountUserBlockForUserController::class, 'getBlocksForUser'])

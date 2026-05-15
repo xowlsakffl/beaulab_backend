@@ -6,6 +6,7 @@ use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalEvaluation\Actions\Staff\HospitalEvaluationGetForStaffAction;
 use App\Domains\HospitalEvaluation\Actions\Staff\HospitalEvaluationListForStaffAction;
+use App\Domains\HospitalEvaluation\Actions\Staff\HospitalEvaluationOperationHistoriesForStaffAction;
 use App\Domains\HospitalEvaluation\Actions\Staff\HospitalEvaluationReceiptRejectForStaffAction;
 use App\Domains\HospitalEvaluation\Actions\Staff\HospitalEvaluationReceiptVerifyForStaffAction;
 use App\Domains\HospitalEvaluation\Actions\Staff\HospitalEvaluationStatusUpdateForStaffAction;
@@ -34,6 +35,16 @@ final class HospitalEvaluationForStaffController extends Controller
         $result = $action->execute($hospitalEvaluation, $request->filters());
 
         return ApiResponse::success($result['evaluation'] ?? $result);
+    }
+
+    public function getHospitalEvaluationOperationHistoriesForStaff(
+        HospitalEvaluation $hospitalEvaluation,
+        HospitalEvaluationGetForStaffRequest $request,
+        HospitalEvaluationOperationHistoriesForStaffAction $action,
+    ) {
+        $result = $action->execute($hospitalEvaluation, $request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
     public function updateHospitalEvaluationStatusForStaff(

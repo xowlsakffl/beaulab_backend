@@ -4,8 +4,10 @@ namespace App\Modules\Staff\Http\Controllers\HospitalReview;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\HospitalReview\Actions\Staff\HospitalReviewCommentsForStaffAction;
 use App\Domains\HospitalReview\Actions\Staff\HospitalReviewGetForStaffAction;
 use App\Domains\HospitalReview\Actions\Staff\HospitalReviewListForStaffAction;
+use App\Domains\HospitalReview\Actions\Staff\HospitalReviewOperationHistoriesForStaffAction;
 use App\Domains\HospitalReview\Actions\Staff\HospitalReviewStatusUpdateForStaffAction;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Modules\Staff\Http\Requests\HospitalReview\HospitalReviewGetForStaffRequest;
@@ -55,6 +57,26 @@ final class HospitalReviewForStaffController extends Controller
         $result = $action->execute($hospitalReview, $request->filters());
 
         return ApiResponse::success($result['review'] ?? $result);
+    }
+
+    public function getHospitalReviewCommentsForStaff(
+        HospitalReview $hospitalReview,
+        HospitalReviewGetForStaffRequest $request,
+        HospitalReviewCommentsForStaffAction $action,
+    ) {
+        $result = $action->execute($hospitalReview, $request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getHospitalReviewOperationHistoriesForStaff(
+        HospitalReview $hospitalReview,
+        HospitalReviewGetForStaffRequest $request,
+        HospitalReviewOperationHistoriesForStaffAction $action,
+    ) {
+        $result = $action->execute($hospitalReview, $request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
     public function updateHospitalReviewStatusForStaff(

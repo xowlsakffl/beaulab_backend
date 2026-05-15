@@ -12,6 +12,7 @@ use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
 use App\Modules\Staff\Http\Controllers\Beauty\BeautyForStaffController;
 use App\Modules\Staff\Http\Controllers\BeautyExpert\BeautyExpertForStaffController;
 use App\Modules\Staff\Http\Controllers\Category\CategoryForStaffController;
+use App\Modules\Staff\Http\Controllers\ContentReport\ContentReportForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
@@ -53,6 +54,36 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     // 대시보드
     Route::get('/dashboard', [DashboardForStaffController::class, 'getDashboardForStaff'])
         ->name('dashboard');
+
+    /**
+     * 신고 게시물 관리
+     **/
+    Route::get('reported-contents/talks', [ContentReportForStaffController::class, 'getReportedTalksForStaff'])
+        ->name('reported-contents.getReportedTalksForStaff');
+    Route::get('reported-contents/talk-comments', [ContentReportForStaffController::class, 'getReportedTalkCommentsForStaff'])
+        ->name('reported-contents.getReportedTalkCommentsForStaff');
+    Route::get('reported-contents/hospital-reviews/surgery', [ContentReportForStaffController::class, 'getReportedSurgeryHospitalReviewsForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+        ->name('reported-contents.getReportedSurgeryHospitalReviewsForStaff');
+    Route::get('reported-contents/hospital-reviews/treatment', [ContentReportForStaffController::class, 'getReportedTreatmentHospitalReviewsForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+        ->name('reported-contents.getReportedTreatmentHospitalReviewsForStaff');
+    Route::get('reported-contents/hospital-review-comments/surgery', [ContentReportForStaffController::class, 'getReportedSurgeryHospitalReviewCommentsForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+        ->name('reported-contents.getReportedSurgeryHospitalReviewCommentsForStaff');
+    Route::get('reported-contents/hospital-review-comments/treatment', [ContentReportForStaffController::class, 'getReportedTreatmentHospitalReviewCommentsForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+        ->name('reported-contents.getReportedTreatmentHospitalReviewCommentsForStaff');
+    Route::get('reported-contents/hospital-evaluations', [ContentReportForStaffController::class, 'getReportedHospitalEvaluationsForStaff'])
+        ->name('reported-contents.getReportedHospitalEvaluationsForStaff');
+    Route::get('reported-contents/detail/{targetType}/{targetId}', [ContentReportForStaffController::class, 'getReportedContentDetailForStaff'])
+        ->whereNumber('targetId')
+        ->name('reported-contents.getReportedContentDetailForStaff');
+    Route::get('reported-contents/{targetType}/{targetId}/reports', [ContentReportForStaffController::class, 'getReportedContentReportsForStaff'])
+        ->whereNumber('targetId')
+        ->name('reported-contents.getReportedContentReportsForStaff');
+    Route::patch('reported-contents/status', [ContentReportForStaffController::class, 'updateReportedContentStatusForStaff'])
+        ->name('reported-contents.updateReportedContentStatusForStaff');
 
     /**
      * 병원 관리
@@ -191,6 +222,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-reviews.getTreatmentHospitalReviewsForStaff');
     Route::patch('hospital-reviews/status', [HospitalReviewForStaffController::class, 'updateHospitalReviewStatusForStaff'])
         ->name('hospital-reviews.updateHospitalReviewStatusForStaff');
+    Route::get('hospital-reviews/{hospitalReview}/comments', [HospitalReviewForStaffController::class, 'getHospitalReviewCommentsForStaff'])
+        ->name('hospital-reviews.getHospitalReviewCommentsForStaff');
+    Route::get('hospital-reviews/{hospitalReview}/operation-histories', [HospitalReviewForStaffController::class, 'getHospitalReviewOperationHistoriesForStaff'])
+        ->name('hospital-reviews.getHospitalReviewOperationHistoriesForStaff');
     Route::get('hospital-reviews/{hospitalReview}', [HospitalReviewForStaffController::class, 'getHospitalReviewForStaff'])
         ->name('hospital-reviews.getHospitalReviewForStaff');
     Route::get('hospital-review-comments', [HospitalReviewCommentForStaffController::class, 'getCommentsForStaff'])
@@ -209,6 +244,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-evaluations.verifyHospitalEvaluationReceiptForStaff');
     Route::patch('hospital-evaluations/{hospitalEvaluation}/receipt/reject', [HospitalEvaluationForStaffController::class, 'rejectHospitalEvaluationReceiptForStaff'])
         ->name('hospital-evaluations.rejectHospitalEvaluationReceiptForStaff');
+    Route::get('hospital-evaluations/{hospitalEvaluation}/operation-histories', [HospitalEvaluationForStaffController::class, 'getHospitalEvaluationOperationHistoriesForStaff'])
+        ->name('hospital-evaluations.getHospitalEvaluationOperationHistoriesForStaff');
     Route::get('hospital-evaluations/{hospitalEvaluation}', [HospitalEvaluationForStaffController::class, 'getHospitalEvaluationForStaff'])
         ->name('hospital-evaluations.getHospitalEvaluationForStaff');
     /**
@@ -220,6 +257,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('talks.downloadTalksExcelForStaff');
     Route::patch('talks/status', [TalkForStaffController::class, 'updateTalkStatusForStaff'])
         ->name('talks.updateTalkStatusForStaff');
+    Route::get('talks/{talk}/comments', [TalkForStaffController::class, 'getTalkCommentsForStaff'])
+        ->name('talks.getTalkCommentsForStaff');
+    Route::get('talks/{talk}/operation-histories', [TalkForStaffController::class, 'getTalkOperationHistoriesForStaff'])
+        ->name('talks.getTalkOperationHistoriesForStaff');
     Route::get('talks/{talk}', [TalkForStaffController::class, 'getTalkForStaff'])
         ->name('talks.getTalkForStaff');
 

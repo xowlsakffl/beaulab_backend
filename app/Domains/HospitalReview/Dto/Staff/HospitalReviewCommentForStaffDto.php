@@ -19,14 +19,17 @@ final readonly class HospitalReviewCommentForStaffDto
         public int $likeCount,
     ) {}
 
-    public static function fromModel(HospitalReviewComment $comment): self
+    /**
+     * @param  array{first_image?: ?Media, image_count?: int}|null  $imageSummary
+     */
+    public static function fromModel(HospitalReviewComment $comment, ?array $imageSummary = null): self
     {
         return new self(
             id: (int) $comment->id,
             createdAt: $comment->created_at?->toISOString() ?? '',
             author: self::author($comment),
             categories: self::categories($comment),
-            parent: self::parent($comment),
+            parent: self::parent($comment, $imageSummary),
             content: (string) $comment->content,
             status: (string) $comment->status,
             likeCount: (int) $comment->like_count,
@@ -67,18 +70,23 @@ final readonly class HospitalReviewCommentForStaffDto
         ];
     }
 
-    private static function parent(HospitalReviewComment $comment): ?array
+    /**
+     * @param  array{first_image?: ?Media, image_count?: int}|null  $imageSummary
+     */
+    private static function parent(HospitalReviewComment $comment, ?array $imageSummary = null): ?array
     {
         if (! $comment->relationLoaded('review') || ! $comment->review) {
             return null;
         }
 
+        $imageSummary ??= self::relationImageSummary($comment);
+
         return [
             'id' => (int) $comment->review->id,
             'title' => (string) $comment->review->title,
             'categories' => self::categories($comment),
-            'before_images' => self::beforeImages($comment),
-            'after_images' => self::afterImages($comment),
+            'first_image' => self::media($imageSummary['first_image'] ?? null),
+            'image_count' => (int) ($imageSummary['image_count'] ?? 0),
         ];
     }
 
@@ -108,53 +116,40 @@ final readonly class HospitalReviewCommentForStaffDto
             ->all();
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private static function beforeImages(HospitalReviewComment $comment): array
+    private static function media(?Media $media): ?array
     {
-        if (! $comment->review->relationLoaded('beforeImages')) {
-            return [];
+        if (! $media instanceof Media) {
+            return null;
         }
 
-        return self::mediaList($comment->review->beforeImages);
+        return [
+            'id' => (int) $media->id,
+            'collection' => (string) $media->collection,
+            'disk' => (string) $media->disk,
+            'path' => (string) $media->path,
+            'mime_type' => (string) $media->mime_type,
+            'size' => (int) $media->size,
+            'width' => $media->width !== null ? (int) $media->width : null,
+            'height' => $media->height !== null ? (int) $media->height : null,
+            'sort_order' => (int) $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
+            'created_at' => $media->created_at?->toISOString(),
+            'updated_at' => $media->updated_at?->toISOString(),
+        ];
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array{first_image: ?Media, image_count: int}
      */
-    private static function afterImages(HospitalReviewComment $comment): array
+    private static function relationImageSummary(HospitalReviewComment $comment): array
     {
-        if (! $comment->review->relationLoaded('afterImages')) {
-            return [];
-        }
+        $beforeImages = $comment->review->relationLoaded('beforeImages') ? $comment->review->beforeImages : collect();
+        $afterImages = $comment->review->relationLoaded('afterImages') ? $comment->review->afterImages : collect();
 
-        return self::mediaList($comment->review->afterImages);
-    }
-
-    /**
-     * @param  iterable<int, Media>  $mediaList
-     * @return array<int, array<string, mixed>>
-     */
-    private static function mediaList(iterable $mediaList): array
-    {
-        return collect($mediaList)
-            ->map(fn (Media $media): array => [
-                'id' => (int) $media->id,
-                'collection' => (string) $media->collection,
-                'disk' => (string) $media->disk,
-                'path' => (string) $media->path,
-                'mime_type' => (string) $media->mime_type,
-                'size' => (int) $media->size,
-                'width' => $media->width !== null ? (int) $media->width : null,
-                'height' => $media->height !== null ? (int) $media->height : null,
-                'sort_order' => (int) $media->sort_order,
-                'is_primary' => (bool) $media->is_primary,
-                'metadata' => $media->metadata,
-                'created_at' => $media->created_at?->toISOString(),
-                'updated_at' => $media->updated_at?->toISOString(),
-            ])
-            ->values()
-            ->all();
+        return [
+            'first_image' => $beforeImages->first() ?? $afterImages->first(),
+            'image_count' => $beforeImages->count() + $afterImages->count(),
+        ];
     }
 }

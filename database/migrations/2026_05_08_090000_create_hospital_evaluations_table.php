@@ -32,6 +32,7 @@ return new class extends Migration
             $table->string('category_domain', 40)->comment('평가 카테고리 도메인');
             $table->longText('content')->comment('평가 내용');
             $table->string('phone', 30)->nullable()->comment('유저 연락처');
+            $table->string('author_ip', 45)->nullable()->comment('작성 IP');
             $table->unsignedInteger('cost')->default(0)->comment('시술/수술 비용(만원 단위)');
 
             $table->unsignedTinyInteger('rating_staff_kindness')->comment('직원친절도 평점(1~5)');
@@ -62,6 +63,7 @@ return new class extends Migration
             $table->index(['hospital_id', 'created_at'], 'h_evaluations_hospital_created_idx');
             $table->index(['doctor_id', 'created_at'], 'h_evaluations_doctor_created_idx');
             $table->index(['category_domain', 'created_at'], 'h_evaluations_domain_created_idx');
+            $table->index(['category_domain', 'status', 'created_at'], 'h_evaluations_domain_status_created_idx');
             $table->index(['cost', 'created_at'], 'h_evaluations_cost_created_idx');
             $table->index(['view_count', 'created_at'], 'h_evaluations_view_count_created_idx');
         });

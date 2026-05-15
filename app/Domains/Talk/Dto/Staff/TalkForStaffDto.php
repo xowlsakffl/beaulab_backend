@@ -16,7 +16,8 @@ final readonly class TalkForStaffDto
         public ?array $author,
         public ?array $category,
         public string $title,
-        public string $content,
+        public ?string $content,
+        public ?string $contentPreview,
         public string $status,
         public bool $isPinned,
         public int $pinnedOrder,
@@ -35,7 +36,10 @@ final readonly class TalkForStaffDto
             author: self::author($talk),
             category: self::category($talk),
             title: (string) $talk->title,
-            content: (string) $talk->content,
+            content: array_key_exists('content', $talk->getAttributes()) ? (string) $talk->content : null,
+            contentPreview: array_key_exists('content_preview', $talk->getAttributes())
+                ? (string) $talk->getAttribute('content_preview')
+                : null,
             status: (string) $talk->status,
             isPinned: (bool) $talk->is_pinned,
             pinnedOrder: (int) $talk->pinned_order,
@@ -56,6 +60,7 @@ final readonly class TalkForStaffDto
             'category' => $this->category,
             'title' => $this->title,
             'content' => $this->content,
+            'content_preview' => $this->contentPreview,
             'status' => $this->status,
             'is_pinned' => $this->isPinned,
             'pinned_order' => $this->pinnedOrder,
@@ -116,5 +121,4 @@ final readonly class TalkForStaffDto
             'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
         ];
     }
-
 }

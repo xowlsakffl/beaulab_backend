@@ -33,8 +33,8 @@ final readonly class TalkForStaffDetailDto
         public int $saveCount,
         public array $images,
         public ?array $poll,
-        public array $operationHistories,
-        public array $comments,
+        public ?array $operationHistories,
+        public ?array $comments,
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?string $deletedAt,
@@ -42,8 +42,8 @@ final readonly class TalkForStaffDetailDto
 
     public static function fromModel(
         Talk $talk,
-        array $operationHistories,
-        array $comments,
+        ?array $operationHistories = null,
+        ?array $comments = null,
     ): self {
         return new self(
             id: (int) $talk->id,
@@ -87,12 +87,18 @@ final readonly class TalkForStaffDetailDto
             'save_count' => $this->saveCount,
             'images' => $this->images,
             'poll' => $this->poll,
-            'operation_histories' => $this->operationHistories,
-            'comments' => $this->comments,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'deleted_at' => $this->deletedAt,
         ];
+
+        if ($this->operationHistories !== null) {
+            $data['operation_histories'] = $this->operationHistories;
+        }
+
+        if ($this->comments !== null) {
+            $data['comments'] = $this->comments;
+        }
 
         return $data;
     }

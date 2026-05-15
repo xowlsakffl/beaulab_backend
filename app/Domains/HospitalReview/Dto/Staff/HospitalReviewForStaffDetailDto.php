@@ -28,8 +28,8 @@ final readonly class HospitalReviewForStaffDetailDto
         public int $saveCount,
         public array $beforeImages,
         public array $afterImages,
-        public array $operationHistories,
-        public array $comments,
+        public ?array $operationHistories,
+        public ?array $comments,
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?string $deletedAt,
@@ -37,8 +37,8 @@ final readonly class HospitalReviewForStaffDetailDto
 
     public static function fromModel(
         HospitalReview $review,
-        array $operationHistories,
-        array $comments,
+        ?array $operationHistories = null,
+        ?array $comments = null,
     ): self {
         return new self(
             id: (int) $review->id,
@@ -70,7 +70,7 @@ final readonly class HospitalReviewForStaffDetailDto
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'author' => $this->author,
             'hospital' => $this->hospital,
@@ -90,12 +90,20 @@ final readonly class HospitalReviewForStaffDetailDto
             'save_count' => $this->saveCount,
             'before_images' => $this->beforeImages,
             'after_images' => $this->afterImages,
-            'operation_histories' => $this->operationHistories,
-            'comments' => $this->comments,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'deleted_at' => $this->deletedAt,
         ];
+
+        if ($this->operationHistories !== null) {
+            $data['operation_histories'] = $this->operationHistories;
+        }
+
+        if ($this->comments !== null) {
+            $data['comments'] = $this->comments;
+        }
+
+        return $data;
     }
 
     private static function author(HospitalReview $review): ?array

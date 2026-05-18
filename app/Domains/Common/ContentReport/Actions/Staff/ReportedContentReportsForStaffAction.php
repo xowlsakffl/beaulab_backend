@@ -4,6 +4,7 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Common\Support\PaginatedResponse;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Queries\Staff\ReportedContentDetailForStaffQuery;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
@@ -28,20 +29,17 @@ final class ReportedContentReportsForStaffAction
         Gate::authorize('viewAny', $targetClass);
         $this->query->state($targetClass, $targetId);
 
-        $reports = $this->query->reports($targetClass, $targetId, max(1, $page), self::REPORTS_PER_PAGE);
+        $reports = PaginatedResponse::paginateWithFallback(
+            queryFactory: fn () => $this->query->reportsQuery($targetClass, $targetId),
+            perPage: self::REPORTS_PER_PAGE,
+            pageName: 'page',
+            page: $page,
+        );
 
-        return [
-            'items' => $reports->getCollection()
-                ->map(fn (ContentReport $report): array => $this->report($report))
-                ->values()
-                ->all(),
-            'meta' => [
-                'total' => $reports->total(),
-                'current_page' => $reports->currentPage(),
-                'per_page' => $reports->perPage(),
-                'last_page' => $reports->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $reports,
+            fn (ContentReport $report): array => $this->report($report),
+        );
     }
 
     private function report(ContentReport $report): array

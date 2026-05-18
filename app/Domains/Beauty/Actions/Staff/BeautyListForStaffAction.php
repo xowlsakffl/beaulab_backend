@@ -2,6 +2,7 @@
 
 namespace App\Domains\Beauty\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\Beauty\Dto\Staff\BeautyForStaffDto;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Beauty\Queries\Staff\BeautyListForStaffQuery;
@@ -42,19 +43,9 @@ final class BeautyListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        $items = collect($paginator->items())
-            ->map(fn ($beauty) => BeautyForStaffDto::fromModel($beauty)->toArray())
-            ->values()
-            ->all();
-
-        return [
-            'items' => $items,
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
-                'last_page'    => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn (Beauty $beauty): array => BeautyForStaffDto::fromModel($beauty)->toArray(),
+        );
     }
 }

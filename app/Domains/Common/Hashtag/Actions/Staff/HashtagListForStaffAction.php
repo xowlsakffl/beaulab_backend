@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\Hashtag\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\Common\Hashtag\Dto\Staff\HashtagForStaffDto;
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Hashtag\Queries\Staff\HashtagListForStaffQuery;
@@ -23,19 +24,9 @@ final class HashtagListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        $items = collect($paginator->items())
-            ->map(fn (Hashtag $hashtag): array => HashtagForStaffDto::fromModel($hashtag)->toArray())
-            ->values()
-            ->all();
-
-        return [
-            'items' => $items,
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn (Hashtag $hashtag): array => HashtagForStaffDto::fromModel($hashtag)->toArray(),
+        );
     }
 }

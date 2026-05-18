@@ -63,6 +63,7 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 - Hospital Evaluation: `beaulab.hospital_evaluation.show|update`
 - Talk: `beaulab.talk.show|update`
 - Talk Comment: 별도 권한 없음 (Talk 권한 `beaulab.talk.show|update` 사용)
+- Reported Content: 별도 권한 없음. 신고 대상 도메인의 show/update Policy를 그대로 사용
 - Notice: `beaulab.notice.show|create|update|delete`
 - FAQ: `beaulab.faq.show|create|update|delete`
 - Category: `beaulab.category.manage`
@@ -150,4 +151,4 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 php artisan db:seed --class=AuthorizationSeeder
 ```
 
-작성 기준: 2026-05-13
+작성 기준: 2026-05-18

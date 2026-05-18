@@ -50,7 +50,7 @@
 - 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`
 - 파트너: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`
 - 콘텐츠: `Talk`, `TalkComment`, `HospitalReview`, `HospitalReviewComment`, `HospitalEvaluation`, `Notice`, `Faq`
-- 공통: `Media`, `Category`, `AdminNote`
+- 공통: `Media`, `Category`, `AdminNote`, `ContentReport`, `ContentReportState`
 
 ## 6) 공지사항(Notice) / FAQ 구조
 
@@ -84,16 +84,32 @@
   - `GET /api/v1/staff/hospital-reviews/treatment`
   - `GET /api/v1/staff/hospital-review-comments`
   - `GET /api/v1/staff/hospital-evaluations`
+  - `GET /api/v1/staff/reported-contents/talks`
+  - `GET /api/v1/staff/reported-contents/talk-comments`
+  - `GET /api/v1/staff/reported-contents/hospital-reviews/surgery`
+  - `GET /api/v1/staff/reported-contents/hospital-reviews/treatment`
+  - `GET /api/v1/staff/reported-contents/hospital-review-comments/surgery`
+  - `GET /api/v1/staff/reported-contents/hospital-review-comments/treatment`
+  - `GET /api/v1/staff/reported-contents/hospital-evaluations`
+  - `GET /api/v1/staff/reported-contents/detail/{targetType}/{targetId}`
+  - `GET /api/v1/staff/reported-contents/{targetType}/{targetId}/reports`
   - `PATCH /api/v1/staff/hospital-reviews/status`
   - `PATCH /api/v1/staff/hospital-review-comments/status`
   - `PATCH /api/v1/staff/hospital-evaluations/status`
   - `PATCH /api/v1/staff/hospital-evaluations/{hospitalEvaluation}/receipt/verify`
   - `PATCH /api/v1/staff/hospital-evaluations/{hospitalEvaluation}/receipt/reject`
+  - `PATCH /api/v1/staff/reported-contents/status`
+  - `PATCH /api/v1/staff/reported-contents/warning-status`
 - User 라우트
   - `POST /api/v1/user/hospital-reviews`
   - `DELETE /api/v1/user/hospital-reviews/{hospitalReview}`
   - `POST /api/v1/user/hospital-reviews/{hospitalReview}/comments`
   - `DELETE /api/v1/user/hospital-reviews/{hospitalReview}/comments/{comment}`
+  - `POST /api/v1/user/talks/{talk}/reports`
+  - `POST /api/v1/user/talks/{talk}/comments/{comment}/reports`
+  - `POST /api/v1/user/hospital-reviews/{hospitalReview}/reports`
+  - `POST /api/v1/user/hospital-reviews/{hospitalReview}/comments/{comment}/reports`
+  - `POST /api/v1/user/hospital-evaluations/{hospitalEvaluation}/reports`
 
 도메인 책임:
 
@@ -102,6 +118,8 @@
 - `HospitalEvaluation`: 병의원 평가, 병원/의료진/카테고리, 평가 항목, 영수증 이미지/인증/부적합 사유, 처리 이력
 - `Talk`: 토크 게시글, 카테고리, 이미지, 투표, 통계, 처리 이력
 - `TalkComment`: 토크 댓글/대댓글, 멘션, 노출상태, 게시상태, 처리 이력
+- `ContentReport`: 사용자 신고 건별 로그
+- `ContentReportState`: 신고 대상별 현재 신고 상태, 신고 수, 경고/무시 상태
 
 DTO 응답 원칙:
 
@@ -109,7 +127,26 @@ DTO 응답 원칙:
 - 카테고리가 여러 개인 도메인은 `categories` 배열로 내려준다.
 - 목록 DTO는 eager loaded relation을 기준으로 만들고, 상세 DTO처럼 별도 조합 로직이 긴 경우 private resolver로 분리한다.
 
-## 8) 비동기 구조 연결
+신고 상태 원칙:
+
+- 일반 콘텐츠의 실제 노출 여부는 각 도메인 모델의 `status`로 관리한다.
+- 신고 접수/자동차단/노출중지/정상노출 상태는 `ContentReportState.report_status`로 분리 관리한다.
+- `AUTO_BLOCKED`, `ADMIN_HIDDEN` 상태인 콘텐츠는 일반 게시물관리에서 노출/미노출 변경이 잠긴다.
+- 신고 상태 변경, 경고/무시 처리는 operation history에 기록한다.
+
+## 8) API 응답 / 페이지네이션 원칙
+
+`LengthAwarePaginator` 기반 목록은 `App\Common\Support\PaginatedResponse`를 사용한다.
+
+- `fromPaginator($paginator, $mapper)`: `items`와 `meta.current_page/per_page/total/last_page`를 만든다.
+- `fromPaginator($paginator, $mapper, $extraMeta)`: 신고게시물 요약처럼 추가 meta가 필요할 때 사용한다.
+- `paginateWithFallback()`: 상세 댓글/히스토리/신고내역처럼 빈 페이지가 생기기 쉬운 목록에서 1페이지 fallback을 제공한다.
+
+예외:
+
+- `ChatMessageListForUserQuery`는 cursor pagination을 사용하므로 `current_page/total` 기반 `PaginatedResponse`를 사용하지 않는다.
+
+## 9) 비동기 구조 연결
 
 비동기 처리는 API 계층과 분리되어 동작한다.
 
@@ -122,7 +159,7 @@ DTO 응답 원칙:
 - Queue: `./queue.md`
 - Scheduler: `./scheduler.md`
 
-## 9) 구현 상태 요약
+## 10) 구현 상태 요약
 
 - Staff
   - 인증, 프로필/비밀번호 수정
@@ -130,6 +167,7 @@ DTO 응답 원칙:
   - 토크/토크댓글 관리
   - 병의원 후기/후기댓글 관리
   - 병의원 평가/영수증 인증 관리
+  - 신고게시물 관리, 신고 상태 처리, 경고/무시 처리
   - 공지사항 관리
   - FAQ 관리
 - Hospital
@@ -141,11 +179,13 @@ DTO 응답 원칙:
 - User
   - 모듈 경로 존재, API는 최소 구성
 
-## 10) 체크리스트
+## 11) 체크리스트
 
 - [ ] 새 API가 Actor 경계에 맞게 배치됐는가?
 - [ ] 컨트롤러가 얇게 유지되고 비즈니스 로직이 Domain으로 내려갔는가?
 - [ ] 정책/권한/시더가 함께 갱신됐는가?
+- [ ] 목록 응답이 `PaginatedResponse` 또는 명시적인 cursor pagination 규칙을 따르는가?
+- [ ] 신고 대상 추가 시 `ContentReportTargetRegistry`, User 신고 라우트, Staff 신고게시물 라우트가 같이 갱신됐는가?
 - [ ] 비동기 작업이 lane 정책(`critical`, `mail`, `sms`, `chat`, `default` 등)에 맞게 라우팅됐는가?
 
-작성 기준: 2026-05-13
+작성 기준: 2026-05-18

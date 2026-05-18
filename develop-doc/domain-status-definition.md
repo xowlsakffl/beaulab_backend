@@ -1,6 +1,6 @@
 ﻿# 도메인 & 상태 정의서 (비개발자용)
 
-- 작성일: 2026-05-13
+- 작성일: 2026-05-18
 - 목적: 서비스에서 관리하는 핵심 도메인(업무 단위)과 상태값을 비개발자도 이해할 수 있게 정리
 - 기준: 현재 코드(`app/Domains/*/Models`, `database/migrations`) 기준
 
@@ -24,6 +24,8 @@
 | `HospitalReview` | 병의원 후기 | 성형후기/시술후기 게시글, 병원/의료진/카테고리/전후 이미지/평점/비용 |
 | `HospitalReviewComment` | 병의원 후기 댓글 | 후기 게시글의 댓글/대댓글과 멘션 |
 | `HospitalEvaluation` | 병의원 평가 | 병의원 평가, 별점 5개 항목, 평가 선택 항목, 영수증 인증 |
+| `ContentReport` | 콘텐츠 신고 로그 | 사용자가 신고한 게시글/댓글/평가의 신고 건별 기록 |
+| `ContentReportState` | 콘텐츠 신고 상태 | 신고 대상별 현재 신고 상태, 신고 수, 경고/무시 처리 상태 |
 | `Notice` | 공지사항 | 관리자 공지 콘텐츠(노출/게시기간/관리자 메인 팝업/조회수) |
 | `Faq` | FAQ | 관리자 FAQ 콘텐츠(카테고리/채널/조회수) |
 | `Media` | 공통 미디어 | 이미지/영상 파일 메타데이터(파일 경로, 크기, 정렬, 대표 여부) |
@@ -70,9 +72,18 @@
 | `STATUS_ACTIVE` | `ACTIVE` | 활성 | 정상적으로 로그인/사용 가능 |
 | `STATUS_SUSPENDED` | `SUSPENDED` | 정지 | 일시 중지 상태 |
 | `STATUS_BLOCKED` | `BLOCKED` | 차단 | 관리자 차단 상태 |
+| `STATUS_WITHDRAWN` | `WITHDRAWN` | 탈퇴 | 탈퇴/비활성화된 사용자 계정 |
 
 기본값:
 - `status`: `STATUS_ACTIVE` (활성)
+- `warning_count`: `0`
+- `blocked_at`: `null`
+
+신고 경고 규칙:
+- 신고게시물 관리에서 `경고` 처리하면 작성자의 `warning_count`가 1 증가한다.
+- `warning_count`가 10 이상이 되면 `status`는 `STATUS_BLOCKED`, `blocked_at`은 처리 시각으로 변경된다.
+- 이미 경고 처리된 신고 건을 `무시`로 바꾸면 `warning_count`가 1 감소한다.
+- 경고 취소 결과 `warning_count`가 10 미만이 되면 차단 상태를 `STATUS_ACTIVE`로 되돌린다.
 
 ### 2.5 `Hospital` (병원)
 
@@ -246,150 +257,6 @@
 - `is_important`: `false`
 - `view_count`: `0`
 
-### 2.14 `Talk` / `TalkComment` (토크 게시글/댓글)
-
-#### 노출 상태 (`status`)
-
-| 상수명 | 저장값 | 상태명 | 의미 |
-|---|---|---|---|
-| `STATUS_ACTIVE` | `ACTIVE` | 노출 | 운영 화면과 서비스에서 노출 가능 |
-| `STATUS_INACTIVE` | `INACTIVE` | 미노출 | 운영자가 숨김 처리 |
-
-#### 게시 상태 (`post_status`)
-
-| 상수명 | 저장값 | 상태명 | 의미 |
-|---|---|---|---|
-| `POST_STATUS_NORMAL` | `POST_NORMAL` | 정상 | 일반 게시 상태 |
-| `POST_STATUS_AUTO_BLIND` | `POST_AUTO_BLIND` | 자동차단 | 자동 정책으로 차단된 상태 |
-| `POST_STATUS_USER_DELETE` | `POST_USER_DELETE` | 본인삭제 | 작성자가 삭제한 상태 |
-| `POST_STATUS_ADMIN_STOP` | `POST_ADMIN_STOP` | 노출중지 | 운영자가 게시 중지한 상태 |
-
-업무 규칙:
-
-- `POST_AUTO_BLIND`, `POST_USER_DELETE`, `POST_ADMIN_STOP` 상태는 노출/미노출 변경이 잠긴다.
-- 댓글은 최상위 댓글에만 대댓글을 달 수 있다.
-- 멘션은 요청에서 `mention_text`를 직접 받지 않고, 대상 사용자 id 기준으로 닉네임을 저장한다.
-
-### 2.15 `HospitalReview` / `HospitalReviewComment` (병의원 후기/댓글)
-
-#### 카테고리 도메인
-
-| 상수명 | Category domain | 의미 |
-|---|---|---|
-| `CATEGORY_DOMAIN_SURGERY` | `HOSPITAL_REVIEW_SURGERY` | 성형후기 |
-| `CATEGORY_DOMAIN_TREATMENT` | `HOSPITAL_REVIEW_TREATMENT` | 시술후기 |
-
-#### 노출 상태 (`status`)
-
-| 상수명 | 저장값 | 상태명 | 의미 |
-|---|---|---|---|
-| `STATUS_ACTIVE` | `ACTIVE` | 노출 | 운영 화면과 서비스에서 노출 가능 |
-| `STATUS_INACTIVE` | `INACTIVE` | 미노출 | 운영자가 숨김 처리 |
-
-#### 게시 상태 (`post_status`)
-
-| 상수명 | 저장값 | 상태명 | 의미 |
-|---|---|---|---|
-| `POST_STATUS_NORMAL` | `POST_NORMAL` | 정상 | 일반 게시 상태 |
-| `POST_STATUS_AUTO_BLIND` | `POST_AUTO_BLIND` | 자동차단 | 자동 정책으로 차단된 상태 |
-| `POST_STATUS_USER_DELETE` | `POST_USER_DELETE` | 본인삭제 | 작성자가 삭제한 상태 |
-| `POST_STATUS_ADMIN_STOP` | `POST_ADMIN_STOP` | 노출중지 | 운영자가 게시 중지한 상태 |
-
-업무 규칙:
-
-- 후기는 카테고리를 여러 개 가질 수 있고 최대 10개까지 허용한다.
-- 성형후기/시술후기는 서로 다른 카테고리 도메인을 사용한다.
-- 댓글 목록의 카테고리 기준은 부모 후기의 카테고리다.
-- 댓글은 최상위 댓글에만 대댓글을 달 수 있다.
-- 멘션은 대상 사용자 id 기준으로 닉네임을 저장한다.
-- `POST_AUTO_BLIND`, `POST_USER_DELETE`, `POST_ADMIN_STOP` 상태는 노출/미노출 변경이 잠긴다.
-
-### 2.16 `HospitalEvaluation` (병의원 평가)
-
-#### 카테고리 도메인
-
-| 상수명 | Category domain | 의미 |
-|---|---|---|
-| `CATEGORY_DOMAIN_SURGERY` | `HOSPITAL_EVALUATION_SURGERY` | 성형 평가 |
-| `CATEGORY_DOMAIN_TREATMENT` | `HOSPITAL_EVALUATION_TREATMENT` | 시술 평가 |
-| `CATEGORY_DOMAIN_CONSULTATION` | `HOSPITAL_EVALUATION_CONSULTATION` | 상담 평가 |
-
-#### 노출 상태 (`status`)
-
-| 상수명 | 저장값 | 상태명 | 의미 |
-|---|---|---|---|
-| `STATUS_ACTIVE` | `ACTIVE` | 노출 | 운영 화면과 서비스에서 노출 가능 |
-| `STATUS_INACTIVE` | `INACTIVE` | 미노출 | 운영자가 숨김 처리 |
-
-#### 게시 상태 (`post_status`)
-
-| 상수명 | 저장값 | 상태명 | 의미 |
-|---|---|---|---|
-| `POST_STATUS_NORMAL` | `POST_NORMAL` | 정상 | 일반 게시 상태 |
-| `POST_STATUS_AUTO_BLIND` | `POST_AUTO_BLIND` | 자동차단 | 자동 정책으로 차단된 상태 |
-| `POST_STATUS_USER_DELETE` | `POST_USER_DELETE` | 본인삭제 | 작성자가 삭제한 상태 |
-| `POST_STATUS_ADMIN_STOP` | `POST_ADMIN_STOP` | 노출중지 | 운영자가 게시 중지한 상태 |
-
-#### 영수증 상태 (`receipt_status`)
-
-| 상수명 | 저장값 | 표시명 | 의미 |
-|---|---|---|---|
-| `RECEIPT_STATUS_NONE` | `NONE` | 없음 | 영수증 이미지 없음 |
-| `RECEIPT_STATUS_UPLOADED` | `UPLOADED` | 영수증 | 사용자가 영수증 이미지를 업로드함 |
-| `RECEIPT_STATUS_VERIFIED` | `VERIFIED` | 영수증 인증 | 운영자가 적합 처리함 |
-| `RECEIPT_STATUS_REJECTED` | `REJECTED` | 영수증 부적합 | 운영자가 부적합 처리함 |
-
-#### 영수증 부적합 사유
-
-| 상수명 | 저장값 | 표시명 |
-|---|---|---|
-| `RECEIPT_REJECTION_REASON_IMAGE_MISMATCH` | `IMAGE_MISMATCH` | 영수증 이미지 불일치 |
-| `RECEIPT_REJECTION_REASON_BUSINESS_NAME_MISMATCH` | `BUSINESS_NAME_MISMATCH` | 상호 불일치 |
-| `RECEIPT_REJECTION_REASON_BUSINESS_NUMBER_MISMATCH` | `BUSINESS_NUMBER_MISMATCH` | 사업자번호 불일치 |
-| `RECEIPT_REJECTION_REASON_TRANSACTION_DATE_MISMATCH` | `TRANSACTION_DATE_MISMATCH` | 거래일시 불일치 |
-| `RECEIPT_REJECTION_REASON_SURGERY_COST_MISMATCH` | `SURGERY_COST_MISMATCH` | 수술금액 불일치 |
-| `RECEIPT_REJECTION_REASON_OTHER` | `OTHER` | 기타 |
-
-평점:
-
-- 직원친절도, 수술만족도, 병원시설, 사후관리, 비용 5개 항목을 각각 1~5점으로 저장한다.
-- 목록 평균 평점은 5개 항목의 산술 평균이다.
-
-평가 선택 항목:
-
-- 과잉진료: 있음/없음
-- 대기시간: 길었음/짧았음
-- 지정의사: 상담함/상담안함
-- 지인추천: 추천/비추천
-
-## 3) 상태 흐름 예시 (비개발자 관점)
-
-### 3.1 병원 검수 흐름
-
-- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
-
-### 3.2 뷰티 검수 흐름
-
-- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
-
-### 3.3 병원 의사 검수 흐름
-
-- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
-
-### 3.4 뷰티 전문가 검수 흐름
-
-- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
-
-### 3.5 영상요청 검토 흐름
-
-- `REVIEW_STATUS_APPLYING`(신청중) -> `REVIEW_STATUS_IN_REVIEW`(검토중) -> `REVIEW_STATUS_APPROVED`(검수) 또는 `REVIEW_STATUS_REJECTED`(반려)
-- 신청중 단계에서는 파트너가 `REVIEW_STATUS_PARTNER_CANCELED`(파트너 취소)로 종료 가능
-
-### 3.6 공지 노출 흐름
-
-- `STATUS_ACTIVE`(활성) -> `STATUS_INACTIVE`(비활성)
-- 게시 시작/종료 시각은 기간 제어용 필드이며 별도 노출 상태 enum으로 관리하지 않음
-
 ### 2.14 `Faq` (자주 묻는 질문)
 
 #### 채널 (`channel`)
@@ -426,9 +293,186 @@
 - `sort_order`: `0`
 - `view_count`: `0`
 
+### 2.15 `Talk` / `TalkComment` (토크 게시글/댓글)
+
+#### 노출 상태 (`status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `STATUS_ACTIVE` | `ACTIVE` | 노출 | 운영 화면과 서비스에서 노출 가능 |
+| `STATUS_INACTIVE` | `INACTIVE` | 미노출 | 운영자가 숨김 처리 |
+
+업무 규칙:
+
+- 토크 게시글과 댓글은 `status`로 실제 노출 여부를 관리한다.
+- 신고 상태는 `Talk`/`TalkComment`의 게시상태 컬럼이 아니라 `ContentReportState.report_status`로 분리 관리한다.
+- 신고상태가 `AUTO_BLOCKED` 또는 `ADMIN_HIDDEN`이면 일반 게시물관리 화면에서 노출/미노출 변경이 잠긴다.
+- 댓글은 최상위 댓글에만 대댓글을 달 수 있다.
+- 멘션은 요청에서 `mention_text`를 직접 받지 않고, 대상 사용자 id 기준으로 닉네임을 저장한다.
+
+### 2.16 `HospitalReview` / `HospitalReviewComment` (병의원 후기/댓글)
+
+#### 카테고리 도메인
+
+| 상수명 | Category domain | 의미 |
+|---|---|---|
+| `CATEGORY_DOMAIN_SURGERY` | `HOSPITAL_REVIEW_SURGERY` | 성형후기 |
+| `CATEGORY_DOMAIN_TREATMENT` | `HOSPITAL_REVIEW_TREATMENT` | 시술후기 |
+
+#### 노출 상태 (`status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `STATUS_ACTIVE` | `ACTIVE` | 노출 | 운영 화면과 서비스에서 노출 가능 |
+| `STATUS_INACTIVE` | `INACTIVE` | 미노출 | 운영자가 숨김 처리 |
+
+업무 규칙:
+
+- 후기는 카테고리를 여러 개 가질 수 있고 최대 10개까지 허용한다.
+- 성형후기/시술후기는 서로 다른 카테고리 도메인을 사용한다.
+- 댓글 목록의 카테고리 기준은 부모 후기의 카테고리다.
+- 댓글은 최상위 댓글에만 대댓글을 달 수 있다.
+- 멘션은 대상 사용자 id 기준으로 닉네임을 저장한다.
+- 신고상태가 `AUTO_BLOCKED` 또는 `ADMIN_HIDDEN`이면 일반 게시물관리 화면에서 노출/미노출 변경이 잠긴다.
+
+### 2.17 `HospitalEvaluation` (병의원 평가)
+
+#### 카테고리 도메인
+
+| 상수명 | Category domain | 의미 |
+|---|---|---|
+| `CATEGORY_DOMAIN_SURGERY` | `HOSPITAL_EVALUATION_SURGERY` | 성형 평가 |
+| `CATEGORY_DOMAIN_TREATMENT` | `HOSPITAL_EVALUATION_TREATMENT` | 시술 평가 |
+| `CATEGORY_DOMAIN_CONSULTATION` | `HOSPITAL_EVALUATION_CONSULTATION` | 상담 평가 |
+
+#### 노출 상태 (`status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `STATUS_ACTIVE` | `ACTIVE` | 노출 | 운영 화면과 서비스에서 노출 가능 |
+| `STATUS_INACTIVE` | `INACTIVE` | 미노출 | 운영자가 숨김 처리 |
+
+#### 게시 상태 (`post_status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `POST_STATUS_NORMAL` | `POST_NORMAL` | 정상 | 병의원 평가에 남아있는 기존 게시상태 |
+| `POST_STATUS_AUTO_BLIND` | `POST_AUTO_BLIND` | 자동차단 | 기존 게시상태 컬럼 기준 자동차단 |
+| `POST_STATUS_USER_DELETE` | `POST_USER_DELETE` | 본인삭제 | 작성자가 삭제한 상태 |
+| `POST_STATUS_ADMIN_STOP` | `POST_ADMIN_STOP` | 노출중지 | 운영자가 게시 중지한 상태 |
+
+주의:
+- `HospitalEvaluation`에는 아직 `post_status` 컬럼과 필터가 남아 있다.
+- 신규 신고게시물 관리는 `ContentReportState.report_status`를 사용하므로, 평가 쪽 `post_status`는 정리 대상이다.
+
+#### 영수증 상태 (`receipt_status`)
+
+| 상수명 | 저장값 | 표시명 | 의미 |
+|---|---|---|---|
+| `RECEIPT_STATUS_NONE` | `NONE` | 없음 | 영수증 이미지 없음 |
+| `RECEIPT_STATUS_UPLOADED` | `UPLOADED` | 영수증 | 사용자가 영수증 이미지를 업로드함 |
+| `RECEIPT_STATUS_VERIFIED` | `VERIFIED` | 영수증 인증 | 운영자가 적합 처리함 |
+| `RECEIPT_STATUS_REJECTED` | `REJECTED` | 영수증 부적합 | 운영자가 부적합 처리함 |
+
+#### 영수증 부적합 사유
+
+| 상수명 | 저장값 | 표시명 |
+|---|---|---|
+| `RECEIPT_REJECTION_REASON_IMAGE_MISMATCH` | `IMAGE_MISMATCH` | 영수증 이미지 불일치 |
+| `RECEIPT_REJECTION_REASON_BUSINESS_NAME_MISMATCH` | `BUSINESS_NAME_MISMATCH` | 상호 불일치 |
+| `RECEIPT_REJECTION_REASON_BUSINESS_NUMBER_MISMATCH` | `BUSINESS_NUMBER_MISMATCH` | 사업자번호 불일치 |
+| `RECEIPT_REJECTION_REASON_TRANSACTION_DATE_MISMATCH` | `TRANSACTION_DATE_MISMATCH` | 거래일시 불일치 |
+| `RECEIPT_REJECTION_REASON_SURGERY_COST_MISMATCH` | `SURGERY_COST_MISMATCH` | 수술금액 불일치 |
+| `RECEIPT_REJECTION_REASON_OTHER` | `OTHER` | 기타 |
+
+평점:
+
+- 직원친절도, 수술만족도, 병원시설, 사후관리, 비용 5개 항목을 각각 1~5점으로 저장한다.
+- 목록 평균 평점은 5개 항목의 산술 평균이다.
+
+평가 선택 항목:
+
+- 과잉진료: 있음/없음
+- 대기시간: 길었음/짧았음
+- 지정의사: 상담함/상담안함
+- 지인추천: 추천/비추천
+
+### 2.18 `ContentReport` / `ContentReportState` (콘텐츠 신고)
+
+#### 신고 사유 (`ContentReport.reason`)
+
+| 상수명 | 저장값 | 표시명 |
+|---|---|---|
+| `REASON_ABUSE` | `ABUSE` | 비방/욕설 |
+| `REASON_SPAM` | `SPAM` | 게시물/댓글 도배 |
+| `REASON_ILLEGAL_AD` | `ILLEGAL_AD` | 불법광고/홍보 |
+| `REASON_PRIVACY_COPYRIGHT` | `PRIVACY_COPYRIGHT` | 개인정보/저작권 침해 |
+| `REASON_OTHER` | `OTHER` | 기타 |
+
+#### 신고 처리 상태 (`ContentReportState.report_status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `STATUS_NONE` | `NONE` | 없음 | 신고 접수 전 기본값 |
+| `STATUS_REPORTED` | `REPORTED` | 신고접수 | 1건 이상 신고 접수 |
+| `STATUS_AUTO_BLOCKED` | `AUTO_BLOCKED` | 자동차단 | 기준 시간 내 신고 누적으로 자동 미노출 |
+| `STATUS_ADMIN_HIDDEN` | `ADMIN_HIDDEN` | 노출중지 | 관리자가 신고게시물 관리에서 노출중지 처리 |
+| `STATUS_NORMAL_VISIBLE` | `NORMAL_VISIBLE` | 정상노출 | 관리자가 신고건을 정상노출 처리 |
+
+#### 경고 처리 상태 (`ContentReportState.warning_status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `WARNING_STATUS_NONE` | `NONE` | 미처리 | 경고/무시 처리 전 |
+| `WARNING_STATUS_WARNED` | `WARNED` | 경고 | 해당 신고 대상 작성자에게 경고 반영 |
+| `WARNING_STATUS_IGNORED` | `IGNORED` | 무시 | 해당 신고 대상은 경고하지 않음 |
+
+업무 규칙:
+
+- 신고 대상은 `talk`, `talk_comment`, `hospital_review`, `hospital_review_comment`, `hospital_evaluation`이다.
+- 신고 로그는 건별로 `content_reports`에 저장하고, 대상별 현재 상태는 `content_report_states`에 1건만 유지한다.
+- 1시간 내 신고 10건 이상이면 `AUTO_BLOCKED`로 변경하고 대상 콘텐츠 `status`를 `INACTIVE`로 변경한다.
+- 관리자가 `NORMAL_VISIBLE`로 처리하면 대상 콘텐츠 `status`는 `ACTIVE`가 되고 `recent_hour_report_count`는 0으로 초기화된다.
+- `NORMAL_VISIBLE` 처리 횟수(`normal_visible_count`)가 3회 이상이면 이후 신고는 자동 상태 변경 대상에서 제외한다.
+- 경고/무시는 `ADMIN_HIDDEN` 상태에서만 처리할 수 있다.
+- 신고 상태 변경과 경고/무시 변경은 대상 콘텐츠의 operation history에 기록한다.
+
+## 3) 상태 흐름 예시 (비개발자 관점)
+
+### 3.1 병원 검수 흐름
+
+- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+
+### 3.2 뷰티 검수 흐름
+
+- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+
+### 3.3 병원 의사 검수 흐름
+
+- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+
+### 3.4 뷰티 전문가 검수 흐름
+
+- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+
+### 3.5 영상요청 검토 흐름
+
+- `REVIEW_STATUS_APPLYING`(신청중) -> `REVIEW_STATUS_IN_REVIEW`(검토중) -> `REVIEW_STATUS_APPROVED`(검수) 또는 `REVIEW_STATUS_REJECTED`(반려)
+- 신청중 단계에서는 파트너가 `REVIEW_STATUS_PARTNER_CANCELED`(파트너 취소)로 종료 가능
+
+### 3.6 공지/FAQ/콘텐츠 노출 흐름
+
+- `STATUS_ACTIVE`(노출/활성) -> `STATUS_INACTIVE`(미노출/비활성)
+- 게시 시작/종료 시각은 기간 제어용 필드이며 별도 노출 상태 enum으로 관리하지 않음
+- 신고게시물 관리에서 자동차단/노출중지가 되면 대상 콘텐츠의 `status`가 `INACTIVE`로 바뀐다.
+- 신고게시물 관리에서 정상노출 처리하면 대상 콘텐츠의 `status`가 `ACTIVE`로 바뀐다.
+
 ## 4) 참고 파일
 
 - `app/Domains/*/Models/*.php`
+- `app/Domains/Common/ContentReport/*`
 - `database/migrations/0001_01_01_0000*_create_*.php`
 - `database/migrations/2026_02_*_create_*.php`
 - `database/migrations/2026_03_12_120000_create_notices_table.php`
+- `database/migrations/2026_05_15_090000_create_content_reports_table.php`
+- `database/migrations/2026_05_15_090100_create_content_report_states_table.php`

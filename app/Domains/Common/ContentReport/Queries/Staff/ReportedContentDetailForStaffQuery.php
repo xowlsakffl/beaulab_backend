@@ -11,7 +11,6 @@ use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 final class ReportedContentDetailForStaffQuery
@@ -31,16 +30,15 @@ final class ReportedContentDetailForStaffQuery
 
     /**
      * @param  class-string<Model>  $targetClass
-     * @return LengthAwarePaginator<int, ContentReport>
+     * @return Builder<ContentReport>
      */
-    public function reports(string $targetClass, int $targetId, int $page, int $perPage): LengthAwarePaginator
+    public function reportsQuery(string $targetClass, int $targetId): Builder
     {
         return ContentReport::query()
             ->where('target_type', $targetClass)
             ->where('target_id', $targetId)
             ->with('reporter:id,name,nickname,email')
-            ->latest('id')
-            ->paginate($perPage, ['*'], 'page', $page);
+            ->latest('id');
     }
 
     /**

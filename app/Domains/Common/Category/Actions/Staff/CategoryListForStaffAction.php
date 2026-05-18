@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\Category\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\Common\Category\Dto\Staff\CategoryForStaffDto;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Queries\Staff\CategoryListForStaffQuery;
@@ -23,19 +24,9 @@ final class CategoryListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        $items = collect($paginator->items())
-            ->map(fn (Category $category): array => CategoryForStaffDto::fromModel($category)->toArray())
-            ->values()
-            ->all();
-
-        return [
-            'items' => $items,
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn (Category $category): array => CategoryForStaffDto::fromModel($category)->toArray(),
+        );
     }
 }

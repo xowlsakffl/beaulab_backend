@@ -6,6 +6,7 @@
 ## 문서 목록
 
 - [아키텍처 & 흐름](./architecture.md)
+- [API 응답 / 페이지네이션 규칙](./api-response.md)
 - [에러 / 예외 처리](./error-handling.md)
 - [권한 / 메뉴 설계 (Staff / Hospital / Beauty / User)](./authorization.md)
 - [내부도구 허브 운영 가이드](./internal-tools.md)
@@ -13,6 +14,7 @@
 - [Queue 운영 가이드](./queue.md)
 - [Scheduler 운영 가이드](./scheduler.md)
 - [도메인 & 상태 정의서](./domain-status-definition.md)
+- [콘텐츠 신고 / 신고게시물 관리](./content-report.md)
 - [채팅 설계](./chat.md)
 - [알림 설계](./notification.md)
 
@@ -24,8 +26,10 @@
 - FAQ 카테고리는 전용 테이블이 아니라 공통 `Category` 도메인의 `FAQ` 분류를 사용한다.
 - 토크/병의원 후기/병의원 평가는 Staff 운영 API와 User 작성 API를 Actor 기준으로 분리한다.
 - 병의원 후기는 `HospitalReview`, 댓글은 `HospitalReviewComment`, 병의원 평가는 `HospitalEvaluation` 도메인이 소유한다.
+- 신고 기능은 건별 로그(`ContentReport`)와 대상별 현재 상태(`ContentReportState`)를 분리한다.
+- LengthAware pagination 목록은 `PaginatedResponse`를 사용하고, 채팅 메시지처럼 cursor 방식인 목록만 예외로 둔다.
 - 권한 단일 소스는 `AccessPermissions` / `AccessRoles`이며 Seeder로 동기화한다.
 - Queue 표준 런타임은 Redis + Horizon이며, Scheduler/Monitor는 별도 문서로 분리 관리한다.
 - 모든 예외 응답은 공통 예외 핸들러/응답 포맷 규칙을 따른다.
 
-작성 기준: 2026-05-13
+작성 기준: 2026-05-18

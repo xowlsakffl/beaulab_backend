@@ -7,9 +7,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 final class PaginatedResponse
 {
     /**
-     * @return array{items: array<int, array<string, mixed>>, meta: array<string, int>}
+     * @param  array<string, mixed>  $extraMeta
+     * @return array{items: array<int, array<string, mixed>>, meta: array<string, mixed>}
      */
-    public static function fromPaginator(LengthAwarePaginator $paginator, callable $mapper): array
+    public static function fromPaginator(LengthAwarePaginator $paginator, callable $mapper, array $extraMeta = []): array
     {
         return [
             'items' => collect($paginator->items())
@@ -21,7 +22,7 @@ final class PaginatedResponse
                 'per_page' => $paginator->perPage(),
                 'total' => $paginator->total(),
                 'last_page' => $paginator->lastPage(),
-            ],
+            ] + $extraMeta,
         ];
     }
 

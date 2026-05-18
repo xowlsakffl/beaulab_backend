@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\AccountUser\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\AccountUser\Dto\Staff\AccountUserForStaffDto;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\AccountUser\Queries\Staff\AccountUserListForStaffQuery;
@@ -28,19 +29,9 @@ final class AccountUserListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        $items = collect($paginator->items())
-            ->map(fn ($user) => AccountUserForStaffDto::fromModel($user)->toArray())
-            ->values()
-            ->all();
-
-        return [
-            'items' => $items,
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn (AccountUser $user): array => AccountUserForStaffDto::fromModel($user)->toArray(),
+        );
     }
 }

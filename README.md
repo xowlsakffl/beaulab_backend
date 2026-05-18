@@ -629,14 +629,11 @@ php artisan db:seed --class=AuthorizationSeeder
 
 아래 항목은 서비스 범위에는 포함하지만, 현재 코드와 문서 기준으로 정책/스키마/API 설계가 더 필요한 확장 영역입니다.
 
-- 신고/제재
-  - 유저 신고
-  - 게시글/댓글 신고
-  - 채팅 메시지 신고
-  - 후기/전후 사진 신고
-  - 신고 사유 코드
-  - 운영자 신고 목록/상세/처리 API
-  - 블라인드, 계정 제재, 파트너 제재 연동
+- 신고/제재 후속
+  - 토크, 토크 댓글, 병의원 후기, 후기 댓글, 병의원 평가는 신고 생성/신고게시물 관리/상태 처리/경고 처리가 구현됨
+  - 유저 자체 신고와 채팅 메시지 신고는 아직 미구현
+  - 동일 사용자 중복 신고 정책은 운영 정책 확정 필요
+  - 파트너 제재 연동은 미구현
 - 후기/검증
   - 영수증 인증 후기
   - 예약/방문 인증 후기
@@ -662,14 +659,16 @@ php artisan db:seed --class=AuthorizationSeeder
   - 결제/환불 정책 연동
   - 광고 상품/상위 노출 정책
 
-`develop-doc/todo.md`의 신고 기능은 이 확장 범위에 포함되며, 실제 구현 시 도메인 모델, 상태값, 권한, 운영자 처리 흐름을 별도 문서와 함께 확정합니다.
+신고 기능의 현재 구현과 남은 정책은 `develop-doc/content-report.md`, `develop-doc/todo.md`를 기준으로 확인합니다.
 
 ## 참고 문서
 
 - [개발 문서 목록](develop-doc/README.md)
 - [아키텍처 & 흐름](develop-doc/architecture.md)
+- [API 응답 / 페이지네이션 규칙](develop-doc/api-response.md)
 - [권한 / 메뉴 설계](develop-doc/authorization.md)
 - [도메인 & 상태 정의서](develop-doc/domain-status-definition.md)
+- [콘텐츠 신고 / 신고게시물 관리](develop-doc/content-report.md)
 - [채팅 설계](develop-doc/chat.md)
 - [알림 설계](develop-doc/notification.md)
 - [Queue 운영 가이드](develop-doc/queue.md)

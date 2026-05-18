@@ -4,6 +4,7 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Common\Support\PaginatedResponse;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
@@ -40,23 +41,17 @@ final class ReportedContentListForStaffAction
         $states->loadMorph('target', $this->targetRelations());
         $reportSummaries = $this->query->reportSummaries($states);
 
-        return [
-            'items' => $states
-                ->map(fn (ContentReportState $state): array => [
-                    'target_type' => $targetAlias,
-                    'target' => $this->targetToArray($state->target),
-                    'report' => $this->reportStateToArray($state, $reportSummaries),
-                ])
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn (ContentReportState $state): array => [
+                'target_type' => $targetAlias,
+                'target' => $this->targetToArray($state->target),
+                'report' => $this->reportStateToArray($state, $reportSummaries),
+            ],
+            [
                 'summary' => $this->query->summary($targetClass, $filters),
             ],
-        ];
+        );
     }
 
     /**

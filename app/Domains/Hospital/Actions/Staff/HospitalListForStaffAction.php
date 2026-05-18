@@ -2,6 +2,7 @@
 
 namespace App\Domains\Hospital\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalListForStaffQuery;
@@ -42,19 +43,9 @@ final class HospitalListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        $items = collect($paginator->items())
-            ->map(fn ($hospital) => HospitalForStaffDto::fromModel($hospital)->toArray())
-            ->values()
-            ->all();
-
-        return [
-            'items' => $items,
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
-                'last_page'    => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn (Hospital $hospital): array => HospitalForStaffDto::fromModel($hospital)->toArray(),
+        );
     }
 }

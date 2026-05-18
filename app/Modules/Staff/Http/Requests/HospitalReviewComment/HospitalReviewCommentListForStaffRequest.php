@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\HospitalReviewComment;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,6 +15,7 @@ final class HospitalReviewCommentListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
+            'report_status' => $this->normalizeToArray($this->input('report_status')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
         ]);
     }
@@ -32,6 +34,11 @@ final class HospitalReviewCommentListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::in(HospitalReviewComment::statuses())],
+            'report_status' => ['nullable', 'array'],
+            'report_status.*' => [Rule::in([
+                ContentReportState::STATUS_AUTO_BLOCKED,
+                ContentReportState::STATUS_ADMIN_HIDDEN,
+            ])],
             'category_domain' => ['nullable', Rule::in(HospitalReview::categoryDomains())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
@@ -61,6 +68,7 @@ final class HospitalReviewCommentListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
+            'report_status' => $validated['report_status'] ?? null,
             'category_domain' => $validated['category_domain'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'metric_min' => isset($validated['metric_min']) ? (int) $validated['metric_min'] : null,
@@ -82,6 +90,8 @@ final class HospitalReviewCommentListForStaffRequest extends FormRequest
             'q' => '검색어',
             'status' => '노출 여부',
             'status.*' => '노출 여부',
+            'report_status' => '상태',
+            'report_status.*' => '상태',
             'category_domain' => '후기 유형',
             'category_ids' => '후기 카테고리',
             'category_ids.*' => '후기 카테고리',

@@ -93,6 +93,15 @@ final class ContentReportForStaffController extends Controller
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
+    public function getReportedChatMessagesForStaff(
+        ReportedContentListForStaffRequest $request,
+        ReportedContentListForStaffAction $action,
+    ) {
+        $result = $action->execute(ContentReportTargetRegistry::ALIAS_CHAT_MESSAGE, $request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
     public function getReportedContentDetailForStaff(
         string $targetType,
         int $targetId,

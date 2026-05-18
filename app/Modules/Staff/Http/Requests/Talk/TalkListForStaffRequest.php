@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Talk;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Talk\Models\Talk;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,7 @@ class TalkListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
+            'report_status' => $this->normalizeToArray($this->input('report_status')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
         ]);
     }
@@ -32,6 +34,11 @@ class TalkListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::in(Talk::statuses())],
+            'report_status' => ['nullable', 'array'],
+            'report_status.*' => [Rule::in([
+                ContentReportState::STATUS_AUTO_BLOCKED,
+                ContentReportState::STATUS_ADMIN_HIDDEN,
+            ])],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
@@ -64,6 +71,7 @@ class TalkListForStaffRequest extends FormRequest
         return [
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
+            'report_status' => $validated['report_status'] ?? null,
             'author_id' => $validated['author_id'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'metric' => $validated['metric'] ?? null,
@@ -86,6 +94,8 @@ class TalkListForStaffRequest extends FormRequest
             'q' => '검색어',
             'status' => '노출 여부',
             'status.*' => '노출 여부',
+            'report_status' => '상태',
+            'report_status.*' => '상태',
             'author_id' => '작성자',
             'category_ids' => '토크 유형',
             'category_ids.*' => '토크 유형',

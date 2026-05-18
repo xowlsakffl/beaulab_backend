@@ -117,6 +117,13 @@ final class TalkListForStaffQuery
             $builder->whereIn('status', $filters['status']);
         }
 
+        if (is_array($filters['report_status'] ?? null) && $filters['report_status'] !== []) {
+            $builder->whereHas(
+                'contentReportState',
+                fn ($query) => $query->whereIn('report_status', $filters['report_status'])
+            );
+        }
+
         $metricColumns = [
             'like_count',
             'save_count',

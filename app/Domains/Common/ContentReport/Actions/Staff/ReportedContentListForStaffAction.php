@@ -5,6 +5,7 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Common\Support\PaginatedResponse;
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
@@ -85,6 +86,10 @@ final class ReportedContentListForStaffAction
                 'author:id,name,nickname,email',
                 'hospital:id,name',
             ],
+            ChatMessage::class => [
+                'chat:id,last_message_at',
+                'sender:id,name,nickname,email',
+            ],
         ];
     }
 
@@ -96,6 +101,7 @@ final class ReportedContentListForStaffAction
             $target instanceof HospitalReview => $this->hospitalReviewToListArray($target),
             $target instanceof HospitalReviewComment => $this->hospitalReviewCommentToListArray($target),
             $target instanceof HospitalEvaluation => $this->hospitalEvaluationToListArray($target),
+            $target instanceof ChatMessage => $this->chatMessageToListArray($target),
             default => null,
         };
     }
@@ -180,6 +186,21 @@ final class ReportedContentListForStaffAction
         ];
     }
 
+    private function chatMessageToListArray(ChatMessage $message): array
+    {
+        $chat = $message->relationLoaded('chat') ? $message->chat : null;
+
+        return [
+            'id' => (int) $message->id,
+            'chat_id' => (int) $message->chat_id,
+            'created_at' => $message->created_at?->toISOString() ?? '',
+            'last_message_at' => $chat?->last_message_at?->toISOString(),
+            'sender' => $this->senderToArray($message),
+            'body_preview' => $this->contentPreview((string) $message->body),
+            'message_type' => (string) $message->message_type,
+        ];
+    }
+
     private function authorToArray(Model $model): ?array
     {
         if (! $model->relationLoaded('author') || ! $model->getRelation('author')) {
@@ -191,6 +212,27 @@ final class ReportedContentListForStaffAction
 
         return [
             'id' => (int) $author->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
+                ? (string) $attributes['nickname']
+                : null,
+            'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
+                ? (string) $attributes['email']
+                : null,
+        ];
+    }
+
+    private function senderToArray(ChatMessage $message): ?array
+    {
+        if (! $message->relationLoaded('sender') || ! $message->getRelation('sender')) {
+            return null;
+        }
+
+        $sender = $message->getRelation('sender');
+        $attributes = $sender->getAttributes();
+
+        return [
+            'id' => (int) $sender->getKey(),
             'name' => (string) ($attributes['name'] ?? ''),
             'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
                 ? (string) $attributes['nickname']

@@ -20,34 +20,11 @@ use App\Modules\Staff\Http\Requests\HospitalReview\HospitalReviewStatusUpdateFor
  */
 final class HospitalReviewForStaffController extends Controller
 {
-    public function getSurgeryHospitalReviewsForStaff(
+    public function getHospitalReviewsForStaff(
         HospitalReviewListForStaffRequest $request,
         HospitalReviewListForStaffAction $action,
     ) {
-        return $this->listHospitalReviewsForStaff(
-            $request,
-            $action,
-            HospitalReview::CATEGORY_DOMAIN_SURGERY,
-        );
-    }
-
-    public function getTreatmentHospitalReviewsForStaff(
-        HospitalReviewListForStaffRequest $request,
-        HospitalReviewListForStaffAction $action,
-    ) {
-        return $this->listHospitalReviewsForStaff(
-            $request,
-            $action,
-            HospitalReview::CATEGORY_DOMAIN_TREATMENT,
-        );
-    }
-
-    private function listHospitalReviewsForStaff(
-        HospitalReviewListForStaffRequest $request,
-        HospitalReviewListForStaffAction $action,
-        string $categoryDomain,
-    ) {
-        $result = $action->execute($request->filters(), $categoryDomain);
+        $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }

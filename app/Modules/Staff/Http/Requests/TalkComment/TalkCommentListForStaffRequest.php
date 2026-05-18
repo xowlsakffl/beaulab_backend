@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\TalkComment;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,6 +15,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
+            'report_status' => $this->normalizeToArray($this->input('report_status')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
         ]);
     }
@@ -32,6 +34,11 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::in(TalkComment::statuses())],
+            'report_status' => ['nullable', 'array'],
+            'report_status.*' => [Rule::in([
+                ContentReportState::STATUS_AUTO_BLOCKED,
+                ContentReportState::STATUS_ADMIN_HIDDEN,
+            ])],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -60,6 +67,7 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
+            'report_status' => $validated['report_status'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'metric_min' => isset($validated['metric_min']) ? (int) $validated['metric_min'] : null,
             'metric_max' => isset($validated['metric_max']) ? (int) $validated['metric_max'] : null,
@@ -83,6 +91,8 @@ final class TalkCommentListForStaffRequest extends FormRequest
             'q' => '검색어',
             'status' => '노출 여부',
             'status.*' => '노출 여부',
+            'report_status' => '상태',
+            'report_status.*' => '상태',
             'category_ids' => '토크 유형',
             'category_ids.*' => '토크 유형',
             'metric_min' => '좋아요 수 최소값',

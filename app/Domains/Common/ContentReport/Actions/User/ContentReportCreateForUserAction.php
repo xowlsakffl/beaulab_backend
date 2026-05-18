@@ -15,6 +15,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 final class ContentReportCreateForUserAction
 {
@@ -48,7 +49,8 @@ final class ContentReportCreateForUserAction
                     'reason_text' => (string) $payload['reason'] === ContentReport::REASON_OTHER
                         ? $this->normalizeReasonText($payload['reason_text'] ?? null)
                         : null,
-                    'content_snapshot' => $this->contentSnapshot($target),
+                    'content_snapshot' => $this->contentSnapshot($target, $payload),
+                    'metadata' => $payload['metadata'] ?? null,
                     'reporter_ip' => $this->normalizeIp($payload['reporter_ip'] ?? null),
                 ]);
             } catch (QueryException $exception) {
@@ -93,7 +95,10 @@ final class ContentReportCreateForUserAction
             $state->last_reported_at = $now;
 
             if (! $state->isAutoActionLocked() && $previousReportStatus !== ContentReportState::STATUS_ADMIN_HIDDEN) {
-                if ($recentHourReportCount >= ContentReportState::AUTO_BLOCK_RECENT_HOUR_THRESHOLD) {
+                if (
+                    $this->supportsTargetVisibilityStatus($target)
+                    && $recentHourReportCount >= ContentReportState::AUTO_BLOCK_RECENT_HOUR_THRESHOLD
+                ) {
                     $state->report_status = ContentReportState::STATUS_AUTO_BLOCKED;
                     $state->auto_blocked_at = $now;
 
@@ -153,7 +158,7 @@ final class ContentReportCreateForUserAction
 
     private function targetAuthorId(Model $target): ?int
     {
-        $authorId = $target->getAttribute('author_id');
+        $authorId = $target->getAttribute('author_id') ?? $target->getAttribute('sender_user_id');
 
         return $authorId === null ? null : (int) $authorId;
     }
@@ -172,11 +177,17 @@ final class ContentReportCreateForUserAction
         return $value === '' ? null : $value;
     }
 
-    private function contentSnapshot(Model $target): ?string
+    private function contentSnapshot(Model $target, array $payload): ?string
     {
+        if (array_key_exists('content_snapshot', $payload)) {
+            $snapshot = trim((string) $payload['content_snapshot']);
+
+            return $snapshot === '' ? null : mb_substr($snapshot, 0, 2000);
+        }
+
         $parts = [];
 
-        foreach (['title', 'content'] as $attribute) {
+        foreach (['title', 'content', 'body'] as $attribute) {
             $value = $target->getAttribute($attribute);
             if (is_string($value) && trim($value) !== '') {
                 $parts[] = trim($value);
@@ -190,6 +201,11 @@ final class ContentReportCreateForUserAction
         return mb_substr(implode("\n", $parts), 0, 2000);
     }
 
+    private function supportsTargetVisibilityStatus(Model $target): bool
+    {
+        return Schema::hasColumn($target->getTable(), 'status');
+    }
+
     private function applyTargetStatus(
         Model $target,
         string $status,
@@ -198,6 +214,10 @@ final class ContentReportCreateForUserAction
         string $reportStatusAfter,
         string $source,
     ): void {
+        if (! $this->supportsTargetVisibilityStatus($target)) {
+            return;
+        }
+
         $beforeStatus = (string) $target->getAttribute('status');
 
         if ($beforeStatus !== $status) {

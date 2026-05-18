@@ -94,7 +94,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
 
     private function targetAuthorId(Model $target): ?int
     {
-        $authorId = $target->getAttribute('author_id');
+        $authorId = $target->getAttribute('author_id') ?? $target->getAttribute('sender_user_id');
 
         return $authorId === null ? null : (int) $authorId;
     }

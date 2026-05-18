@@ -76,6 +76,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('reported-contents.getReportedTreatmentHospitalReviewCommentsForStaff');
     Route::get('reported-contents/hospital-evaluations', [ContentReportForStaffController::class, 'getReportedHospitalEvaluationsForStaff'])
         ->name('reported-contents.getReportedHospitalEvaluationsForStaff');
+    Route::get('reported-contents/chats', [ContentReportForStaffController::class, 'getReportedChatMessagesForStaff'])
+        ->name('reported-contents.getReportedChatMessagesForStaff');
     Route::get('reported-contents/detail/{targetType}/{targetId}', [ContentReportForStaffController::class, 'getReportedContentDetailForStaff'])
         ->whereNumber('targetId')
         ->name('reported-contents.getReportedContentDetailForStaff');
@@ -216,12 +218,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 병의원 후기 관리
      **/
-    Route::get('hospital-reviews/surgery', [HospitalReviewForStaffController::class, 'getSurgeryHospitalReviewsForStaff'])
-        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
-        ->name('hospital-reviews.getSurgeryHospitalReviewsForStaff');
-    Route::get('hospital-reviews/treatment', [HospitalReviewForStaffController::class, 'getTreatmentHospitalReviewsForStaff'])
-        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
-        ->name('hospital-reviews.getTreatmentHospitalReviewsForStaff');
+    Route::get('hospital-reviews', [HospitalReviewForStaffController::class, 'getHospitalReviewsForStaff'])
+        ->name('hospital-reviews.getHospitalReviewsForStaff');
     Route::patch('hospital-reviews/status', [HospitalReviewForStaffController::class, 'updateHospitalReviewStatusForStaff'])
         ->name('hospital-reviews.updateHospitalReviewStatusForStaff');
     Route::get('hospital-reviews/{hospitalReview}/comments', [HospitalReviewForStaffController::class, 'getHospitalReviewCommentsForStaff'])

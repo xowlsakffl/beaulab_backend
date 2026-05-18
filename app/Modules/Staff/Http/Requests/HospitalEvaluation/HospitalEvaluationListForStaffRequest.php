@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\HospitalEvaluation;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -13,6 +14,7 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
+            'report_status' => $this->normalizeToArray($this->input('report_status')),
             'post_status' => $this->normalizeToArray($this->input('post_status')),
             'receipt_status' => $this->normalizeToArray($this->input('receipt_status')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
@@ -31,6 +33,11 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'array'],
             'status.*' => [Rule::in(HospitalEvaluation::statuses())],
+            'report_status' => ['nullable', 'array'],
+            'report_status.*' => [Rule::in([
+                ContentReportState::STATUS_AUTO_BLOCKED,
+                ContentReportState::STATUS_ADMIN_HIDDEN,
+            ])],
             'post_status' => ['nullable', 'array'],
             'post_status.*' => [Rule::in(HospitalEvaluation::postStatuses())],
             'receipt_status' => ['nullable', 'array'],
@@ -68,6 +75,7 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
         return [
             'q' => $validated['q'] ?? null,
             'status' => $validated['status'] ?? null,
+            'report_status' => $validated['report_status'] ?? null,
             'post_status' => $validated['post_status'] ?? null,
             'receipt_status' => $validated['receipt_status'] ?? null,
             'author_id' => $validated['author_id'] ?? null,
@@ -97,6 +105,8 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
             'q' => '검색어',
             'status' => '노출 여부',
             'status.*' => '노출 여부',
+            'report_status' => '상태',
+            'report_status.*' => '상태',
             'post_status' => '게시 상태',
             'post_status.*' => '게시 상태',
             'receipt_status' => '영수증 상태',

@@ -4,6 +4,7 @@ namespace App\Domains\Common\ContentReport\Support;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
@@ -23,6 +24,8 @@ final class ContentReportTargetRegistry
 
     public const string ALIAS_HOSPITAL_EVALUATION = 'hospital_evaluation';
 
+    public const string ALIAS_CHAT_MESSAGE = 'chat_message';
+
     /**
      * @var array<string, class-string<Model>>
      */
@@ -32,6 +35,7 @@ final class ContentReportTargetRegistry
         self::ALIAS_HOSPITAL_REVIEW => HospitalReview::class,
         self::ALIAS_HOSPITAL_REVIEW_COMMENT => HospitalReviewComment::class,
         self::ALIAS_HOSPITAL_EVALUATION => HospitalEvaluation::class,
+        self::ALIAS_CHAT_MESSAGE => ChatMessage::class,
     ];
 
     /**

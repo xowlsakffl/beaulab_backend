@@ -144,6 +144,7 @@ final readonly class ContentReportStateForStaffDto
             'reason_label' => $report->reasonLabel(),
             'reason_text' => $report->reason_text,
             'reporter_ip' => $report->reporter_ip,
+            'metadata' => $report->metadata,
             'reporter' => self::reporter($report),
             'created_at' => $report->created_at?->toISOString(),
         ];

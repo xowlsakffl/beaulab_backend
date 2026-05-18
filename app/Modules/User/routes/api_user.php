@@ -48,6 +48,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
         ->name('chats.getMessagesForUser');
     Route::post('chats/{chat}/messages', [ChatForUserController::class, 'sendMessageForUser'])
         ->name('chats.sendMessageForUser');
+    Route::post('chats/{chat}/messages/reports', [ChatForUserController::class, 'reportMessagesForUser'])
+        ->name('chats.reportMessagesForUser');
     Route::post('chats/{chat}/read', [ChatForUserController::class, 'readChatForUser'])
         ->name('chats.readChatForUser');
     Route::match(['put', 'patch'], 'chats/{chat}/notifications', [ChatForUserController::class, 'updateNotificationForUser'])

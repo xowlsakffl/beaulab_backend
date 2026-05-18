@@ -15,14 +15,11 @@ final class HospitalReviewListForStaffAction
         private readonly HospitalReviewListForStaffQuery $query,
     ) {}
 
-    public function execute(array $filters, string $categoryDomain): array
+    public function execute(array $filters): array
     {
         Gate::authorize('viewAny', HospitalReview::class);
 
-        $paginator = $this->query->paginate([
-            ...$filters,
-            'category_domain' => $categoryDomain,
-        ]);
+        $paginator = $this->query->paginate($filters);
         $imageSummaries = HospitalReviewImageSummaryQuery::forReviewIds(
             collect($paginator->items())
                 ->pluck('id')

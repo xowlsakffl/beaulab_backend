@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('reason', 40)->comment('신고 사유');
             $table->string('reason_text', 500)->nullable()->comment('기타 신고 사유 직접 입력');
             $table->longText('content_snapshot')->nullable()->comment('신고 당시 대상 내용 스냅샷');
+            $table->json('metadata')->nullable()->comment('신고 부가 메타데이터');
             $table->string('reporter_ip', 45)->nullable()->comment('신고자 IP');
 
             $table->timestamps();

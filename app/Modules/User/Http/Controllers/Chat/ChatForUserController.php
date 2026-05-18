@@ -7,6 +7,7 @@ use App\Common\Http\Responses\ApiResponse;
 use App\Domains\Chat\Actions\User\ChatDeleteForUserAction;
 use App\Domains\Chat\Actions\User\ChatListForUserAction;
 use App\Domains\Chat\Actions\User\ChatMessageListForUserAction;
+use App\Domains\Chat\Actions\User\ChatMessageReportForUserAction;
 use App\Domains\Chat\Actions\User\ChatMessageSendForUserAction;
 use App\Domains\Chat\Actions\User\ChatNotificationUpdateForUserAction;
 use App\Domains\Chat\Actions\User\ChatReadForUserAction;
@@ -14,6 +15,7 @@ use App\Domains\Chat\Models\Chat;
 use App\Modules\User\Http\Requests\Chat\ChatFirstMessageSendForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatListForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatMessageListForUserRequest;
+use App\Modules\User\Http\Requests\Chat\ChatMessageReportForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatMessageSendForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatNotificationUpdateForUserRequest;
 use App\Modules\User\Http\Requests\Chat\ChatReadForUserRequest;
@@ -50,6 +52,19 @@ final class ChatForUserController extends Controller
         $result = $action->execute($request->user(), $request->validated(), $chat);
 
         return ApiResponse::success($result['message'] ?? $result);
+    }
+
+    public function reportMessagesForUser(
+        Chat $chat,
+        ChatMessageReportForUserRequest $request,
+        ChatMessageReportForUserAction $action,
+    ) {
+        $result = $action->execute($chat, $request->user(), [
+            ...$request->validated(),
+            'reporter_ip' => $request->ip(),
+        ]);
+
+        return ApiResponse::success($result);
     }
 
     public function sendFirstMessageForUser(

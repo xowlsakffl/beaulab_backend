@@ -69,6 +69,13 @@ final class HospitalEvaluationListForStaffQuery
             $builder->whereIn('status', $filters['status']);
         }
 
+        if (is_array($filters['report_status'] ?? null) && $filters['report_status'] !== []) {
+            $builder->whereHas(
+                'contentReportState',
+                fn ($query) => $query->whereIn('report_status', $filters['report_status'])
+            );
+        }
+
         if (is_array($filters['post_status'] ?? null) && $filters['post_status'] !== []) {
             $builder->whereIn('post_status', $filters['post_status']);
         }

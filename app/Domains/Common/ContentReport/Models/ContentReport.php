@@ -32,6 +32,7 @@ final class ContentReport extends Model
         'reason',
         'reason_text',
         'content_snapshot',
+        'metadata',
         'reporter_ip',
     ];
 
@@ -39,6 +40,7 @@ final class ContentReport extends Model
         'reporter_user_id' => 'integer',
         'target_id' => 'integer',
         'target_author_id' => 'integer',
+        'metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

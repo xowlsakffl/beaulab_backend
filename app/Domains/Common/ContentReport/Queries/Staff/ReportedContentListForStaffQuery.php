@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\ContentReport\Queries\Staff;
 
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\ContentReport\Support\ContentReportSummaryCache;
@@ -222,7 +223,7 @@ final class ReportedContentListForStaffQuery
             $this->applySearchFilter(
                 $builder,
                 $targetClass,
-                (string) ($filters['search_type'] ?? 'nickname'),
+                $filters['search_type'] ?? null,
                 (string) $filters['q'],
             );
         }
@@ -270,6 +271,22 @@ final class ReportedContentListForStaffQuery
     {
         $dateType = (string) ($filters['date_type'] ?? 'first_reported_at');
 
+        if ($dateType === 'last_message_at' && $targetClass === ChatMessage::class) {
+            $builder->whereHasMorph('target', [$targetClass], function (Builder $query) use ($filters): void {
+                $query->whereHas('chat', function (Builder $chatQuery) use ($filters): void {
+                    if (! empty($filters['start_date'])) {
+                        $chatQuery->whereDate('last_message_at', '>=', $filters['start_date']);
+                    }
+
+                    if (! empty($filters['end_date'])) {
+                        $chatQuery->whereDate('last_message_at', '<=', $filters['end_date']);
+                    }
+                });
+            });
+
+            return;
+        }
+
         if ($dateType === 'created_at') {
             $builder->whereHasMorph('target', [$targetClass], function (Builder $query) use ($filters): void {
                 if (! empty($filters['start_date'])) {
@@ -296,7 +313,7 @@ final class ReportedContentListForStaffQuery
     /**
      * @param  class-string<\Illuminate\Database\Eloquent\Model>  $targetClass
      */
-    private function applySearchFilter(Builder $builder, string $targetClass, string $searchType, string $q): void
+    private function applySearchFilter(Builder $builder, string $targetClass, mixed $searchType, string $q): void
     {
         $q = trim($q);
 
@@ -304,18 +321,139 @@ final class ReportedContentListForStaffQuery
             return;
         }
 
+        if (! is_string($searchType) || $searchType === '' || $searchType === 'all') {
+            $this->applyComprehensiveSearchFilter($builder, $targetClass, $q);
+
+            return;
+        }
+
         match ($searchType) {
-            'id' => $this->applyIdSearchFilter($builder, $q),
+            'id' => $this->applyIdSearchFilter($builder, $targetClass, $q),
             'hospital_name' => $this->applyHospitalNameSearchFilter($builder, $targetClass, $q),
             'content' => $this->applyContentSearchFilter($builder, $targetClass, $q),
             default => $this->applyNicknameSearchFilter($builder, $targetClass, $q),
         };
     }
 
-    private function applyIdSearchFilter(Builder $builder, string $q): void
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $targetClass
+     */
+    private function applyComprehensiveSearchFilter(Builder $builder, string $targetClass, string $q): void
+    {
+        $builder->where(function (Builder $searchQuery) use ($targetClass, $q): void {
+            if (ctype_digit($q)) {
+                if ($targetClass === ChatMessage::class) {
+                    $searchQuery->orWhereHasMorph('target', [$targetClass], fn (Builder $targetQuery) => $targetQuery
+                        ->where('chat_id', (int) $q)
+                        ->orWhereKey((int) $q));
+                } else {
+                    $searchQuery->orWhere('target_id', (int) $q);
+                }
+            }
+
+            $searchQuery->orWhereHasMorph('target', [$targetClass], function (Builder $targetQuery) use ($targetClass, $q): void {
+                $this->applyTargetComprehensiveTextSearch($targetQuery, $targetClass, $q);
+            });
+        });
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $targetClass
+     */
+    private function applyTargetComprehensiveTextSearch(Builder $targetQuery, string $targetClass, string $q): void
+    {
+        $targetQuery->where(function (Builder $textQuery) use ($targetClass, $q): void {
+            if ($targetClass === Talk::class) {
+                $textQuery
+                    ->where('title', 'like', "%{$q}%")
+                    ->orWhere('content', 'like', "%{$q}%")
+                    ->orWhereHas('author', fn (Builder $authorQuery) => $authorQuery
+                        ->where('nickname', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%"));
+
+                return;
+            }
+
+            if ($targetClass === TalkComment::class) {
+                $textQuery
+                    ->where('content', 'like', "%{$q}%")
+                    ->orWhereHas('author', fn (Builder $authorQuery) => $authorQuery
+                        ->where('nickname', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%"))
+                    ->orWhereHas('talk', fn (Builder $talkQuery) => $talkQuery
+                        ->where('title', 'like', "%{$q}%"));
+
+                return;
+            }
+
+            if ($targetClass === HospitalReview::class) {
+                $textQuery
+                    ->where('title', 'like', "%{$q}%")
+                    ->orWhere('content', 'like', "%{$q}%")
+                    ->orWhereHas('author', fn (Builder $authorQuery) => $authorQuery
+                        ->where('nickname', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%"))
+                    ->orWhereHas('hospital', fn (Builder $hospitalQuery) => $hospitalQuery
+                        ->where('name', 'like', "%{$q}%"));
+
+                return;
+            }
+
+            if ($targetClass === HospitalReviewComment::class) {
+                $textQuery
+                    ->where('content', 'like', "%{$q}%")
+                    ->orWhereHas('author', fn (Builder $authorQuery) => $authorQuery
+                        ->where('nickname', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%"))
+                    ->orWhereHas('review', fn (Builder $reviewQuery) => $reviewQuery
+                        ->where('title', 'like', "%{$q}%")
+                        ->orWhereHas('hospital', fn (Builder $hospitalQuery) => $hospitalQuery
+                            ->where('name', 'like', "%{$q}%")));
+
+                return;
+            }
+
+            if ($targetClass === HospitalEvaluation::class) {
+                $textQuery
+                    ->where('content', 'like', "%{$q}%")
+                    ->orWhere('phone', 'like', "%{$q}%")
+                    ->orWhereHas('author', fn (Builder $authorQuery) => $authorQuery
+                        ->where('nickname', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%"))
+                    ->orWhereHas('hospital', fn (Builder $hospitalQuery) => $hospitalQuery
+                        ->where('name', 'like', "%{$q}%"));
+
+                return;
+            }
+
+            if ($targetClass === ChatMessage::class) {
+                $textQuery
+                    ->where('body', 'like', "%{$q}%")
+                    ->orWhereHas('sender', fn (Builder $senderQuery) => $senderQuery
+                        ->where('nickname', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%"));
+
+                return;
+            }
+
+            $textQuery->whereRaw('1 = 0');
+        });
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $targetClass
+     */
+    private function applyIdSearchFilter(Builder $builder, string $targetClass, string $q): void
     {
         if (! ctype_digit($q)) {
             $builder->whereRaw('1 = 0');
+
+            return;
+        }
+
+        if ($targetClass === ChatMessage::class) {
+            $builder->whereHasMorph('target', [$targetClass], fn (Builder $targetQuery) => $targetQuery
+                ->where('chat_id', (int) $q));
 
             return;
         }
@@ -337,6 +475,13 @@ final class ReportedContentListForStaffQuery
                 HospitalEvaluation::class,
             ], true)) {
                 $targetQuery->whereHas('author', fn (Builder $authorQuery) => $authorQuery
+                    ->where('nickname', 'like', "%{$q}%"));
+
+                return;
+            }
+
+            if ($targetClass === ChatMessage::class) {
+                $targetQuery->whereHas('sender', fn (Builder $senderQuery) => $senderQuery
                     ->where('nickname', 'like', "%{$q}%"));
 
                 return;
@@ -390,6 +535,12 @@ final class ReportedContentListForStaffQuery
                 HospitalEvaluation::class,
             ], true)) {
                 $targetQuery->where('content', 'like', "%{$q}%");
+
+                return;
+            }
+
+            if ($targetClass === ChatMessage::class) {
+                $targetQuery->where('body', 'like', "%{$q}%");
 
                 return;
             }

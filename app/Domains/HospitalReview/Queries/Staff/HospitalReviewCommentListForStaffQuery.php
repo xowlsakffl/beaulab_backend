@@ -71,6 +71,13 @@ final class HospitalReviewCommentListForStaffQuery
             $builder->whereIn('status', $filters['status']);
         }
 
+        if (is_array($filters['report_status'] ?? null) && $filters['report_status'] !== []) {
+            $builder->whereHas(
+                'contentReportState',
+                fn ($query) => $query->whereIn('report_status', $filters['report_status'])
+            );
+        }
+
         if (! empty($filters['author_id'])) {
             $builder->where('author_id', (int) $filters['author_id']);
         }

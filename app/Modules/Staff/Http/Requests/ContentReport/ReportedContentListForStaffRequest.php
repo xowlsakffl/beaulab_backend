@@ -27,8 +27,8 @@ final class ReportedContentListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
-            'search_type' => ['nullable', Rule::in(['id', 'nickname', 'hospital_name', 'content'])],
-            'date_type' => ['nullable', Rule::in(['created_at', 'first_reported_at'])],
+            'search_type' => ['nullable', Rule::in(['all', 'id', 'nickname', 'hospital_name', 'content'])],
+            'date_type' => ['nullable', Rule::in(['created_at', 'first_reported_at', 'last_message_at'])],
             'report_reason' => ['nullable', Rule::in(ContentReport::reasons())],
             'report_count_min' => ['nullable', 'integer', 'min:0'],
             'report_count_max' => ['nullable', 'integer', 'min:0'],
@@ -54,7 +54,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
 
         return [
             'q' => $validated['q'] ?? null,
-            'search_type' => $validated['search_type'] ?? 'nickname',
+            'search_type' => $validated['search_type'] ?? null,
             'date_type' => $validated['date_type'] ?? 'first_reported_at',
             'report_reason' => $validated['report_reason'] ?? null,
             'report_count_min' => isset($validated['report_count_min']) ? (int) $validated['report_count_min'] : null,

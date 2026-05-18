@@ -24,7 +24,7 @@ final class ContentReportCreateForUserAction
         private readonly OperationHistoryCreateAction $historyCreateAction,
     ) {}
 
-    public function execute(Model $reporter, Model $target, array $payload): array
+    public function execute(Model $reporter, Model $target, array $payload): void
     {
         ContentReportTargetRegistry::assertSupported($target);
 
@@ -32,7 +32,7 @@ final class ContentReportCreateForUserAction
         $targetType = $target::class;
         $targetId = (int) $target->getKey();
 
-        $result = DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload): array {
+        DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload): void {
             // TODO: 테스트 기간에는 동일 유저가 같은 콘텐츠를 여러 번 신고할 수 있게 허용한다.
             // 운영 정책 확정 시 아래 중복 신고 제한과 DB unique index를 같이 복구해야 한다.
             // if ($this->query->findExistingReport($reporterUserId, $targetType, $targetId) instanceof ContentReport) {
@@ -40,7 +40,7 @@ final class ContentReportCreateForUserAction
             // }
 
             try {
-                $report = $this->query->createReport([
+                $this->query->createReport([
                     'reporter_user_id' => $reporterUserId,
                     'target_type' => $targetType,
                     'target_id' => $targetId,
@@ -121,28 +121,9 @@ final class ContentReportCreateForUserAction
             }
 
             $state->save();
-
-            return [
-                'report' => [
-                    'id' => (int) $report->id,
-                    'reason' => (string) $report->reason,
-                    'reason_label' => $report->reasonLabel(),
-                    'reason_text' => $report->reason_text,
-                    'created_at' => $report->created_at?->toISOString(),
-                ],
-                'report_state' => [
-                    'status' => (string) $state->report_status,
-                    'label' => $state->statusLabel(),
-                    'report_count' => (int) $state->report_count,
-                    'recent_hour_report_count' => (int) $state->recent_hour_report_count,
-                    'is_auto_action_locked' => $state->isAutoActionLocked(),
-                ],
-            ];
         });
 
         ContentReportSummaryCache::forgetForTarget($target);
-
-        return $result;
     }
 
     private function autoBlockCountStartAt(ContentReportState $state, CarbonInterface $now): CarbonInterface

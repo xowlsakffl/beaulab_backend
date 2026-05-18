@@ -21,7 +21,14 @@ final class ContentReportForUserController extends Controller
         ContentReportCreateForUserRequest $request,
         ContentReportCreateForUserAction $action,
     ) {
-        return ApiResponse::success($action->execute($request->user(), $talk, $this->payload($request)));
+        $action->execute($request->user(), $talk, [
+            ...$request->validated(),
+            'reporter_ip' => $request->ip(),
+        ]);
+
+        return ApiResponse::success([
+            'message' => '신고가 완료되었습니다.',
+        ]);
     }
 
     public function reportTalkCommentForUser(
@@ -34,7 +41,14 @@ final class ContentReportForUserController extends Controller
             throw new CustomException(ErrorCode::INVALID_REQUEST, '토크 댓글을 확인해 주세요.');
         }
 
-        return ApiResponse::success($action->execute($request->user(), $comment, $this->payload($request)));
+        $action->execute($request->user(), $comment, [
+            ...$request->validated(),
+            'reporter_ip' => $request->ip(),
+        ]);
+
+        return ApiResponse::success([
+            'message' => '신고가 완료되었습니다.',
+        ]);
     }
 
     public function reportHospitalReviewForUser(
@@ -42,7 +56,14 @@ final class ContentReportForUserController extends Controller
         ContentReportCreateForUserRequest $request,
         ContentReportCreateForUserAction $action,
     ) {
-        return ApiResponse::success($action->execute($request->user(), $hospitalReview, $this->payload($request)));
+        $action->execute($request->user(), $hospitalReview, [
+            ...$request->validated(),
+            'reporter_ip' => $request->ip(),
+        ]);
+
+        return ApiResponse::success([
+            'message' => '신고가 완료되었습니다.',
+        ]);
     }
 
     public function reportHospitalReviewCommentForUser(
@@ -55,7 +76,14 @@ final class ContentReportForUserController extends Controller
             throw new CustomException(ErrorCode::INVALID_REQUEST, '후기 댓글을 확인해 주세요.');
         }
 
-        return ApiResponse::success($action->execute($request->user(), $comment, $this->payload($request)));
+        $action->execute($request->user(), $comment, [
+            ...$request->validated(),
+            'reporter_ip' => $request->ip(),
+        ]);
+
+        return ApiResponse::success([
+            'message' => '신고가 완료되었습니다.',
+        ]);
     }
 
     public function reportHospitalEvaluationForUser(
@@ -63,14 +91,13 @@ final class ContentReportForUserController extends Controller
         ContentReportCreateForUserRequest $request,
         ContentReportCreateForUserAction $action,
     ) {
-        return ApiResponse::success($action->execute($request->user(), $hospitalEvaluation, $this->payload($request)));
-    }
-
-    private function payload(ContentReportCreateForUserRequest $request): array
-    {
-        return [
+        $action->execute($request->user(), $hospitalEvaluation, [
             ...$request->validated(),
             'reporter_ip' => $request->ip(),
-        ];
+        ]);
+
+        return ApiResponse::success([
+            'message' => '신고가 완료되었습니다.',
+        ]);
     }
 }

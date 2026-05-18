@@ -20,7 +20,7 @@ final class ChatMessageReportForUserAction
         private readonly ContentReportCreateForUserAction $reportCreateAction,
     ) {}
 
-    public function execute(Chat $chat, AccountUser $user, array $payload): array
+    public function execute(Chat $chat, AccountUser $user, array $payload): void
     {
         $participant = $this->participant($chat, (int) $user->id);
         $messageIds = $this->messageIds($payload['message_ids'] ?? []);
@@ -35,7 +35,7 @@ final class ChatMessageReportForUserAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '신고할 메시지를 확인해 주세요.');
         }
 
-        $result = $this->reportCreateAction->execute($user, $representativeMessage, [
+        $this->reportCreateAction->execute($user, $representativeMessage, [
             'reason' => $payload['reason'],
             'reason_text' => $payload['reason_text'] ?? null,
             'reporter_ip' => $payload['reporter_ip'] ?? null,
@@ -50,13 +50,6 @@ final class ChatMessageReportForUserAction
                     ->all(),
             ],
         ]);
-
-        return [
-            ...$result,
-            'chat_id' => (int) $chat->id,
-            'representative_message_id' => (int) $representativeMessage->id,
-            'reported_message_ids' => $messageIds,
-        ];
     }
 
     private function participant(Chat $chat, int $userId): ChatParticipant

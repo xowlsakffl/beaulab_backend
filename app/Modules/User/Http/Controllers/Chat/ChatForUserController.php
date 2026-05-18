@@ -59,12 +59,14 @@ final class ChatForUserController extends Controller
         ChatMessageReportForUserRequest $request,
         ChatMessageReportForUserAction $action,
     ) {
-        $result = $action->execute($chat, $request->user(), [
+        $action->execute($chat, $request->user(), [
             ...$request->validated(),
             'reporter_ip' => $request->ip(),
         ]);
 
-        return ApiResponse::success($result);
+        return ApiResponse::success([
+            'message' => '신고가 완료되었습니다.',
+        ]);
     }
 
     public function sendFirstMessageForUser(

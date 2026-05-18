@@ -30,6 +30,7 @@ final class HospitalReviewCommentListForStaffQuery
                     ->orderBy('depth')
                     ->orderBy('sort_order')
                     ->orderBy('id'),
+                'contentReportState:id,target_type,target_id,report_status',
             ]);
 
         if (! empty($filters['hospital_review_id'])) {

@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalReview\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalReview\Models\HospitalReview;
 
@@ -19,6 +20,7 @@ final readonly class HospitalReviewForStaffDto
         public ?array $hospital,
         public ?array $doctor,
         public array $categories,
+        public ?array $report,
         public ?array $firstImage,
         public int $imageCount,
         public int $cost,
@@ -46,6 +48,7 @@ final readonly class HospitalReviewForStaffDto
             hospital: self::hospital($review),
             doctor: self::doctor($review),
             categories: self::categories($review),
+            report: self::report($review),
             firstImage: self::media($imageSummary['first_image'] ?? null),
             imageCount: (int) ($imageSummary['image_count'] ?? 0),
             cost: (int) $review->cost,
@@ -69,6 +72,7 @@ final readonly class HospitalReviewForStaffDto
             'hospital' => $this->hospital,
             'doctor' => $this->doctor,
             'categories' => $this->categories,
+            'report' => $this->report,
             'first_image' => $this->firstImage,
             'image_count' => $this->imageCount,
             'cost' => $this->cost,
@@ -80,6 +84,24 @@ final readonly class HospitalReviewForStaffDto
             'save_count' => $this->saveCount,
             'comment_count' => $this->commentCount,
             'view_count' => $this->viewCount,
+        ];
+    }
+
+    private static function report(HospitalReview $review): ?array
+    {
+        if (! $review->relationLoaded('contentReportState') || ! $review->contentReportState) {
+            return null;
+        }
+
+        $state = $review->contentReportState;
+
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
         ];
     }
 

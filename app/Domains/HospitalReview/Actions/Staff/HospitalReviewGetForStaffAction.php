@@ -23,6 +23,7 @@ class HospitalReviewGetForStaffAction
             'categories',
             'beforeImages',
             'afterImages',
+            'contentReportState',
         ]);
 
         return [

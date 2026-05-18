@@ -2,6 +2,8 @@
 
 namespace App\Domains\HospitalEvaluation\Actions\Staff;
 
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
@@ -33,6 +35,10 @@ final class HospitalEvaluationStatusUpdateForStaffAction
 
         return DB::transaction(function () use ($ids, $status, $historyReason, $actor): array {
             $evaluations = $this->query->getForUpdate($ids);
+            if ($evaluations->contains(fn (HospitalEvaluation $evaluation): bool => $evaluation->isStatusChangeLocked())) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 처리 상태가 자동차단 또는 노출중지인 평가는 노출여부를 변경할 수 없습니다.');
+            }
+
             $existingIds = $evaluations
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)

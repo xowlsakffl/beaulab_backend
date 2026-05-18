@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Domains\HospitalReview\Support;
+namespace App\Domains\HospitalReview\Queries\Staff;
 
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-final class HospitalReviewImageSummary
+final class HospitalReviewImageSummaryQuery
 {
     /**
      * @param  array<int, int|string>  $reviewIds

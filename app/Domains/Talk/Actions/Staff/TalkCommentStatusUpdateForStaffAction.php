@@ -2,6 +2,8 @@
 
 namespace App\Domains\Talk\Actions\Staff;
 
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Talk\Models\TalkComment;
@@ -36,6 +38,10 @@ final class TalkCommentStatusUpdateForStaffAction
 
         return DB::transaction(function () use ($ids, $status, $historyReason, $actor): array {
             $comments = $this->query->getForUpdate($ids);
+            if ($comments->contains(fn (TalkComment $comment): bool => $comment->isStatusChangeLocked())) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 처리 상태가 자동차단 또는 노출중지인 댓글은 노출여부를 변경할 수 없습니다.');
+            }
+
             $existingIds = $comments
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)

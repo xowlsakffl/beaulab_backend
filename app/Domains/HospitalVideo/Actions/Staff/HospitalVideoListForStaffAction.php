@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalVideo\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\HospitalVideo\Dto\Staff\HospitalVideoForStaffDto;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\HospitalVideo\Queries\Staff\HospitalVideoListForStaffQuery;
@@ -21,17 +22,9 @@ final class HospitalVideoListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        return [
-            'items' => collect($paginator->items())
-                ->map(fn ($video) => HospitalVideoForStaffDto::fromModel($video)->toArray())
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn ($video): array => HospitalVideoForStaffDto::fromModel($video)->toArray(),
+        );
     }
 }

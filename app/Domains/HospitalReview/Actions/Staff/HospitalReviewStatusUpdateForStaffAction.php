@@ -2,6 +2,8 @@
 
 namespace App\Domains\HospitalReview\Actions\Staff;
 
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalReview\Models\HospitalReview;
@@ -33,6 +35,10 @@ final class HospitalReviewStatusUpdateForStaffAction
 
         return DB::transaction(function () use ($ids, $status, $historyReason, $actor): array {
             $reviews = $this->query->getForUpdate($ids);
+            if ($reviews->contains(fn (HospitalReview $review): bool => $review->isStatusChangeLocked())) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 처리 상태가 자동차단 또는 노출중지인 후기는 노출여부를 변경할 수 없습니다.');
+            }
+
             $existingIds = $reviews
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)

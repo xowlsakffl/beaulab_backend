@@ -26,6 +26,12 @@ final readonly class ContentReportStateForStaffDto
         public ?string $normalVisibleAt,
         public ?array $processedBy,
         public ?string $processReason,
+        public string $warningStatus,
+        public string $warningLabel,
+        public bool $warning,
+        public bool $warningIgnored,
+        public ?string $warningProcessedAt,
+        public ?array $warningProcessedBy,
         public ?array $latestReport,
         public array $reasonCounts,
     ) {}
@@ -53,6 +59,12 @@ final readonly class ContentReportStateForStaffDto
             normalVisibleAt: $state->normal_visible_at?->toISOString(),
             processedBy: self::processedBy($state),
             processReason: $state->process_reason,
+            warningStatus: (string) $state->warning_status,
+            warningLabel: $state->warningStatusLabel(),
+            warning: (string) $state->warning_status === ContentReportState::WARNING_STATUS_WARNED,
+            warningIgnored: (string) $state->warning_status === ContentReportState::WARNING_STATUS_IGNORED,
+            warningProcessedAt: $state->warning_processed_at?->toISOString(),
+            warningProcessedBy: self::warningProcessedBy($state),
             latestReport: self::latestReport($latestReport),
             reasonCounts: self::reasonCounts($reasonCounts),
         );
@@ -75,6 +87,12 @@ final readonly class ContentReportStateForStaffDto
             'normal_visible_at' => $this->normalVisibleAt,
             'processed_by' => $this->processedBy,
             'process_reason' => $this->processReason,
+            'warning_status' => $this->warningStatus,
+            'warning_label' => $this->warningLabel,
+            'warning' => $this->warning,
+            'warning_ignored' => $this->warningIgnored,
+            'warning_processed_at' => $this->warningProcessedAt,
+            'warning_processed_by' => $this->warningProcessedBy,
             'latest_report' => $this->latestReport,
             'reason_counts' => $this->reasonCounts,
         ];
@@ -90,6 +108,23 @@ final readonly class ContentReportStateForStaffDto
 
         return [
             'id' => (int) $state->processedBy->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
+                ? (string) $attributes['email']
+                : null,
+        ];
+    }
+
+    private static function warningProcessedBy(ContentReportState $state): ?array
+    {
+        if (! $state->relationLoaded('warningProcessedBy') || ! $state->warningProcessedBy) {
+            return null;
+        }
+
+        $attributes = $state->warningProcessedBy->getAttributes();
+
+        return [
+            'id' => (int) $state->warningProcessedBy->getKey(),
             'name' => (string) ($attributes['name'] ?? ''),
             'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
                 ? (string) $attributes['email']

@@ -3,6 +3,7 @@
 namespace App\Domains\Talk\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Talk\Models\Talk;
 
 /**
@@ -15,6 +16,7 @@ final readonly class TalkForStaffDto
         public int $id,
         public ?array $author,
         public ?array $category,
+        public ?array $report,
         public string $title,
         public ?string $content,
         public ?string $contentPreview,
@@ -35,6 +37,7 @@ final readonly class TalkForStaffDto
             id: (int) $talk->id,
             author: self::author($talk),
             category: self::category($talk),
+            report: self::report($talk),
             title: (string) $talk->title,
             content: array_key_exists('content', $talk->getAttributes()) ? (string) $talk->content : null,
             contentPreview: array_key_exists('content_preview', $talk->getAttributes())
@@ -58,6 +61,7 @@ final readonly class TalkForStaffDto
             'id' => $this->id,
             'author' => $this->author,
             'category' => $this->category,
+            'report' => $this->report,
             'title' => $this->title,
             'content' => $this->content,
             'content_preview' => $this->contentPreview,
@@ -119,6 +123,24 @@ final readonly class TalkForStaffDto
             'name' => (string) $category->name,
             'full_path' => (string) ($attributes['full_path'] ?? ''),
             'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
+        ];
+    }
+
+    private static function report(Talk $talk): ?array
+    {
+        if (! $talk->relationLoaded('contentReportState') || ! $talk->contentReportState) {
+            return null;
+        }
+
+        $state = $talk->contentReportState;
+
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
         ];
     }
 }

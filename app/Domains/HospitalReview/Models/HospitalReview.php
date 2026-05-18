@@ -5,6 +5,7 @@ namespace App\Domains\HospitalReview\Models;
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -116,7 +118,15 @@ final class HospitalReview extends Model
 
     public function isStatusChangeLocked(): bool
     {
-        return false;
+        $state = $this->relationLoaded('contentReportState')
+            ? $this->contentReportState
+            : $this->contentReportState()->first(['id', 'target_type', 'target_id', 'report_status']);
+
+        return $state instanceof ContentReportState
+            && in_array((string) $state->report_status, [
+                ContentReportState::STATUS_AUTO_BLOCKED,
+                ContentReportState::STATUS_ADMIN_HIDDEN,
+            ], true);
     }
 
     public function author(): BelongsTo
@@ -152,6 +162,11 @@ final class HospitalReview extends Model
         return $this->morphMany(Media::class, 'model')
             ->where('collection', 'after_images')
             ->ordered();
+    }
+
+    public function contentReportState(): MorphOne
+    {
+        return $this->morphOne(ContentReportState::class, 'target', 'target_type', 'target_id');
     }
 
     public function categories(): MorphToMany

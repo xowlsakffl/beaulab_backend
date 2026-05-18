@@ -19,6 +19,7 @@ final class HospitalEvaluationGetForStaffAction
             'categories',
             'images',
             'receiptImages',
+            'contentReportState',
         ]);
 
         return [

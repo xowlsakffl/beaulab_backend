@@ -15,7 +15,7 @@ final class HospitalReviewCommentsForStaffAction
 
         $comments = PaginatedResponse::paginateWithFallback(
             queryFactory: fn () => $review->comments()
-                ->with(['author', 'operationHistories.actor', 'mentions.mentionedUser']),
+                ->with(['author', 'contentReportState', 'operationHistories.actor', 'mentions.mentionedUser']),
             perPage: (int) ($filters['comments_per_page'] ?? 10),
             pageName: 'comments_page',
             page: (int) ($filters['comments_page'] ?? 1),

@@ -33,8 +33,11 @@ final class AccountUser extends Authenticatable
 
     public const STATUS_WITHDRAWN = 'WITHDRAWN';
 
+    public const int WARNING_BLOCK_THRESHOLD = 10;
+
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
+        'warning_count' => 0,
     ];
 
     /**
@@ -47,6 +50,8 @@ final class AccountUser extends Authenticatable
         'phone',
         'password',
         'status',
+        'warning_count',
+        'blocked_at',
         'email_verified_at',
         'last_login_at',
     ];
@@ -64,6 +69,8 @@ final class AccountUser extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
+            'warning_count' => 'integer',
+            'blocked_at' => 'datetime',
         ];
     }
 

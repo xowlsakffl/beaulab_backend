@@ -3,6 +3,7 @@
 namespace App\Domains\Talk\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use App\Domains\Talk\Models\TalkCommentMention;
@@ -18,6 +19,7 @@ final readonly class TalkCommentForStaffDto
         public ?array $author,
         public ?array $category,
         public ?array $mention,
+        public ?array $report,
         public ?string $parentTalkTitle,
         public string $content,
         public string $status,
@@ -32,6 +34,7 @@ final readonly class TalkCommentForStaffDto
             author: self::author($comment),
             category: self::category($comment),
             mention: self::mention($comment),
+            report: self::report($comment),
             parentTalkTitle: $comment->relationLoaded('talk') && $comment->talk
                 ? (string) $comment->talk->title
                 : null,
@@ -49,6 +52,7 @@ final readonly class TalkCommentForStaffDto
             'author' => $this->author,
             'category' => $this->category,
             'mention' => $this->mention,
+            'report' => $this->report,
             'parent_talk_title' => $this->parentTalkTitle,
             'content' => $this->content,
             'status' => $this->status,
@@ -128,4 +132,21 @@ final readonly class TalkCommentForStaffDto
         ];
     }
 
+    private static function report(TalkComment $comment): ?array
+    {
+        if (! $comment->relationLoaded('contentReportState') || ! $comment->contentReportState) {
+            return null;
+        }
+
+        $state = $comment->contentReportState;
+
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
+        ];
+    }
 }

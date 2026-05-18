@@ -64,15 +64,13 @@ final class ContentReportStateStatusUpdateForStaffAction
             }
 
             if ($nextReportStatus === ContentReportState::STATUS_NORMAL_VISIBLE) {
-                if (in_array($previousReportStatus, [
-                    ContentReportState::STATUS_AUTO_BLOCKED,
-                    ContentReportState::STATUS_ADMIN_HIDDEN,
-                ], true)) {
+                if ($previousReportStatus !== ContentReportState::STATUS_NORMAL_VISIBLE) {
                     $state->normal_visible_count = (int) $state->normal_visible_count + 1;
                 }
 
                 $state->report_status = ContentReportState::STATUS_NORMAL_VISIBLE;
                 $state->normal_visible_at = $now;
+                $state->recent_hour_report_count = 0;
                 $state->process_reason = $processReason;
                 $this->applyTargetStatus(
                     target: $target,

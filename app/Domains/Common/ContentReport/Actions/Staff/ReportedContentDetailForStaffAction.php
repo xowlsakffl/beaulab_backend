@@ -44,7 +44,7 @@ final class ReportedContentDetailForStaffAction
         }
 
         $target->loadMissing([
-            'author:id,name,nickname,email,phone,created_at',
+            'author:id,name,nickname,email,phone,warning_count,created_at',
             ...($this->targetRelations()[$target::class] ?? []),
         ]);
 
@@ -138,6 +138,7 @@ final class ReportedContentDetailForStaffAction
             'phone' => isset($attributes['phone']) && trim((string) $attributes['phone']) !== ''
                 ? (string) $attributes['phone']
                 : null,
+            'warning_count' => (int) ($attributes['warning_count'] ?? 0),
             'created_at' => $author->created_at?->toISOString(),
         ];
     }

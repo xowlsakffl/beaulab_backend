@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalReview\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 
@@ -14,6 +15,7 @@ final readonly class HospitalReviewCommentForStaffDto
         public ?array $author,
         public array $categories,
         public ?array $parent,
+        public ?array $report,
         public string $content,
         public string $status,
         public int $likeCount,
@@ -30,6 +32,7 @@ final readonly class HospitalReviewCommentForStaffDto
             author: self::author($comment),
             categories: self::categories($comment),
             parent: self::parent($comment, $imageSummary),
+            report: self::report($comment),
             content: (string) $comment->content,
             status: (string) $comment->status,
             likeCount: (int) $comment->like_count,
@@ -44,9 +47,28 @@ final readonly class HospitalReviewCommentForStaffDto
             'author' => $this->author,
             'categories' => $this->categories,
             'parent' => $this->parent,
+            'report' => $this->report,
             'content' => $this->content,
             'status' => $this->status,
             'like_count' => $this->likeCount,
+        ];
+    }
+
+    private static function report(HospitalReviewComment $comment): ?array
+    {
+        if (! $comment->relationLoaded('contentReportState') || ! $comment->contentReportState) {
+            return null;
+        }
+
+        $state = $comment->contentReportState;
+
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
         ];
     }
 
@@ -87,6 +109,12 @@ final readonly class HospitalReviewCommentForStaffDto
             'categories' => self::categories($comment),
             'first_image' => self::media($imageSummary['first_image'] ?? null),
             'image_count' => (int) ($imageSummary['image_count'] ?? 0),
+            'before_images' => self::mediaCollection(
+                $comment->review->relationLoaded('beforeImages') ? $comment->review->beforeImages : collect(),
+            ),
+            'after_images' => self::mediaCollection(
+                $comment->review->relationLoaded('afterImages') ? $comment->review->afterImages : collect(),
+            ),
         ];
     }
 
@@ -137,6 +165,21 @@ final readonly class HospitalReviewCommentForStaffDto
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];
+    }
+
+    private static function mediaCollection(iterable $mediaItems): array
+    {
+        $items = [];
+
+        foreach ($mediaItems as $media) {
+            $data = self::media($media);
+
+            if ($data !== null) {
+                $items[] = $data;
+            }
+        }
+
+        return $items;
     }
 
     /**

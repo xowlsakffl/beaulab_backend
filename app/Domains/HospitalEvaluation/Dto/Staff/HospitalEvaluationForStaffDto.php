@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalEvaluation\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 
 final readonly class HospitalEvaluationForStaffDto
@@ -15,6 +16,7 @@ final readonly class HospitalEvaluationForStaffDto
         public ?array $doctor,
         public string $categoryDomain,
         public array $categories,
+        public ?array $report,
         public ?string $phone,
         public int $cost,
         public float $averageRating,
@@ -33,6 +35,7 @@ final readonly class HospitalEvaluationForStaffDto
             doctor: self::doctor($evaluation),
             categoryDomain: (string) $evaluation->category_domain,
             categories: self::categories($evaluation),
+            report: self::report($evaluation),
             phone: $evaluation->phone,
             cost: (int) $evaluation->cost,
             averageRating: $evaluation->averageRating(),
@@ -52,12 +55,31 @@ final readonly class HospitalEvaluationForStaffDto
             'doctor' => $this->doctor,
             'category_domain' => $this->categoryDomain,
             'categories' => $this->categories,
+            'report' => $this->report,
             'phone' => $this->phone,
             'cost' => $this->cost,
             'average_rating' => $this->averageRating,
             'status' => $this->status,
             'view_count' => $this->viewCount,
             'receipt' => $this->receipt,
+        ];
+    }
+
+    private static function report(HospitalEvaluation $evaluation): ?array
+    {
+        if (! $evaluation->relationLoaded('contentReportState') || ! $evaluation->contentReportState) {
+            return null;
+        }
+
+        $state = $evaluation->contentReportState;
+
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
         ];
     }
 
@@ -148,5 +170,4 @@ final readonly class HospitalEvaluationForStaffDto
             'label' => $evaluation->receiptStatusLabel(),
         ];
     }
-
 }

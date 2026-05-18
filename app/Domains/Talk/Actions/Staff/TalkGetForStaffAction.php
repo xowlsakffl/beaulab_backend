@@ -21,6 +21,7 @@ final class TalkGetForStaffAction
             'categories',
             'images',
             'poll.options',
+            'contentReportState',
         ]);
 
         return [

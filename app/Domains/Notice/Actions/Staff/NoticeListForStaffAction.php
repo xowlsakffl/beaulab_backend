@@ -2,6 +2,7 @@
 
 namespace App\Domains\Notice\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\Notice\Dto\Staff\NoticeForStaffDto;
 use App\Domains\Notice\Models\Notice;
 use App\Domains\Notice\Queries\Staff\NoticeListForStaffQuery;
@@ -23,17 +24,9 @@ final class NoticeListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        return [
-            'items' => collect($paginator->items())
-                ->map(static fn (Notice $notice): array => NoticeForStaffDto::fromModel($notice)->toArray())
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            static fn (Notice $notice): array => NoticeForStaffDto::fromModel($notice)->toArray(),
+        );
     }
 }

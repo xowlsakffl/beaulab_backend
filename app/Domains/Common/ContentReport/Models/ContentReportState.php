@@ -19,6 +19,12 @@ final class ContentReportState extends Model
 
     public const string STATUS_NORMAL_VISIBLE = 'NORMAL_VISIBLE';
 
+    public const string WARNING_STATUS_NONE = 'NONE';
+
+    public const string WARNING_STATUS_WARNED = 'WARNED';
+
+    public const string WARNING_STATUS_IGNORED = 'IGNORED';
+
     public const int AUTO_BLOCK_RECENT_HOUR_THRESHOLD = 10;
 
     public const int AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD = 3;
@@ -42,6 +48,9 @@ final class ContentReportState extends Model
         'normal_visible_at',
         'processed_by',
         'process_reason',
+        'warning_status',
+        'warning_processed_at',
+        'warning_processed_by',
     ];
 
     protected $casts = [
@@ -55,6 +64,8 @@ final class ContentReportState extends Model
         'admin_hidden_at' => 'datetime',
         'normal_visible_at' => 'datetime',
         'processed_by' => 'integer',
+        'warning_processed_by' => 'integer',
+        'warning_processed_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -64,6 +75,7 @@ final class ContentReportState extends Model
         'report_count' => 0,
         'recent_hour_report_count' => 0,
         'normal_visible_count' => 0,
+        'warning_status' => self::WARNING_STATUS_NONE,
     ];
 
     /**
@@ -92,6 +104,41 @@ final class ContentReportState extends Model
     }
 
     /**
+     * @return list<string>
+     */
+    public static function warningStatuses(): array
+    {
+        return [
+            self::WARNING_STATUS_NONE,
+            self::WARNING_STATUS_WARNED,
+            self::WARNING_STATUS_IGNORED,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function warningProcessableStatuses(): array
+    {
+        return [
+            self::WARNING_STATUS_WARNED,
+            self::WARNING_STATUS_IGNORED,
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function warningStatusLabels(): array
+    {
+        return [
+            self::WARNING_STATUS_NONE => '미처리',
+            self::WARNING_STATUS_WARNED => '경고',
+            self::WARNING_STATUS_IGNORED => '무시',
+        ];
+    }
+
+    /**
      * @return array<string, string>
      */
     public static function statusLabels(): array
@@ -115,6 +162,11 @@ final class ContentReportState extends Model
         return (int) $this->normal_visible_count >= self::AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD;
     }
 
+    public function warningStatusLabel(): string
+    {
+        return self::warningStatusLabels()[(string) $this->warning_status] ?? (string) $this->warning_status;
+    }
+
     public function target(): MorphTo
     {
         return $this->morphTo('target', 'target_type', 'target_id');
@@ -123,5 +175,10 @@ final class ContentReportState extends Model
     public function processedBy(): BelongsTo
     {
         return $this->belongsTo(AccountStaff::class, 'processed_by');
+    }
+
+    public function warningProcessedBy(): BelongsTo
+    {
+        return $this->belongsTo(AccountStaff::class, 'warning_processed_by');
     }
 }

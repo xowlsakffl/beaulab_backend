@@ -2,6 +2,7 @@
 
 namespace App\Domains\BeautyExpert\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\BeautyExpert\Dto\Staff\BeautyExpertForStaffDto;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\BeautyExpert\Queries\Staff\BeautyExpertListForStaffQuery;
@@ -21,17 +22,9 @@ final class BeautyExpertListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        return [
-            'items' => collect($paginator->items())
-                ->map(fn ($expert) => BeautyExpertForStaffDto::fromModel($expert)->toArray())
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn ($expert): array => BeautyExpertForStaffDto::fromModel($expert)->toArray(),
+        );
     }
 }

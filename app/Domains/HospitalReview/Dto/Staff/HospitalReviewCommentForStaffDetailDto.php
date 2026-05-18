@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalReview\Dto\Staff;
 
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
@@ -19,6 +20,7 @@ final readonly class HospitalReviewCommentForStaffDetailDto
         public ?string $authorIp,
         public int $likeCount,
         public ?array $mention,
+        public ?array $report,
         public array $operationHistories,
         public ?string $createdAt,
         public ?string $updatedAt,
@@ -37,6 +39,7 @@ final readonly class HospitalReviewCommentForStaffDetailDto
             authorIp: $comment->author_ip,
             likeCount: (int) $comment->like_count,
             mention: self::mention($comment),
+            report: self::report($comment),
             operationHistories: self::operationHistories($comment),
             createdAt: $comment->created_at?->toISOString(),
             updatedAt: $comment->updated_at?->toISOString(),
@@ -56,10 +59,29 @@ final readonly class HospitalReviewCommentForStaffDetailDto
             'author_ip' => $this->authorIp,
             'like_count' => $this->likeCount,
             'mention' => $this->mention,
+            'report' => $this->report,
             'operation_histories' => $this->operationHistories,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'deleted_at' => $this->deletedAt,
+        ];
+    }
+
+    private static function report(HospitalReviewComment $comment): ?array
+    {
+        if (! $comment->relationLoaded('contentReportState') || ! $comment->contentReportState) {
+            return null;
+        }
+
+        $state = $comment->contentReportState;
+
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
         ];
     }
 

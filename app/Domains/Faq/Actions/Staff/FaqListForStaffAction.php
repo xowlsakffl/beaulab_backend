@@ -2,6 +2,7 @@
 
 namespace App\Domains\Faq\Actions\Staff;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\Faq\Dto\Staff\FaqForStaffDto;
 use App\Domains\Faq\Models\Faq;
 use App\Domains\Faq\Queries\Staff\FaqListForStaffQuery;
@@ -23,17 +24,9 @@ final class FaqListForStaffAction
 
         $paginator = $this->query->paginate($filters);
 
-        return [
-            'items' => collect($paginator->items())
-                ->map(static fn (Faq $faq): array => FaqForStaffDto::fromModel($faq)->toArray())
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            static fn (Faq $faq): array => FaqForStaffDto::fromModel($faq)->toArray(),
+        );
     }
 }

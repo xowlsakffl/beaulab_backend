@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\Notification\Actions\User;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Notification\Dto\NotificationInboxDto;
 use App\Domains\Common\Notification\Queries\User\NotificationListForUserQuery;
@@ -20,17 +21,9 @@ final class NotificationListForUserAction
     {
         $paginator = $this->query->paginate((int) $user->id, $filters);
 
-        return [
-            'items' => collect($paginator->items())
-                ->map(fn ($notification) => NotificationInboxDto::fromModel($notification)->toArray())
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn ($notification): array => NotificationInboxDto::fromModel($notification)->toArray(),
+        );
     }
 }

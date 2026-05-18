@@ -22,7 +22,7 @@ final class ReportedContentListForStaffQuery
     public function paginate(string $targetClass, array $filters): LengthAwarePaginator
     {
         $builder = $this->baseBuilder($targetClass, $filters)
-            ->with(['processedBy:id,name,email']);
+            ->with(['processedBy:id,name,email', 'warningProcessedBy:id,name,email']);
 
         $this->applyFilters($builder, $targetClass, $filters);
 
@@ -208,6 +208,10 @@ final class ReportedContentListForStaffQuery
 
         if (! empty($filters['target_status'])) {
             $this->applyTargetStatusFilter($builder, $targetClass, (string) $filters['target_status']);
+        }
+
+        if (! empty($filters['warning_status'])) {
+            $builder->where('warning_status', (string) $filters['warning_status']);
         }
 
         if (! empty($filters['start_date']) || ! empty($filters['end_date'])) {

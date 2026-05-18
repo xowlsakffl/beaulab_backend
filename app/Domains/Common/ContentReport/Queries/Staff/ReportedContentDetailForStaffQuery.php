@@ -25,7 +25,7 @@ final class ReportedContentDetailForStaffQuery
             ->where('target_type', $targetClass)
             ->where('target_id', $targetId)
             ->where('report_status', '!=', ContentReportState::STATUS_NONE)
-            ->with('processedBy:id,name,email')
+            ->with(['processedBy:id,name,email', 'warningProcessedBy:id,name,email'])
             ->firstOrFail();
     }
 

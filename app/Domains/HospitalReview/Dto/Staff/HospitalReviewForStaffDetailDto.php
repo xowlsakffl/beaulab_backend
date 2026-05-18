@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalReview\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalReview\Models\HospitalReview;
 
@@ -14,6 +15,7 @@ final readonly class HospitalReviewForStaffDetailDto
         public ?array $hospital,
         public ?array $doctor,
         public array $categories,
+        public ?array $report,
         public string $title,
         public string $content,
         public ?string $authorIp,
@@ -46,6 +48,7 @@ final readonly class HospitalReviewForStaffDetailDto
             hospital: self::hospital($review),
             doctor: self::doctor($review),
             categories: self::categories($review),
+            report: self::report($review),
             title: (string) $review->title,
             content: (string) $review->content,
             authorIp: $review->author_ip,
@@ -76,6 +79,7 @@ final readonly class HospitalReviewForStaffDetailDto
             'hospital' => $this->hospital,
             'doctor' => $this->doctor,
             'categories' => $this->categories,
+            'report' => $this->report,
             'title' => $this->title,
             'content' => $this->content,
             'author_ip' => $this->authorIp,
@@ -104,6 +108,24 @@ final readonly class HospitalReviewForStaffDetailDto
         }
 
         return $data;
+    }
+
+    private static function report(HospitalReview $review): ?array
+    {
+        if (! $review->relationLoaded('contentReportState') || ! $review->contentReportState) {
+            return null;
+        }
+
+        $state = $review->contentReportState;
+
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
+        ];
     }
 
     private static function author(HospitalReview $review): ?array

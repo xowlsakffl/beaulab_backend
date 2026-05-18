@@ -3,6 +3,7 @@
 namespace App\Domains\Talk\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
@@ -21,6 +22,7 @@ final readonly class TalkForStaffDetailDto
         public int $id,
         public ?array $author,
         public ?array $category,
+        public ?array $report,
         public string $title,
         public string $content,
         public string $status,
@@ -49,6 +51,7 @@ final readonly class TalkForStaffDetailDto
             id: (int) $talk->id,
             author: self::author($talk),
             category: self::category($talk),
+            report: self::report($talk),
             title: (string) $talk->title,
             content: (string) $talk->content,
             status: (string) $talk->status,
@@ -75,6 +78,7 @@ final readonly class TalkForStaffDetailDto
             'id' => $this->id,
             'author' => $this->author,
             'category' => $this->category,
+            'report' => $this->report,
             'title' => $this->title,
             'content' => $this->content,
             'status' => $this->status,
@@ -210,10 +214,41 @@ final readonly class TalkForStaffDetailDto
             'author_ip' => $comment->author_ip,
             'like_count' => (int) $comment->like_count,
             'mention' => self::commentMention($comment),
+            'report' => self::commentReport($comment),
             'operation_histories' => self::commentOperationHistories($comment),
             'created_at' => $comment->created_at?->toISOString(),
             'updated_at' => $comment->updated_at?->toISOString(),
             'deleted_at' => $comment->deleted_at?->toISOString(),
+        ];
+    }
+
+    private static function report(Talk $talk): ?array
+    {
+        if (! $talk->relationLoaded('contentReportState') || ! $talk->contentReportState) {
+            return null;
+        }
+
+        return self::reportState($talk->contentReportState);
+    }
+
+    private static function commentReport(TalkComment $comment): ?array
+    {
+        if (! $comment->relationLoaded('contentReportState') || ! $comment->contentReportState) {
+            return null;
+        }
+
+        return self::reportState($comment->contentReportState);
+    }
+
+    private static function reportState(ContentReportState $state): ?array
+    {
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
         ];
     }
 

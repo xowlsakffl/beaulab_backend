@@ -20,6 +20,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
             $table->string('password')->comment('암호화된 비밀번호');
             $table->string('status')->default('ACTIVE')->comment('계정 상태(ACTIVE, SUSPENDED, BLOCKED)');
+            $table->unsignedInteger('warning_count')->default(0)->comment('신고 처리 경고 누적 횟수');
+            $table->timestamp('blocked_at')->nullable()->comment('차단 처리 시각');
             $table->timestamp('last_login_at')->nullable()->comment('마지막 로그인 시각');
             $table->timestamps();
             $table->softDeletes()->comment('탈퇴 처리 시각');

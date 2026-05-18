@@ -33,6 +33,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
             'report_count_min' => ['nullable', 'integer', 'min:0'],
             'report_count_max' => ['nullable', 'integer', 'min:0'],
             'target_status' => ['nullable', Rule::in(['ACTIVE', 'INACTIVE'])],
+            'warning_status' => ['nullable', Rule::in(ContentReportState::warningStatuses())],
             'report_status' => ['nullable', 'array'],
             'report_status.*' => [Rule::in(ContentReportState::statuses())],
             'category_domain' => ['nullable', Rule::in([
@@ -59,6 +60,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
             'report_count_min' => isset($validated['report_count_min']) ? (int) $validated['report_count_min'] : null,
             'report_count_max' => isset($validated['report_count_max']) ? (int) $validated['report_count_max'] : null,
             'target_status' => $validated['target_status'] ?? null,
+            'warning_status' => $validated['warning_status'] ?? null,
             'report_status' => $validated['report_status'] ?? null,
             'category_domain' => $categoryDomain ?? ($validated['category_domain'] ?? null),
             'start_date' => $validated['start_date'] ?? null,
@@ -82,6 +84,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
             'report_count_min' => '최소 신고 수',
             'report_count_max' => '최대 신고 수',
             'target_status' => '노출 여부',
+            'warning_status' => '경고 처리 상태',
             'report_status' => '신고 처리 상태',
             'report_status.*' => '신고 처리 상태',
             'category_domain' => '카테고리 도메인',

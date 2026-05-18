@@ -24,6 +24,7 @@ final class TalkCommentStatusUpdateForStaffQuery
 
         return TalkComment::query()
             ->whereIn('id', $ids)
+            ->with('contentReportState:id,target_type,target_id,report_status')
             ->orderBy('id')
             ->lockForUpdate()
             ->get(['id', 'status']);

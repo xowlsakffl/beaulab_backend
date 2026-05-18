@@ -21,6 +21,7 @@ final class HospitalEvaluationStatusUpdateForStaffQuery
 
         return HospitalEvaluation::query()
             ->whereIn('id', $ids)
+            ->with('contentReportState:id,target_type,target_id,report_status')
             ->orderBy('id')
             ->lockForUpdate()
             ->get(['id', 'status', 'post_status']);

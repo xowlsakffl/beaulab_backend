@@ -2,6 +2,7 @@
 
 namespace App\Domains\Chat\Actions\User;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Dto\User\ChatForUserDto;
 use App\Domains\Chat\Queries\User\ChatListForUserQuery;
@@ -20,17 +21,9 @@ final class ChatListForUserAction
     {
         $paginator = $this->query->paginate((int) $user->id, $filters);
 
-        return [
-            'items' => collect($paginator->items())
-                ->map(fn ($chat) => ChatForUserDto::fromModel($chat, (int) $user->id)->toArray())
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn ($chat): array => ChatForUserDto::fromModel($chat, (int) $user->id)->toArray(),
+        );
     }
 }

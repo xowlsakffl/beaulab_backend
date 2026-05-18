@@ -11,6 +11,7 @@ use App\Domains\Common\ContentReport\Support\ContentReportSummaryCache;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -80,7 +81,11 @@ final class ContentReportCreateForUserAction
             $now = now();
             $previousReportStatus = (string) $state->report_status;
             $reportCount = $this->query->countReports($targetType, $targetId);
-            $recentHourReportCount = $this->query->countReportsSince($targetType, $targetId, $now->copy()->subHour());
+            $recentHourReportCount = $this->query->countReportsSince(
+                $targetType,
+                $targetId,
+                $this->autoBlockCountStartAt($state, $now),
+            );
 
             $state->report_count = $reportCount;
             $state->recent_hour_report_count = $recentHourReportCount;
@@ -133,6 +138,17 @@ final class ContentReportCreateForUserAction
         ContentReportSummaryCache::forgetForTarget($target);
 
         return $result;
+    }
+
+    private function autoBlockCountStartAt(ContentReportState $state, CarbonInterface $now): CarbonInterface
+    {
+        $hourStartAt = $now->copy()->subHour();
+
+        if ($state->normal_visible_at !== null && $state->normal_visible_at->greaterThan($hourStartAt)) {
+            return $state->normal_visible_at;
+        }
+
+        return $hourStartAt;
     }
 
     private function targetAuthorId(Model $target): ?int
@@ -202,6 +218,7 @@ final class ContentReportCreateForUserAction
                 'report_status_after' => $reportStatusAfter,
                 'source' => $source,
             ],
+            actorKind: OperationHistory::ACTOR_KIND_SYSTEM,
         );
     }
 }

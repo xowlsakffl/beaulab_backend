@@ -2,6 +2,7 @@
 
 namespace App\Domains\AccountUser\Actions\User;
 
+use App\Common\Support\PaginatedResponse;
 use App\Domains\AccountUser\Dto\User\AccountUserBlockForUserDto;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\AccountUser\Queries\User\AccountUserBlockListForUserQuery;
@@ -20,17 +21,9 @@ final class AccountUserBlockListForUserAction
     {
         $paginator = $this->query->paginate($user, $filters);
 
-        return [
-            'items' => collect($paginator->items())
-                ->map(fn ($block) => AccountUserBlockForUserDto::fromModel($block)->toArray())
-                ->values()
-                ->all(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-            ],
-        ];
+        return PaginatedResponse::fromPaginator(
+            $paginator,
+            fn ($block): array => AccountUserBlockForUserDto::fromModel($block)->toArray(),
+        );
     }
 }

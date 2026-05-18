@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalEvaluation\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 
@@ -14,6 +15,7 @@ final readonly class HospitalEvaluationForStaffDetailDto
         public ?array $hospital,
         public ?array $doctor,
         public array $categories,
+        public ?array $report,
         public string $categoryDomain,
         public string $content,
         public ?string $phone,
@@ -41,6 +43,7 @@ final readonly class HospitalEvaluationForStaffDetailDto
             hospital: self::hospital($evaluation),
             doctor: self::doctor($evaluation),
             categories: self::categories($evaluation),
+            report: self::report($evaluation),
             categoryDomain: (string) $evaluation->category_domain,
             content: (string) $evaluation->content,
             phone: $evaluation->phone,
@@ -69,6 +72,7 @@ final readonly class HospitalEvaluationForStaffDetailDto
             'hospital' => $this->hospital,
             'doctor' => $this->doctor,
             'categories' => $this->categories,
+            'report' => $this->report,
             'category_domain' => $this->categoryDomain,
             'content' => $this->content,
             'phone' => $this->phone,
@@ -92,6 +96,24 @@ final readonly class HospitalEvaluationForStaffDetailDto
         }
 
         return $data;
+    }
+
+    private static function report(HospitalEvaluation $evaluation): ?array
+    {
+        if (! $evaluation->relationLoaded('contentReportState') || ! $evaluation->contentReportState) {
+            return null;
+        }
+
+        $state = $evaluation->contentReportState;
+
+        if ((string) $state->report_status === ContentReportState::STATUS_NONE) {
+            return null;
+        }
+
+        return [
+            'status' => (string) $state->report_status,
+            'label' => $state->statusLabel(),
+        ];
     }
 
     private static function author(HospitalEvaluation $evaluation): ?array

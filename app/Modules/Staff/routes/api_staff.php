@@ -84,6 +84,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('reported-contents.getReportedContentReportsForStaff');
     Route::patch('reported-contents/status', [ContentReportForStaffController::class, 'updateReportedContentStatusForStaff'])
         ->name('reported-contents.updateReportedContentStatusForStaff');
+    Route::patch('reported-contents/warning-status', [ContentReportForStaffController::class, 'updateReportedContentWarningStatusForStaff'])
+        ->name('reported-contents.updateReportedContentWarningStatusForStaff');
 
     /**
      * 병원 관리
@@ -232,6 +234,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-review-comments.getCommentsForStaff');
     Route::patch('hospital-review-comments/status', [HospitalReviewCommentForStaffController::class, 'updateHospitalReviewCommentStatusForStaff'])
         ->name('hospital-review-comments.updateHospitalReviewCommentStatusForStaff');
+    Route::get('hospital-review-comments/{comment}/operation-histories', [HospitalReviewCommentForStaffController::class, 'getHospitalReviewCommentOperationHistoriesForStaff'])
+        ->name('hospital-review-comments.getHospitalReviewCommentOperationHistoriesForStaff');
 
     /**
      * 병의원 평가 관리
@@ -271,6 +275,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('talk-comments.getCommentsForStaff');
     Route::patch('talk-comments/status', [TalkCommentForStaffController::class, 'updateTalkCommentStatusForStaff'])
         ->name('talk-comments.updateTalkCommentStatusForStaff');
+    Route::get('talk-comments/{comment}/operation-histories', [TalkCommentForStaffController::class, 'getTalkCommentOperationHistoriesForStaff'])
+        ->name('talk-comments.getTalkCommentOperationHistoriesForStaff');
 
     /**
      * 공지사항

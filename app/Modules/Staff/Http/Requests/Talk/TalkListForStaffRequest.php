@@ -38,6 +38,8 @@ class TalkListForStaffRequest extends FormRequest
             'report_status.*' => [Rule::in([
                 ContentReportState::STATUS_AUTO_BLOCKED,
                 ContentReportState::STATUS_ADMIN_HIDDEN,
+                ContentReportState::STATUS_NORMAL_VISIBLE,
+                ContentReportState::STATUS_REEXPOSED,
             ])],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],

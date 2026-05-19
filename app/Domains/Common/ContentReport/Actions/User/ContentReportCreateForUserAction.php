@@ -94,7 +94,11 @@ final class ContentReportCreateForUserAction
             $state->first_reported_at ??= $now;
             $state->last_reported_at = $now;
 
-            if (! $state->isAutoActionLocked() && $previousReportStatus !== ContentReportState::STATUS_ADMIN_HIDDEN) {
+            if ($state->isAutoActionLocked()) {
+                if ($previousReportStatus === ContentReportState::STATUS_NORMAL_VISIBLE) {
+                    $state->report_status = ContentReportState::STATUS_REEXPOSED;
+                }
+            } elseif ($previousReportStatus !== ContentReportState::STATUS_ADMIN_HIDDEN) {
                 if (
                     $this->supportsTargetVisibilityStatus($target)
                     && $recentHourReportCount >= ContentReportState::AUTO_BLOCK_RECENT_HOUR_THRESHOLD

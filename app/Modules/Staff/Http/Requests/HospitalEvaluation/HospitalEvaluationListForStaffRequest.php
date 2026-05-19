@@ -37,6 +37,8 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
             'report_status.*' => [Rule::in([
                 ContentReportState::STATUS_AUTO_BLOCKED,
                 ContentReportState::STATUS_ADMIN_HIDDEN,
+                ContentReportState::STATUS_NORMAL_VISIBLE,
+                ContentReportState::STATUS_REEXPOSED,
             ])],
             'post_status' => ['nullable', 'array'],
             'post_status.*' => [Rule::in(HospitalEvaluation::postStatuses())],

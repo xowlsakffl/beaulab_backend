@@ -39,31 +39,23 @@ final class ReportedContentDetailForStaffAction
         Gate::authorize('viewAny', $targetClass);
 
         $target = ContentReportTargetRegistry::resolveTarget($targetAlias, $targetId);
-        $authorId = $this->targetAuthorId($target);
-
-        if ($authorId === null || $authorId <= 0) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '작성자 정보가 없는 신고 대상입니다.');
-        }
-
         $target->loadMissing($this->targetLoadRelations($target));
 
         $state = $this->query->state($targetClass, $targetId);
         $latestReport = $this->query->latestReport($targetClass, $targetId);
         $this->loadLatestReportItemTargets($latestReport);
         $reasonCounts = $this->query->reasonCounts($targetClass, $targetId);
-        $reporterId = $latestReport instanceof ContentReport ? (int) $latestReport->reporter_user_id : 0;
 
         return [
             'target_type' => $targetAlias,
             'target_id' => $targetId,
             'target' => $this->targetToArray($target),
-            'author' => $this->author($target),
-            'author_stats' => $this->query->authorStats($authorId),
-            'reporter_stats' => $reporterId > 0 ? $this->query->authorStats($reporterId) : null,
+            ...($target instanceof ChatMessage ? ['author' => $this->sender($target, true)] : []),
             'report' => ContentReportStateForStaffDto::fromModel(
                 $state,
                 $latestReport,
                 $reasonCounts,
+                $target instanceof ChatMessage,
             )->toArray(),
         ];
     }
@@ -138,13 +130,6 @@ final class ReportedContentDetailForStaffAction
         };
     }
 
-    private function targetAuthorId(Model $target): ?int
-    {
-        $authorId = $target->getAttribute('author_id') ?? $target->getAttribute('sender_user_id');
-
-        return $authorId === null ? null : (int) $authorId;
-    }
-
     private function loadLatestReportItemTargets(?ContentReport $latestReport): void
     {
         if (! $latestReport instanceof ContentReport || ! $latestReport->relationLoaded('items')) {
@@ -175,31 +160,20 @@ final class ReportedContentDetailForStaffAction
         ];
     }
 
-    private function sender(ChatMessage $message): ?array
+    private function sender(ChatMessage $message, bool $includeDetail = false): ?array
     {
         if (! $message->relationLoaded('sender') || ! $message->getRelation('sender')) {
             return null;
         }
 
-        return $this->userToArray($message->getRelation('sender'));
+        return $this->userToArray($message->getRelation('sender'), $includeDetail);
     }
 
-    private function author(Model $target): ?array
-    {
-        $relation = $target instanceof ChatMessage ? 'sender' : 'author';
-
-        if (! $target->relationLoaded($relation) || ! $target->getRelation($relation)) {
-            return null;
-        }
-
-        return $this->userToArray($target->getRelation($relation));
-    }
-
-    private function userToArray(Model $user): array
+    private function userToArray(Model $user, bool $includeDetail = false): array
     {
         $attributes = $user->getAttributes();
 
-        return [
+        $payload = [
             'id' => (int) $user->getKey(),
             'name' => (string) ($attributes['name'] ?? ''),
             'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
@@ -208,6 +182,14 @@ final class ReportedContentDetailForStaffAction
             'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
                 ? (string) $attributes['email']
                 : null,
+        ];
+
+        if (! $includeDetail) {
+            return $payload;
+        }
+
+        return [
+            ...$payload,
             'phone' => isset($attributes['phone']) && trim((string) $attributes['phone']) !== ''
                 ? (string) $attributes['phone']
                 : null,

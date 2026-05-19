@@ -35,6 +35,8 @@ final class HospitalReviewListForStaffRequest extends FormRequest
             'report_status.*' => [Rule::in([
                 ContentReportState::STATUS_AUTO_BLOCKED,
                 ContentReportState::STATUS_ADMIN_HIDDEN,
+                ContentReportState::STATUS_NORMAL_VISIBLE,
+                ContentReportState::STATUS_REEXPOSED,
             ])],
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],

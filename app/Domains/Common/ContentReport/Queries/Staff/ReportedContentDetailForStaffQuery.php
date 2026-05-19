@@ -2,13 +2,9 @@
 
 namespace App\Domains\Common\ContentReport\Queries\Staff;
 
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
-use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
-use App\Domains\HospitalReview\Models\HospitalReview;
-use App\Domains\HospitalReview\Models\HospitalReviewComment;
-use App\Domains\Talk\Models\Talk;
-use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -37,7 +33,7 @@ final class ReportedContentDetailForStaffQuery
         return ContentReport::query()
             ->where('target_type', $targetClass)
             ->where('target_id', $targetId)
-            ->with(['reporter:id,name,nickname,email,phone,warning_count,created_at', 'items'])
+            ->with(['reporter:id,name,nickname,email', 'items'])
             ->latest('id');
     }
 
@@ -49,7 +45,10 @@ final class ReportedContentDetailForStaffQuery
         return ContentReport::query()
             ->where('target_type', $targetClass)
             ->where('target_id', $targetId)
-            ->with(['reporter:id,name,nickname,email,phone,warning_count,created_at', 'items.target'])
+            ->with([
+                'reporter:'.$this->reporterColumns($targetClass),
+                'items.target',
+            ])
             ->latest('id')
             ->first();
     }
@@ -71,66 +70,12 @@ final class ReportedContentDetailForStaffQuery
     }
 
     /**
-     * @return array{posts: array{total: int, reported: int}, comments: array{total: int, reported: int}}
+     * @param  class-string<Model>  $targetClass
      */
-    public function authorStats(int $authorId): array
+    private function reporterColumns(string $targetClass): string
     {
-        return [
-            'posts' => [
-                'total' => $this->countAuthoredTargets($authorId, $this->postTargetClasses()),
-                'reported' => $this->countReportedAuthoredTargets($authorId, $this->postTargetClasses()),
-            ],
-            'comments' => [
-                'total' => $this->countAuthoredTargets($authorId, $this->commentTargetClasses()),
-                'reported' => $this->countReportedAuthoredTargets($authorId, $this->commentTargetClasses()),
-            ],
-        ];
-    }
-
-    /**
-     * @param  array<int, class-string<Model>>  $targetClasses
-     */
-    private function countAuthoredTargets(int $authorId, array $targetClasses): int
-    {
-        return collect($targetClasses)
-            ->sum(static fn (string $targetClass): int => $targetClass::query()
-                ->where('author_id', $authorId)
-                ->count());
-    }
-
-    /**
-     * @param  array<int, class-string<Model>>  $targetClasses
-     */
-    private function countReportedAuthoredTargets(int $authorId, array $targetClasses): int
-    {
-        return ContentReportState::query()
-            ->whereIn('target_type', $targetClasses)
-            ->where('report_status', '!=', ContentReportState::STATUS_NONE)
-            ->whereHasMorph('target', $targetClasses, static fn (Builder $query) => $query
-                ->where('author_id', $authorId))
-            ->count();
-    }
-
-    /**
-     * @return array<int, class-string<Model>>
-     */
-    private function postTargetClasses(): array
-    {
-        return [
-            Talk::class,
-            HospitalReview::class,
-            HospitalEvaluation::class,
-        ];
-    }
-
-    /**
-     * @return array<int, class-string<Model>>
-     */
-    private function commentTargetClasses(): array
-    {
-        return [
-            TalkComment::class,
-            HospitalReviewComment::class,
-        ];
+        return $targetClass === ChatMessage::class
+            ? 'id,name,nickname,email,phone,warning_count,created_at'
+            : 'id,name,nickname,email';
     }
 }

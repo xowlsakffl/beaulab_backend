@@ -66,22 +66,31 @@ final class ContentReportStateStatusUpdateForStaffAction
             }
 
             if ($nextReportStatus === ContentReportState::STATUS_NORMAL_VISIBLE) {
-                if ($previousReportStatus !== ContentReportState::STATUS_NORMAL_VISIBLE) {
+                if (! in_array($previousReportStatus, [
+                    ContentReportState::STATUS_NORMAL_VISIBLE,
+                    ContentReportState::STATUS_REEXPOSED,
+                ], true)) {
                     $state->normal_visible_count = (int) $state->normal_visible_count + 1;
                 }
 
-                $state->report_status = ContentReportState::STATUS_NORMAL_VISIBLE;
+                $reportStatusAfter = (int) $state->normal_visible_count >= ContentReportState::AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD
+                    ? ContentReportState::STATUS_REEXPOSED
+                    : ContentReportState::STATUS_NORMAL_VISIBLE;
+
+                $state->report_status = $reportStatusAfter;
                 $state->normal_visible_at = $now;
                 $state->recent_hour_report_count = 0;
                 $state->process_reason = $processReason;
                 $this->applyTargetStatus(
                     target: $target,
                     status: 'ACTIVE',
-                    reason: $this->normalVisibleHistoryReason($target, $processReason),
+                    reason: $this->normalVisibleHistoryReason($target, $processReason, $reportStatusAfter),
                     reportStatusBefore: $previousReportStatus,
-                    reportStatusAfter: ContentReportState::STATUS_NORMAL_VISIBLE,
+                    reportStatusAfter: $reportStatusAfter,
                     actor: $actor instanceof Model ? $actor : null,
-                    source: 'staff.content_report.normal_visible',
+                    source: $reportStatusAfter === ContentReportState::STATUS_REEXPOSED
+                        ? 'staff.content_report.reexposed'
+                        : 'staff.content_report.normal_visible',
                 );
             }
 
@@ -164,13 +173,19 @@ final class ContentReportStateStatusUpdateForStaffAction
         return "신고 처리 노출중지 - {$processReason}";
     }
 
-    private function normalVisibleHistoryReason(Model $target, ?string $processReason): string
+    private function normalVisibleHistoryReason(Model $target, ?string $processReason, string $reportStatusAfter): string
     {
         if (! $this->hasStatusColumn($target)) {
             return $processReason ?? '신고 부적합 처리';
         }
 
-        return $processReason ?? '신고 정상처리 정상노출';
+        if ($processReason !== null) {
+            return $processReason;
+        }
+
+        return $reportStatusAfter === ContentReportState::STATUS_REEXPOSED
+            ? '신고 처리 재노출'
+            : '신고 처리 정상노출';
     }
 
     private function validHistoryReason(?string $processReason): string

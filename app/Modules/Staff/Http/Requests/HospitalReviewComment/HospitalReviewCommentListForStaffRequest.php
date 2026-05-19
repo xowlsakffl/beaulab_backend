@@ -38,6 +38,8 @@ final class HospitalReviewCommentListForStaffRequest extends FormRequest
             'report_status.*' => [Rule::in([
                 ContentReportState::STATUS_AUTO_BLOCKED,
                 ContentReportState::STATUS_ADMIN_HIDDEN,
+                ContentReportState::STATUS_NORMAL_VISIBLE,
+                ContentReportState::STATUS_REEXPOSED,
             ])],
             'category_domain' => ['nullable', Rule::in(HospitalReview::categoryDomains())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],

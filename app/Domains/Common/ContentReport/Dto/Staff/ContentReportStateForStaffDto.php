@@ -45,6 +45,7 @@ final readonly class ContentReportStateForStaffDto
         ContentReportState $state,
         ?ContentReport $latestReport = null,
         Collection|array $reasonCounts = [],
+        bool $includeReporterDetail = false,
     ): self {
         return new self(
             id: (int) $state->id,
@@ -67,7 +68,7 @@ final readonly class ContentReportStateForStaffDto
             warningIgnored: (string) $state->warning_status === ContentReportState::WARNING_STATUS_IGNORED,
             warningProcessedAt: $state->warning_processed_at?->toISOString(),
             warningProcessedBy: self::warningProcessedBy($state),
-            latestReport: self::latestReport($latestReport),
+            latestReport: self::latestReport($latestReport, $includeReporterDetail),
             reasonCounts: self::reasonCounts($reasonCounts),
         );
     }
@@ -134,7 +135,7 @@ final readonly class ContentReportStateForStaffDto
         ];
     }
 
-    private static function latestReport(?ContentReport $report): ?array
+    private static function latestReport(?ContentReport $report, bool $includeReporterDetail): ?array
     {
         if (! $report instanceof ContentReport) {
             return null;
@@ -147,7 +148,7 @@ final readonly class ContentReportStateForStaffDto
             'reason_text' => $report->reason_text,
             'reporter_ip' => $report->reporter_ip,
             'items' => self::reportItems($report),
-            'reporter' => self::reporter($report),
+            'reporter' => self::reporter($report, $includeReporterDetail),
             'created_at' => $report->created_at?->toISOString(),
         ];
     }
@@ -220,7 +221,7 @@ final readonly class ContentReportStateForStaffDto
         ];
     }
 
-    private static function reporter(ContentReport $report): ?array
+    private static function reporter(ContentReport $report, bool $includeDetail): ?array
     {
         if (! $report->relationLoaded('reporter') || ! $report->reporter) {
             return null;
@@ -228,7 +229,7 @@ final readonly class ContentReportStateForStaffDto
 
         $attributes = $report->reporter->getAttributes();
 
-        return [
+        $payload = [
             'id' => (int) $report->reporter->getKey(),
             'name' => (string) ($attributes['name'] ?? ''),
             'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
@@ -237,6 +238,14 @@ final readonly class ContentReportStateForStaffDto
             'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
                 ? (string) $attributes['email']
                 : null,
+        ];
+
+        if (! $includeDetail) {
+            return $payload;
+        }
+
+        return [
+            ...$payload,
             'phone' => isset($attributes['phone']) && trim((string) $attributes['phone']) !== ''
                 ? (string) $attributes['phone']
                 : null,

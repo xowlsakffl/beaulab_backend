@@ -5,6 +5,7 @@ namespace App\Domains\Common\ContentReport\Models;
 use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 final class ContentReport extends Model
@@ -32,7 +33,6 @@ final class ContentReport extends Model
         'reason',
         'reason_text',
         'content_snapshot',
-        'metadata',
         'reporter_ip',
     ];
 
@@ -40,7 +40,6 @@ final class ContentReport extends Model
         'reporter_user_id' => 'integer',
         'target_id' => 'integer',
         'target_author_id' => 'integer',
-        'metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -86,6 +85,11 @@ final class ContentReport extends Model
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(AccountUser::class, 'reporter_user_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(ContentReportItem::class, 'content_report_id');
     }
 
     public function targetAuthor(): BelongsTo

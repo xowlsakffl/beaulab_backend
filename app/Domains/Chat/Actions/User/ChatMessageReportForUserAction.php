@@ -5,12 +5,15 @@ namespace App\Domains\Chat\Actions\User;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\AccountUser\Queries\User\AccountUserBlockCreateForUserQuery;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Models\ChatParticipant;
+use App\Domains\Chat\Queries\User\ChatHideForUserBlockQuery;
 use App\Domains\Chat\Queries\User\ChatMessageReportForUserQuery;
 use App\Domains\Common\ContentReport\Actions\User\ContentReportCreateForUserAction;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 final class ChatMessageReportForUserAction
@@ -18,16 +21,28 @@ final class ChatMessageReportForUserAction
     public function __construct(
         private readonly ChatMessageReportForUserQuery $query,
         private readonly ContentReportCreateForUserAction $reportCreateAction,
+        private readonly AccountUserBlockCreateForUserQuery $blockCreateQuery,
+        private readonly ChatHideForUserBlockQuery $chatHideQuery,
     ) {}
 
     public function execute(Chat $chat, AccountUser $user, array $payload): void
     {
         $participant = $this->participant($chat, (int) $user->id);
         $messageIds = $this->messageIds($payload['message_ids'] ?? []);
+
+        if ($this->query->hasBlockedPeer($chat, (int) $user->id)) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 차단한 사용자의 메시지는 신고할 수 없습니다.');
+        }
+
         $messages = $this->messages($chat, $participant, $messageIds);
 
         if ($messages->contains(static fn (ChatMessage $message): bool => (int) $message->sender_user_id === (int) $user->id)) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '본인이 작성한 메시지는 신고할 수 없습니다.');
+        }
+
+        $reportedUserId = $this->reportedUserId($messages);
+        if ($this->query->isBlockedBy((int) $user->id, $reportedUserId)) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 차단한 사용자의 메시지는 신고할 수 없습니다.');
         }
 
         $representativeMessage = $messages->first();
@@ -35,21 +50,18 @@ final class ChatMessageReportForUserAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '신고할 메시지를 확인해 주세요.');
         }
 
-        $this->reportCreateAction->execute($user, $representativeMessage, [
-            'reason' => $payload['reason'],
-            'reason_text' => $payload['reason_text'] ?? null,
-            'reporter_ip' => $payload['reporter_ip'] ?? null,
-            'content_snapshot' => $this->contentSnapshot($messages),
-            'metadata' => [
-                'kind' => 'chat_message_group',
-                'chat_id' => (int) $chat->id,
-                'reported_message_ids' => $messageIds,
-                'reported_messages' => $messages
-                    ->map(fn (ChatMessage $message): array => $this->messageMetadata($message))
-                    ->values()
-                    ->all(),
-            ],
-        ]);
+        DB::transaction(function () use ($user, $representativeMessage, $payload, $messages, $reportedUserId): void {
+            $this->reportCreateAction->execute($user, $representativeMessage, [
+                'reason' => $payload['reason'],
+                'reason_text' => $payload['reason_text'] ?? null,
+                'reporter_ip' => $payload['reporter_ip'] ?? null,
+                'content_snapshot' => $this->contentSnapshot($messages),
+                'items' => $this->reportItems($messages),
+            ]);
+
+            $block = $this->blockCreateQuery->create($user, $reportedUserId);
+            $this->chatHideQuery->hideForBlocker((int) $user->id, (int) $block->blocked_user_id);
+        });
     }
 
     private function participant(Chat $chat, int $userId): ChatParticipant
@@ -100,29 +112,57 @@ final class ChatMessageReportForUserAction
     /**
      * @param  Collection<int, ChatMessage>  $messages
      */
+    private function reportedUserId(Collection $messages): int
+    {
+        $senderIds = $messages
+            ->pluck('sender_user_id')
+            ->map(static fn (mixed $senderUserId): int => (int) $senderUserId)
+            ->unique()
+            ->values();
+
+        if ($senderIds->count() !== 1) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 사용자의 메시지만 한 번에 신고할 수 있습니다.');
+        }
+
+        return (int) $senderIds->first();
+    }
+
+    /**
+     * @param  Collection<int, ChatMessage>  $messages
+     */
     private function contentSnapshot(Collection $messages): string
     {
         return Str::limit($messages
-            ->map(fn (ChatMessage $message): string => sprintf(
-                '#%d %s %s: %s',
-                (int) $message->id,
-                $message->created_at?->toISOString() ?? '-',
-                $this->senderLabel($message),
-                $this->messageBody($message),
-            ))
+            ->map(fn (ChatMessage $message): string => $this->messageSnapshot($message))
             ->implode("\n"), 2000, '');
     }
 
-    private function messageMetadata(ChatMessage $message): array
+    /**
+     * @param  Collection<int, ChatMessage>  $messages
+     * @return array<int, array{target_type: class-string<ChatMessage>, target_id: int, target_author_id: int, content_snapshot: string}>
+     */
+    private function reportItems(Collection $messages): array
     {
-        return [
-            'id' => (int) $message->id,
-            'sender_user_id' => (int) $message->sender_user_id,
-            'sender_nickname' => $this->senderLabel($message),
-            'message_type' => (string) $message->message_type,
-            'body' => $message->body,
-            'created_at' => $message->created_at?->toISOString(),
-        ];
+        return $messages
+            ->map(fn (ChatMessage $message): array => [
+                'target_type' => ChatMessage::class,
+                'target_id' => (int) $message->id,
+                'target_author_id' => (int) $message->sender_user_id,
+                'content_snapshot' => $this->messageSnapshot($message),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function messageSnapshot(ChatMessage $message): string
+    {
+        return sprintf(
+            '#%d %s %s: %s',
+            (int) $message->id,
+            $message->created_at?->toISOString() ?? '-',
+            $this->senderLabel($message),
+            $this->messageBody($message),
+        );
     }
 
     private function senderLabel(ChatMessage $message): string

@@ -137,7 +137,7 @@ final class ReportedContentListForStaffQuery
         if ($latestReportIds->isNotEmpty()) {
             ContentReport::query()
                 ->whereIn('id', $latestReportIds)
-                ->with('reporter:id,name,nickname,email')
+                ->with(['reporter:id,name,nickname,email', 'items'])
                 ->get()
                 ->each(function (ContentReport $report) use (&$summaries): void {
                     $key = $this->reportKey($report->target_type, (int) $report->target_id);

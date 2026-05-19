@@ -13,8 +13,7 @@ final class HospitalReviewOperationHistoriesForStaffAction
     {
         Gate::authorize('view', $review);
 
-        $operationHistories = PaginatedResponse::paginateWithFallback(
-            queryFactory: fn () => $review->operationHistories()->with('actor'),
+        $operationHistories = $review->operationHistories()->with('actor')->paginate(
             perPage: (int) ($filters['operation_histories_per_page'] ?? 10),
             pageName: 'operation_histories_page',
             page: (int) ($filters['operation_histories_page'] ?? 1),

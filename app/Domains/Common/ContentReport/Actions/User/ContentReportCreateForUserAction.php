@@ -31,16 +31,15 @@ final class ContentReportCreateForUserAction
         $reporterUserId = (int) $reporter->getKey();
         $targetType = $target::class;
         $targetId = (int) $target->getKey();
+        $reportItems = $this->reportItems($target, $payload);
 
-        DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload): void {
-            // TODO: 테스트 기간에는 동일 유저가 같은 콘텐츠를 여러 번 신고할 수 있게 허용한다.
-            // 운영 정책 확정 시 아래 중복 신고 제한과 DB unique index를 같이 복구해야 한다.
-            // if ($this->query->findExistingReport($reporterUserId, $targetType, $targetId) instanceof ContentReport) {
-            //     throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 신고한 콘텐츠입니다.');
-            // }
+        DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload, $reportItems): void {
+            if ($this->query->hasExistingReportItem($reporterUserId, $reportItems)) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 신고한 콘텐츠입니다.');
+            }
 
             try {
-                $this->query->createReport([
+                $report = $this->query->createReport([
                     'reporter_user_id' => $reporterUserId,
                     'target_type' => $targetType,
                     'target_id' => $targetId,
@@ -50,9 +49,10 @@ final class ContentReportCreateForUserAction
                         ? $this->normalizeReasonText($payload['reason_text'] ?? null)
                         : null,
                     'content_snapshot' => $this->contentSnapshot($target, $payload),
-                    'metadata' => $payload['metadata'] ?? null,
                     'reporter_ip' => $this->normalizeIp($payload['reporter_ip'] ?? null),
                 ]);
+
+                $this->query->createReportItems($report, $reporterUserId, $reportItems);
             } catch (QueryException $exception) {
                 if ((string) $exception->getCode() !== '23000') {
                     throw $exception;
@@ -144,6 +144,35 @@ final class ContentReportCreateForUserAction
         return $authorId === null ? null : (int) $authorId;
     }
 
+    /**
+     * @return array<int, array{target_type: string, target_id: int, target_author_id: ?int, content_snapshot: ?string}>
+     */
+    private function reportItems(Model $target, array $payload): array
+    {
+        $items = $payload['items'] ?? null;
+
+        if (is_array($items) && $items !== []) {
+            return collect($items)
+                ->map(fn (array $item): array => [
+                    'target_type' => (string) $item['target_type'],
+                    'target_id' => (int) $item['target_id'],
+                    'target_author_id' => isset($item['target_author_id']) ? (int) $item['target_author_id'] : null,
+                    'content_snapshot' => isset($item['content_snapshot'])
+                        ? $this->normalizeSnapshot($item['content_snapshot'])
+                        : null,
+                ])
+                ->values()
+                ->all();
+        }
+
+        return [[
+            'target_type' => $target::class,
+            'target_id' => (int) $target->getKey(),
+            'target_author_id' => $this->targetAuthorId($target),
+            'content_snapshot' => $this->contentSnapshot($target, $payload),
+        ]];
+    }
+
     private function normalizeReasonText(mixed $value): ?string
     {
         $value = trim((string) $value);
@@ -161,9 +190,7 @@ final class ContentReportCreateForUserAction
     private function contentSnapshot(Model $target, array $payload): ?string
     {
         if (array_key_exists('content_snapshot', $payload)) {
-            $snapshot = trim((string) $payload['content_snapshot']);
-
-            return $snapshot === '' ? null : mb_substr($snapshot, 0, 2000);
+            return $this->normalizeSnapshot($payload['content_snapshot']);
         }
 
         $parts = [];
@@ -180,6 +207,13 @@ final class ContentReportCreateForUserAction
         }
 
         return mb_substr(implode("\n", $parts), 0, 2000);
+    }
+
+    private function normalizeSnapshot(mixed $value): ?string
+    {
+        $snapshot = trim((string) $value);
+
+        return $snapshot === '' ? null : mb_substr($snapshot, 0, 2000);
     }
 
     private function supportsTargetVisibilityStatus(Model $target): bool

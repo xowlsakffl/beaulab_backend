@@ -15,6 +15,7 @@ use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 
 final class ContentReportWarningStatusUpdateForStaffAction
 {
@@ -45,8 +46,8 @@ final class ContentReportWarningStatusUpdateForStaffAction
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 접수 내역이 없는 대상입니다.');
             }
 
-            if ((string) $state->report_status !== ContentReportState::STATUS_ADMIN_HIDDEN) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '노출중지 상태에서만 경고/무시 처리할 수 있습니다.');
+            if (! $this->canProcessWarning($target, (string) $state->report_status)) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '경고/무시 처리가 가능한 상태에서만 선택할 수 있습니다.');
             }
 
             $authorId = $this->targetAuthorId($target);
@@ -97,6 +98,18 @@ final class ContentReportWarningStatusUpdateForStaffAction
         $authorId = $target->getAttribute('author_id') ?? $target->getAttribute('sender_user_id');
 
         return $authorId === null ? null : (int) $authorId;
+    }
+
+    private function canProcessWarning(Model $target, string $reportStatus): bool
+    {
+        if (Schema::hasColumn($target->getTable(), 'status')) {
+            return $reportStatus === ContentReportState::STATUS_ADMIN_HIDDEN;
+        }
+
+        return in_array($reportStatus, [
+            ContentReportState::STATUS_INVALID,
+            ContentReportState::STATUS_NORMAL_VISIBLE,
+        ], true);
     }
 
     private function assertTransitionAllowed(string $beforeWarningStatus, string $warningStatus): void

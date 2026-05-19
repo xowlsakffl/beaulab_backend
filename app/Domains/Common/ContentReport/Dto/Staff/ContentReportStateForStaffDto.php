@@ -2,7 +2,9 @@
 
 namespace App\Domains\Common\ContentReport\Dto\Staff;
 
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Models\ContentReport;
+use App\Domains\Common\ContentReport\Models\ContentReportItem;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use Illuminate\Support\Collection;
 
@@ -144,9 +146,77 @@ final readonly class ContentReportStateForStaffDto
             'reason_label' => $report->reasonLabel(),
             'reason_text' => $report->reason_text,
             'reporter_ip' => $report->reporter_ip,
-            'metadata' => $report->metadata,
+            'items' => self::reportItems($report),
             'reporter' => self::reporter($report),
             'created_at' => $report->created_at?->toISOString(),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function reportItems(ContentReport $report): array
+    {
+        if (! $report->relationLoaded('items')) {
+            return [];
+        }
+
+        return $report->items
+            ->map(static fn (ContentReportItem $item): array => [
+                'id' => (int) $item->id,
+                'target_type' => (string) $item->target_type,
+                'target_id' => (int) $item->target_id,
+                'target_author_id' => $item->target_author_id !== null ? (int) $item->target_author_id : null,
+                'content_snapshot' => $item->content_snapshot,
+                'target' => self::reportItemTarget($item),
+                'created_at' => $item->created_at?->toISOString(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    private static function reportItemTarget(ContentReportItem $item): ?array
+    {
+        if (! $item->relationLoaded('target') || ! $item->target) {
+            return null;
+        }
+
+        $target = $item->target;
+
+        if ($target instanceof ChatMessage) {
+            return [
+                'id' => (int) $target->id,
+                'chat_id' => (int) $target->chat_id,
+                'created_at' => $target->created_at?->toISOString(),
+                'sender' => self::chatMessageSender($target),
+                'body' => $target->body,
+                'body_preview' => self::contentPreview($target->body),
+                'message_type' => (string) $target->message_type,
+            ];
+        }
+
+        return [
+            'id' => (int) $target->getKey(),
+        ];
+    }
+
+    private static function chatMessageSender(ChatMessage $message): ?array
+    {
+        if (! $message->relationLoaded('sender') || ! $message->sender) {
+            return null;
+        }
+
+        $attributes = $message->sender->getAttributes();
+
+        return [
+            'id' => (int) $message->sender->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
+                ? (string) $attributes['nickname']
+                : null,
+            'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
+                ? (string) $attributes['email']
+                : null,
         ];
     }
 
@@ -167,7 +237,23 @@ final readonly class ContentReportStateForStaffDto
             'email' => isset($attributes['email']) && trim((string) $attributes['email']) !== ''
                 ? (string) $attributes['email']
                 : null,
+            'phone' => isset($attributes['phone']) && trim((string) $attributes['phone']) !== ''
+                ? (string) $attributes['phone']
+                : null,
+            'warning_count' => (int) ($attributes['warning_count'] ?? 0),
+            'created_at' => $report->reporter->created_at?->toISOString(),
         ];
+    }
+
+    private static function contentPreview(mixed $value): ?string
+    {
+        $content = trim((string) $value);
+
+        if ($content === '') {
+            return null;
+        }
+
+        return mb_strlen($content) > 120 ? mb_substr($content, 0, 120).'...' : $content;
     }
 
     /**

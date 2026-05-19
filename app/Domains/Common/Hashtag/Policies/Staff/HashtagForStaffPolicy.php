@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Common\Category\Policies\Staff;
+namespace App\Domains\Common\Hashtag\Policies\Staff;
 
 use App\Common\Authorization\AccessPermissions;
 use App\Domains\AccountStaff\Models\AccountStaff;

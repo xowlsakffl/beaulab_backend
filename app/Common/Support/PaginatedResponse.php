@@ -25,28 +25,4 @@ final class PaginatedResponse
             ] + $extraMeta,
         ];
     }
-
-    public static function paginateWithFallback(
-        callable $queryFactory,
-        int $perPage,
-        string $pageName,
-        int $page,
-    ): LengthAwarePaginator {
-        $page = max(1, $page);
-        $paginator = $queryFactory()->paginate(
-            perPage: $perPage,
-            pageName: $pageName,
-            page: $page,
-        );
-
-        if ($page === 1 || $paginator->total() === 0 || $paginator->items() !== []) {
-            return $paginator;
-        }
-
-        return $queryFactory()->paginate(
-            perPage: $perPage,
-            pageName: $pageName,
-            page: 1,
-        );
-    }
 }

@@ -4,7 +4,9 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
+use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Queries\Staff\ReportedContentDetailForStaffQuery;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\HospitalEvaluation\Dto\Staff\HospitalEvaluationForStaffDto;
@@ -37,20 +39,19 @@ final class ReportedContentDetailForStaffAction
         Gate::authorize('viewAny', $targetClass);
 
         $target = ContentReportTargetRegistry::resolveTarget($targetAlias, $targetId);
-        $authorId = (int) $target->getAttribute('author_id');
+        $authorId = $this->targetAuthorId($target);
 
-        if ($authorId <= 0) {
+        if ($authorId === null || $authorId <= 0) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '작성자 정보가 없는 신고 대상입니다.');
         }
 
-        $target->loadMissing([
-            'author:id,name,nickname,email,phone,warning_count,created_at',
-            ...($this->targetRelations()[$target::class] ?? []),
-        ]);
+        $target->loadMissing($this->targetLoadRelations($target));
 
         $state = $this->query->state($targetClass, $targetId);
         $latestReport = $this->query->latestReport($targetClass, $targetId);
+        $this->loadLatestReportItemTargets($latestReport);
         $reasonCounts = $this->query->reasonCounts($targetClass, $targetId);
+        $reporterId = $latestReport instanceof ContentReport ? (int) $latestReport->reporter_user_id : 0;
 
         return [
             'target_type' => $targetAlias,
@@ -58,6 +59,7 @@ final class ReportedContentDetailForStaffAction
             'target' => $this->targetToArray($target),
             'author' => $this->author($target),
             'author_stats' => $this->query->authorStats($authorId),
+            'reporter_stats' => $reporterId > 0 ? $this->query->authorStats($reporterId) : null,
             'report' => ContentReportStateForStaffDto::fromModel(
                 $state,
                 $latestReport,
@@ -96,7 +98,25 @@ final class ReportedContentDetailForStaffAction
                 'doctor',
                 'categories',
             ],
+            ChatMessage::class => [
+                'chat:id,last_message_at',
+                'sender:id,name,nickname,email,phone,warning_count,created_at',
+            ],
         ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function targetLoadRelations(Model $target): array
+    {
+        $relations = $this->targetRelations()[$target::class] ?? [];
+
+        if (! $target instanceof ChatMessage) {
+            array_unshift($relations, 'author:id,name,nickname,email,phone,warning_count,created_at');
+        }
+
+        return $relations;
     }
 
     private function targetToArray(Model $target): ?array
@@ -113,21 +133,74 @@ final class ReportedContentDetailForStaffAction
                 'author_ip' => $target->author_ip,
             ],
             $target instanceof HospitalEvaluation => HospitalEvaluationForStaffDto::fromModel($target)->toArray(),
+            $target instanceof ChatMessage => $this->chatMessageToArray($target),
             default => null,
         };
     }
 
-    private function author(Model $target): ?array
+    private function targetAuthorId(Model $target): ?int
     {
-        if (! $target->relationLoaded('author') || ! $target->getRelation('author')) {
+        $authorId = $target->getAttribute('author_id') ?? $target->getAttribute('sender_user_id');
+
+        return $authorId === null ? null : (int) $authorId;
+    }
+
+    private function loadLatestReportItemTargets(?ContentReport $latestReport): void
+    {
+        if (! $latestReport instanceof ContentReport || ! $latestReport->relationLoaded('items')) {
+            return;
+        }
+
+        $latestReport->items->loadMorph('target', [
+            ChatMessage::class => [
+                'sender:id,name,nickname,email',
+            ],
+        ]);
+    }
+
+    private function chatMessageToArray(ChatMessage $message): array
+    {
+        $chat = $message->relationLoaded('chat') ? $message->chat : null;
+
+        return [
+            'id' => (int) $message->id,
+            'chat_id' => (int) $message->chat_id,
+            'created_at' => $message->created_at?->toISOString() ?? '',
+            'last_message_at' => $chat?->last_message_at?->toISOString(),
+            'author_ip' => null,
+            'sender' => $this->sender($message),
+            'body' => $message->body,
+            'body_preview' => $this->contentPreview($message->body),
+            'message_type' => (string) $message->message_type,
+        ];
+    }
+
+    private function sender(ChatMessage $message): ?array
+    {
+        if (! $message->relationLoaded('sender') || ! $message->getRelation('sender')) {
             return null;
         }
 
-        $author = $target->getRelation('author');
-        $attributes = $author->getAttributes();
+        return $this->userToArray($message->getRelation('sender'));
+    }
+
+    private function author(Model $target): ?array
+    {
+        $relation = $target instanceof ChatMessage ? 'sender' : 'author';
+
+        if (! $target->relationLoaded($relation) || ! $target->getRelation($relation)) {
+            return null;
+        }
+
+        return $this->userToArray($target->getRelation($relation));
+    }
+
+    private function userToArray(Model $user): array
+    {
+        $attributes = $user->getAttributes();
 
         return [
-            'id' => (int) $author->getKey(),
+            'id' => (int) $user->getKey(),
             'name' => (string) ($attributes['name'] ?? ''),
             'nickname' => isset($attributes['nickname']) && trim((string) $attributes['nickname']) !== ''
                 ? (string) $attributes['nickname']
@@ -139,7 +212,18 @@ final class ReportedContentDetailForStaffAction
                 ? (string) $attributes['phone']
                 : null,
             'warning_count' => (int) ($attributes['warning_count'] ?? 0),
-            'created_at' => $author->created_at?->toISOString(),
+            'created_at' => $user->created_at?->toISOString(),
         ];
+    }
+
+    private function contentPreview(mixed $value): ?string
+    {
+        $content = trim((string) $value);
+
+        if ($content === '') {
+            return null;
+        }
+
+        return mb_strlen($content) > 120 ? mb_substr($content, 0, 120).'...' : $content;
     }
 }

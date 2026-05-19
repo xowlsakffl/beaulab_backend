@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Common\Category\Policies;
+namespace App\Domains\Common\Hashtag\Policies;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Hashtag\Models\Hashtag;
@@ -41,12 +41,32 @@ final class HashtagPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff => app(HashtagForStaffPolicy::class),
-            default => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, Hashtag $hashtag): bool { return false; }
-                public function create(mixed $actor): bool { return false; }
-                public function update(mixed $actor, Hashtag $hashtag): bool { return false; }
-                public function delete(mixed $actor, Hashtag $hashtag): bool { return false; }
+            default => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, Hashtag $hashtag): bool
+                {
+                    return false;
+                }
+
+                public function create(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, Hashtag $hashtag): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, Hashtag $hashtag): bool
+                {
+                    return false;
+                }
             },
         };
     }

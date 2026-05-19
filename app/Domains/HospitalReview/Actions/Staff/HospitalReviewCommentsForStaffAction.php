@@ -13,13 +13,13 @@ final class HospitalReviewCommentsForStaffAction
     {
         Gate::authorize('view', $review);
 
-        $comments = PaginatedResponse::paginateWithFallback(
-            queryFactory: fn () => $review->comments()
-                ->with(['author', 'contentReportState', 'operationHistories.actor', 'mentions.mentionedUser']),
-            perPage: (int) ($filters['comments_per_page'] ?? 10),
-            pageName: 'comments_page',
-            page: (int) ($filters['comments_page'] ?? 1),
-        );
+        $comments = $review->comments()
+            ->with(['author', 'contentReportState', 'operationHistories.actor', 'mentions.mentionedUser'])
+            ->paginate(
+                perPage: (int) ($filters['comments_per_page'] ?? 10),
+                pageName: 'comments_page',
+                page: (int) ($filters['comments_page'] ?? 1),
+            );
 
         return PaginatedResponse::fromPaginator(
             $comments,

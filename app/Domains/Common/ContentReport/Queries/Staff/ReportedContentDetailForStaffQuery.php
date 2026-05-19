@@ -37,7 +37,7 @@ final class ReportedContentDetailForStaffQuery
         return ContentReport::query()
             ->where('target_type', $targetClass)
             ->where('target_id', $targetId)
-            ->with('reporter:id,name,nickname,email')
+            ->with(['reporter:id,name,nickname,email,phone,warning_count,created_at', 'items'])
             ->latest('id');
     }
 
@@ -49,7 +49,7 @@ final class ReportedContentDetailForStaffQuery
         return ContentReport::query()
             ->where('target_type', $targetClass)
             ->where('target_id', $targetId)
-            ->with('reporter:id,name,nickname,email')
+            ->with(['reporter:id,name,nickname,email,phone,warning_count,created_at', 'items.target'])
             ->latest('id')
             ->first();
     }

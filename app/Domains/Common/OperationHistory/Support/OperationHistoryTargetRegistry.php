@@ -5,6 +5,7 @@ namespace App\Domains\Common\OperationHistory\Support;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Beauty\Models\Beauty;
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
@@ -17,13 +18,22 @@ use Illuminate\Database\Eloquent\Model;
 final class OperationHistoryTargetRegistry
 {
     public const string ALIAS_HOSPITAL = 'hospital';
+
     public const string ALIAS_BEAUTY = 'beauty';
+
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
+
     public const string ALIAS_HOSPITAL_EVALUATION = 'hospital_evaluation';
+
     public const string ALIAS_HOSPITAL_REVIEW = 'hospital_review';
+
     public const string ALIAS_HOSPITAL_REVIEW_COMMENT = 'hospital_review_comment';
+
     public const string ALIAS_TALK = 'talk';
+
     public const string ALIAS_TALK_COMMENT = 'talk_comment';
+
+    public const string ALIAS_CHAT_MESSAGE = 'chat_message';
 
     /**
      * @var array<string, class-string<Model>>
@@ -37,6 +47,7 @@ final class OperationHistoryTargetRegistry
         self::ALIAS_HOSPITAL_REVIEW_COMMENT => HospitalReviewComment::class,
         self::ALIAS_TALK => Talk::class,
         self::ALIAS_TALK_COMMENT => TalkComment::class,
+        self::ALIAS_CHAT_MESSAGE => ChatMessage::class,
     ];
 
     /**

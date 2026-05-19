@@ -20,7 +20,7 @@ final class ContentReportStateStatusUpdateForStaffRequest extends FormRequest
             'target_type' => ['required', Rule::in(ContentReportTargetRegistry::aliases())],
             'target_id' => ['required', 'integer', 'min:1'],
             'report_status' => ['required', Rule::in(ContentReportState::processableStatuses())],
-            'process_reason' => ['required_if:report_status,'.ContentReportState::STATUS_ADMIN_HIDDEN, 'nullable', 'string', 'max:500'],
+            'process_reason' => ['nullable', 'string', 'max:500'],
         ];
     }
 

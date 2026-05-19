@@ -19,6 +19,10 @@ final class ContentReportState extends Model
 
     public const string STATUS_NORMAL_VISIBLE = 'NORMAL_VISIBLE';
 
+    public const string STATUS_VALID = 'VALID';
+
+    public const string STATUS_INVALID = 'INVALID';
+
     public const string WARNING_STATUS_NONE = 'NONE';
 
     public const string WARNING_STATUS_WARNED = 'WARNED';
@@ -89,6 +93,8 @@ final class ContentReportState extends Model
             self::STATUS_AUTO_BLOCKED,
             self::STATUS_ADMIN_HIDDEN,
             self::STATUS_NORMAL_VISIBLE,
+            self::STATUS_VALID,
+            self::STATUS_INVALID,
         ];
     }
 
@@ -100,6 +106,8 @@ final class ContentReportState extends Model
         return [
             self::STATUS_ADMIN_HIDDEN,
             self::STATUS_NORMAL_VISIBLE,
+            self::STATUS_VALID,
+            self::STATUS_INVALID,
         ];
     }
 
@@ -149,6 +157,8 @@ final class ContentReportState extends Model
             self::STATUS_AUTO_BLOCKED => '자동차단',
             self::STATUS_ADMIN_HIDDEN => '노출중지',
             self::STATUS_NORMAL_VISIBLE => '정상노출',
+            self::STATUS_VALID => '적합',
+            self::STATUS_INVALID => '부적합',
         ];
     }
 

@@ -13,8 +13,7 @@ final class TalkCommentOperationHistoriesForStaffAction
     {
         Gate::authorize('view', $comment);
 
-        $operationHistories = PaginatedResponse::paginateWithFallback(
-            queryFactory: fn () => $comment->operationHistories()->with('actor'),
+        $operationHistories = $comment->operationHistories()->with('actor')->paginate(
             perPage: (int) ($filters['operation_histories_per_page'] ?? 10),
             pageName: 'operation_histories_page',
             page: (int) ($filters['operation_histories_page'] ?? 1),

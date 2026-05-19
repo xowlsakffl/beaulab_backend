@@ -13,13 +13,13 @@ final class TalkCommentsForStaffAction
     {
         Gate::authorize('view', $talk);
 
-        $comments = PaginatedResponse::paginateWithFallback(
-            queryFactory: fn () => $talk->comments()
-                ->with(['author', 'contentReportState', 'operationHistories.actor', 'mentions.mentionedUser']),
-            perPage: (int) ($filters['comments_per_page'] ?? 10),
-            pageName: 'comments_page',
-            page: (int) ($filters['comments_page'] ?? 1),
-        );
+        $comments = $talk->comments()
+            ->with(['author', 'contentReportState', 'operationHistories.actor', 'mentions.mentionedUser'])
+            ->paginate(
+                perPage: (int) ($filters['comments_per_page'] ?? 10),
+                pageName: 'comments_page',
+                page: (int) ($filters['comments_page'] ?? 1),
+            );
 
         return PaginatedResponse::fromPaginator(
             $comments,

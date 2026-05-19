@@ -6,6 +6,7 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Common\Support\PaginatedResponse;
 use App\Domains\Common\ContentReport\Models\ContentReport;
+use App\Domains\Common\ContentReport\Models\ContentReportItem;
 use App\Domains\Common\ContentReport\Queries\Staff\ReportedContentDetailForStaffQuery;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -29,8 +30,7 @@ final class ReportedContentReportsForStaffAction
         Gate::authorize('viewAny', $targetClass);
         $this->query->state($targetClass, $targetId);
 
-        $reports = PaginatedResponse::paginateWithFallback(
-            queryFactory: fn () => $this->query->reportsQuery($targetClass, $targetId),
+        $reports = $this->query->reportsQuery($targetClass, $targetId)->paginate(
             perPage: self::REPORTS_PER_PAGE,
             pageName: 'page',
             page: $page,
@@ -50,9 +50,32 @@ final class ReportedContentReportsForStaffAction
             'reason_label' => $report->reasonLabel(),
             'reason_text' => $report->reason_text,
             'reporter_ip' => $report->reporter_ip,
+            'items' => $this->items($report),
             'reporter' => $this->reporter($report),
             'created_at' => $report->created_at?->toISOString(),
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function items(ContentReport $report): array
+    {
+        if (! $report->relationLoaded('items')) {
+            return [];
+        }
+
+        return $report->items
+            ->map(static fn (ContentReportItem $item): array => [
+                'id' => (int) $item->id,
+                'target_type' => (string) $item->target_type,
+                'target_id' => (int) $item->target_id,
+                'target_author_id' => $item->target_author_id !== null ? (int) $item->target_author_id : null,
+                'content_snapshot' => $item->content_snapshot,
+                'created_at' => $item->created_at?->toISOString(),
+            ])
+            ->values()
+            ->all();
     }
 
     private function reporter(ContentReport $report): ?array

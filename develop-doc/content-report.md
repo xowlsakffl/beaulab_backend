@@ -54,10 +54,11 @@
 | `AUTO_BLOCKED` | 자동차단 | 1시간 내 신고 10건 이상으로 자동 미노출 |
 | `ADMIN_HIDDEN` | 노출중지 | Staff가 신고게시물 관리에서 노출중지 처리 |
 | `NORMAL_VISIBLE` | 정상노출 | Staff가 신고게시물 관리에서 정상노출 처리 |
+| `REEXPOSED` | 재노출 | 정상노출 처리 3회차부터 자동 전이 잠금 |
 | `VALID` | 적합 | Staff가 채팅 신고를 적합 처리 |
 | `INVALID` | 부적합 | Staff가 채팅 신고를 부적합 처리 |
 
-`AUTO_BLOCKED`, `ADMIN_HIDDEN` 상태인 대상은 일반 게시물관리 화면에서 노출/미노출 변경이 잠긴다. 이 상태는 신고게시물 관리에서만 정상노출/노출중지로 처리한다.
+`AUTO_BLOCKED`, `ADMIN_HIDDEN` 상태인 대상은 일반 게시물관리 화면에서 노출/미노출 변경이 잠긴다. 이 상태는 신고게시물 관리에서만 정상노출/노출중지로 처리한다. `NORMAL_VISIBLE`, `REEXPOSED`는 게시물관리 화면에도 상태로 표시하지만 노출/미노출 변경을 잠그지는 않는다.
 
 `VALID`, `INVALID`는 채팅 메시지 신고 전용 판정 상태다. 채팅 메시지는 앱 노출 상태를 직접 바꾸는 게시물이 아니므로 `ADMIN_HIDDEN`, `NORMAL_VISIBLE`를 재사용하지 않는다.
 
@@ -72,10 +73,11 @@
 5. 전체 신고 수(`report_count`)와 최근 1시간 신고 수(`recent_hour_report_count`)를 갱신한다.
 6. 최근 1시간 신고 수가 10건 이상이면 `AUTO_BLOCKED`로 바꾸고 대상 콘텐츠 `status`를 `INACTIVE`로 바꾼다.
 7. 기존 상태가 `NONE` 또는 `NORMAL_VISIBLE`이고 자동차단 기준 미만이면 `REPORTED`로 바꾼다.
+8. `normal_visible_count`가 3회 이상인 상태에서 추가 신고가 들어오면 `NORMAL_VISIBLE`은 `REEXPOSED`로 보정하고, 이후 자동 신고접수/자동차단으로 바꾸지 않는다.
 
 관리자가 `NORMAL_VISIBLE`로 처리하면 `recent_hour_report_count`를 0으로 초기화한다. 따라서 정상노출 직후 신고 1건만 추가되어도 바로 자동차단되지 않고, 정상노출 이후 다시 10건이 쌓여야 자동차단된다.
 
-`normal_visible_count`가 3 이상이면 `is_auto_action_locked()`가 true가 되어 이후 신고로 자동 신고접수/자동차단 상태가 되지 않는다.
+관리자가 정상노출을 3회차 처리하는 순간 상태는 `REEXPOSED`로 저장된다. `normal_visible_count`가 3 이상이면 `is_auto_action_locked()`가 true가 되어 이후 신고로 자동 신고접수/자동차단 상태가 되지 않는다.
 
 채팅 메시지는 콘텐츠 `status` 컬럼이 없으므로 신고 상태 집계만 처리하고 콘텐츠 `status` 변경은 하지 않는다.
 
@@ -102,7 +104,7 @@
 | 요청 상태 | 결과 |
 |---|---|
 | `ADMIN_HIDDEN` | 신고 상태를 노출중지로 바꾸고 대상 콘텐츠 `status`를 `INACTIVE`로 변경 |
-| `NORMAL_VISIBLE` | 신고 상태를 정상노출로 바꾸고 대상 콘텐츠 `status`를 `ACTIVE`로 변경 |
+| `NORMAL_VISIBLE` | 신고 상태를 정상노출로 바꾸고 대상 콘텐츠 `status`를 `ACTIVE`로 변경. 정상노출 3회차부터 저장 상태는 `REEXPOSED`가 됨 |
 | `VALID` | 채팅 신고를 적합 처리 |
 | `INVALID` | 채팅 신고를 부적합 처리 |
 

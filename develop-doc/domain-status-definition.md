@@ -418,6 +418,7 @@
 | `STATUS_AUTO_BLOCKED` | `AUTO_BLOCKED` | 자동차단 | 기준 시간 내 신고 누적으로 자동 미노출 |
 | `STATUS_ADMIN_HIDDEN` | `ADMIN_HIDDEN` | 노출중지 | 관리자가 신고게시물 관리에서 노출중지 처리 |
 | `STATUS_NORMAL_VISIBLE` | `NORMAL_VISIBLE` | 정상노출 | 관리자가 신고건을 정상노출 처리 |
+| `STATUS_REEXPOSED` | `REEXPOSED` | 재노출 | 정상노출 처리 3회차부터 자동 전이 잠금 |
 
 #### 경고 처리 상태 (`ContentReportState.warning_status`)
 
@@ -433,7 +434,8 @@
 - 신고 로그는 건별로 `content_reports`에 저장하고, 대상별 현재 상태는 `content_report_states`에 1건만 유지한다.
 - 1시간 내 신고 10건 이상이면 `AUTO_BLOCKED`로 변경하고 대상 콘텐츠 `status`를 `INACTIVE`로 변경한다.
 - 관리자가 `NORMAL_VISIBLE`로 처리하면 대상 콘텐츠 `status`는 `ACTIVE`가 되고 `recent_hour_report_count`는 0으로 초기화된다.
-- `NORMAL_VISIBLE` 처리 횟수(`normal_visible_count`)가 3회 이상이면 이후 신고는 자동 상태 변경 대상에서 제외한다.
+- `NORMAL_VISIBLE` 처리 횟수(`normal_visible_count`)가 3회차가 되면 상태는 `REEXPOSED`로 저장된다.
+- `REEXPOSED` 이후 신고는 자동 신고접수/자동차단 상태 변경 대상에서 제외한다.
 - 경고/무시는 `ADMIN_HIDDEN` 상태에서만 처리할 수 있다.
 - 신고 상태 변경과 경고/무시 변경은 대상 콘텐츠의 operation history에 기록한다.
 

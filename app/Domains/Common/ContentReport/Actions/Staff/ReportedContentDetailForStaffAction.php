@@ -9,6 +9,8 @@ use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Queries\Staff\ReportedContentDetailForStaffQuery;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
+use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalEvaluation\Dto\Staff\HospitalEvaluationForStaffDto;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Dto\Staff\HospitalReviewCommentForStaffDto;
@@ -50,7 +52,10 @@ final class ReportedContentDetailForStaffAction
             'target_type' => $targetAlias,
             'target_id' => $targetId,
             'target' => $this->targetToArray($target),
-            ...($target instanceof ChatMessage ? ['author' => $this->sender($target, true)] : []),
+            ...($target instanceof ChatMessage ? [
+                'author' => $this->sender($target, true),
+                'operation_histories' => $this->operationHistories($target),
+            ] : []),
             'report' => ContentReportStateForStaffDto::fromModel(
                 $state,
                 $latestReport,
@@ -196,6 +201,20 @@ final class ReportedContentDetailForStaffAction
             'warning_count' => (int) ($attributes['warning_count'] ?? 0),
             'created_at' => $user->created_at?->toISOString(),
         ];
+    }
+
+    private function operationHistories(Model $target): array
+    {
+        return OperationHistory::query()
+            ->where('target_type', $target::class)
+            ->where('target_id', (int) $target->getKey())
+            ->with('actor')
+            ->latest('id')
+            ->limit(10)
+            ->get()
+            ->map(fn (OperationHistory $history): array => OperationHistoryDto::fromModel($history)->toArray())
+            ->values()
+            ->all();
     }
 
     private function contentPreview(mixed $value): ?string

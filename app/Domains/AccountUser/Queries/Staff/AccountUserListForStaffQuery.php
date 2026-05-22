@@ -16,23 +16,33 @@ final class AccountUserListForStaffQuery
     public function paginate(array $filters): LengthAwarePaginator
     {
         $q = $filters['q'] ?? null;
+        $dateType = $filters['date_type'] ?? 'created_at';
         $startDate = $filters['start_date'] ?? null;
         $endDate = $filters['end_date'] ?? null;
+        $signupChannel = $filters['signup_channel'] ?? null;
         $status = $filters['status'] ?? null;
+        $warningCountMin = $filters['warning_count_min'] ?? null;
+        $warningCountMax = $filters['warning_count_max'] ?? null;
         $sort = $filters['sort'] ?? 'id';
         $direction = $filters['direction'] ?? 'desc';
         $perPage = $filters['per_page'] ?? 15;
 
-        $builder = AccountUser::query()->select([
+        $builder = AccountUser::query()->withTrashed()->select([
             'id',
             'name',
             'nickname',
             'email',
+            'phone',
+            'signup_channel',
             'status',
+            'warning_count',
             'email_verified_at',
             'last_login_at',
+            'last_accessed_at',
+            'last_access_ip',
             'created_at',
             'updated_at',
+            'deleted_at',
         ]);
 
         if ($q) {
@@ -40,20 +50,41 @@ final class AccountUserListForStaffQuery
                 $w->where('name', 'like', "%{$q}%")
                     ->orWhere('nickname', 'like', "%{$q}%")
                     ->orWhere('email', 'like', "%{$q}%");
+
+                if (ctype_digit((string) $q)) {
+                    $w->orWhere('id', (int) $q);
+                }
             });
         }
 
         if ($startDate && $endDate) {
-            $builder->whereDate('created_at', '>=', $startDate)
-                ->whereDate('created_at', '<=', $endDate);
+            $builder->whereDate($dateType, '>=', $startDate)
+                ->whereDate($dateType, '<=', $endDate);
         } elseif ($startDate) {
-            $builder->whereDate('created_at', '>=', $startDate);
+            $builder->whereDate($dateType, '>=', $startDate);
         } elseif ($endDate) {
-            $builder->whereDate('created_at', '<=', $endDate);
+            $builder->whereDate($dateType, '<=', $endDate);
         }
 
-        if (is_array($status) && $status !== []) {
-            $builder->whereIn('status', $status);
+        if ($signupChannel) {
+            $builder->where('signup_channel', $signupChannel);
+        }
+
+        if ($status === AccountUser::STATUS_WITHDRAWN) {
+            $builder->where(function ($w) {
+                $w->where('status', AccountUser::STATUS_WITHDRAWN)
+                    ->orWhereNotNull('deleted_at');
+            });
+        } elseif ($status) {
+            $builder->where('status', $status)->whereNull('deleted_at');
+        }
+
+        if ($warningCountMin !== null && $warningCountMin !== '') {
+            $builder->where('warning_count', '>=', (int) $warningCountMin);
+        }
+
+        if ($warningCountMax !== null && $warningCountMax !== '') {
+            $builder->where('warning_count', '<=', (int) $warningCountMax);
         }
 
         $builder->orderBy($sort, $direction);

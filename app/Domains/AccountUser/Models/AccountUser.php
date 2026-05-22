@@ -35,9 +35,24 @@ final class AccountUser extends Authenticatable
 
     public const int WARNING_BLOCK_THRESHOLD = 10;
 
+    public const SIGNUP_CHANNEL_EMAIL = 'EMAIL';
+
+    public const SIGNUP_CHANNEL_KAKAO = 'KAKAO';
+
+    public const SIGNUP_CHANNEL_NAVER = 'NAVER';
+
+    public const SIGNUP_CHANNEL_APPLE = 'APPLE';
+
+    public const SIGNUP_CHANNEL_FACEBOOK = 'FACEBOOK';
+
+    public const SIGNUP_CHANNEL_EMAIL_NO_CONTACT = 'EMAIL_NO_CONTACT';
+
+    public const SIGNUP_CHANNEL_UNKNOWN = 'UNKNOWN';
+
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
         'warning_count' => 0,
+        'signup_channel' => self::SIGNUP_CHANNEL_EMAIL,
     ];
 
     /**
@@ -48,12 +63,15 @@ final class AccountUser extends Authenticatable
         'nickname',
         'email',
         'phone',
+        'signup_channel',
         'password',
         'status',
         'warning_count',
         'blocked_at',
         'email_verified_at',
         'last_login_at',
+        'last_accessed_at',
+        'last_access_ip',
     ];
 
     /**
@@ -69,8 +87,59 @@ final class AccountUser extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
+            'last_accessed_at' => 'datetime',
             'warning_count' => 'integer',
             'blocked_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_ACTIVE,
+            self::STATUS_SUSPENDED,
+            self::STATUS_BLOCKED,
+            self::STATUS_WITHDRAWN,
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function statusLabels(): array
+    {
+        return [
+            self::STATUS_ACTIVE => '정상',
+            self::STATUS_SUSPENDED => '정지',
+            self::STATUS_BLOCKED => '차단',
+            self::STATUS_WITHDRAWN => '탈퇴',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function signupChannels(): array
+    {
+        return array_keys(self::signupChannelLabels());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function signupChannelLabels(): array
+    {
+        return [
+            self::SIGNUP_CHANNEL_KAKAO => '카카오톡',
+            self::SIGNUP_CHANNEL_NAVER => '네이버',
+            self::SIGNUP_CHANNEL_EMAIL => '이메일',
+            self::SIGNUP_CHANNEL_APPLE => '애플',
+            self::SIGNUP_CHANNEL_FACEBOOK => '페이스북',
+            self::SIGNUP_CHANNEL_EMAIL_NO_CONTACT => '이메일(연락처 x)',
+            self::SIGNUP_CHANNEL_UNKNOWN => '미확인',
         ];
     }
 
@@ -87,6 +156,11 @@ final class AccountUser extends Authenticatable
     public function blockerRelations(): HasMany
     {
         return $this->hasMany(AccountUserBlock::class, 'blocked_user_id');
+    }
+
+    public function accessLogs(): HasMany
+    {
+        return $this->hasMany(AccountUserAccessLog::class, 'account_user_id');
     }
 
     public function isActive(): bool

@@ -34,9 +34,11 @@ final class ContentReportCreateForUserAction
         $reportItems = $this->reportItems($target, $payload);
 
         DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload, $reportItems): void {
-            if ($this->query->hasExistingReportItem($reporterUserId, $reportItems)) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 신고한 콘텐츠입니다.');
-            }
+            // 테스트 중복 신고 확인을 위해 1인 1신고 정책을 임시 비활성화한다.
+            // 운영 기준 복구 시 아래 검사를 다시 활성화하고 content_report_items unique 제약도 함께 복구해야 한다.
+            // if ($this->query->hasExistingReportItem($reporterUserId, $reportItems)) {
+            //     throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 신고한 콘텐츠입니다.');
+            // }
 
             try {
                 $report = $this->query->createReport([

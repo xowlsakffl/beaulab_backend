@@ -9,6 +9,7 @@ use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Actions\Staff\AccountUserDeleteForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserGetForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserListForStaffAction;
+use App\Domains\AccountUser\Actions\Staff\AccountUserSummaryForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserUpdateForStaffAction;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Modules\Staff\Http\Requests\AccountUser\AccountUserListForStaffRequest;
@@ -31,6 +32,15 @@ final class AccountUserForStaffController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    /**
+     * GET /api/v1/staff/users/summary
+     * (Beaulab) Staff 전용 일반회원 목록 상단 집계
+     */
+    public function getAccountUserSummaryForStaff(AccountUserSummaryForStaffAction $action)
+    {
+        return ApiResponse::success($action->execute());
     }
 
     /**

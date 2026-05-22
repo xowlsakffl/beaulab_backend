@@ -20,6 +20,7 @@ final class AccountUserFactory extends Factory
             'nickname' => $this->faker->unique()->userName(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
+            'signup_channel' => $this->faker->randomElement(AccountUser::signupChannels()),
 
             'password' => Hash::make('password'),
 
@@ -28,6 +29,8 @@ final class AccountUserFactory extends Factory
             'email_verified_at' => now(),
 
             'last_login_at' => null,
+            'last_accessed_at' => $this->faker->optional(0.75)->dateTimeBetween('-45 days', 'now'),
+            'last_access_ip' => $this->faker->optional(0.75)->ipv4(),
         ];
     }
 

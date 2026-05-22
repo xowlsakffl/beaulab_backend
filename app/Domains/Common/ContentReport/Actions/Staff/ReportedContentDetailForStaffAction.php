@@ -52,8 +52,8 @@ final class ReportedContentDetailForStaffAction
             'target_type' => $targetAlias,
             'target_id' => $targetId,
             'target' => $this->targetToArray($target),
+            'author' => $this->targetAuthor($target),
             ...($target instanceof ChatMessage ? [
-                'author' => $this->sender($target, true),
                 'operation_histories' => $this->operationHistories($target),
             ] : []),
             'report' => ContentReportStateForStaffDto::fromModel(
@@ -172,6 +172,19 @@ final class ReportedContentDetailForStaffAction
         }
 
         return $this->userToArray($message->getRelation('sender'), $includeDetail);
+    }
+
+    private function targetAuthor(Model $target): ?array
+    {
+        if ($target instanceof ChatMessage) {
+            return $this->sender($target, true);
+        }
+
+        if (! $target->relationLoaded('author') || ! $target->getRelation('author')) {
+            return null;
+        }
+
+        return $this->userToArray($target->getRelation('author'), true);
     }
 
     private function userToArray(Model $user, bool $includeDetail = false): array

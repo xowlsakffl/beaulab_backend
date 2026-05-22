@@ -34,7 +34,6 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // 실제 중복 신고 제한은 content_report_items의 reporter + target unique 제약으로 관리한다.
             $table->index('reporter_user_id', 'content_reports_reporter_user_idx');
             $table->index(['target_type', 'target_id', 'created_at'], 'content_reports_target_created_idx');
             $table->index(['target_type', 'target_id', 'reason'], 'content_reports_target_reason_idx');
@@ -70,7 +69,10 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['reporter_user_id', 'target_type', 'target_id'], 'content_report_items_reporter_target_unique');
+            // 테스트 중복 신고 확인을 위해 1인 1신고 unique 제약을 임시 비활성화한다.
+            // 운영 기준 복구 시 아래 unique 제약으로 되돌리고 content_report_items_reporter_target_idx는 제거해야 한다.
+            // $table->unique(['reporter_user_id', 'target_type', 'target_id'], 'content_report_items_reporter_target_unique');
+            $table->index(['reporter_user_id', 'target_type', 'target_id'], 'content_report_items_reporter_target_idx');
             $table->index('content_report_id', 'content_report_items_report_idx');
             $table->index(['target_type', 'target_id', 'created_at'], 'content_report_items_target_created_idx');
             $table->index(['target_author_id', 'created_at'], 'content_report_items_author_created_idx');

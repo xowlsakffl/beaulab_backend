@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Staff\Http\Requests\AccountUser;
 
+use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * AccountUserListForStaffRequest 역할 정의.
@@ -12,13 +14,6 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 final class AccountUserListForStaffRequest extends FormRequest
 {
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'status' => $this->normalizeToArray($this->input('status')),
-        ]);
-    }
-
     public function authorize(): bool
     {
         // 이미 라우트에서 검사함
@@ -29,13 +24,17 @@ final class AccountUserListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
+            'date_type' => ['nullable', 'in:created_at,last_accessed_at'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
 
-            'status' => ['nullable', 'array'],
-            'status.*' => ['in:ACTIVE,SUSPENDED,BLOCKED'],
+            'signup_channel' => ['nullable', Rule::in(AccountUser::signupChannels())],
+            'status' => ['nullable', Rule::in(AccountUser::statuses())],
+            'warning_count_min' => ['nullable', 'integer', 'min:0'],
+            'warning_count_max' => ['nullable', 'integer', 'min:0', 'gte:warning_count_min'],
 
-            'sort' => ['nullable', 'in:id,name,nickname,status,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,email,nickname,name,signup_channel,status,warning_count,created_at,last_accessed_at,last_access_ip'],
+            'direction' => ['nullable', 'in:asc,desc'],
 
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
@@ -48,57 +47,34 @@ final class AccountUserListForStaffRequest extends FormRequest
 
         return [
             'q' => $validate['q'] ?? null,
+            'date_type' => $validate['date_type'] ?? 'created_at',
             'start_date' => $validate['start_date'] ?? null,
             'end_date' => $validate['end_date'] ?? null,
+            'signup_channel' => $validate['signup_channel'] ?? null,
             'status' => $validate['status'] ?? null,
+            'warning_count_min' => $validate['warning_count_min'] ?? null,
+            'warning_count_max' => $validate['warning_count_max'] ?? null,
 
             'sort' => $validate['sort'] ?? 'id',
+            'direction' => $validate['direction'] ?? 'desc',
 
             'per_page' => (int) ($validate['per_page'] ?? 15),
         ];
-    }
-
-    /**
-     * @return array<int, string>|null
-     */
-    private function normalizeToArray(mixed $value): ?array
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        if (is_string($value)) {
-            $trimmed = trim($value);
-            $decoded = json_decode($trimmed, true);
-            $value = str_starts_with($trimmed, '[')
-                && json_last_error() === JSON_ERROR_NONE
-                && is_array($decoded)
-                && array_is_list($decoded)
-                ? $decoded
-                : explode(',', $trimmed);
-        }
-
-        if (! is_array($value)) {
-            return null;
-        }
-
-        $normalized = array_values(array_filter(array_map(
-            static fn ($item) => is_string($item) ? trim($item) : null,
-            $value,
-        )));
-
-        return $normalized === [] ? null : $normalized;
     }
 
     public function attributes(): array
     {
         return [
             'q' => '검색어',
+            'date_type' => '기간 기준',
             'start_date' => '시작일',
             'end_date' => '종료일',
-            'status' => '운영 상태',
-            'status.*' => '운영 상태',
+            'signup_channel' => '가입경로',
+            'status' => '회원상태',
+            'warning_count_min' => '경고횟수 최소값',
+            'warning_count_max' => '경고횟수 최대값',
             'sort' => '정렬 기준',
+            'direction' => '정렬 방향',
             'page' => '페이지',
             'per_page' => '페이지당 개수',
         ];

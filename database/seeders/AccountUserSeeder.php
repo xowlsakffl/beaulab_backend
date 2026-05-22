@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Domains\AccountUser\Models\AccountUserAccessLog;
 use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Database\Seeder;
 
@@ -30,5 +31,19 @@ final class AccountUserSeeder extends Seeder
             ->count(2)
             ->blocked()
             ->create();
+
+        AccountUser::query()->each(function (AccountUser $user): void {
+            if ($user->last_accessed_at === null) {
+                return;
+            }
+
+            AccountUserAccessLog::query()->create([
+                'account_user_id' => $user->id,
+                'ip' => $user->last_access_ip,
+                'user_agent' => 'Seeder',
+                'platform' => fake()->randomElement(['app', 'web']),
+                'accessed_at' => $user->last_accessed_at,
+            ]);
+        });
     }
 }

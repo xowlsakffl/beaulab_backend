@@ -7,6 +7,7 @@ namespace App\Modules\Staff\Http\Requests\AccountUser;
 use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 /**
  * AccountUserListForStaffRequest 역할 정의.
@@ -31,7 +32,7 @@ final class AccountUserListForStaffRequest extends FormRequest
             'signup_channel' => ['nullable', Rule::in(AccountUser::signupChannels())],
             'status' => ['nullable', Rule::in(AccountUser::statuses())],
             'warning_count_min' => ['nullable', 'integer', 'min:0'],
-            'warning_count_max' => ['nullable', 'integer', 'min:0', 'gte:warning_count_min'],
+            'warning_count_max' => ['nullable', 'integer', 'min:0'],
 
             'sort' => ['nullable', 'in:id,email,nickname,name,signup_channel,status,warning_count,created_at,last_accessed_at,last_access_ip'],
             'direction' => ['nullable', 'in:asc,desc'],
@@ -39,6 +40,22 @@ final class AccountUserListForStaffRequest extends FormRequest
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $min = $this->input('warning_count_min');
+            $max = $this->input('warning_count_max');
+
+            if ($min === null || $min === '' || $max === null || $max === '') {
+                return;
+            }
+
+            if ((int) $max < (int) $min) {
+                $validator->errors()->add('warning_count_max', '경고횟수 최대값은 최소값보다 크거나 같아야 합니다.');
+            }
+        });
     }
 
     public function filters(): array

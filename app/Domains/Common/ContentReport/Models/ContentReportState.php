@@ -109,8 +109,6 @@ final class ContentReportState extends Model
         return [
             self::STATUS_ADMIN_HIDDEN,
             self::STATUS_NORMAL_VISIBLE,
-            self::STATUS_VALID,
-            self::STATUS_INVALID,
         ];
     }
 

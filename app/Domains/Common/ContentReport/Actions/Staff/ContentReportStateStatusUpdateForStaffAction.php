@@ -57,7 +57,7 @@ final class ContentReportStateStatusUpdateForStaffAction
                 $this->applyTargetStatus(
                     target: $target,
                     status: 'INACTIVE',
-                    reason: $this->adminHiddenHistoryReason($target, $processReason),
+                    reason: $this->adminHiddenHistoryReason($processReason),
                     reportStatusBefore: $previousReportStatus,
                     reportStatusAfter: ContentReportState::STATUS_ADMIN_HIDDEN,
                     actor: $actor instanceof Model ? $actor : null,
@@ -84,41 +84,13 @@ final class ContentReportStateStatusUpdateForStaffAction
                 $this->applyTargetStatus(
                     target: $target,
                     status: 'ACTIVE',
-                    reason: $this->normalVisibleHistoryReason($target, $processReason, $reportStatusAfter),
+                    reason: $this->normalVisibleHistoryReason($processReason, $reportStatusAfter),
                     reportStatusBefore: $previousReportStatus,
                     reportStatusAfter: $reportStatusAfter,
                     actor: $actor instanceof Model ? $actor : null,
                     source: $reportStatusAfter === ContentReportState::STATUS_REEXPOSED
                         ? 'staff.content_report.reexposed'
                         : 'staff.content_report.normal_visible',
-                );
-            }
-
-            if ($nextReportStatus === ContentReportState::STATUS_VALID) {
-                $state->report_status = ContentReportState::STATUS_VALID;
-                $state->process_reason = $processReason;
-                $this->applyTargetStatus(
-                    target: $target,
-                    status: 'INACTIVE',
-                    reason: $this->validHistoryReason($processReason),
-                    reportStatusBefore: $previousReportStatus,
-                    reportStatusAfter: ContentReportState::STATUS_VALID,
-                    actor: $actor instanceof Model ? $actor : null,
-                    source: 'staff.content_report.valid',
-                );
-            }
-
-            if ($nextReportStatus === ContentReportState::STATUS_INVALID) {
-                $state->report_status = ContentReportState::STATUS_INVALID;
-                $state->process_reason = $processReason;
-                $this->applyTargetStatus(
-                    target: $target,
-                    status: 'ACTIVE',
-                    reason: $this->invalidHistoryReason($processReason),
-                    reportStatusBefore: $previousReportStatus,
-                    reportStatusAfter: ContentReportState::STATUS_INVALID,
-                    actor: $actor instanceof Model ? $actor : null,
-                    source: 'staff.content_report.invalid',
                 );
             }
 
@@ -141,10 +113,7 @@ final class ContentReportStateStatusUpdateForStaffAction
                 ContentReportState::STATUS_ADMIN_HIDDEN,
                 ContentReportState::STATUS_NORMAL_VISIBLE,
             ]
-            : [
-                ContentReportState::STATUS_VALID,
-                ContentReportState::STATUS_INVALID,
-            ];
+            : [];
 
         if (in_array($nextReportStatus, $allowedStatuses, true)) {
             return;
@@ -160,12 +129,8 @@ final class ContentReportStateStatusUpdateForStaffAction
         return $reason === '' ? null : $reason;
     }
 
-    private function adminHiddenHistoryReason(Model $target, ?string $processReason): string
+    private function adminHiddenHistoryReason(?string $processReason): string
     {
-        if (! $this->hasStatusColumn($target)) {
-            return $processReason === null ? '신고 적합 처리' : "신고 적합 처리 - {$processReason}";
-        }
-
         if ($processReason === null) {
             return '신고 처리 노출중지';
         }
@@ -173,12 +138,8 @@ final class ContentReportStateStatusUpdateForStaffAction
         return "신고 처리 노출중지 - {$processReason}";
     }
 
-    private function normalVisibleHistoryReason(Model $target, ?string $processReason, string $reportStatusAfter): string
+    private function normalVisibleHistoryReason(?string $processReason, string $reportStatusAfter): string
     {
-        if (! $this->hasStatusColumn($target)) {
-            return $processReason ?? '신고 부적합 처리';
-        }
-
         if ($processReason !== null) {
             return $processReason;
         }
@@ -186,16 +147,6 @@ final class ContentReportStateStatusUpdateForStaffAction
         return $reportStatusAfter === ContentReportState::STATUS_REEXPOSED
             ? '신고 처리 재노출'
             : '신고 처리 정상노출';
-    }
-
-    private function validHistoryReason(?string $processReason): string
-    {
-        return $processReason === null ? '신고 적합 처리' : "신고 적합 처리 - {$processReason}";
-    }
-
-    private function invalidHistoryReason(?string $processReason): string
-    {
-        return $processReason ?? '신고 부적합 처리';
     }
 
     private function applyTargetStatus(

@@ -5,6 +5,7 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\ContentReport\Queries\Staff\ContentReportStateStatusUpdateForStaffQuery;
@@ -102,6 +103,10 @@ final class ContentReportWarningStatusUpdateForStaffAction
 
     private function canProcessWarning(Model $target, string $reportStatus): bool
     {
+        if ($target instanceof ChatMessage) {
+            return $reportStatus !== ContentReportState::STATUS_NONE;
+        }
+
         if (Schema::hasColumn($target->getTable(), 'status')) {
             return $reportStatus === ContentReportState::STATUS_ADMIN_HIDDEN;
         }

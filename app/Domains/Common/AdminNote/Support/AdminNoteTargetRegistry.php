@@ -4,6 +4,7 @@ namespace App\Domains\Common\AdminNote\Support;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
@@ -19,6 +20,7 @@ final class AdminNoteTargetRegistry
     public const string ALIAS_HOSPITAL = 'hospital';
     public const string ALIAS_BEAUTY = 'beauty';
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
+    public const string ALIAS_ACCOUNT_USER = 'account_user';
 
     /**
      * @var array<string, class-string<Model>>
@@ -27,6 +29,7 @@ final class AdminNoteTargetRegistry
         self::ALIAS_HOSPITAL => Hospital::class,
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
+        self::ALIAS_ACCOUNT_USER => AccountUser::class,
     ];
 
     /**
@@ -72,6 +75,10 @@ final class AdminNoteTargetRegistry
 
         if ($className === null) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 메모 대상입니다.');
+        }
+
+        if ($className === AccountUser::class) {
+            return AccountUser::withTrashed()->findOrFail($id);
         }
 
         return $className::query()->findOrFail($id);

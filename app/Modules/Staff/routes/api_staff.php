@@ -161,6 +161,7 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     Route::get('users/summary', [AccountUserForStaffController::class, 'getAccountUserSummaryForStaff'])
         ->name('users.getAccountUserSummaryForStaff');
     Route::get('users/{user}', [AccountUserForStaffController::class, 'getAccountUserForStaff'])
+        ->withTrashed()
         ->name('users.getAccountUserForStaff');
     Route::match(['post', 'put', 'patch'], 'users/{user}', [AccountUserForStaffController::class, 'updateAccountUserForStaff'])
         ->name('users.updateAccountUserForStaff');

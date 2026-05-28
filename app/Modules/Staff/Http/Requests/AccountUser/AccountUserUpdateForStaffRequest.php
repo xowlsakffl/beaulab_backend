@@ -50,6 +50,12 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
             ],
             'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
             'status' => ['sometimes', 'required', 'in:ACTIVE,SUSPENDED,BLOCKED'],
+            'comment_notification_enabled' => ['sometimes', 'boolean'],
+            'note_notification_enabled' => ['sometimes', 'boolean'],
+            'marketing_sms_agreed' => ['sometimes', 'boolean'],
+            'marketing_email_agreed' => ['sometimes', 'boolean'],
+            'marketing_push_agreed' => ['sometimes', 'boolean'],
+            'marketing_night_push_agreed' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -60,6 +66,12 @@ final class AccountUserUpdateForStaffRequest extends FormRequest
             'nickname' => '닉네임',
             'phone' => '전화번호',
             'status' => '운영 상태',
+            'comment_notification_enabled' => '댓글 알림 동의 여부',
+            'note_notification_enabled' => '쪽지 알림 동의 여부',
+            'marketing_sms_agreed' => '마케팅 SMS 수신 동의 여부',
+            'marketing_email_agreed' => '마케팅 이메일 수신 동의 여부',
+            'marketing_push_agreed' => '마케팅 푸시 수신 동의 여부',
+            'marketing_night_push_agreed' => '마케팅 야간푸시 수신 동의 여부',
         ];
     }
 }

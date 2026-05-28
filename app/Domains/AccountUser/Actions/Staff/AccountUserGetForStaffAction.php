@@ -6,6 +6,7 @@ namespace App\Domains\AccountUser\Actions\Staff;
 
 use App\Domains\AccountUser\Dto\Staff\AccountUserForStaffDetailDto;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\AccountUser\Queries\Staff\AccountUserGetForStaffQuery;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -14,12 +15,21 @@ use Illuminate\Support\Facades\Gate;
  */
 final class AccountUserGetForStaffAction
 {
+    public function __construct(
+        private readonly AccountUserGetForStaffQuery $query,
+    ) {}
+
     public function execute(AccountUser $user): array
     {
         Gate::authorize('view', $user);
 
         return [
-            'user' => AccountUserForStaffDetailDto::fromModel($user)->toArray(),
+            'user' => AccountUserForStaffDetailDto::fromModel(
+                $user,
+                $this->query->activityCounts($user),
+                $this->query->reportedCounts($user),
+                $this->query->recentAccessLogs($user),
+            )->toArray(),
         ];
     }
 }

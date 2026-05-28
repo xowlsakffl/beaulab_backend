@@ -22,7 +22,9 @@ final class AccountUserSummaryForStaffQuery
         $todayStart = Carbon::today();
         $last30DaysStart = Carbon::now()->subDays(30);
 
-        $totalUsers = AccountUser::query()->withTrashed()->count();
+        $totalUsers = AccountUser::query()
+            ->where('status', '!=', AccountUser::STATUS_WITHDRAWN)
+            ->count();
         $withdrawnUsers = AccountUser::query()
             ->withTrashed()
             ->where(function ($query) {
@@ -32,7 +34,7 @@ final class AccountUserSummaryForStaffQuery
             ->count();
 
         $signupCounts = AccountUser::query()
-            ->withTrashed()
+            ->where('status', '!=', AccountUser::STATUS_WITHDRAWN)
             ->selectRaw('signup_channel, COUNT(*) as aggregate_count')
             ->groupBy('signup_channel')
             ->pluck('aggregate_count', 'signup_channel');
@@ -60,11 +62,10 @@ final class AccountUserSummaryForStaffQuery
             'total_users' => $totalUsers,
             'withdrawn_users' => $withdrawnUsers,
             'blocked_users' => AccountUser::query()
-                ->withTrashed()
                 ->where('status', AccountUser::STATUS_BLOCKED)
                 ->count(),
             'warned_users' => AccountUser::query()
-                ->withTrashed()
+                ->where('status', '!=', AccountUser::STATUS_WITHDRAWN)
                 ->where('warning_count', '>', 0)
                 ->count(),
             'signup_channels' => $signupChannels,

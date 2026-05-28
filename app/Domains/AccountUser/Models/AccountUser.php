@@ -3,6 +3,7 @@
 namespace App\Domains\AccountUser\Models;
 
 use App\Common\Concerns\HasAuditLogs;
+use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use Database\Factories\AccountUserFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +20,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 final class AccountUser extends Authenticatable
 {
-    use HasApiTokens, HasAuditLogs, HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use HasAdminNotes, HasApiTokens, HasAuditLogs, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     protected string $guard_name = 'user';
 
@@ -68,6 +69,13 @@ final class AccountUser extends Authenticatable
         'status',
         'warning_count',
         'blocked_at',
+        'withdrawal_reason',
+        'comment_notification_enabled',
+        'note_notification_enabled',
+        'marketing_sms_agreed',
+        'marketing_email_agreed',
+        'marketing_push_agreed',
+        'marketing_night_push_agreed',
         'email_verified_at',
         'last_login_at',
         'last_accessed_at',
@@ -90,6 +98,12 @@ final class AccountUser extends Authenticatable
             'last_accessed_at' => 'datetime',
             'warning_count' => 'integer',
             'blocked_at' => 'datetime',
+            'comment_notification_enabled' => 'boolean',
+            'note_notification_enabled' => 'boolean',
+            'marketing_sms_agreed' => 'boolean',
+            'marketing_email_agreed' => 'boolean',
+            'marketing_push_agreed' => 'boolean',
+            'marketing_night_push_agreed' => 'boolean',
         ];
     }
 

@@ -23,6 +23,13 @@ return new class extends Migration
             $table->string('status')->default('ACTIVE')->comment('계정 상태(ACTIVE, SUSPENDED, BLOCKED, WITHDRAWN)');
             $table->unsignedInteger('warning_count')->default(0)->comment('신고 처리 경고 누적 횟수');
             $table->timestamp('blocked_at')->nullable()->comment('차단 처리 시각');
+            $table->string('withdrawal_reason', 500)->nullable()->comment('탈퇴 사유');
+            $table->boolean('comment_notification_enabled')->default(true)->comment('댓글 알림 동의 여부');
+            $table->boolean('note_notification_enabled')->default(true)->comment('쪽지 알림 동의 여부');
+            $table->boolean('marketing_sms_agreed')->default(false)->comment('마케팅 SMS 수신 동의 여부');
+            $table->boolean('marketing_email_agreed')->default(false)->comment('마케팅 이메일 수신 동의 여부');
+            $table->boolean('marketing_push_agreed')->default(false)->comment('마케팅 푸시 수신 동의 여부');
+            $table->boolean('marketing_night_push_agreed')->default(false)->comment('마케팅 야간푸시 수신 동의 여부');
             $table->timestamp('last_login_at')->nullable()->comment('마지막 로그인 시각');
             $table->timestamp('last_accessed_at')->nullable()->comment('마지막 foreground 접속 기록 시각');
             $table->string('last_access_ip', 45)->nullable()->comment('마지막 foreground 접속 IP');

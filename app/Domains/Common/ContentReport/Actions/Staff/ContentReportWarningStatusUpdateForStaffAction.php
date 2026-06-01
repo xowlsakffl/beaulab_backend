@@ -104,7 +104,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
     private function canProcessWarning(Model $target, string $reportStatus): bool
     {
         if ($target instanceof ChatMessage) {
-            return $reportStatus !== ContentReportState::STATUS_NONE;
+            return $reportStatus === ContentReportState::STATUS_VALID;
         }
 
         if (Schema::hasColumn($target->getTable(), 'status')) {

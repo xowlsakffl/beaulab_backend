@@ -109,6 +109,8 @@ final class ContentReportState extends Model
         return [
             self::STATUS_ADMIN_HIDDEN,
             self::STATUS_NORMAL_VISIBLE,
+            self::STATUS_VALID,
+            self::STATUS_INVALID,
         ];
     }
 
@@ -159,8 +161,8 @@ final class ContentReportState extends Model
             self::STATUS_ADMIN_HIDDEN => '노출중지',
             self::STATUS_NORMAL_VISIBLE => '정상노출',
             self::STATUS_REEXPOSED => '재노출',
-            self::STATUS_VALID => '적합',
-            self::STATUS_INVALID => '부적합',
+            self::STATUS_VALID => '신고',
+            self::STATUS_INVALID => '무시',
         ];
     }
 

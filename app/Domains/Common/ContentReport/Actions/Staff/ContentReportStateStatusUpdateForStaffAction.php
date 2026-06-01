@@ -94,6 +94,34 @@ final class ContentReportStateStatusUpdateForStaffAction
                 );
             }
 
+            if ($nextReportStatus === ContentReportState::STATUS_VALID) {
+                $state->report_status = ContentReportState::STATUS_VALID;
+                $state->process_reason = $processReason;
+                $this->applyTargetStatus(
+                    target: $target,
+                    status: 'INACTIVE',
+                    reason: $this->validHistoryReason($processReason),
+                    reportStatusBefore: $previousReportStatus,
+                    reportStatusAfter: ContentReportState::STATUS_VALID,
+                    actor: $actor instanceof Model ? $actor : null,
+                    source: 'staff.content_report.valid',
+                );
+            }
+
+            if ($nextReportStatus === ContentReportState::STATUS_INVALID) {
+                $state->report_status = ContentReportState::STATUS_INVALID;
+                $state->process_reason = $processReason;
+                $this->applyTargetStatus(
+                    target: $target,
+                    status: 'ACTIVE',
+                    reason: $this->invalidHistoryReason($processReason),
+                    reportStatusBefore: $previousReportStatus,
+                    reportStatusAfter: ContentReportState::STATUS_INVALID,
+                    actor: $actor instanceof Model ? $actor : null,
+                    source: 'staff.content_report.invalid',
+                );
+            }
+
             $state->processed_by = $actor instanceof Model ? (int) $actor->getKey() : null;
             $state->save();
             $state->load('processedBy:id,name,email');
@@ -113,7 +141,10 @@ final class ContentReportStateStatusUpdateForStaffAction
                 ContentReportState::STATUS_ADMIN_HIDDEN,
                 ContentReportState::STATUS_NORMAL_VISIBLE,
             ]
-            : [];
+            : [
+                ContentReportState::STATUS_VALID,
+                ContentReportState::STATUS_INVALID,
+            ];
 
         if (in_array($nextReportStatus, $allowedStatuses, true)) {
             return;
@@ -147,6 +178,16 @@ final class ContentReportStateStatusUpdateForStaffAction
         return $reportStatusAfter === ContentReportState::STATUS_REEXPOSED
             ? '신고 처리 재노출'
             : '신고 처리 정상노출';
+    }
+
+    private function validHistoryReason(?string $processReason): string
+    {
+        return $processReason === null ? '신고 처리' : "신고 처리 - {$processReason}";
+    }
+
+    private function invalidHistoryReason(?string $processReason): string
+    {
+        return $processReason === null ? '신고 무시 처리' : "신고 무시 처리 - {$processReason}";
     }
 
     private function applyTargetStatus(

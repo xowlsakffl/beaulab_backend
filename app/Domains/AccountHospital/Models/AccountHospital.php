@@ -52,8 +52,6 @@ class AccountHospital extends Authenticatable
         'hospital_id',
         'email_verified_at',
         'last_login_at',
-        'hospital_id',
-        'beauty_id'
     ];
 
     /**

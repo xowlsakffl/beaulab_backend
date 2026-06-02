@@ -27,8 +27,8 @@ final class HospitalGetForStaffAction
             $relations[] = 'businessRegistration.certificateMedia';
         }
 
-        if (in_array('account_hospitals', $include, true)) {
-            $relations[] = 'accountHospitals.roles';
+        if (in_array('account_hospital', $include, true)) {
+            $relations[] = 'accountHospital.roles';
         }
 
         if (in_array('doctors', $include, true)) {

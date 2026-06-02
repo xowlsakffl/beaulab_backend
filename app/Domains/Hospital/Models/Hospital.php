@@ -73,9 +73,9 @@ final class Hospital extends Model
         return HospitalFactory::new();
     }
 
-    public function accountHospitals(): HasMany
+    public function accountHospital(): HasOne
     {
-        return $this->hasMany(AccountHospital::class, 'hospital_id');
+        return $this->hasOne(AccountHospital::class, 'hospital_id');
     }
 
 

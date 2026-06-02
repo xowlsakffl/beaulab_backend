@@ -28,7 +28,7 @@ final class HospitalGetForStaffRequest extends FormRequest
     {
         return [
             'include' => ['nullable', 'array'],
-            'include.*' => ['in:business_registration,account_hospitals,doctors,categories,features'],
+            'include.*' => ['in:business_registration,account_hospital,doctors,categories,features'],
         ];
     }
 
@@ -66,7 +66,9 @@ final class HospitalGetForStaffRequest extends FormRequest
         }
 
         $normalized = array_values(array_filter(array_map(
-            static fn ($item) => is_string($item) ? trim($item) : null,
+            static fn ($item) => is_string($item)
+                ? (trim($item) === 'account_hospitals' ? 'account_hospital' : trim($item))
+                : null,
             $value,
         )));
 

@@ -27,7 +27,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('뷰티 관리자 비활성/삭제 시각');
 
-            $table->index('beauty_id');
+            $table->unique('beauty_id');
             $table->index('status');
             $table->index('last_login_at');
         });

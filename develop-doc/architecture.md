@@ -52,6 +52,13 @@
 - 콘텐츠: `Talk`, `TalkComment`, `HospitalReview`, `HospitalReviewComment`, `HospitalEvaluation`, `Notice`, `Faq`
 - 공통: `Media`, `Category`, `AdminNote`, `ContentReport`, `ContentReportState`
 
+파트너 계정 관계:
+
+- `AccountHospital`과 `Hospital`은 1:1이다. 병원 계정은 `account_hospitals.hospital_id` unique 제약으로 병원당 하나만 존재한다.
+- `AccountBeauty`와 `Beauty`는 1:1이다. 뷰티 계정은 `account_beauties.beauty_id` unique 제약으로 뷰티 업체당 하나만 존재한다.
+- Staff 상세 응답은 복수 계정 배열을 쓰지 않고 `account_hospital`, `account_beauty` 단일 객체를 사용한다.
+- Hospital/Beauty Actor API는 로그인 계정의 `hospital_id`, `beauty_id`를 소유권 기준으로 사용한다.
+
 ## 6) 공지사항(Notice) / FAQ 구조
 
 현재 Notice / FAQ는 Staff API 기준으로 구현되어 있다.

@@ -27,7 +27,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('병원 관리자 비활성/삭제 시각');
 
-            $table->index('hospital_id');
+            $table->unique('hospital_id');
             $table->index('status');
             $table->index('last_login_at');
         });

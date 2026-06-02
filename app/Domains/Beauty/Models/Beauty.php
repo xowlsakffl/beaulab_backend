@@ -71,9 +71,9 @@ final class Beauty extends Model
         return BeautyFactory::new();
     }
 
-    public function accountBeauties(): HasMany
+    public function accountBeauty(): HasOne
     {
-        return $this->hasMany(AccountBeauty::class, 'beauty_id');
+        return $this->hasOne(AccountBeauty::class, 'beauty_id');
     }
 
     public function experts(): HasMany

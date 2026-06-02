@@ -19,7 +19,7 @@ final readonly class HospitalForStaffDetailDto
      * @param array<int, array<string, mixed>> $gallery
      * @param array<int, array<string, mixed>> $categories
      * @param array<int, array<string, mixed>> $features
-     * @param array<int, array<string, mixed>>|null $accountHospitals
+     * @param array<string, mixed>|null $accountHospital
      * @param array<int, array<string, mixed>>|null $doctors
      * @param array<string, mixed>|null $businessRegistration
      */
@@ -44,7 +44,7 @@ final readonly class HospitalForStaffDetailDto
         public array $gallery,
         public array $categories,
         public array $features,
-        public ?array $accountHospitals = null,
+        public ?array $accountHospital = null,
         public ?array $doctors = null,
         public ?array $businessRegistration = null,
     ) {}
@@ -72,7 +72,7 @@ final readonly class HospitalForStaffDetailDto
             gallery: self::gallery($hospital),
             categories: self::categories($hospital),
             features: self::features($hospital),
-            accountHospitals: self::accountHospitals($hospital),
+            accountHospital: self::accountHospital($hospital),
             doctors: self::doctors($hospital),
             businessRegistration: self::businessRegistration($hospital),
         );
@@ -103,8 +103,8 @@ final readonly class HospitalForStaffDetailDto
             'features' => $this->features,
         ];
 
-        if ($this->accountHospitals !== null) {
-            $data['account_hospitals'] = $this->accountHospitals;
+        if ($this->accountHospital !== null) {
+            $data['account_hospital'] = $this->accountHospital;
         }
 
         if ($this->doctors !== null) {
@@ -119,27 +119,31 @@ final readonly class HospitalForStaffDetailDto
     }
 
     /**
-     * @return array<int, array<string, mixed>>|null
+     * @return array<string, mixed>|null
      */
-    private static function accountHospitals(Hospital $hospital): ?array
+    private static function accountHospital(Hospital $hospital): ?array
     {
-        if (! $hospital->relationLoaded('accountHospitals')) {
+        if (! $hospital->relationLoaded('accountHospital')) {
             return null;
         }
 
-        return $hospital->accountHospitals
-            ->map(fn (AccountHospital $accountHospital): array => [
-                'id' => $accountHospital->id,
-                'name' => $accountHospital->name,
-                'nickname' => $accountHospital->nickname,
-                'email' => $accountHospital->email,
-                'status' => $accountHospital->status,
-                'roles' => $accountHospital->getRoleNames()->values()->all(),
-                'last_login_at' => $accountHospital->last_login_at?->toISOString(),
-                'created_at' => $accountHospital->created_at?->toISOString(),
-                'updated_at' => $accountHospital->updated_at?->toISOString(),
-            ])
-            ->all();
+        $accountHospital = $hospital->accountHospital;
+
+        if (! $accountHospital instanceof AccountHospital) {
+            return null;
+        }
+
+        return [
+            'id' => $accountHospital->id,
+            'name' => $accountHospital->name,
+            'nickname' => $accountHospital->nickname,
+            'email' => $accountHospital->email,
+            'status' => $accountHospital->status,
+            'roles' => $accountHospital->getRoleNames()->values()->all(),
+            'last_login_at' => $accountHospital->last_login_at?->toISOString(),
+            'created_at' => $accountHospital->created_at?->toISOString(),
+            'updated_at' => $accountHospital->updated_at?->toISOString(),
+        ];
     }
 
     /**

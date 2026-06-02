@@ -276,6 +276,12 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 | `Media` | 이미지/영상/첨부파일 메타데이터 |
 | `AdminNote` | 운영자 메모 |
 
+파트너 계정 관계:
+
+- `AccountHospital`은 `Hospital`과 1:1이며, 병원 하나에 병원 파트너 계정은 하나만 존재합니다.
+- `AccountBeauty`는 `Beauty`와 1:1이며, 뷰티 업체 하나에 뷰티 파트너 계정은 하나만 존재합니다.
+- Staff 상세 API는 복수 배열 대신 `account_hospital`, `account_beauty` 단일 객체를 내려줍니다.
+
 ## 상태 흐름
 
 - 계정 상태

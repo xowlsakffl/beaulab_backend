@@ -54,6 +54,11 @@
 기본값:
 - `status`: `STATUS_SUSPENDED` (정지)
 
+관계 기준:
+- `AccountHospital`은 `Hospital`과 1:1이다.
+- `account_hospitals.hospital_id`는 unique이며, 병원 하나에 병원 계정은 하나만 존재한다.
+- Staff 병원 상세 API에서 병원 계정은 `account_hospital` 단일 객체로 내려간다.
+
 ### 2.3 `AccountBeauty` (뷰티 계정)
 
 | 상수명 | 저장값 | 상태명 | 의미 |
@@ -64,6 +69,11 @@
 
 기본값:
 - `status`: `STATUS_SUSPENDED` (정지)
+
+관계 기준:
+- `AccountBeauty`는 `Beauty`와 1:1이다.
+- `account_beauties.beauty_id`는 unique이며, 뷰티 업체 하나에 뷰티 계정은 하나만 존재한다.
+- Staff 뷰티 상세 API에서 뷰티 계정은 `account_beauty` 단일 객체로 내려간다.
 
 ### 2.4 `AccountUser` (일반 사용자 계정)
 

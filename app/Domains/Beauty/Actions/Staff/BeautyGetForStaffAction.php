@@ -27,8 +27,8 @@ final class BeautyGetForStaffAction
             $relations[] = 'businessRegistration.certificateMedia';
         }
 
-        if (in_array('account_beauties', $include, true)) {
-            $relations[] = 'accountBeauties.roles';
+        if (in_array('account_beauty', $include, true)) {
+            $relations[] = 'accountBeauty.roles';
         }
 
         if (in_array('experts', $include, true)) {

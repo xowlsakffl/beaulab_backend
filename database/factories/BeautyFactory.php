@@ -15,9 +15,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 final class BeautyFactory extends Factory
 {
-    private const MANAGER_SEED_COUNT = 1;
-    private const STAFF_SEED_COUNT = 2;
-
     protected $model = Beauty::class;
 
     public function definition(): array
@@ -68,28 +65,6 @@ final class BeautyFactory extends Factory
                 AccessRoles::BEAUTY_OWNER,
                 1
             );
-
-            for ($i = 1; $i <= self::MANAGER_SEED_COUNT; $i++) {
-                $this->createAccountBeauty(
-                    $beauty,
-                    $seedKey,
-                    'manager',
-                    '뷰티 매니저',
-                    AccessRoles::BEAUTY_MANAGER,
-                    $i
-                );
-            }
-
-            for ($i = 1; $i <= self::STAFF_SEED_COUNT; $i++) {
-                $this->createAccountBeauty(
-                    $beauty,
-                    $seedKey,
-                    'staff',
-                    '뷰티 직원',
-                    AccessRoles::BEAUTY_STAFF,
-                    $i
-                );
-            }
         });
     }
 

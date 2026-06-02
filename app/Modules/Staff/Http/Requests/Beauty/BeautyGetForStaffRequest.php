@@ -28,7 +28,7 @@ final class BeautyGetForStaffRequest extends FormRequest
     {
         return [
             'include' => ['nullable', 'array'],
-            'include.*' => ['in:business_registration,account_beauties,experts,categories'],
+            'include.*' => ['in:business_registration,account_beauty,experts,categories'],
         ];
     }
 
@@ -66,7 +66,9 @@ final class BeautyGetForStaffRequest extends FormRequest
         }
 
         $normalized = array_values(array_filter(array_map(
-            static fn ($item) => is_string($item) ? trim($item) : null,
+            static fn ($item) => is_string($item)
+                ? (trim($item) === 'account_beauties' ? 'account_beauty' : trim($item))
+                : null,
             $value,
         )));
 

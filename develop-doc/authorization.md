@@ -29,12 +29,16 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 - `hospital.owner`
 - `hospital.manager`
 - `hospital.staff`
+- 현재 파트너 계정 구조는 `Hospital` 1개당 `AccountHospital` 1개다.
+- Role/Permission 체계는 유지하지만, 병원에 여러 병원계정을 발급하는 구조는 사용하지 않는다.
 
 ### 2.3 Beauty (`guard: beauty`)
 
 - `beauty.owner`
 - `beauty.manager`
 - `beauty.staff`
+- 현재 파트너 계정 구조는 `Beauty` 1개당 `AccountBeauty` 1개다.
+- Role/Permission 체계는 유지하지만, 뷰티 업체에 여러 뷰티계정을 발급하는 구조는 사용하지 않는다.
 
 ### 2.4 User (`guard: user`)
 

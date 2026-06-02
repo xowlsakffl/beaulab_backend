@@ -17,7 +17,7 @@ final readonly class BeautyForStaffDetailDto
     /**
      * @param array<int, array<string, mixed>> $gallery
      * @param array<int, array<string, mixed>> $categories
-     * @param array<int, array<string, mixed>>|null $accountBeauties
+     * @param array<string, mixed>|null $accountBeauty
      * @param array<int, array<string, mixed>>|null $experts
      * @param array<string, mixed>|null $businessRegistration
      */
@@ -41,7 +41,7 @@ final readonly class BeautyForStaffDetailDto
         public ?array $logo,
         public array $gallery,
         public array $categories,
-        public ?array $accountBeauties = null,
+        public ?array $accountBeauty = null,
         public ?array $experts = null,
         public ?array $businessRegistration = null,
     ) {}
@@ -68,7 +68,7 @@ final readonly class BeautyForStaffDetailDto
             logo: self::logo($beauty),
             gallery: self::gallery($beauty),
             categories: self::categories($beauty),
-            accountBeauties: self::accountBeauties($beauty),
+            accountBeauty: self::accountBeauty($beauty),
             experts: self::experts($beauty),
             businessRegistration: self::businessRegistration($beauty),
         );
@@ -98,8 +98,8 @@ final readonly class BeautyForStaffDetailDto
             'categories' => $this->categories,
         ];
 
-        if ($this->accountBeauties !== null) {
-            $data['account_beauties'] = $this->accountBeauties;
+        if ($this->accountBeauty !== null) {
+            $data['account_beauty'] = $this->accountBeauty;
         }
 
         if ($this->experts !== null) {
@@ -114,27 +114,31 @@ final readonly class BeautyForStaffDetailDto
     }
 
     /**
-     * @return array<int, array<string, mixed>>|null
+     * @return array<string, mixed>|null
      */
-    private static function accountBeauties(Beauty $beauty): ?array
+    private static function accountBeauty(Beauty $beauty): ?array
     {
-        if (! $beauty->relationLoaded('accountBeauties')) {
+        if (! $beauty->relationLoaded('accountBeauty')) {
             return null;
         }
 
-        return $beauty->accountBeauties
-            ->map(fn (AccountBeauty $accountBeauty): array => [
-                'id' => $accountBeauty->id,
-                'name' => $accountBeauty->name,
-                'nickname' => $accountBeauty->nickname,
-                'email' => $accountBeauty->email,
-                'status' => $accountBeauty->status,
-                'roles' => $accountBeauty->getRoleNames()->values()->all(),
-                'last_login_at' => $accountBeauty->last_login_at?->toISOString(),
-                'created_at' => $accountBeauty->created_at?->toISOString(),
-                'updated_at' => $accountBeauty->updated_at?->toISOString(),
-            ])
-            ->all();
+        $accountBeauty = $beauty->accountBeauty;
+
+        if (! $accountBeauty instanceof AccountBeauty) {
+            return null;
+        }
+
+        return [
+            'id' => $accountBeauty->id,
+            'name' => $accountBeauty->name,
+            'nickname' => $accountBeauty->nickname,
+            'email' => $accountBeauty->email,
+            'status' => $accountBeauty->status,
+            'roles' => $accountBeauty->getRoleNames()->values()->all(),
+            'last_login_at' => $accountBeauty->last_login_at?->toISOString(),
+            'created_at' => $accountBeauty->created_at?->toISOString(),
+            'updated_at' => $accountBeauty->updated_at?->toISOString(),
+        ];
     }
 
     /**

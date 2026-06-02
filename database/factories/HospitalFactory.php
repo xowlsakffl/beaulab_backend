@@ -15,9 +15,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 final class HospitalFactory extends Factory
 {
-    private const MANAGER_SEED_COUNT = 1;
-    private const STAFF_SEED_COUNT = 2;
-
     protected $model = Hospital::class;
 
     public function definition(): array
@@ -67,28 +64,6 @@ final class HospitalFactory extends Factory
                 AccessRoles::HOSPITAL_OWNER,
                 1
             );
-
-            for ($i = 1; $i <= self::MANAGER_SEED_COUNT; $i++) {
-                $this->createAccountHospital(
-                    $hospital,
-                    $seedKey,
-                    'manager',
-                    '병원 매니저',
-                    AccessRoles::HOSPITAL_MANAGER,
-                    $i
-                );
-            }
-
-            for ($i = 1; $i <= self::STAFF_SEED_COUNT; $i++) {
-                $this->createAccountHospital(
-                    $hospital,
-                    $seedKey,
-                    'staff',
-                    '병원 직원',
-                    AccessRoles::HOSPITAL_STAFF,
-                    $i
-                );
-            }
         });
     }
 

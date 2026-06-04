@@ -96,6 +96,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-features.getHospitalFeaturesForStaff');
     Route::get('hospitals', [HospitalForStaffController::class, 'getHospitalsForStaff'])
         ->name('hospitals.getHospitalsForStaff');
+    Route::get('hospitals/summary', [HospitalForStaffController::class, 'getHospitalSummaryForStaff'])
+        ->name('hospitals.getHospitalSummaryForStaff');
     Route::post('hospitals/check-name', [HospitalForStaffController::class, 'checkHospitalNameDuplicateForStaff'])
         ->name('hospitals.checkHospitalNameDuplicateForStaff');
     Route::post('hospitals/check-business-number', [HospitalForStaffController::class, 'checkHospitalBusinessNumberDuplicateForStaff'])

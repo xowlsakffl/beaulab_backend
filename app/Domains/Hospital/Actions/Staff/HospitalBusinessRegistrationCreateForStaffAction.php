@@ -29,6 +29,10 @@ final class HospitalBusinessRegistrationCreateForStaffAction
             'business_item' => $payload['business_item'],
             'business_address' => $payload['business_address'] ?? null,
             'business_address_detail' => $payload['business_address_detail'] ?? null,
+            'settlement_bank_name' => $payload['settlement_bank_name'] ?? null,
+            'settlement_account_number' => $payload['settlement_account_number'] ?? null,
+            'settlement_account_holder' => $payload['settlement_account_holder'] ?? null,
+            'tax_invoice_email' => $payload['tax_invoice_email'] ?? null,
             'issued_at' => $payload['issued_at'] ?? null,
             'status' => HospitalBusinessRegistration::STATUS_ACTIVE,
         ]);

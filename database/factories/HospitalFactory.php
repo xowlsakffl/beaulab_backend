@@ -32,9 +32,13 @@ final class HospitalFactory extends Factory
             'longitude'       => $this->faker->optional(0.8)->longitude(124.5, 132.0),
 
             'tel'             => $this->faker->optional(0.9)->phoneNumber(),
+            'ad_reception_phone_1' => $this->faker->phoneNumber(),
+            'ad_reception_phone_2' => $this->faker->optional(0.5)->phoneNumber(),
+            'ad_reception_phone_3' => $this->faker->optional(0.3)->phoneNumber(),
             'email'           => $this->faker->optional(0.7)->companyEmail(),
 
             'consulting_hours'=> $this->faker->optional(0.6)->sentence(10),
+            'operation_hours'  => $this->defaultOperationHours(),
             'direction'       => $this->faker->optional(0.6)->sentence(12),
 
             'view_count'      => $this->faker->numberBetween(0, 50000),
@@ -116,6 +120,10 @@ final class HospitalFactory extends Factory
                 'business_item'           => $this->faker->randomElement(['성형외과', '피부과', '치과']),
                 'business_address'        => $hospital->address,
                 'business_address_detail' => $hospital->address_detail,
+                'settlement_bank_name' => $this->faker->randomElement(['국민은행', '신한은행', '우리은행', '하나은행']),
+                'settlement_account_number' => $this->faker->numerify('###-######-#####'),
+                'settlement_account_holder' => $this->faker->name(),
+                'tax_invoice_email' => $this->faker->companyEmail(),
                 'issued_at'               => $this->faker->date(),
                 'status'                  => HospitalBusinessRegistration::STATUS_ACTIVE,
             ]);
@@ -172,5 +180,18 @@ final class HospitalFactory extends Factory
         return $this->state(fn () => [
             'status' => Hospital::STATUS_ACTIVE,
         ]);
+    }
+
+    private function defaultOperationHours(): array
+    {
+        return [
+            'mon' => ['start' => '10:00', 'end' => '19:00', 'is_closed' => false],
+            'tue' => ['start' => '10:00', 'end' => '19:00', 'is_closed' => false],
+            'wed' => ['start' => '10:00', 'end' => '19:00', 'is_closed' => false],
+            'thu' => ['start' => '10:00', 'end' => '19:00', 'is_closed' => false],
+            'fri' => ['start' => '10:00', 'end' => '19:00', 'is_closed' => false],
+            'sat' => ['start' => '10:00', 'end' => '15:00', 'is_closed' => false],
+            'sun' => ['start' => null, 'end' => null, 'is_closed' => true],
+        ];
     }
 }

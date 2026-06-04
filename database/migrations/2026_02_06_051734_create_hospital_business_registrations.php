@@ -23,6 +23,10 @@ return new class extends Migration
 
             $table->string('business_address', 255)->nullable()->comment('사업장 주소');
             $table->string('business_address_detail', 255)->nullable()->comment('사업장 상세 주소');
+            $table->string('settlement_bank_name', 50)->nullable()->comment('정산 은행명');
+            $table->string('settlement_account_number', 50)->nullable()->comment('정산 계좌번호');
+            $table->string('settlement_account_holder', 100)->nullable()->comment('정산 예금주명');
+            $table->string('tax_invoice_email')->nullable()->comment('세금계산서 이메일');
 
             $table->date('issued_at')->nullable()->comment('사업자 등록일');
 

@@ -70,8 +70,12 @@ final class Hospital extends Model
         'latitude',
         'longitude',
         'tel',
+        'ad_reception_phone_1',
+        'ad_reception_phone_2',
+        'ad_reception_phone_3',
         'email',
         'consulting_hours',
+        'operation_hours',
         'direction',
         'view_count',
         'evaluation_count',
@@ -84,6 +88,7 @@ final class Hospital extends Model
         'view_count' => 'integer',
         'evaluation_count' => 'integer',
         'evaluation_average_rating' => 'float',
+        'operation_hours' => 'array',
     ];
 
     protected $attributes = [

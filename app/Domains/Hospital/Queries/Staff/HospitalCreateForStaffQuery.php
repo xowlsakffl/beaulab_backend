@@ -29,9 +29,13 @@ final class HospitalCreateForStaffQuery
             'longitude'        => $data['longitude'] ?? null,
 
             'tel'              => $data['tel'] ?? null,
+            'ad_reception_phone_1' => $data['ad_reception_phone_1'] ?? null,
+            'ad_reception_phone_2' => $data['ad_reception_phone_2'] ?? null,
+            'ad_reception_phone_3' => $data['ad_reception_phone_3'] ?? null,
             'email'            => $data['email'] ?? null,
 
             'consulting_hours' => $data['consulting_hours'] ?? null,
+            'operation_hours'  => $data['operation_hours'] ?? null,
             'direction'        => $data['direction'] ?? null,
 
             // 생성 시 정책 기본값

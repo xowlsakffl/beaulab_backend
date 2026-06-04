@@ -12,6 +12,7 @@ use App\Domains\Hospital\Actions\Staff\HospitalCreateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalDeleteForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalGetForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalListForStaffAction;
+use App\Domains\Hospital\Actions\Staff\HospitalSummaryForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckBusinessNumberForStaffRequest;
@@ -38,6 +39,15 @@ final class HospitalForStaffController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    /**
+     * GET /api/v1/staff/hospitals/summary
+     * (Beaulab) Staff 전용 병의원 목록 상단 집계
+     */
+    public function getHospitalSummaryForStaff(HospitalSummaryForStaffAction $action)
+    {
+        return ApiResponse::success($action->execute());
     }
 
     /**

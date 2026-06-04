@@ -29,10 +29,14 @@ final class HospitalUpdateForStaffQuery
                 ? ($filter['longitude'] !== null ? (string) $filter['longitude'] : null)
                 : $hospital->longitude,
             'tel' => array_key_exists('tel', $filter) ? $filter['tel'] : $hospital->tel,
+            'ad_reception_phone_1' => array_key_exists('ad_reception_phone_1', $filter) ? $filter['ad_reception_phone_1'] : $hospital->ad_reception_phone_1,
+            'ad_reception_phone_2' => array_key_exists('ad_reception_phone_2', $filter) ? $filter['ad_reception_phone_2'] : $hospital->ad_reception_phone_2,
+            'ad_reception_phone_3' => array_key_exists('ad_reception_phone_3', $filter) ? $filter['ad_reception_phone_3'] : $hospital->ad_reception_phone_3,
             'email' => array_key_exists('email', $filter) ? $filter['email'] : $hospital->email,
             'allow_status' => array_key_exists('allow_status', $filter) ? $filter['allow_status'] : $hospital->allow_status,
             'status' => array_key_exists('status', $filter) ? $filter['status'] : $hospital->status,
             'consulting_hours' => array_key_exists('consulting_hours', $filter) ? $filter['consulting_hours'] : $hospital->consulting_hours,
+            'operation_hours' => array_key_exists('operation_hours', $filter) ? $filter['operation_hours'] : $hospital->operation_hours,
             'direction' => array_key_exists('direction', $filter) ? $filter['direction'] : $hospital->direction,
         ]);
 

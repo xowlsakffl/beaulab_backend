@@ -30,7 +30,11 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'latitude',
             'longitude',
             'tel',
+            'ad_reception_phone_1',
+            'ad_reception_phone_2',
+            'ad_reception_phone_3',
             'email',
+            'operation_hours',
             'allow_status',
             'status',
             'business_number',
@@ -40,6 +44,10 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'business_item',
             'business_address',
             'business_address_detail',
+            'settlement_bank_name',
+            'settlement_account_number',
+            'settlement_account_holder',
+            'tax_invoice_email',
             'issued_at',
         ];
 
@@ -56,6 +64,10 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         if (isset($data['business_number']) && is_string($data['business_number'])) {
             $normalizedBusinessNumber = preg_replace('/\D+/', '', $data['business_number']);
             $data['business_number'] = $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $data['business_number'];
+        }
+
+        if (array_key_exists('operation_hours', $data)) {
+            $data['operation_hours'] = $this->normalizeOperationHours($data['operation_hours']);
         }
 
         if (array_key_exists('category_ids', $data)) {
@@ -100,7 +112,14 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'tel' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
+            'ad_reception_phone_1' => ['sometimes', 'required', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
+            'ad_reception_phone_2' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
+            'ad_reception_phone_3' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
+            'operation_hours' => ['sometimes', 'array'],
+            'operation_hours.*.is_closed' => ['required_with:operation_hours', 'boolean'],
+            'operation_hours.*.start' => ['nullable', 'date_format:H:i'],
+            'operation_hours.*.end' => ['nullable', 'date_format:H:i'],
             'allow_status' => ['nullable', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
             'status' => ['nullable', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
             'business_number' => [
@@ -117,6 +136,10 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'business_registration_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'business_address' => ['nullable', 'string', 'max:255'],
             'business_address_detail' => ['nullable', 'string', 'max:255'],
+            'settlement_bank_name' => ['nullable', 'string', 'max:50'],
+            'settlement_account_number' => ['nullable', 'string', 'max:50', 'regex:/^[0-9\-\s]{2,50}$/'],
+            'settlement_account_holder' => ['nullable', 'string', 'max:100'],
+            'tax_invoice_email' => ['nullable', 'email:rfc,dns', 'max:255'],
             'category_ids' => ['sometimes', 'array', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -261,6 +284,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     public function withValidator(\Illuminate\Validation\Validator $validator): void
     {
         $validator->after(function (\Illuminate\Validation\Validator $validator): void {
+            $this->validateOperationHours($validator);
+
             $galleryOrder = $this->input('gallery_order');
             $uploadedGalleryFiles = $this->normalizeUploadedFiles($this->file('gallery'));
 
@@ -309,7 +334,14 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'latitude' => '위도',
             'longitude' => '경도',
             'tel' => '대표 번호',
+            'ad_reception_phone_1' => '광고 수신 접수 전화번호 1',
+            'ad_reception_phone_2' => '광고 수신 접수 전화번호 2',
+            'ad_reception_phone_3' => '광고 수신 접수 전화번호 3',
             'email' => '대표 이메일',
+            'operation_hours' => '진료시간',
+            'operation_hours.*.is_closed' => '진료 여부',
+            'operation_hours.*.start' => '진료 시작 시간',
+            'operation_hours.*.end' => '진료 종료 시간',
             'allow_status' => '검수 상태',
             'status' => '운영 상태',
             'business_number' => '사업자등록번호',
@@ -320,6 +352,10 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'business_registration_file' => '사업자등록증 파일',
             'business_address' => '사업장 주소',
             'business_address_detail' => '사업장 상세 주소',
+            'settlement_bank_name' => '정산 은행명',
+            'settlement_account_number' => '정산 계좌번호',
+            'settlement_account_holder' => '정산 예금주명',
+            'tax_invoice_email' => '세금계산서 이메일',
             'issued_at' => '사업자등록일',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
@@ -346,6 +382,80 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         }
 
         return $hospital->businessRegistration()->value('id');
+    }
+
+    private function normalizeOperationHours(mixed $value): mixed
+    {
+        if (is_string($value)) {
+            $decoded = json_decode(trim($value), true);
+            $value = json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
+        }
+
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        return collect($value)
+            ->map(static function (mixed $item): mixed {
+                if (! is_array($item)) {
+                    return $item;
+                }
+
+                if (array_key_exists('is_closed', $item)) {
+                    $item['is_closed'] = filter_var($item['is_closed'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                }
+
+                foreach (['start', 'end'] as $field) {
+                    if (array_key_exists($field, $item) && is_string($item[$field])) {
+                        $item[$field] = trim($item[$field]) === '' ? null : trim($item[$field]);
+                    }
+                }
+
+                return $item;
+            })
+            ->all();
+    }
+
+    private function validateOperationHours(\Illuminate\Validation\Validator $validator): void
+    {
+        if (! $this->has('operation_hours')) {
+            return;
+        }
+
+        $operationHours = $this->input('operation_hours');
+
+        if (! is_array($operationHours)) {
+            return;
+        }
+
+        foreach (['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $day) {
+            $hours = $operationHours[$day] ?? null;
+
+            if (! is_array($hours)) {
+                $validator->errors()->add("operation_hours.{$day}", '요일별 진료시간을 모두 입력해주세요.');
+                continue;
+            }
+
+            $isClosed = (bool) ($hours['is_closed'] ?? false);
+            $start = $hours['start'] ?? null;
+            $end = $hours['end'] ?? null;
+
+            if ($isClosed) {
+                continue;
+            }
+
+            if (! is_string($start) || $start === '') {
+                $validator->errors()->add("operation_hours.{$day}.start", '진료 시작 시간을 입력해주세요.');
+            }
+
+            if (! is_string($end) || $end === '') {
+                $validator->errors()->add("operation_hours.{$day}.end", '진료 종료 시간을 입력해주세요.');
+            }
+
+            if (is_string($start) && is_string($end) && $start !== '' && $end !== '' && $start >= $end) {
+                $validator->errors()->add("operation_hours.{$day}.end", '진료 종료 시간은 시작 시간보다 늦어야 합니다.');
+            }
+        }
     }
 
     /**

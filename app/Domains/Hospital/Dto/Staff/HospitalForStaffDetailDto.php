@@ -34,8 +34,10 @@ final readonly class HospitalForStaffDetailDto
         public ?string $latitude,
         public ?string $longitude,
         public ?string $tel,
+        public array $adReceptionPhones,
         public ?string $email,
         public ?string $consultingHours,
+        public ?array $operationHours,
         public ?string $direction,
         public int $viewCount,
         public string $allowStatus,
@@ -64,8 +66,10 @@ final readonly class HospitalForStaffDetailDto
             latitude: $hospital->latitude,
             longitude: $hospital->longitude,
             tel: $hospital->tel,
+            adReceptionPhones: self::adReceptionPhones($hospital),
             email: $hospital->email,
             consultingHours: $hospital->consulting_hours,
+            operationHours: self::operationHours($hospital),
             direction: $hospital->direction,
             viewCount: (int) $hospital->view_count,
             allowStatus: (string) $hospital->allow_status,
@@ -95,8 +99,10 @@ final readonly class HospitalForStaffDetailDto
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'tel' => $this->tel,
+            'ad_reception_phones' => $this->adReceptionPhones,
             'email' => $this->email,
             'consulting_hours' => $this->consultingHours,
+            'operation_hours' => $this->operationHours,
             'direction' => $this->direction,
             'view_count' => $this->viewCount,
             'allow_status' => $this->allowStatus,
@@ -153,6 +159,28 @@ final readonly class HospitalForStaffDetailDto
     }
 
     /**
+     * @return array{phone_1: ?string, phone_2: ?string, phone_3: ?string}
+     */
+    private static function adReceptionPhones(Hospital $hospital): array
+    {
+        return [
+            'phone_1' => $hospital->ad_reception_phone_1,
+            'phone_2' => $hospital->ad_reception_phone_2,
+            'phone_3' => $hospital->ad_reception_phone_3,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function operationHours(Hospital $hospital): ?array
+    {
+        $operationHours = $hospital->operation_hours;
+
+        return is_array($operationHours) ? $operationHours : null;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>|null
      */
     private static function doctors(Hospital $hospital): ?array
@@ -201,6 +229,12 @@ final readonly class HospitalForStaffDetailDto
             'business_item' => $businessRegistration->business_item,
             'business_address' => $businessRegistration->business_address,
             'business_address_detail' => $businessRegistration->business_address_detail,
+            'settlement_account' => [
+                'bank_name' => $businessRegistration->settlement_bank_name,
+                'account_number' => $businessRegistration->settlement_account_number,
+                'account_holder' => $businessRegistration->settlement_account_holder,
+                'tax_invoice_email' => $businessRegistration->tax_invoice_email,
+            ],
             'issued_at' => $businessRegistration->issued_at?->toDateString(),
             'status' => $businessRegistration->status,
             'certificate_media' => self::media($businessRegistration->certificateMedia),

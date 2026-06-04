@@ -39,6 +39,10 @@ final class HospitalBusinessRegistrationUpdateForStaffAction
             'business_item',
             'business_address',
             'business_address_detail',
+            'settlement_bank_name',
+            'settlement_account_number',
+            'settlement_account_holder',
+            'tax_invoice_email',
             'issued_at',
         ] as $field) {
             if (array_key_exists($field, $payload)) {

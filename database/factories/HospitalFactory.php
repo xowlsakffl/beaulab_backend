@@ -20,7 +20,6 @@ final class HospitalFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->unique()->company() . ' 병원';
-
         return [
             'name'            => $name,
             'department'      => $this->faker->randomElement(Hospital::departments()),
@@ -72,7 +71,7 @@ final class HospitalFactory extends Factory
         });
     }
 
-    public function withSeedMedia(int $galleryCount = 3): self
+    public function withSeedMedia(int $galleryCount = 5): self
     {
         return $this->afterCreating(function (Hospital $hospital) use ($galleryCount): void {
             $mediaAttachAction = app(MediaAttachDeleteAction::class);

@@ -4,9 +4,12 @@ namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalUpdateForStaffQuery;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -23,6 +26,7 @@ final class HospitalUpdateForStaffAction
         private readonly HospitalUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalBusinessRegistrationUpdateForStaffAction $businessRegistrationUpdateAction,
+        private readonly OperationHistoryCreateAction $historyCreateAction,
     ) {}
 
     /**
@@ -36,7 +40,26 @@ final class HospitalUpdateForStaffAction
             'hospital_id' => $hospital->id,
         ]);
 
-        $updated = DB::transaction(function () use ($hospital, $payload) {
+        $beforeStatus = (string) $hospital->status;
+        $afterStatus = (string) ($payload['status'] ?? $beforeStatus);
+        $historyReason = $afterStatus === Hospital::STATUS_ACTIVE ? null : $this->normalizeReason($payload['status_change_reason'] ?? null);
+        $latestHistoryReason = $this->latestStatusHistoryReason($hospital);
+        $shouldRecordStatusHistory = array_key_exists('status', $payload)
+            && (
+                $beforeStatus !== $afterStatus
+                || ($historyReason !== null && $historyReason !== $latestHistoryReason)
+            );
+        $actor = auth()->user();
+
+        $updated = DB::transaction(function () use (
+            $hospital,
+            $payload,
+            $beforeStatus,
+            $afterStatus,
+            $historyReason,
+            $shouldRecordStatusHistory,
+            $actor,
+        ) {
             $updatedHospital = $this->query->update($hospital, $payload);
 
             $this->replaceMedia($updatedHospital, $payload);
@@ -47,15 +70,68 @@ final class HospitalUpdateForStaffAction
             if (array_key_exists('feature_ids', $payload) && is_array($payload['feature_ids'])) {
                 $this->syncFeatures($updatedHospital, $payload['feature_ids']);
             }
+            if ($shouldRecordStatusHistory) {
+                $this->recordStatusHistory($updatedHospital, $beforeStatus, $afterStatus, $historyReason, $actor);
+            }
 
             return $updatedHospital->fresh();
         });
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
-                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features'])
+                $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features', 'operationHistories.actor'])
             )->toArray(),
         ];
+    }
+
+    private function recordStatusHistory(
+        Hospital $hospital,
+        string $beforeStatus,
+        string $afterStatus,
+        ?string $reason,
+        mixed $actor,
+    ): void {
+        $this->historyCreateAction->execute(
+            target: $hospital,
+            action: OperationHistory::ACTION_STATUS_UPDATED,
+            actor: $actor instanceof Model ? $actor : null,
+            field: 'status',
+            beforeValue: $beforeStatus,
+            afterValue: $afterStatus,
+            reason: $reason,
+            metadata: [
+                'before_label' => $this->statusLabel($beforeStatus),
+                'after_label' => $this->statusLabel($afterStatus),
+                'source' => 'staff.hospital.status',
+            ],
+        );
+    }
+
+    private function latestStatusHistoryReason(Hospital $hospital): ?string
+    {
+        $history = $hospital->operationHistories()
+            ->where('field', 'status')
+            ->where('after_value', $hospital->status)
+            ->first();
+
+        return $history?->reason;
+    }
+
+    private function normalizeReason(mixed $reason): ?string
+    {
+        $reason = trim((string) $reason);
+
+        return $reason === '' ? null : $reason;
+    }
+
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            Hospital::STATUS_ACTIVE => '정상',
+            Hospital::STATUS_SUSPENDED => '운영중지',
+            Hospital::STATUS_WITHDRAWN => '탈퇴',
+            default => $status,
+        };
     }
 
     private function replaceMedia(Hospital $hospital, array $payload): void

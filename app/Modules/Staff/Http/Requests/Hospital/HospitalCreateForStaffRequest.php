@@ -58,11 +58,11 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             'consulting_hours' => ['nullable', 'string', 'max:5000'],
             'direction' => ['nullable', 'string', 'max:5000'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'address_detail' => ['nullable', 'string', 'max:255'],
-            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'tel' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
+            'address' => ['required', 'string', 'max:255'],
+            'address_detail' => ['required', 'string', 'max:255'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'tel' => ['required', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'ad_reception_phone_1' => ['required', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'ad_reception_phone_2' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'ad_reception_phone_3' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
@@ -73,6 +73,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'operation_hours.*.end' => ['nullable', 'date_format:H:i'],
             'allow_status' => ['required', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
             'status' => ['required', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
+            'status_change_reason' => ['nullable', 'string', 'max:1000'],
 
             'business_number' => ['required', 'string', 'max:20', 'unique:hospital_business_registrations,business_number'],
             'company_name' => ['required', 'string', 'max:255'],
@@ -88,12 +89,13 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'tax_invoice_email' => ['nullable', 'email:rfc,dns', 'max:255'],
             'issued_at' => ['nullable', 'date'],
 
-            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:5'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
                     ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])
+                    ->whereNull('parent_id')
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'feature_ids' => ['required', 'array', 'min:1', 'max:100'],
@@ -133,6 +135,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'operation_hours.*.end' => '진료 종료 시간',
             'allow_status' => '검수 상태',
             'status' => '운영 상태',
+            'status_change_reason' => '운영중지/탈퇴 사유',
             'business_number' => '사업자등록번호',
             'company_name' => '상호명',
             'ceo_name' => '대표자',
@@ -146,8 +149,8 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'settlement_account_holder' => '정산 예금주명',
             'tax_invoice_email' => '세금계산서 이메일',
             'issued_at' => '사업자등록일',
-            'category_ids' => '카테고리 목록',
-            'category_ids.*' => '카테고리',
+            'category_ids' => '진료과목 목록',
+            'category_ids.*' => '진료과목',
             'feature_ids' => '병원 특징 목록',
             'feature_ids.*' => '병원 특징',
             'logo' => '로고',
@@ -160,7 +163,21 @@ final class HospitalCreateForStaffRequest extends FormRequest
     {
         $validator->after(function (\Illuminate\Validation\Validator $validator): void {
             $this->validateOperationHours($validator);
+            $this->validateStatusReason($validator);
         });
+    }
+
+    private function validateStatusReason(\Illuminate\Validation\Validator $validator): void
+    {
+        if (! in_array($this->input('status'), [Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN], true)) {
+            return;
+        }
+
+        $statusReason = $this->input('status_change_reason');
+
+        if (! is_string($statusReason) || trim($statusReason) === '') {
+            $validator->errors()->add('status_change_reason', '운영중지 또는 탈퇴 상태에서는 사유를 입력해주세요.');
+        }
     }
 
     /**

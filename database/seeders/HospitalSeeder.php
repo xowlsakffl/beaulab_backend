@@ -36,7 +36,7 @@ final class HospitalSeeder extends Seeder
     {
         $categoryIds = Category::query()
             ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_SURGERY, Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT])
-            ->whereDoesntHave('children')
+            ->whereNull('parent_id')
             ->pluck('id')
             ->all();
 
@@ -46,7 +46,7 @@ final class HospitalSeeder extends Seeder
 
         $maxAvailable = count($categoryIds);
         $minAssignCount = min(2, $maxAvailable);
-        $maxAssignCount = min(4, $maxAvailable);
+        $maxAssignCount = min(5, $maxAvailable);
 
         foreach ($hospitals as $hospital) {
             $assignCount = random_int($minAssignCount, $maxAssignCount);

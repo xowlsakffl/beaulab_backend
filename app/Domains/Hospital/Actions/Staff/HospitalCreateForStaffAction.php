@@ -3,9 +3,12 @@
 namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
+use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +23,7 @@ final class HospitalCreateForStaffAction
         private readonly HospitalCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalBusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
+        private readonly OperationHistoryCreateAction $historyCreateAction,
     ) {}
 
     /**
@@ -45,15 +49,54 @@ final class HospitalCreateForStaffAction
             $this->businessRegistrationCreateAction->execute($hospital, $filters);
             $this->syncCategories($hospital, $filters['category_ids'] ?? []);
             $this->syncFeatures($hospital, $filters['feature_ids'] ?? []);
+            $this->recordInitialStatusHistory($hospital, $filters);
 
             return $hospital->fresh();
         });
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
-                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features'])
+                $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features', 'operationHistories.actor'])
             )->toArray(),
         ];
+    }
+
+    private function recordInitialStatusHistory(Hospital $hospital, array $payload): void
+    {
+        $status = (string) $hospital->status;
+        $reason = $status === Hospital::STATUS_ACTIVE ? null : $this->normalizeReason($payload['status_change_reason'] ?? null);
+        $actor = auth()->user();
+
+        $this->historyCreateAction->execute(
+            target: $hospital,
+            action: OperationHistory::ACTION_STATUS_UPDATED,
+            actor: $actor instanceof Model ? $actor : null,
+            field: 'status',
+            beforeValue: null,
+            afterValue: $status,
+            reason: $reason,
+            metadata: [
+                'after_label' => $this->statusLabel($status),
+                'source' => 'staff.hospital.create',
+            ],
+        );
+    }
+
+    private function normalizeReason(mixed $reason): ?string
+    {
+        $reason = trim((string) $reason);
+
+        return $reason === '' ? null : $reason;
+    }
+
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            Hospital::STATUS_ACTIVE => '정상',
+            Hospital::STATUS_SUSPENDED => '운영중지',
+            Hospital::STATUS_WITHDRAWN => '탈퇴',
+            default => $status,
+        };
     }
 
     /**

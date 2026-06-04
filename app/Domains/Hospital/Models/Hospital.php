@@ -81,7 +81,7 @@ final class Hospital extends Model
         'evaluation_count',
         'evaluation_average_rating',
         'allow_status',
-        'status'
+        'status',
     ];
 
     protected $casts = [

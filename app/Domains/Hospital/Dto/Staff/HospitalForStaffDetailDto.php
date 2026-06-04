@@ -5,6 +5,7 @@ namespace App\Domains\Hospital\Dto\Staff;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
@@ -19,6 +20,7 @@ final readonly class HospitalForStaffDetailDto
      * @param array<int, array<string, mixed>> $gallery
      * @param array<int, array<string, mixed>> $categories
      * @param array<int, array<string, mixed>> $features
+     * @param array<string, mixed>|null $latestStatusHistory
      * @param array<string, mixed>|null $accountHospital
      * @param array<int, array<string, mixed>>|null $doctors
      * @param array<string, mixed>|null $businessRegistration
@@ -42,6 +44,7 @@ final readonly class HospitalForStaffDetailDto
         public int $viewCount,
         public string $allowStatus,
         public string $status,
+        public ?array $latestStatusHistory,
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?array $logo,
@@ -74,6 +77,7 @@ final readonly class HospitalForStaffDetailDto
             viewCount: (int) $hospital->view_count,
             allowStatus: (string) $hospital->allow_status,
             status: (string) $hospital->status,
+            latestStatusHistory: self::latestStatusHistory($hospital),
             createdAt: $hospital->created_at?->toISOString(),
             updatedAt: $hospital->updated_at?->toISOString(),
             logo: self::logo($hospital),
@@ -107,6 +111,7 @@ final readonly class HospitalForStaffDetailDto
             'view_count' => $this->viewCount,
             'allow_status' => $this->allowStatus,
             'status' => $this->status,
+            'latest_status_history' => $this->latestStatusHistory,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'logo' => $this->logo,
@@ -156,6 +161,22 @@ final readonly class HospitalForStaffDetailDto
             'created_at' => $accountHospital->created_at?->toISOString(),
             'updated_at' => $accountHospital->updated_at?->toISOString(),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function latestStatusHistory(Hospital $hospital): ?array
+    {
+        if (! $hospital->relationLoaded('operationHistories')) {
+            return null;
+        }
+
+        $history = $hospital->operationHistories
+            ->first(static fn ($history): bool => $history->field === 'status'
+                && (string) $history->after_value === (string) $hospital->status);
+
+        return $history ? OperationHistoryDto::fromModel($history)->toArray() : null;
     }
 
     /**
@@ -297,16 +318,39 @@ final readonly class HospitalForStaffDetailDto
             return [];
         }
 
-        return $hospital->categories
-            ->map(fn (Category $category): array => [
-                'id' => (int) $category->id,
-                'domain' => (string) $category->domain,
-                'name' => (string) $category->name,
-                'full_path' => (string) ($category->full_path ?: $category->name),
-                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
-            ])
-            ->values()
-            ->all();
+        $categories = [];
+
+        foreach ($hospital->categories as $category) {
+            $rootCategory = self::rootCategory($category);
+            $rootCategoryId = (int) $rootCategory->id;
+
+            $categories[$rootCategoryId] ??= [
+                'id' => $rootCategoryId,
+                'domain' => (string) $rootCategory->domain,
+                'parent_id' => $rootCategory->parent_id !== null ? (int) $rootCategory->parent_id : null,
+                'depth' => (int) $rootCategory->depth,
+                'name' => (string) $rootCategory->name,
+                'full_path' => (string) ($rootCategory->full_path ?: $rootCategory->name),
+                'is_primary' => false,
+            ];
+
+            if ((bool) ($category->pivot?->is_primary ?? false)) {
+                $categories[$rootCategoryId]['is_primary'] = true;
+            }
+        }
+
+        return array_values($categories);
+    }
+
+    private static function rootCategory(Category $category): Category
+    {
+        $current = $category;
+
+        while ($current->relationLoaded('parent') && $current->parent instanceof Category) {
+            $current = $current->parent;
+        }
+
+        return $current;
     }
 
     /**

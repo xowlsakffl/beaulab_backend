@@ -51,12 +51,13 @@ final class HospitalListForStaffRequest extends FormRequest
             'allow_status.*' => ['in:PENDING,APPROVED,REJECTED'],
             'department' => ['nullable', 'array'],
             'department.*' => ['string', Rule::in(Hospital::departments())],
-            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:5'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])),
+                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])
+                    ->whereNull('parent_id')),
             ],
             'include' => ['nullable', 'array'],
             'include.*' => ['in:categories,features'],
@@ -155,8 +156,8 @@ final class HospitalListForStaffRequest extends FormRequest
             'allow_status.*' => '검수 상태',
             'department' => '분과',
             'department.*' => '분과',
-            'category_ids' => '카테고리 목록',
-            'category_ids.*' => '카테고리',
+            'category_ids' => '진료과목 목록',
+            'category_ids.*' => '진료과목',
             'include' => '포함 항목',
             'include.*' => '포함 항목',
             'sort' => '정렬 기준',

@@ -46,6 +46,14 @@ final class HospitalEvaluationStatusUpdateForStaffAction
                 ->all();
 
             $updatedCount = $this->query->update($existingIds, $status);
+            HospitalEvaluation::refreshHospitalRatingAggregates(
+                $evaluations
+                    ->pluck('hospital_id')
+                    ->map(static fn (int|string $hospitalId): int => (int) $hospitalId)
+                    ->unique()
+                    ->values()
+                    ->all()
+            );
 
             foreach ($evaluations as $evaluation) {
                 $beforeStatus = (string) $evaluation->status;

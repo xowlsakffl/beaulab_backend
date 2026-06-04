@@ -18,6 +18,7 @@ final class HospitalUpdateForStaffQuery
     public function update(Hospital $hospital, array $filter): Hospital
     {
         $hospital->fill([
+            'department' => array_key_exists('department', $filter) ? $filter['department'] : $hospital->department,
             'description' => array_key_exists('description', $filter) ? $filter['description'] : $hospital->description,
             'address' => array_key_exists('address', $filter) ? $filter['address'] : $hospital->address,
             'address_detail' => array_key_exists('address_detail', $filter) ? $filter['address_detail'] : $hospital->address_detail,

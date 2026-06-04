@@ -291,6 +291,10 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 - 병원/뷰티 검수
   - `PENDING` -> `APPROVED` 또는 `REJECTED`
   - 운영 상태는 `ACTIVE`, `SUSPENDED`, `WITHDRAWN`을 사용합니다.
+- 병의원 평가 평점
+  - 각 평가는 5개 별점 항목의 평균을 `hospital_evaluations.average_rating`에 저장합니다.
+  - 병원별 노출 평가 수와 평균 평점은 `hospitals.evaluation_count`, `hospitals.evaluation_average_rating`에 저장합니다.
+  - 병원 집계는 노출 상태이면서 정상 게시 상태인 평가만 포함하고, 매일 스케줄러로 평가별 평균과 병원 집계를 보정합니다.
 - 의사/전문가 검수
   - `PENDING` -> `APPROVED` 또는 `REJECTED`
   - 운영 상태는 `ACTIVE`, `SUSPENDED`, `INACTIVE`를 사용합니다.

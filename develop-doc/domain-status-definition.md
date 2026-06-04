@@ -398,7 +398,11 @@
 평점:
 
 - 직원친절도, 수술만족도, 병원시설, 사후관리, 비용 5개 항목을 각각 1~5점으로 저장한다.
-- 목록 평균 평점은 5개 항목의 산술 평균이다.
+- 각 평가의 `average_rating`은 5개 항목의 산술 평균을 소수점 1자리로 저장한다.
+- 병원별 집계는 `hospitals.evaluation_count`, `hospitals.evaluation_average_rating`에 저장한다.
+- 병원 집계에는 `status = ACTIVE`이고 `post_status = POST_NORMAL`인 평가만 포함한다.
+- 평가 저장/삭제/복구 및 노출상태 변경 시 병원 집계를 즉시 갱신한다.
+- 매일 03:30 `hospital-evaluations:refresh-hospital-ratings` 스케줄러가 평가별 `average_rating`과 병원 집계를 보정한다.
 
 평가 선택 항목:
 

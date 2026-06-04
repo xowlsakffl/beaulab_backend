@@ -22,6 +22,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
         $nullableKeys = [
             'description',
+            'department',
             'consulting_hours',
             'direction',
             'address',
@@ -91,6 +92,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     {
         return [
             'description' => ['nullable', 'string', 'max:5000'],
+            'department' => ['nullable', 'string', Rule::in(Hospital::departments())],
             'consulting_hours' => ['nullable', 'string', 'max:5000'],
             'direction' => ['nullable', 'string', 'max:5000'],
             'address' => ['nullable', 'string', 'max:255'],
@@ -299,6 +301,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         return [
             'name' => '병의원명',
             'description' => '병의원 소개',
+            'department' => '분과',
             'consulting_hours' => '상담 가능 시간',
             'direction' => '찾아오는 길',
             'address' => '주소',

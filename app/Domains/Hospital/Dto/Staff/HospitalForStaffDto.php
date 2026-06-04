@@ -16,12 +16,18 @@ final readonly class HospitalForStaffDto
     public function __construct(
         public int $id,
         public string $name,
+        public string $department,
+        public string $departmentLabel,
+        public ?string $email,
         public ?string $tel,
         public int $viewCount,
+        public array $evaluation,
+        public array $reviewCounts,
         public string $allowStatus,
         public string $status,
         public string $createdAt,
         public string $updatedAt,
+        public ?array $account,
         public ?array $logo,
         public ?array $categories = null,
         public ?array $features = null,
@@ -32,12 +38,24 @@ final readonly class HospitalForStaffDto
         return new self(
             id: $hospital->id,
             name: $hospital->name,
+            department: (string) $hospital->department,
+            departmentLabel: $hospital->departmentLabel(),
+            email: $hospital->email,
             tel: $hospital->tel,
             viewCount: (int) $hospital->view_count,
+            evaluation: [
+                'count' => (int) $hospital->evaluation_count,
+                'average_rating' => round((float) $hospital->evaluation_average_rating, 1),
+            ],
+            reviewCounts: [
+                'surgery' => (int) $hospital->getAttribute('surgery_review_count'),
+                'treatment' => (int) $hospital->getAttribute('treatment_review_count'),
+            ],
             allowStatus: $hospital->allow_status,
             status: $hospital->status,
             createdAt: $hospital->created_at?->toISOString() ?? '',
             updatedAt: $hospital->updated_at?->toISOString() ?? '',
+            account: self::account($hospital),
             logo: self::logo($hospital),
             categories: self::categories($hospital),
             features: self::features($hospital),
@@ -49,12 +67,18 @@ final readonly class HospitalForStaffDto
         $data = [
             'id'           => $this->id,
             'name'         => $this->name,
+            'department'   => $this->department,
+            'department_label' => $this->departmentLabel,
+            'email'        => $this->email,
             'tel'          => $this->tel,
             'view_count'   => $this->viewCount,
+            'evaluation'   => $this->evaluation,
+            'review_counts' => $this->reviewCounts,
             'allow_status' => $this->allowStatus,
             'status'       => $this->status,
             'created_at'   => $this->createdAt,
             'updated_at'   => $this->updatedAt,
+            'account'      => $this->account,
             'logo'         => $this->logo,
         ];
 
@@ -67,6 +91,23 @@ final readonly class HospitalForStaffDto
         }
 
         return $data;
+    }
+
+    private static function account(Hospital $hospital): ?array
+    {
+        if (! $hospital->relationLoaded('accountHospital') || ! $hospital->accountHospital) {
+            return null;
+        }
+
+        $account = $hospital->accountHospital;
+
+        return [
+            'id' => (int) $account->getKey(),
+            'nickname' => (string) $account->nickname,
+            'email' => (string) $account->email,
+            'status' => (string) $account->status,
+            'last_login_at' => $account->last_login_at?->toISOString(),
+        ];
     }
 
     private static function logo(Hospital $hospital): ?array

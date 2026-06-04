@@ -18,6 +18,7 @@ final class HospitalCreateForStaffQuery
     {
         return Hospital::create([
             'name'             => $data['name'],
+            'department'       => $data['department'] ?? Hospital::DEPARTMENT_OTHER,
 
             'description'      => $data['description'] ?? null,
 

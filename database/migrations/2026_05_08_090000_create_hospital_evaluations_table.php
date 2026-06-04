@@ -40,6 +40,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('rating_facility')->comment('병원시설 평점(1~5)');
             $table->unsignedTinyInteger('rating_aftercare')->comment('사후관리 평점(1~5)');
             $table->unsignedTinyInteger('rating_cost')->comment('비용 평점(1~5)');
+            $table->decimal('average_rating', 2, 1)->default(0)->comment('5개 평점 항목 평균');
 
             $table->boolean('has_overtreatment')->comment('과잉진료 여부(false=없음, true=있음)');
             $table->boolean('is_waiting_time_long')->comment('대기시간 평가(false=짧았음, true=길었음)');
@@ -65,6 +66,7 @@ return new class extends Migration
             $table->index(['category_domain', 'created_at'], 'h_evaluations_domain_created_idx');
             $table->index(['category_domain', 'status', 'created_at'], 'h_evaluations_domain_status_created_idx');
             $table->index(['cost', 'created_at'], 'h_evaluations_cost_created_idx');
+            $table->index(['average_rating', 'created_at'], 'h_evaluations_average_rating_created_idx');
             $table->index(['view_count', 'created_at'], 'h_evaluations_view_count_created_idx');
         });
 

@@ -2,6 +2,8 @@
 
 use App\Domains\Common\Notification\Jobs\SendPushNotificationDeliveryJob;
 use App\Domains\Common\Notification\Models\NotificationDelivery;
+use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\Notice\Actions\Common\CleanupTempEditorImagesAction;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -38,6 +40,42 @@ Artisan::command('notifications:send-pending-push {--limit=100}', function () {
     $this->info("Queued pending push deliveries: {$ids->count()}");
 })->purpose('Queue pending push notification deliveries');
 
+// 병원별 병의원 평가 수/평균 평점 집계 보정
+Artisan::command('hospital-evaluations:refresh-hospital-ratings {--hospital-id=*}', function () {
+    $hospitalIds = collect($this->option('hospital-id') ?? [])
+        ->map(static fn ($hospitalId): int => (int) $hospitalId)
+        ->filter(static fn (int $hospitalId): bool => $hospitalId > 0)
+        ->unique()
+        ->values();
+
+    if ($hospitalIds->isNotEmpty()) {
+        HospitalEvaluation::refreshStoredAverageRatings($hospitalIds->all());
+        HospitalEvaluation::refreshHospitalRatingAggregates($hospitalIds->all());
+        $this->info("Refreshed hospital evaluation ratings: {$hospitalIds->count()} hospitals");
+
+        return;
+    }
+
+    $refreshedCount = 0;
+
+    Hospital::query()
+        ->select(['id'])
+        ->orderBy('id')
+        ->chunkById(500, function ($hospitals) use (&$refreshedCount): void {
+            $ids = $hospitals
+                ->pluck('id')
+                ->map(static fn ($hospitalId): int => (int) $hospitalId)
+                ->values()
+                ->all();
+
+            HospitalEvaluation::refreshStoredAverageRatings($ids);
+            HospitalEvaluation::refreshHospitalRatingAggregates($ids);
+            $refreshedCount += count($ids);
+        });
+
+    $this->info("Refreshed hospital evaluation ratings: {$refreshedCount} hospitals");
+})->purpose('Refresh denormalized hospital evaluation rating aggregates');
+
 // Schedule Monitor 대상 작업 동기화 (모니터링 대상/설정 갱신)
 Schedule::command('schedule-monitor:sync')->dailyAt('02:50');
 
@@ -52,3 +90,6 @@ Schedule::command('queue:prune-batches --hours=72 --unfinished=72 --cancelled=16
 
 // 오래된 실패 작업 기록 정리 (failed_jobs 비대화 방지)
 Schedule::command('queue:prune-failed --hours=168')->dailyAt('03:20');
+
+// 병원별 평가 평점 집계 정합성 보정
+Schedule::command('hospital-evaluations:refresh-hospital-ratings')->dailyAt('03:30');

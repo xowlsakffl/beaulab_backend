@@ -13,6 +13,7 @@ return new class extends Migration
             $table->id()->comment('병원 고유 ID');
 
             $table->string('name')->unique()->comment('병원명');
+            $table->string('department', 30)->default('OTHER')->comment('분과(성형외과, 피부과, 의원, 치과, 안과, 한의원, 기타)');
 
             $table->text('description')->nullable()->comment('병원 소개');
 
@@ -29,6 +30,8 @@ return new class extends Migration
             $table->text('direction')->nullable()->comment('오시는 길');
 
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
+            $table->unsignedInteger('evaluation_count')->default(0)->comment('노출 병의원 평가 수');
+            $table->decimal('evaluation_average_rating', 2, 1)->default(0)->comment('노출 병의원 평가 평균 평점');
 
             $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(검수 신청, 검수 완료, 검수 반려 등)');
             $table->string('status', 20)->default('SUSPENDED')->comment('운영 상태(정상, 정지, 탈퇴)');
@@ -38,7 +41,10 @@ return new class extends Migration
 
             $table->index('allow_status');
             $table->index('status');
+            $table->index('department');
             $table->index('view_count');
+            $table->index('evaluation_count');
+            $table->index('evaluation_average_rating');
         });
 
         DB::statement("ALTER TABLE hospitals COMMENT = '병원 테이블'");

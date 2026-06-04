@@ -23,6 +23,7 @@ final class HospitalEvaluationListForStaffQuery
                 'rating_facility',
                 'rating_aftercare',
                 'rating_cost',
+                'average_rating',
                 'status',
                 'post_status',
                 'view_count',
@@ -142,7 +143,7 @@ final class HospitalEvaluationListForStaffQuery
             } else {
                 $builder->where(function ($query) use ($normalizedRatings): void {
                     foreach ($normalizedRatings as $rating) {
-                        $query->orWhereRaw('FLOOR('.HospitalEvaluation::averageRatingExpression().') = ?', [$rating]);
+                        $query->orWhereRaw('FLOOR(average_rating) = ?', [$rating]);
                     }
                 });
             }
@@ -168,7 +169,7 @@ final class HospitalEvaluationListForStaffQuery
         $sort = (string) ($filters['sort'] ?? 'id');
 
         if ($sort === 'average_rating') {
-            $builder->orderByRaw(HospitalEvaluation::averageRatingExpression()." {$direction}");
+            $builder->orderBy('average_rating', $direction);
         } else {
             $builder->orderBy($sort, $direction);
         }

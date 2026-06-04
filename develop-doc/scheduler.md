@@ -30,6 +30,7 @@
 3. `horizon:snapshot` 5분마다
 4. `queue:prune-batches --hours=72 --unfinished=72 --cancelled=168` 매일 03:10
 5. `queue:prune-failed --hours=168` 매일 03:20
+6. `hospital-evaluations:refresh-hospital-ratings` 매일 03:30
 
 ## 4. Schedule Monitor 테이블 역할
 
@@ -94,6 +95,22 @@ php artisan schedule-monitor:list
 1. `php artisan schedule:list`에서 Next Due 확인
 2. `php artisan schedule-monitor:list`에서 실패/지연 확인
 3. 해당 명령 단독 실행 후 예외 확인
+
+### 8.3 병원 평가 평균 집계가 맞지 않음
+
+`hospital-evaluations:refresh-hospital-ratings`는 평가별 `average_rating`을 먼저 재계산한 뒤, 병원별 `evaluation_count`, `evaluation_average_rating`을 다시 집계한다.
+
+1. 단일 병원 보정:
+
+```bash
+php artisan hospital-evaluations:refresh-hospital-ratings --hospital-id=1
+```
+
+2. 전체 병원 보정:
+
+```bash
+php artisan hospital-evaluations:refresh-hospital-ratings
+```
 
 ## 9. 운영 원칙
 

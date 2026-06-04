@@ -29,7 +29,7 @@ final class AccountHospitalFactory extends Factory
 
             'email_verified_at' => now(),
 
-            'last_login_at'     => null,
+            'last_login_at'     => $this->faker->optional(0.85)->dateTimeBetween('-90 days', 'now'),
         ];
     }
 
@@ -74,6 +74,13 @@ final class AccountHospitalFactory extends Factory
     {
         return $this->state(fn () => [
             'status' => AccountHospital::STATUS_BLOCKED,
+        ]);
+    }
+
+    public function withdrawn(): self
+    {
+        return $this->state(fn () => [
+            'status' => AccountHospital::STATUS_WITHDRAWN,
         ]);
     }
 }

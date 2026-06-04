@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 final class HospitalEvaluation extends Model
 {
@@ -89,6 +90,7 @@ final class HospitalEvaluation extends Model
         'rating_facility',
         'rating_aftercare',
         'rating_cost',
+        'average_rating',
         'has_overtreatment',
         'is_waiting_time_long',
         'has_doctor_consultation',
@@ -111,6 +113,7 @@ final class HospitalEvaluation extends Model
         'rating_facility' => 'integer',
         'rating_aftercare' => 'integer',
         'rating_cost' => 'integer',
+        'average_rating' => 'float',
         'has_overtreatment' => 'boolean',
         'is_waiting_time_long' => 'boolean',
         'has_doctor_consultation' => 'boolean',
@@ -123,6 +126,7 @@ final class HospitalEvaluation extends Model
 
     protected $attributes = [
         'cost' => 0,
+        'average_rating' => 0,
         'status' => self::STATUS_ACTIVE,
         'post_status' => self::POST_STATUS_NORMAL,
         'view_count' => 0,
@@ -223,18 +227,104 @@ final class HospitalEvaluation extends Model
 
     public static function averageRatingExpression(): string
     {
-        return '(rating_staff_kindness + rating_surgery_satisfaction + rating_facility + rating_aftercare + rating_cost) / 5';
+        return 'average_rating';
+    }
+
+    public static function averageRatingCalculationSql(): string
+    {
+        return 'ROUND((rating_staff_kindness + rating_surgery_satisfaction + rating_facility + rating_aftercare + rating_cost) / 5, 1)';
     }
 
     public function averageRating(): float
     {
-        return round((
-            (int) $this->rating_staff_kindness
-            + (int) $this->rating_surgery_satisfaction
-            + (int) $this->rating_facility
-            + (int) $this->rating_aftercare
-            + (int) $this->rating_cost
-        ) / 5, 1);
+        $averageRating = $this->getAttribute('average_rating');
+
+        if ($averageRating !== null && (float) $averageRating > 0) {
+            return round((float) $averageRating, 1);
+        }
+
+        return self::calculateAverageRating(
+            (int) $this->rating_staff_kindness,
+            (int) $this->rating_surgery_satisfaction,
+            (int) $this->rating_facility,
+            (int) $this->rating_aftercare,
+            (int) $this->rating_cost,
+        );
+    }
+
+    public static function calculateAverageRating(
+        int $staffKindness,
+        int $surgerySatisfaction,
+        int $facility,
+        int $aftercare,
+        int $cost,
+    ): float {
+        return round(($staffKindness + $surgerySatisfaction + $facility + $aftercare + $cost) / 5, 1);
+    }
+
+    /**
+     * @param  int|array<int, int>|null  $hospitalIds
+     */
+    public static function refreshHospitalRatingAggregates(int|array|null $hospitalIds): void
+    {
+        $ids = collect(is_array($hospitalIds) ? $hospitalIds : [$hospitalIds])
+            ->filter(static fn ($id): bool => $id !== null && (int) $id > 0)
+            ->map(static fn ($id): int => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return;
+        }
+
+        $averageExpression = 'CASE WHEN average_rating > 0 THEN average_rating ELSE '.self::averageRatingCalculationSql().' END';
+
+        $aggregates = self::query()
+            ->selectRaw("hospital_id, COUNT(*) as evaluation_count, ROUND(AVG({$averageExpression}), 1) as evaluation_average_rating")
+            ->whereIn('hospital_id', $ids->all())
+            ->where('status', self::STATUS_ACTIVE)
+            ->where('post_status', self::POST_STATUS_NORMAL)
+            ->groupBy('hospital_id')
+            ->get()
+            ->keyBy(static fn (self $evaluation): int => (int) $evaluation->hospital_id);
+
+        foreach ($ids as $hospitalId) {
+            $aggregate = $aggregates->get($hospitalId);
+
+            Hospital::query()
+                ->whereKey($hospitalId)
+                ->update([
+                    'evaluation_count' => $aggregate ? (int) $aggregate->getAttribute('evaluation_count') : 0,
+                    'evaluation_average_rating' => $aggregate ? (float) $aggregate->getAttribute('evaluation_average_rating') : 0,
+                ]);
+        }
+    }
+
+    /**
+     * @param  int|array<int, int>|null  $hospitalIds
+     */
+    public static function refreshStoredAverageRatings(int|array|null $hospitalIds = null): int
+    {
+        $query = self::query();
+
+        if ($hospitalIds !== null) {
+            $ids = collect(is_array($hospitalIds) ? $hospitalIds : [$hospitalIds])
+                ->filter(static fn ($id): bool => $id !== null && (int) $id > 0)
+                ->map(static fn ($id): int => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($ids === []) {
+                return 0;
+            }
+
+            $query->whereIn('hospital_id', $ids);
+        }
+
+        return $query->update([
+            'average_rating' => DB::raw(self::averageRatingCalculationSql()),
+        ]);
     }
 
     public function receiptStatusLabel(): string
@@ -310,5 +400,82 @@ final class HospitalEvaluation extends Model
     protected static function newFactory(): Factory
     {
         return HospitalEvaluationFactory::new();
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(static function (self $evaluation): void {
+            if (! $evaluation->hasAllRatingAttributes()) {
+                return;
+            }
+
+            if (
+                ! $evaluation->exists
+                || $evaluation->getAttribute('average_rating') === null
+                || $evaluation->isDirty([
+                    'rating_staff_kindness',
+                    'rating_surgery_satisfaction',
+                    'rating_facility',
+                    'rating_aftercare',
+                    'rating_cost',
+                ])
+            ) {
+                $evaluation->setAttribute('average_rating', self::calculateAverageRating(
+                    (int) $evaluation->rating_staff_kindness,
+                    (int) $evaluation->rating_surgery_satisfaction,
+                    (int) $evaluation->rating_facility,
+                    (int) $evaluation->rating_aftercare,
+                    (int) $evaluation->rating_cost,
+                ));
+            }
+        });
+
+        static::saved(static function (self $evaluation): void {
+            self::refreshHospitalRatingAggregates($evaluation->affectedHospitalIdsForAggregate());
+        });
+
+        static::deleted(static function (self $evaluation): void {
+            self::refreshHospitalRatingAggregates((int) $evaluation->hospital_id);
+        });
+
+        static::restored(static function (self $evaluation): void {
+            self::refreshHospitalRatingAggregates((int) $evaluation->hospital_id);
+        });
+
+        static::forceDeleted(static function (self $evaluation): void {
+            self::refreshHospitalRatingAggregates((int) $evaluation->hospital_id);
+        });
+    }
+
+    private function hasAllRatingAttributes(): bool
+    {
+        foreach ([
+            'rating_staff_kindness',
+            'rating_surgery_satisfaction',
+            'rating_facility',
+            'rating_aftercare',
+            'rating_cost',
+        ] as $attribute) {
+            if ($this->getAttribute($attribute) === null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function affectedHospitalIdsForAggregate(): array
+    {
+        $hospitalIds = [(int) $this->hospital_id];
+        $originalHospitalId = $this->getOriginal('hospital_id');
+
+        if ($originalHospitalId !== null && (int) $originalHospitalId !== (int) $this->hospital_id) {
+            $hospitalIds[] = (int) $originalHospitalId;
+        }
+
+        return $hospitalIds;
     }
 }

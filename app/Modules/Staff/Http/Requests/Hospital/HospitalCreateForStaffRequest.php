@@ -49,6 +49,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:hospitals,name'],
+            'department' => ['nullable', 'string', Rule::in(Hospital::departments())],
             'description' => ['nullable', 'string', 'max:5000'],
             'consulting_hours' => ['nullable', 'string', 'max:5000'],
             'direction' => ['nullable', 'string', 'max:5000'],
@@ -97,6 +98,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
     {
         return [
             'name' => '병의원명',
+            'department' => '분과',
             'description' => '병의원 소개',
             'consulting_hours' => '상담 가능 시간',
             'direction' => '찾아오는 길',

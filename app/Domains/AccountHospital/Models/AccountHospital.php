@@ -26,11 +26,12 @@ class AccountHospital extends Authenticatable
 
     protected $table = 'account_hospitals';
     /**
-     * 계정 상태 상수 (migration comment: active, suspended, blocked)
+     * 계정 상태 상수 (migration comment: active, suspended, blocked, withdrawn)
      */
     public const STATUS_ACTIVE = 'ACTIVE'; // 활성
     public const STATUS_SUSPENDED = 'SUSPENDED'; // 정지
     public const STATUS_BLOCKED = 'BLOCKED'; // 차단
+    public const STATUS_WITHDRAWN = 'WITHDRAWN'; // 탈퇴
 
     /**
      * 기본값 (DB default가 있어도 도메인 기본값은 명시 권장)
@@ -103,5 +104,23 @@ class AccountHospital extends Authenticatable
     public function isBlocked(): bool
     {
         return $this->status === self::STATUS_BLOCKED;
+    }
+
+    public function isWithdrawn(): bool
+    {
+        return $this->status === self::STATUS_WITHDRAWN;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_ACTIVE,
+            self::STATUS_SUSPENDED,
+            self::STATUS_BLOCKED,
+            self::STATUS_WITHDRAWN,
+        ];
     }
 }

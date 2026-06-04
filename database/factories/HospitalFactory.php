@@ -23,6 +23,7 @@ final class HospitalFactory extends Factory
 
         return [
             'name'            => $name,
+            'department'      => $this->faker->randomElement(Hospital::departments()),
             'description'     => $this->faker->optional(0.7)->paragraph(),
             'address'         => $this->faker->optional(0.9)->address(),
             'address_detail'  => $this->faker->optional(0.5)->secondaryAddress(),

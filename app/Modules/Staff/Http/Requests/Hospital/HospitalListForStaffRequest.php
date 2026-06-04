@@ -3,7 +3,9 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +20,9 @@ final class HospitalListForStaffRequest extends FormRequest
     {
         $this->merge([
             'status' => $this->normalizeToArray($this->input('status')),
+            'account_status' => $this->normalizeToArray($this->input('account_status')),
             'allow_status' => $this->normalizeToArray($this->input('allow_status')),
+            'department' => $this->normalizeToArray($this->input('department')),
             'category_ids' => $this->normalizeToArray($this->input('category_ids') ?? $this->input('category_id')),
             'include' => $this->normalizeToArray($this->input('include')),
         ]);
@@ -41,8 +45,12 @@ final class HospitalListForStaffRequest extends FormRequest
 
             'status'       => ['nullable', 'array'],
             'status.*'     => ['in:ACTIVE,SUSPENDED,WITHDRAWN'],
+            'account_status' => ['nullable', 'array'],
+            'account_status.*' => [Rule::in(AccountHospital::statuses())],
             'allow_status' => ['nullable', 'array'],
             'allow_status.*' => ['in:PENDING,APPROVED,REJECTED'],
+            'department' => ['nullable', 'array'],
+            'department.*' => ['string', Rule::in(Hospital::departments())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -53,7 +61,7 @@ final class HospitalListForStaffRequest extends FormRequest
             'include' => ['nullable', 'array'],
             'include.*' => ['in:categories,features'],
 
-            'sort'         => ['nullable', 'in:id,name,view_count,allow_status,status,created_at,updated_at'],
+            'sort'         => ['nullable', 'in:id,name,view_count,allow_status,status,created_at,updated_at,last_login_at,evaluation_count,evaluation_average_rating'],
             'direction'    => ['nullable', 'in:asc,desc'],
 
             'page'         => ['nullable', 'integer', 'min:1'],
@@ -72,7 +80,9 @@ final class HospitalListForStaffRequest extends FormRequest
             'updated_start_date' => $validate['updated_start_date'] ?? null,
             'updated_end_date' => $validate['updated_end_date'] ?? null,
             'status'       => $validate['status'] ?? null,
+            'account_status' => $validate['account_status'] ?? null,
             'allow_status' => $validate['allow_status'] ?? null,
+            'department' => $validate['department'] ?? null,
             'category_ids' => $validate['category_ids'] ?? null,
             'include' => $validate['include'] ?? [],
 
@@ -139,8 +149,12 @@ final class HospitalListForStaffRequest extends FormRequest
             'updated_end_date' => '수정 종료일',
             'status' => '운영 상태',
             'status.*' => '운영 상태',
+            'account_status' => '회원 상태',
+            'account_status.*' => '회원 상태',
             'allow_status' => '검수 상태',
             'allow_status.*' => '검수 상태',
+            'department' => '분과',
+            'department.*' => '분과',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'include' => '포함 항목',

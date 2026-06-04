@@ -3,7 +3,9 @@
 namespace App\Domains\Hospital\Queries\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -24,7 +26,9 @@ final class HospitalListForStaffQuery
         $updatedStartDate = $filters['updated_start_date'] ?? null;
         $updatedEndDate   = $filters['updated_end_date'] ?? null;
         $status    = $filters['status'] ?? null;
+        $accountStatus = $filters['account_status'] ?? null;
         $allow     = $filters['allow_status'] ?? null;
+        $departments = $filters['department'] ?? null;
         $categoryIds = $filters['category_ids'] ?? null;
         $include = $filters['include'] ?? [];
         $sort      = $filters['sort'] ?? 'id';
@@ -35,15 +39,31 @@ final class HospitalListForStaffQuery
         $builder = Hospital::query()->select([
             'id',
             'name',
+            'department',
+            'email',
             'tel',
             'view_count',
+            'evaluation_count',
+            'evaluation_average_rating',
             'allow_status',
             'status',
             'created_at',
             'updated_at',
         ]);
 
-        $builder->with('logoMedia');
+        $builder
+            ->with([
+                'logoMedia',
+                'accountHospital:id,hospital_id,nickname,email,status,last_login_at',
+            ])
+            ->withCount([
+                'hospitalReviews as surgery_review_count' => fn (Builder $query) => $query
+                    ->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+                    ->where('status', HospitalReview::STATUS_ACTIVE),
+                'hospitalReviews as treatment_review_count' => fn (Builder $query) => $query
+                    ->where('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+                    ->where('status', HospitalReview::STATUS_ACTIVE),
+            ]);
 
         if (is_array($include) && in_array('categories', $include, true)) {
             $builder->with([
@@ -64,13 +84,19 @@ final class HospitalListForStaffQuery
             ]);
         }
 
-        // 검색: id exact match + name / tel LIKE 검색
+        // 검색: HID exact match + 병의원명 / 병원아이디 LIKE 검색
         if ($q !== null && $q !== '') {
-            $searchId = ctype_digit($q) ? (int) $q : null;
+            $searchId = null;
+            if (ctype_digit($q)) {
+                $searchId = (int) $q;
+            } elseif (preg_match('/^(?:HID|UID)[-_ ]?(\d+)$/i', $q, $matches) === 1) {
+                $searchId = (int) $matches[1];
+            }
 
             $builder->where(function (Builder $w) use ($q, $searchId) {
                 $w->where('name', 'like', "%{$q}%")
-                    ->orWhere('tel', 'like', "%{$q}%");
+                    ->orWhereHas('accountHospital', fn (Builder $accountQuery) => $accountQuery
+                        ->where('nickname', 'like', "%{$q}%"));
 
                 if ($searchId !== null) {
                     $w->orWhere('id', $searchId);
@@ -98,13 +124,21 @@ final class HospitalListForStaffQuery
             $builder->whereDate('updated_at', '<=', $updatedEndDate);
         }
 
-        // 필터(status, allow_status)
+        // 필터(status, account_status, allow_status)
         if (is_array($status) && $status !== []) {
             $builder->whereIn('status', $status);
         }
 
+        if (is_array($accountStatus) && $accountStatus !== []) {
+            $builder->whereHas('accountHospital', fn (Builder $query) => $query->whereIn('status', $accountStatus));
+        }
+
         if (is_array($allow) && $allow !== []) {
             $builder->whereIn('allow_status', $allow);
+        }
+
+        if (is_array($departments) && $departments !== []) {
+            $builder->whereIn('department', $departments);
         }
 
         if (is_array($categoryIds) && $categoryIds !== []) {
@@ -117,8 +151,17 @@ final class HospitalListForStaffQuery
             }
         }
 
-        // 정렬
-        $builder->orderBy($sort, $direction);
+        if ($sort === 'last_login_at') {
+            $builder->orderBy(
+                AccountHospital::query()
+                    ->select('last_login_at')
+                    ->whereColumn('account_hospitals.hospital_id', 'hospitals.id')
+                    ->limit(1),
+                $direction
+            );
+        } else {
+            $builder->orderBy($sort, $direction);
+        }
 
         return $builder->paginate($perPage)->withQueryString();
     }

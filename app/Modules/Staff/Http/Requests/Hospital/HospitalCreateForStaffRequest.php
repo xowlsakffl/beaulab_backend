@@ -107,8 +107,8 @@ final class HospitalCreateForStaffRequest extends FormRequest
             ],
 
             'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'gallery' => ['required', 'array', 'min:1', 'max:12'],
-            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'gallery' => ['required', 'array', 'min:1', 'max:5'],
+            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:10240', 'dimensions:width=760,height=490'],
         ];
     }
 

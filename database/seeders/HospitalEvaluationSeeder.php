@@ -68,6 +68,7 @@ final class HospitalEvaluationSeeder extends Seeder
                 ->forHospital($hospital)
                 ->active()
                 ->approved()
+                ->withSeedMedia()
                 ->create();
         }
     }
@@ -189,6 +190,7 @@ final class HospitalEvaluationSeeder extends Seeder
                 ->forHospital($hospitalId)
                 ->active()
                 ->approved()
+                ->withSeedMedia()
                 ->create();
 
             return (int) $doctor->id;

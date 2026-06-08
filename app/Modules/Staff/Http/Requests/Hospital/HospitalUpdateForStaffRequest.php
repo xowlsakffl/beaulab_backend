@@ -37,7 +37,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'operation_hours',
             'allow_status',
             'status',
-            'status_change_reason',
             'business_number',
             'company_name',
             'ceo_name',
@@ -123,7 +122,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'operation_hours.*.end' => ['nullable', 'date_format:H:i'],
             'allow_status' => ['nullable', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
             'status' => ['nullable', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
-            'status_change_reason' => ['nullable', 'string', 'max:1000'],
             'business_number' => [
                 'nullable',
                 'string',
@@ -186,7 +184,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                     }
                 },
             ],
-            'existing_gallery_ids' => ['sometimes', 'array', 'max:12'],
+            'existing_gallery_ids' => ['sometimes', 'array', 'max:5'],
             'existing_gallery_ids.*' => [
                 'integer',
                 'distinct',
@@ -210,7 +208,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                     }
                 },
             ],
-            'gallery_order' => ['sometimes', 'array', 'max:12'],
+            'gallery_order' => ['sometimes', 'array', 'max:5'],
             'gallery_order.*' => [
                 'string',
                 'distinct',
@@ -278,9 +276,17 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                     }
                 },
             ],
-            'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
             'gallery' => ['nullable', 'array', 'min:1', 'max:5'],
             'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:10240', 'dimensions:width=760,height=490'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'logo.max' => '5MB 이하의 파일만 업로드 가능합니다.',
+            'logo.dimensions' => '1:1비율의 이미지로 업로드 가능합니다.',
         ];
     }
 
@@ -288,7 +294,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     {
         $validator->after(function (\Illuminate\Validation\Validator $validator): void {
             $this->validateOperationHours($validator);
-            $this->validateStatusReason($validator);
 
             $galleryOrder = $this->input('gallery_order');
             $uploadedGalleryFiles = $this->normalizeUploadedFiles($this->file('gallery'));
@@ -309,8 +314,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                     return;
                 }
 
-                if (count($parsedGalleryOrder['existing_ids']) + count($newIndexes) > 12) {
-                    $validator->errors()->add('gallery', '대표/내부 이미지는 최대 12장까지 등록할 수 있습니다.');
+                if (count($parsedGalleryOrder['existing_ids']) + count($newIndexes) > 5) {
+                    $validator->errors()->add('gallery', '대표/내부 이미지는 최대 5장까지 등록할 수 있습니다.');
                 }
 
                 return;
@@ -319,8 +324,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             $keptGalleryCount = count($this->input('existing_gallery_ids', []));
             $newGalleryCount = count($uploadedGalleryFiles);
 
-            if ($keptGalleryCount + $newGalleryCount > 12) {
-                $validator->errors()->add('gallery', '대표/내부 이미지는 최대 12장까지 등록할 수 있습니다.');
+            if ($keptGalleryCount + $newGalleryCount > 5) {
+                $validator->errors()->add('gallery', '대표/내부 이미지는 최대 5장까지 등록할 수 있습니다.');
             }
         });
     }
@@ -348,7 +353,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'operation_hours.*.end' => '진료 종료 시간',
             'allow_status' => '검수 상태',
             'status' => '운영 상태',
-            'status_change_reason' => '운영중지/탈퇴 사유',
             'business_number' => '사업자등록번호',
             'company_name' => '상호명',
             'ceo_name' => '대표자',
@@ -387,30 +391,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         }
 
         return $hospital->businessRegistration()->value('id');
-    }
-
-    private function validateStatusReason(\Illuminate\Validation\Validator $validator): void
-    {
-        $hospital = $this->route('hospital');
-        $status = $this->input('status');
-
-        if ($status === null) {
-            return;
-        }
-
-        if (! in_array($status, [Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN], true)) {
-            return;
-        }
-
-        if ($hospital instanceof Hospital && (string) $hospital->status === (string) $status) {
-            return;
-        }
-
-        $statusReason = $this->input('status_change_reason');
-
-        if (! is_string($statusReason) || trim($statusReason) === '') {
-            $validator->errors()->add('status_change_reason', '운영중지 또는 탈퇴 상태에서는 사유를 입력해주세요.');
-        }
     }
 
     private function normalizeOperationHours(mixed $value): mixed

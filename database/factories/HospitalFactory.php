@@ -24,13 +24,13 @@ final class HospitalFactory extends Factory
             'name'            => $name,
             'department'      => $this->faker->randomElement(Hospital::departments()),
             'description'     => $this->faker->optional(0.7)->paragraph(),
-            'address'         => $this->faker->optional(0.9)->address(),
-            'address_detail'  => $this->faker->optional(0.5)->secondaryAddress(),
+            'address'         => $this->faker->address(),
+            'address_detail'  => $this->faker->secondaryAddress(),
 
-            'latitude'        => $this->faker->optional(0.8)->latitude(33.0, 38.6),
-            'longitude'       => $this->faker->optional(0.8)->longitude(124.5, 132.0),
+            'latitude'        => $this->faker->latitude(33.0, 38.6),
+            'longitude'       => $this->faker->longitude(124.5, 132.0),
 
-            'tel'             => $this->faker->optional(0.9)->phoneNumber(),
+            'tel'             => $this->faker->phoneNumber(),
             'ad_reception_phone_1' => $this->faker->phoneNumber(),
             'ad_reception_phone_2' => $this->faker->optional(0.5)->phoneNumber(),
             'ad_reception_phone_3' => $this->faker->optional(0.3)->phoneNumber(),

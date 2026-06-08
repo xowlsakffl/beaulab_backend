@@ -42,13 +42,7 @@ final class HospitalUpdateForStaffAction
 
         $beforeStatus = (string) $hospital->status;
         $afterStatus = (string) ($payload['status'] ?? $beforeStatus);
-        $historyReason = $afterStatus === Hospital::STATUS_ACTIVE ? null : $this->normalizeReason($payload['status_change_reason'] ?? null);
-        $latestHistoryReason = $this->latestStatusHistoryReason($hospital);
-        $shouldRecordStatusHistory = array_key_exists('status', $payload)
-            && (
-                $beforeStatus !== $afterStatus
-                || ($historyReason !== null && $historyReason !== $latestHistoryReason)
-            );
+        $shouldRecordStatusHistory = array_key_exists('status', $payload) && $beforeStatus !== $afterStatus;
         $actor = auth()->user();
 
         $updated = DB::transaction(function () use (
@@ -56,7 +50,6 @@ final class HospitalUpdateForStaffAction
             $payload,
             $beforeStatus,
             $afterStatus,
-            $historyReason,
             $shouldRecordStatusHistory,
             $actor,
         ) {
@@ -71,7 +64,7 @@ final class HospitalUpdateForStaffAction
                 $this->syncFeatures($updatedHospital, $payload['feature_ids']);
             }
             if ($shouldRecordStatusHistory) {
-                $this->recordStatusHistory($updatedHospital, $beforeStatus, $afterStatus, $historyReason, $actor);
+                $this->recordStatusHistory($updatedHospital, $beforeStatus, $afterStatus, $actor);
             }
 
             return $updatedHospital->fresh();
@@ -88,7 +81,6 @@ final class HospitalUpdateForStaffAction
         Hospital $hospital,
         string $beforeStatus,
         string $afterStatus,
-        ?string $reason,
         mixed $actor,
     ): void {
         $this->historyCreateAction->execute(
@@ -98,30 +90,13 @@ final class HospitalUpdateForStaffAction
             field: 'status',
             beforeValue: $beforeStatus,
             afterValue: $afterStatus,
-            reason: $reason,
+            reason: null,
             metadata: [
                 'before_label' => $this->statusLabel($beforeStatus),
                 'after_label' => $this->statusLabel($afterStatus),
                 'source' => 'staff.hospital.status',
             ],
         );
-    }
-
-    private function latestStatusHistoryReason(Hospital $hospital): ?string
-    {
-        $history = $hospital->operationHistories()
-            ->where('field', 'status')
-            ->where('after_value', $hospital->status)
-            ->first();
-
-        return $history?->reason;
-    }
-
-    private function normalizeReason(mixed $reason): ?string
-    {
-        $reason = trim((string) $reason);
-
-        return $reason === '' ? null : $reason;
     }
 
     private function statusLabel(string $status): string

@@ -30,10 +30,6 @@ final class HospitalDoctorCreateForStaffAction
             $this->mediaAttachAction->attachOne($doctor, $payload['profile_image'] ?? null, 'profile_image', 'doctor', 'profile-image');
             $this->mediaAttachAction->attachOne($doctor, $payload['license_image'] ?? null, 'license_image', 'doctor', 'license-image');
             $this->mediaAttachAction->attachOne($doctor, $payload['specialist_certificate_image'] ?? null, 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
-
-            $this->mediaAttachAction->attachMany($doctor, $payload['education_certificate_image'] ?? [], 'education_certificate_image', 'doctor', 'education-certificate-image');
-
-            $this->mediaAttachAction->attachMany($doctor, $payload['etc_certificate_image'] ?? [], 'etc_certificate_image', 'doctor', 'etc-certificate-image');
             $this->syncCategories($doctor, $payload['category_ids'] ?? []);
 
             return $doctor->fresh();
@@ -45,8 +41,6 @@ final class HospitalDoctorCreateForStaffAction
                 'profileImage',
                 'licenseImage',
                 'specialistCertificateImages',
-                'educationCertificateImages',
-                'etcCertificateImages',
                 'categories',
             ]))->toArray(),
         ];

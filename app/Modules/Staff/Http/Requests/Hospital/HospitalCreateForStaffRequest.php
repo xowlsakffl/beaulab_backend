@@ -73,7 +73,6 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'operation_hours.*.end' => ['nullable', 'date_format:H:i'],
             'allow_status' => ['required', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
             'status' => ['required', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
-            'status_change_reason' => ['nullable', 'string', 'max:1000'],
 
             'business_number' => ['required', 'string', 'max:20', 'unique:hospital_business_registrations,business_number'],
             'company_name' => ['required', 'string', 'max:255'],
@@ -106,9 +105,17 @@ final class HospitalCreateForStaffRequest extends FormRequest
                     ->where('status', HospitalFeature::STATUS_ACTIVE)),
             ],
 
-            'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
             'gallery' => ['required', 'array', 'min:1', 'max:5'],
             'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:10240', 'dimensions:width=760,height=490'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'logo.max' => '5MB 이하의 파일만 업로드 가능합니다.',
+            'logo.dimensions' => '1:1비율의 이미지로 업로드 가능합니다.',
         ];
     }
 
@@ -135,7 +142,6 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'operation_hours.*.end' => '진료 종료 시간',
             'allow_status' => '검수 상태',
             'status' => '운영 상태',
-            'status_change_reason' => '운영중지/탈퇴 사유',
             'business_number' => '사업자등록번호',
             'company_name' => '상호명',
             'ceo_name' => '대표자',
@@ -163,21 +169,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
     {
         $validator->after(function (\Illuminate\Validation\Validator $validator): void {
             $this->validateOperationHours($validator);
-            $this->validateStatusReason($validator);
         });
-    }
-
-    private function validateStatusReason(\Illuminate\Validation\Validator $validator): void
-    {
-        if (! in_array($this->input('status'), [Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN], true)) {
-            return;
-        }
-
-        $statusReason = $this->input('status_change_reason');
-
-        if (! is_string($statusReason) || trim($statusReason) === '') {
-            $validator->errors()->add('status_change_reason', '운영중지 또는 탈퇴 상태에서는 사유를 입력해주세요.');
-        }
     }
 
     /**

@@ -19,14 +19,13 @@ final readonly class HospitalDoctorForStaffDto
         public string $name,
         public ?string $gender,
         public ?string $position,
-        public bool $isSpecialist,
+        public array $specialist,
         public ?string $careerStartedAt,
-        public int $sortOrder,
+        public ?string $licenseNumber,
         public string $allowStatus,
-        public string $status,
-        public int $viewCount,
+        public int $reviewCount,
+        public int $consultationCount,
         public string $createdAt,
-        public string $updatedAt,
         public ?array $profileImage,
         public ?array $categories = null,
     ) {}
@@ -40,14 +39,13 @@ final readonly class HospitalDoctorForStaffDto
             name: (string) $doctor->name,
             gender: $doctor->gender,
             position: $doctor->position,
-            isSpecialist: (bool) $doctor->is_specialist,
+            specialist: self::specialist($doctor),
             careerStartedAt: $doctor->career_started_at?->toDateString(),
-            sortOrder: (int) $doctor->sort_order,
+            licenseNumber: $doctor->license_number,
             allowStatus: (string) $doctor->allow_status,
-            status: (string) $doctor->status,
-            viewCount: (int) $doctor->view_count,
+            reviewCount: (int) ($doctor->review_count ?? 0),
+            consultationCount: (int) ($doctor->consultation_count ?? 0),
             createdAt: $doctor->created_at?->toISOString() ?? '',
-            updatedAt: $doctor->updated_at?->toISOString() ?? '',
             profileImage: self::profileImage($doctor),
             categories: self::categories($doctor),
         );
@@ -62,14 +60,13 @@ final readonly class HospitalDoctorForStaffDto
             'name' => $this->name,
             'gender' => $this->gender,
             'position' => $this->position,
-            'is_specialist' => $this->isSpecialist,
+            'specialist' => $this->specialist,
             'career_started_at' => $this->careerStartedAt,
-            'sort_order' => $this->sortOrder,
+            'license_number' => $this->licenseNumber,
             'allow_status' => $this->allowStatus,
-            'status' => $this->status,
-            'view_count' => $this->viewCount,
+            'review_count' => $this->reviewCount,
+            'consultation_count' => $this->consultationCount,
             'created_at' => $this->createdAt,
-            'updated_at' => $this->updatedAt,
             'profile_image' => $this->profileImage,
         ];
 
@@ -89,6 +86,16 @@ final readonly class HospitalDoctorForStaffDto
         return self::media($doctor->profileImage);
     }
 
+    private static function specialist(HospitalDoctor $doctor): array
+    {
+        $code = (string) ($doctor->specialist_field ?: HospitalDoctor::SPECIALIST_FIELD_NONE);
+
+        return [
+            'code' => $code,
+            'label' => HospitalDoctor::specialistFieldLabel($code),
+        ];
+    }
+
     private static function categories(HospitalDoctor $doctor): ?array
     {
         if (! $doctor->relationLoaded('categories')) {
@@ -96,9 +103,16 @@ final readonly class HospitalDoctorForStaffDto
         }
 
         return $doctor->categories
-            ->map(fn (Category $category): array => [
-                'name' => (string) $category->name,
-            ])
+            ->map(static function (Category $category): string {
+                $fullPath = trim((string) ($category->full_path ?: $category->name));
+                $rootName = trim(explode('>', $fullPath)[0] ?? '');
+
+                return $rootName !== '' ? $rootName : (string) $category->name;
+            })
+            ->filter(static fn (string $name): bool => $name !== '')
+            ->unique()
+            ->values()
+            ->map(static fn (string $name): array => ['name' => $name])
             ->values()
             ->all();
     }

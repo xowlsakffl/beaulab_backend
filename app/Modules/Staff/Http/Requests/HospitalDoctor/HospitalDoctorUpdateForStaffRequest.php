@@ -19,10 +19,12 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
         $data = $this->all();
 
         foreach ([
+            'hospital_id',
             'gender',
             'position',
             'career_started_at',
             'license_number',
+            'specialist_field',
             'existing_profile_image_id',
             'existing_license_image_id',
             'existing_specialist_certificate_image_id',
@@ -30,6 +32,10 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             if (array_key_exists($key, $data) && $data[$key] === '') {
                 $data[$key] = null;
             }
+        }
+
+        if (array_key_exists('specialist_field', $data) && $data['specialist_field'] === null) {
+            $data['specialist_field'] = HospitalDoctor::SPECIALIST_FIELD_NONE;
         }
 
         if (array_key_exists('position', $data)) {
@@ -53,12 +59,6 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
         }
 
-        foreach (['existing_education_certificate_image_ids', 'existing_etc_certificate_image_ids'] as $key) {
-            if (array_key_exists($key, $data)) {
-                $data[$key] = $this->normalizeIdList($data[$key]);
-            }
-        }
-
         $this->replace($data);
     }
 
@@ -70,17 +70,14 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'hospital_id' => ['sometimes', 'required', 'integer', 'exists:hospitals,id'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'name' => ['nullable', 'string', 'max:255'],
             'gender' => ['nullable', Rule::in([HospitalDoctor::GENDER_MALE, HospitalDoctor::GENDER_FEMALE])],
-            'position' => ['nullable', Rule::in([
-                HospitalDoctor::POSITION_HEAD_DIRECTOR,
-                HospitalDoctor::POSITION_DIRECTOR,
-                HospitalDoctor::POSITION_ETC,
-            ])],
+            'position' => ['nullable', Rule::in(HospitalDoctor::positions())],
             'career_started_at' => ['nullable', 'date'],
-            'license_number' => ['nullable', 'string', 'max:100'],
-            'is_specialist' => ['nullable', 'boolean'],
+            'license_number' => ['sometimes', 'required', 'string', 'max:100', 'regex:/^\d+$/'],
+            'specialist_field' => ['nullable', Rule::in(HospitalDoctor::specialistFields())],
             'educations' => ['nullable', 'array', 'max:10'],
             'careers' => ['nullable', 'array', 'max:10'],
             'etc_contents' => ['nullable', 'array', 'max:10'],
@@ -95,40 +92,23 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],
             'allow_status' => ['nullable', 'in:PENDING,APPROVED,REJECTED'],
 
-            'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
             'license_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
             'specialist_certificate_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'education_certificate_image' => ['nullable', 'array', 'max:5'],
-            'education_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'etc_certificate_image' => ['nullable', 'array', 'max:5'],
-            'etc_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
             'existing_profile_image_id' => ['sometimes', 'nullable', 'integer', $this->mediaBelongsToDoctorRule('profile_image')],
             'existing_license_image_id' => ['sometimes', 'nullable', 'integer', $this->mediaBelongsToDoctorRule('license_image')],
             'existing_specialist_certificate_image_id' => ['sometimes', 'nullable', 'integer', $this->mediaBelongsToDoctorRule('specialist_certificate_image')],
-            'existing_education_certificate_image_ids' => ['sometimes', 'array', 'max:5'],
-            'existing_education_certificate_image_ids.*' => ['integer', 'distinct', $this->mediaBelongsToDoctorRule('education_certificate_image')],
-            'existing_etc_certificate_image_ids' => ['sometimes', 'array', 'max:5'],
-            'existing_etc_certificate_image_ids.*' => ['integer', 'distinct', $this->mediaBelongsToDoctorRule('etc_certificate_image')],
         ];
     }
 
-    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    public function messages(): array
     {
-        $validator->after(function (\Illuminate\Validation\Validator $validator): void {
-            $keptEducationCertificateCount = count($this->input('existing_education_certificate_image_ids', []));
-            $newEducationCertificateCount = $this->countUploadedFiles($this->file('education_certificate_image'));
-
-            if ($keptEducationCertificateCount + $newEducationCertificateCount > 5) {
-                $validator->errors()->add('education_certificate_image', '학력 증명서 이미지는 최대 5개까지 등록할 수 있습니다.');
-            }
-
-            $keptEtcCertificateCount = count($this->input('existing_etc_certificate_image_ids', []));
-            $newEtcCertificateCount = $this->countUploadedFiles($this->file('etc_certificate_image'));
-
-            if ($keptEtcCertificateCount + $newEtcCertificateCount > 5) {
-                $validator->errors()->add('etc_certificate_image', '기타 증명서 이미지는 최대 5개까지 등록할 수 있습니다.');
-            }
-        });
+        return [
+            'profile_image.max' => '5MB 이하의 파일만 업로드 가능합니다.',
+            'profile_image.dimensions' => '1:1비율의 이미지로 업로드 가능합니다.',
+            'license_number.required' => '의사면허 번호를 입력해 주세요.',
+            'license_number.regex' => '의사면허 번호는 숫자만 입력할 수 있습니다.',
+        ];
     }
 
     public function attributes(): array
@@ -141,7 +121,7 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             'position' => "직책",
             'career_started_at' => '경력 시작일',
             'license_number' => '면허증 번호',
-            'is_specialist' => "전문의 여부",
+            'specialist_field' => '전문의 분류',
             'educations' => '학력 사항',
             'careers' => '경력 사항',
             'etc_contents' => '기타 사항',
@@ -154,17 +134,9 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             'license_image' => '면허증 이미지',
 
             'specialist_certificate_image' => '전문의 면허증 이미지',
-            'education_certificate_image' => '학력 증명서 이미지',
-            'education_certificate_image.*' => '학력 증명서 이미지',
-            'etc_certificate_image' => '기타 증명서 이미지',
-            'etc_certificate_image.*' => '기타 증명서 이미지',
             'existing_profile_image_id' => '기존 프로필 이미지',
             'existing_license_image_id' => '기존 면허증 이미지',
             'existing_specialist_certificate_image_id' => '기존 전문의 증명서 이미지',
-            'existing_education_certificate_image_ids' => '기존 학력 증명서 목록',
-            'existing_education_certificate_image_ids.*' => '기존 학력 증명서',
-            'existing_etc_certificate_image_ids' => '기존 기타 증명서 목록',
-            'existing_etc_certificate_image_ids.*' => '기존 기타 증명서',
         ];
     }
 
@@ -225,19 +197,6 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             ->filter(static fn (int $item): bool => $item > 0)
             ->values()
             ->all();
-    }
-
-    private function countUploadedFiles(mixed $files): int
-    {
-        if ($files === null) {
-            return 0;
-        }
-
-        if (is_array($files)) {
-            return count($files);
-        }
-
-        return 1;
     }
 
 }

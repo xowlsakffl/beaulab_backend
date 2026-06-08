@@ -23,7 +23,7 @@ return new class extends Migration
 
             $table->string('license_number', 100)->nullable()->comment('의사 면허증 번호');
 
-            $table->boolean('is_specialist')->default(false)->comment('전문의 여부');
+            $table->string('specialist_field', 80)->default('NONE')->comment('전문의 분류(NONE, PLASTIC_SURGERY 등)');
 
             $table->json('educations')->nullable()->comment('학력사항 목록');
             $table->json('careers')->nullable()->comment('경력사항 목록');
@@ -33,8 +33,6 @@ return new class extends Migration
             // - profile_image
             // - license_image
             // - specialist_certificate_image
-            // - education_certificate_image
-            // - etc_certificate_image
 
             $table->string('status', 20)->default('SUSPENDED')->comment('운영 상태(정상, 정지, 비활성)');
             $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(검수 신청, 검수 완료, 반려 등)');
@@ -47,7 +45,7 @@ return new class extends Migration
             $table->index('status');
             $table->index('allow_status');
             $table->index('view_count');
-            $table->index('is_specialist');
+            $table->index('specialist_field');
         });
 
         DB::statement("ALTER TABLE hospital_doctors COMMENT = '병원 소속 의사 테이블'");

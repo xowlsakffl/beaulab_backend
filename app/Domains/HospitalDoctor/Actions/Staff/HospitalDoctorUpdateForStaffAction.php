@@ -3,11 +3,9 @@
 namespace App\Domains\HospitalDoctor\Actions\Staff;
 
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
-use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalDoctor\Dto\Staff\HospitalDoctorForStaffDetailDto;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalDoctor\Queries\Staff\HospitalDoctorUpdateForStaffQuery;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -41,8 +39,6 @@ final class HospitalDoctorUpdateForStaffAction
                 'profileImage',
                 'licenseImage',
                 'specialistCertificateImages',
-                'educationCertificateImages',
-                'etcCertificateImages',
                 'categories',
             ]))->toArray(),
         ];
@@ -69,88 +65,6 @@ final class HospitalDoctorUpdateForStaffAction
             $this->mediaAttachAction->attachOne($doctor, $payload['specialist_certificate_image'], 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
         } elseif (array_key_exists('existing_specialist_certificate_image_id', $payload) && empty($payload['existing_specialist_certificate_image_id'])) {
             $this->mediaAttachAction->deleteCollectionMedia($doctor, 'specialist_certificate_image');
-        }
-
-        if (array_key_exists('existing_education_certificate_image_ids', $payload) || array_key_exists('education_certificate_image', $payload)) {
-            $this->syncMediaCollection(
-                $doctor,
-                'education_certificate_image',
-                'education-certificate-image',
-                $payload['existing_education_certificate_image_ids'] ?? [],
-                $payload['education_certificate_image'] ?? [],
-            );
-        }
-
-        if (array_key_exists('existing_etc_certificate_image_ids', $payload) || array_key_exists('etc_certificate_image', $payload)) {
-            $this->syncMediaCollection(
-                $doctor,
-                'etc_certificate_image',
-                'etc-certificate-image',
-                $payload['existing_etc_certificate_image_ids'] ?? [],
-                $payload['etc_certificate_image'] ?? [],
-            );
-        }
-    }
-
-    /**
-     * @param array<int, int|string> $existingMediaIds
-     * @param array<int, mixed> $newFiles
-     */
-    private function syncMediaCollection(
-        HospitalDoctor $doctor,
-        string $collection,
-        string $dirName,
-        array $existingMediaIds,
-        array $newFiles,
-    ): void {
-        $currentMedia = Media::query()
-            ->for($doctor)
-            ->collection($collection)
-            ->ordered()
-            ->get()
-            ->keyBy(static fn (Media $media): int => (int) $media->id);
-
-        $keptMediaIds = collect($existingMediaIds)
-            ->map(static fn (int|string $mediaId): int => (int) $mediaId)
-            ->filter(static fn (int $mediaId): bool => $mediaId > 0 && $currentMedia->has($mediaId))
-            ->unique()
-            ->values();
-
-        $deletedMediaIds = $currentMedia->keys()->diff($keptMediaIds);
-
-        if ($deletedMediaIds->isNotEmpty()) {
-            $currentMedia
-                ->only($deletedMediaIds->all())
-                ->each(function (Media $media): void {
-                    $this->mediaAttachAction->delete($media);
-                });
-        }
-
-        $keptMediaIds->each(function (int $mediaId, int $index) use ($currentMedia): void {
-            $media = $currentMedia->get($mediaId);
-
-            if (! $media) {
-                return;
-            }
-
-            $media->setSortOrder($index);
-        });
-
-        $baseSortOrder = $keptMediaIds->count();
-        foreach (array_values($newFiles) as $index => $file) {
-            if (! $file instanceof UploadedFile) {
-                continue;
-            }
-
-            $this->mediaAttachAction->attachOne(
-                $doctor,
-                $file,
-                $collection,
-                'doctor',
-                $dirName,
-                false,
-                $baseSortOrder + $index,
-            );
         }
     }
 

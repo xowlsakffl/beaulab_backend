@@ -13,13 +13,14 @@ final class HospitalDoctorUpdateForStaffQuery
     public function update(HospitalDoctor $doctor, array $payload): HospitalDoctor
     {
         $doctor->fill([
+            'hospital_id' => array_key_exists('hospital_id', $payload) ? $payload['hospital_id'] : $doctor->hospital_id,
             'sort_order' => array_key_exists('sort_order', $payload) ? $payload['sort_order'] : $doctor->sort_order,
             'name' => array_key_exists('name', $payload) ? $payload['name'] : $doctor->name,
             'gender' => array_key_exists('gender', $payload) ? $payload['gender'] : $doctor->gender,
             'position' => array_key_exists('position', $payload) ? $payload['position'] : $doctor->position,
             'career_started_at' => array_key_exists('career_started_at', $payload) ? $payload['career_started_at'] : $doctor->career_started_at,
             'license_number' => array_key_exists('license_number', $payload) ? $payload['license_number'] : $doctor->license_number,
-            'is_specialist' => array_key_exists('is_specialist', $payload) ? (bool) $payload['is_specialist'] : $doctor->is_specialist,
+            'specialist_field' => array_key_exists('specialist_field', $payload) ? $payload['specialist_field'] : $doctor->specialist_field,
             'educations' => array_key_exists('educations', $payload) ? $payload['educations'] : $doctor->educations,
             'careers' => array_key_exists('careers', $payload) ? $payload['careers'] : $doctor->careers,
             'etc_contents' => array_key_exists('etc_contents', $payload) ? $payload['etc_contents'] : $doctor->etc_contents,

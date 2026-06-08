@@ -216,7 +216,10 @@ final readonly class HospitalForStaffDetailDto
                 'hospital_id' => $doctor->hospital_id,
                 'name' => $doctor->name,
                 'position' => $doctor->position,
-                'is_specialist' => (bool) $doctor->is_specialist,
+                'specialist' => [
+                    'code' => (string) ($doctor->specialist_field ?: HospitalDoctor::SPECIALIST_FIELD_NONE),
+                    'label' => HospitalDoctor::specialistFieldLabel($doctor->specialist_field),
+                ],
                 'sort_order' => (int) $doctor->sort_order,
                 'allow_status' => $doctor->allow_status,
                 'status' => $doctor->status,

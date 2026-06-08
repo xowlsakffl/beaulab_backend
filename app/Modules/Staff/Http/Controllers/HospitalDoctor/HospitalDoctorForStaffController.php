@@ -5,6 +5,7 @@ namespace App\Modules\Staff\Http\Controllers\HospitalDoctor;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalDoctor\Actions\Staff\HospitalDoctorHospitalOptionListForStaffAction;
+use App\Domains\HospitalDoctor\Actions\Staff\HospitalDoctorOptionListForStaffAction;
 use App\Domains\HospitalDoctor\Actions\Staff\HospitalDoctorCreateForStaffAction;
 use App\Domains\HospitalDoctor\Actions\Staff\HospitalDoctorDeleteForStaffAction;
 use App\Domains\HospitalDoctor\Actions\Staff\HospitalDoctorGetForStaffAction;
@@ -14,6 +15,7 @@ use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Modules\Staff\Http\Requests\HospitalDoctor\HospitalDoctorCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalDoctor\HospitalDoctorHospitalOptionListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalDoctor\HospitalDoctorListForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalDoctor\HospitalDoctorOptionListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalDoctor\HospitalDoctorUpdateForStaffRequest;
 
 /**
@@ -25,6 +27,15 @@ final class HospitalDoctorForStaffController extends Controller
     public function getDoctorHospitalOptionsForStaff(
         HospitalDoctorHospitalOptionListForStaffRequest $request,
         HospitalDoctorHospitalOptionListForStaffAction $action,
+    ) {
+        $result = $action->execute($request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getDoctorOptionsForStaff(
+        HospitalDoctorOptionListForStaffRequest $request,
+        HospitalDoctorOptionListForStaffAction $action,
     ) {
         $result = $action->execute($request->filters());
 

@@ -8,11 +8,13 @@ use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalReview\Models\HospitalReview;
 use Database\Factories\HospitalDoctorFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -31,7 +33,70 @@ final class HospitalDoctor extends Model
 
     public const POSITION_HEAD_DIRECTOR = '대표원장';
     public const POSITION_DIRECTOR = '원장';
-    public const POSITION_ETC = '기타';
+
+    public const SPECIALIST_FIELD_NONE = 'NONE';
+    public const SPECIALIST_FIELD_PLASTIC_SURGERY = 'PLASTIC_SURGERY';
+    public const SPECIALIST_FIELD_SURGERY = 'SURGERY';
+    public const SPECIALIST_FIELD_OTOLARYNGOLOGY = 'OTOLARYNGOLOGY';
+    public const SPECIALIST_FIELD_FAMILY_MEDICINE = 'FAMILY_MEDICINE';
+    public const SPECIALIST_FIELD_OBSTETRICS_GYNECOLOGY = 'OBSTETRICS_GYNECOLOGY';
+    public const SPECIALIST_FIELD_ORAL_MAXILLOFACIAL_SURGERY = 'ORAL_MAXILLOFACIAL_SURGERY';
+    public const SPECIALIST_FIELD_ANESTHESIOLOGY_PAIN_MEDICINE = 'ANESTHESIOLOGY_PAIN_MEDICINE';
+    public const SPECIALIST_FIELD_KOREAN_MEDICINE = 'KOREAN_MEDICINE';
+    public const SPECIALIST_FIELD_DENTISTRY = 'DENTISTRY';
+    public const SPECIALIST_FIELD_ORTHODONTICS = 'ORTHODONTICS';
+    public const SPECIALIST_FIELD_DERMATOLOGY = 'DERMATOLOGY';
+    public const SPECIALIST_FIELD_OPHTHALMOLOGY = 'OPHTHALMOLOGY';
+    public const SPECIALIST_FIELD_INTERNAL_MEDICINE = 'INTERNAL_MEDICINE';
+    public const SPECIALIST_FIELD_NEUROLOGY = 'NEUROLOGY';
+    public const SPECIALIST_FIELD_ORTHOPEDICS = 'ORTHOPEDICS';
+    public const SPECIALIST_FIELD_NEUROSURGERY = 'NEUROSURGERY';
+    public const SPECIALIST_FIELD_THORACIC_SURGERY = 'THORACIC_SURGERY';
+    public const SPECIALIST_FIELD_PEDIATRICS = 'PEDIATRICS';
+    public const SPECIALIST_FIELD_UROLOGY = 'UROLOGY';
+    public const SPECIALIST_FIELD_RADIOLOGY = 'RADIOLOGY';
+    public const SPECIALIST_FIELD_EMERGENCY_MEDICINE = 'EMERGENCY_MEDICINE';
+    public const SPECIALIST_FIELD_REHABILITATION_MEDICINE = 'REHABILITATION_MEDICINE';
+    public const SPECIALIST_FIELD_PROSTHODONTICS = 'PROSTHODONTICS';
+    public const SPECIALIST_FIELD_PERIODONTICS = 'PERIODONTICS';
+    public const SPECIALIST_FIELD_INTEGRATED_DENTISTRY = 'INTEGRATED_DENTISTRY';
+    public const SPECIALIST_FIELD_PATHOLOGY = 'PATHOLOGY';
+    public const SPECIALIST_FIELD_OCCUPATIONAL_ENVIRONMENTAL_MEDICINE = 'OCCUPATIONAL_ENVIRONMENTAL_MEDICINE';
+    public const SPECIALIST_FIELD_CONSERVATIVE_DENTISTRY = 'CONSERVATIVE_DENTISTRY';
+    public const SPECIALIST_FIELD_OTHER = 'OTHER';
+
+    public const SPECIALIST_FIELD_LABELS = [
+        self::SPECIALIST_FIELD_NONE => '선택안함',
+        self::SPECIALIST_FIELD_PLASTIC_SURGERY => '성형외과',
+        self::SPECIALIST_FIELD_SURGERY => '외과',
+        self::SPECIALIST_FIELD_OTOLARYNGOLOGY => '이비인후과',
+        self::SPECIALIST_FIELD_FAMILY_MEDICINE => '가정의학과',
+        self::SPECIALIST_FIELD_OBSTETRICS_GYNECOLOGY => '산부인과',
+        self::SPECIALIST_FIELD_ORAL_MAXILLOFACIAL_SURGERY => '구강악안면외과',
+        self::SPECIALIST_FIELD_ANESTHESIOLOGY_PAIN_MEDICINE => '마취통증의학과',
+        self::SPECIALIST_FIELD_KOREAN_MEDICINE => '한의학과',
+        self::SPECIALIST_FIELD_DENTISTRY => '치과',
+        self::SPECIALIST_FIELD_ORTHODONTICS => '치과교정과',
+        self::SPECIALIST_FIELD_DERMATOLOGY => '피부과',
+        self::SPECIALIST_FIELD_OPHTHALMOLOGY => '안과',
+        self::SPECIALIST_FIELD_INTERNAL_MEDICINE => '내과',
+        self::SPECIALIST_FIELD_NEUROLOGY => '신경과',
+        self::SPECIALIST_FIELD_ORTHOPEDICS => '정형외과',
+        self::SPECIALIST_FIELD_NEUROSURGERY => '신경외과',
+        self::SPECIALIST_FIELD_THORACIC_SURGERY => '흉부외과',
+        self::SPECIALIST_FIELD_PEDIATRICS => '소아청소년과',
+        self::SPECIALIST_FIELD_UROLOGY => '비뇨의학과',
+        self::SPECIALIST_FIELD_RADIOLOGY => '영상의학과',
+        self::SPECIALIST_FIELD_EMERGENCY_MEDICINE => '응급의학과',
+        self::SPECIALIST_FIELD_REHABILITATION_MEDICINE => '재활의학과',
+        self::SPECIALIST_FIELD_PROSTHODONTICS => '치과보철과',
+        self::SPECIALIST_FIELD_PERIODONTICS => '치주과',
+        self::SPECIALIST_FIELD_INTEGRATED_DENTISTRY => '통합치의학과',
+        self::SPECIALIST_FIELD_PATHOLOGY => '병리과',
+        self::SPECIALIST_FIELD_OCCUPATIONAL_ENVIRONMENTAL_MEDICINE => '직업환경의학과',
+        self::SPECIALIST_FIELD_CONSERVATIVE_DENTISTRY => '치과보존과',
+        self::SPECIALIST_FIELD_OTHER => '기타',
+    ];
 
     public const ALLOW_PENDING  = 'PENDING';
     public const ALLOW_APPROVED = 'APPROVED';
@@ -52,7 +117,7 @@ final class HospitalDoctor extends Model
         'position',
         'career_started_at',
         'license_number',
-        'is_specialist',
+        'specialist_field',
         'educations',
         'careers',
         'etc_contents',
@@ -63,7 +128,6 @@ final class HospitalDoctor extends Model
 
     protected $casts = [
         'sort_order' => 'integer',
-        'is_specialist' => 'boolean',
         'view_count' => 'integer',
         'educations' => 'array',
         'careers' => 'array',
@@ -112,9 +176,36 @@ final class HospitalDoctor extends Model
         return trim($value);
     }
 
+    public static function positions(): array
+    {
+        return [
+            self::POSITION_HEAD_DIRECTOR,
+            self::POSITION_DIRECTOR,
+        ];
+    }
+
+    public static function specialistFields(): array
+    {
+        return array_keys(self::SPECIALIST_FIELD_LABELS);
+    }
+
+    public static function specialistFieldLabel(?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return self::SPECIALIST_FIELD_LABELS[self::SPECIALIST_FIELD_NONE];
+        }
+
+        return self::SPECIALIST_FIELD_LABELS[$value] ?? $value;
+    }
+
     public function hospital(): BelongsTo
     {
         return $this->belongsTo(Hospital::class, 'hospital_id');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(HospitalReview::class, 'doctor_id');
     }
 
     public function profileImage(): MorphOne
@@ -130,16 +221,6 @@ final class HospitalDoctor extends Model
     public function specialistCertificateImages(): MorphMany
     {
         return $this->morphMany(Media::class, 'model')->where('collection', 'specialist_certificate_image')->orderBy('sort_order')->orderBy('id');
-    }
-
-    public function educationCertificateImages(): MorphMany
-    {
-        return $this->morphMany(Media::class, 'model')->where('collection', 'education_certificate_image')->orderBy('sort_order')->orderBy('id');
-    }
-
-    public function etcCertificateImages(): MorphMany
-    {
-        return $this->morphMany(Media::class, 'model')->where('collection', 'etc_certificate_image')->orderBy('sort_order')->orderBy('id');
     }
 
     public function categories(): MorphToMany

@@ -41,8 +41,6 @@ final class HospitalDeleteForStaffAction
                     'profile_image',
                     'license_image',
                     'specialist_certificate_image',
-                    'education_certificate_image',
-                    'etc_certificate_image',
                 ]);
             });
 

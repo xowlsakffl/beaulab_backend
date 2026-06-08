@@ -23,6 +23,10 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
             }
         }
 
+        if (! array_key_exists('specialist_field', $data) || $data['specialist_field'] === '' || $data['specialist_field'] === null) {
+            $data['specialist_field'] = HospitalDoctor::SPECIALIST_FIELD_NONE;
+        }
+
         if (array_key_exists('position', $data)) {
             $data['position'] = HospitalDoctor::normalizePosition($data['position']);
         }
@@ -59,14 +63,10 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'name' => ['required', 'string', 'max:255'],
             'gender' => ['nullable', Rule::in([HospitalDoctor::GENDER_MALE, HospitalDoctor::GENDER_FEMALE])],
-            'position' => ['nullable', Rule::in([
-                HospitalDoctor::POSITION_HEAD_DIRECTOR,
-                HospitalDoctor::POSITION_DIRECTOR,
-                HospitalDoctor::POSITION_ETC,
-            ])],
+            'position' => ['nullable', Rule::in(HospitalDoctor::positions())],
             'career_started_at' => ['nullable', 'date'],
-            'license_number' => ['nullable', 'string', 'max:100'],
-            'is_specialist' => ['nullable', 'boolean'],
+            'license_number' => ['required', 'string', 'max:100', 'regex:/^\d+$/'],
+            'specialist_field' => ['nullable', Rule::in(HospitalDoctor::specialistFields())],
             'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],
             'allow_status' => ['nullable', 'in:PENDING,APPROVED,REJECTED'],
             'educations' => ['nullable', 'array', 'max:10'],
@@ -81,14 +81,20 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
 
-            'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
             'license_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
 
             'specialist_certificate_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'education_certificate_image' => ['nullable', 'array', 'max:5'],
-            'education_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-            'etc_certificate_image' => ['nullable', 'array', 'max:5'],
-            'etc_certificate_image.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'profile_image.max' => '5MB 이하의 파일만 업로드 가능합니다.',
+            'profile_image.dimensions' => '1:1비율의 이미지로 업로드 가능합니다.',
+            'license_number.required' => '의사면허 번호를 입력해 주세요.',
+            'license_number.regex' => '의사면허 번호는 숫자만 입력할 수 있습니다.',
         ];
     }
 
@@ -102,7 +108,7 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
             'position' => "직책",
             'career_started_at' => '경력 시작일',
             'license_number' => '면허증 번호',
-            'is_specialist' => "전문의 여부",
+            'specialist_field' => '전문의 분류',
             'status' => '운영상태',
             'allow_status' => '검수상태',
             'educations' => '학력 사항',
@@ -115,10 +121,6 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
             'license_image' => '면허증 이미지',
 
             'specialist_certificate_image' => '전문의 면허증 이미지',
-            'education_certificate_image' => '학력 증명서 이미지',
-            'education_certificate_image.*' => '학력 증명서 이미지',
-            'etc_certificate_image' => '기타 증명서 이미지',
-            'etc_certificate_image.*' => '기타 증명서 이미지',
         ];
     }
 

@@ -21,8 +21,6 @@ final class HospitalDoctorGetForStaffAction
             'profileImage',
             'licenseImage',
             'specialistCertificateImages',
-            'educationCertificateImages',
-            'etcCertificateImages',
             'categories',
         ]);
 

@@ -20,7 +20,7 @@ final class HospitalDoctorCreateForStaffQuery
             'position' => $data['position'] ?? null,
             'career_started_at' => $data['career_started_at'] ?? null,
             'license_number' => $data['license_number'] ?? null,
-            'is_specialist' => (bool) ($data['is_specialist'] ?? false),
+            'specialist_field' => $data['specialist_field'] ?? HospitalDoctor::SPECIALIST_FIELD_NONE,
             'educations' => $data['educations'] ?? null,
             'careers' => $data['careers'] ?? null,
             'etc_contents' => $data['etc_contents'] ?? null,

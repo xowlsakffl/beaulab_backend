@@ -181,6 +181,7 @@ final class HospitalReviewFactory extends Factory
                 ->forHospital($hospitalId)
                 ->active()
                 ->approved()
+                ->withSeedMedia()
                 ->create();
 
             return (int) $created->id;

@@ -4,7 +4,6 @@ namespace App\Domains\HospitalDoctor\Queries\Staff;
 
 use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * DoctorHospitalOptionListForStaffQuery 역할 정의.
@@ -31,17 +30,7 @@ final class HospitalDoctorHospitalOptionListForStaffQuery
             ]);
 
         if ($q !== null && $q !== '') {
-            $searchId = ctype_digit($q) ? (int) $q : null;
-
-            $builder->where(function (Builder $query) use ($q, $searchId): void {
-                $query->where('name', 'like', "%{$q}%")
-                    ->orWhereHas('businessRegistration', static fn (Builder $businessQuery) => $businessQuery
-                        ->where('business_number', 'like', "%{$q}%"));
-
-                if ($searchId !== null) {
-                    $query->orWhere('id', $searchId);
-                }
-            });
+            $builder->where('name', 'like', "%{$q}%");
         }
 
         return $builder

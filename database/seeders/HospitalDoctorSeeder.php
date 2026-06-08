@@ -11,6 +11,8 @@ final class HospitalDoctorSeeder extends Seeder
 {
     public function run(): void
     {
+        $specialistFields = HospitalDoctor::specialistFields();
+        $specialistFieldIndex = 0;
         $fallbackCategoryIds = Category::query()
             ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_SURGERY, Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT])
             ->whereDoesntHave('children')
@@ -20,12 +22,22 @@ final class HospitalDoctorSeeder extends Seeder
         Hospital::query()
             ->with('categories:id')
             ->get()
-            ->each(function (Hospital $hospital) use ($fallbackCategoryIds): void {
-                $doctors = HospitalDoctor::factory()
-                    ->count(random_int(2, 5))
-                    ->forHospital($hospital)
-                    ->withSeedMedia()
-                    ->create();
+            ->each(function (Hospital $hospital) use ($fallbackCategoryIds, $specialistFields, &$specialistFieldIndex): void {
+                $doctors = collect();
+                $doctorCount = random_int(2, 5);
+
+                for ($index = 0; $index < $doctorCount; $index++) {
+                    $specialistField = $specialistFields[$specialistFieldIndex % count($specialistFields)];
+                    $specialistFieldIndex++;
+
+                    $doctors->push(
+                        HospitalDoctor::factory()
+                            ->forHospital($hospital)
+                            ->specialistField($specialistField)
+                            ->withSeedMedia()
+                            ->create()
+                    );
+                }
 
                 $availableCategoryIds = $hospital->categories->pluck('id')->map(static fn ($id): int => (int) $id)->all();
                 if ($availableCategoryIds === []) {

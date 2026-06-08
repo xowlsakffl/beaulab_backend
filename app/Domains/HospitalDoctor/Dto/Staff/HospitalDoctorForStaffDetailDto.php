@@ -15,8 +15,6 @@ final readonly class HospitalDoctorForStaffDetailDto
      * @param array<int, mixed> $educations
      * @param array<int, mixed> $careers
      * @param array<int, mixed> $etcContents
-     * @param array<int, array<string, mixed>> $educationCertificateImage
-     * @param array<int, array<string, mixed>> $etcCertificateImage
      * @param array<int, array<string, mixed>> $categories
      */
     public function __construct(
@@ -30,7 +28,7 @@ final readonly class HospitalDoctorForStaffDetailDto
         public ?string $position,
         public ?string $careerStartedAt,
         public ?string $licenseNumber,
-        public bool $isSpecialist,
+        public array $specialist,
         public int $viewCount,
         public array $educations,
         public array $careers,
@@ -40,8 +38,6 @@ final readonly class HospitalDoctorForStaffDetailDto
         public ?array $profileImage,
         public ?array $licenseImage,
         public ?array $specialistCertificateImage,
-        public array $educationCertificateImage,
-        public array $etcCertificateImage,
         public array $categories,
         public ?string $createdAt,
         public ?string $updatedAt,
@@ -60,7 +56,7 @@ final readonly class HospitalDoctorForStaffDetailDto
             position: $doctor->position,
             careerStartedAt: $doctor->career_started_at?->toDateString(),
             licenseNumber: $doctor->license_number,
-            isSpecialist: (bool) $doctor->is_specialist,
+            specialist: self::specialist($doctor),
             viewCount: (int) $doctor->view_count,
             educations: $doctor->educations ?? [],
             careers: $doctor->careers ?? [],
@@ -70,8 +66,6 @@ final readonly class HospitalDoctorForStaffDetailDto
             profileImage: self::profileImage($doctor),
             licenseImage: self::licenseImage($doctor),
             specialistCertificateImage: self::specialistCertificateImage($doctor),
-            educationCertificateImage: self::educationCertificateImage($doctor),
-            etcCertificateImage: self::etcCertificateImage($doctor),
             categories: self::categories($doctor),
             createdAt: $doctor->created_at?->toISOString(),
             updatedAt: $doctor->updated_at?->toISOString(),
@@ -91,7 +85,7 @@ final readonly class HospitalDoctorForStaffDetailDto
             'position' => $this->position,
             'career_started_at' => $this->careerStartedAt,
             'license_number' => $this->licenseNumber,
-            'is_specialist' => $this->isSpecialist,
+            'specialist' => $this->specialist,
             'view_count' => $this->viewCount,
             'educations' => $this->educations,
             'careers' => $this->careers,
@@ -101,8 +95,6 @@ final readonly class HospitalDoctorForStaffDetailDto
             'profile_image' => $this->profileImage,
             'license_image' => $this->licenseImage,
             'specialist_certificate_image' => $this->specialistCertificateImage,
-            'education_certificate_image' => $this->educationCertificateImage,
-            'etc_certificate_image' => $this->etcCertificateImage,
             'categories' => $this->categories,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
@@ -118,6 +110,16 @@ final readonly class HospitalDoctorForStaffDetailDto
         }
 
         return self::media($doctor->profileImage);
+    }
+
+    private static function specialist(HospitalDoctor $doctor): array
+    {
+        $code = (string) ($doctor->specialist_field ?: HospitalDoctor::SPECIALIST_FIELD_NONE);
+
+        return [
+            'code' => $code,
+            'label' => HospitalDoctor::specialistFieldLabel($code),
+        ];
     }
 
     private static function licenseImage(HospitalDoctor $doctor): ?array
@@ -136,30 +138,6 @@ final readonly class HospitalDoctorForStaffDetailDto
         }
 
         return self::media($doctor->specialistCertificateImages->first());
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private static function educationCertificateImage(HospitalDoctor $doctor): array
-    {
-        if (! $doctor->relationLoaded('educationCertificateImages')) {
-            return [];
-        }
-
-        return self::mediaList($doctor->educationCertificateImages);
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private static function etcCertificateImage(HospitalDoctor $doctor): array
-    {
-        if (! $doctor->relationLoaded('etcCertificateImages')) {
-            return [];
-        }
-
-        return self::mediaList($doctor->etcCertificateImages);
     }
 
     private static function media(?Media $media): ?array
@@ -183,15 +161,6 @@ final readonly class HospitalDoctorForStaffDetailDto
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];
-    }
-
-    /** @return array<int, array<string, mixed>> */
-    private static function mediaList(iterable $mediaList): array
-    {
-        return collect($mediaList)
-            ->map(fn (Media $media): array => self::media($media) ?? [])
-            ->values()
-            ->all();
     }
 
     /**

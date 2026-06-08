@@ -49,7 +49,7 @@ final class HospitalCreateForStaffAction
             $this->businessRegistrationCreateAction->execute($hospital, $filters);
             $this->syncCategories($hospital, $filters['category_ids'] ?? []);
             $this->syncFeatures($hospital, $filters['feature_ids'] ?? []);
-            $this->recordInitialStatusHistory($hospital, $filters);
+            $this->recordInitialStatusHistory($hospital);
 
             return $hospital->fresh();
         });
@@ -61,10 +61,9 @@ final class HospitalCreateForStaffAction
         ];
     }
 
-    private function recordInitialStatusHistory(Hospital $hospital, array $payload): void
+    private function recordInitialStatusHistory(Hospital $hospital): void
     {
         $status = (string) $hospital->status;
-        $reason = $status === Hospital::STATUS_ACTIVE ? null : $this->normalizeReason($payload['status_change_reason'] ?? null);
         $actor = auth()->user();
 
         $this->historyCreateAction->execute(
@@ -74,19 +73,12 @@ final class HospitalCreateForStaffAction
             field: 'status',
             beforeValue: null,
             afterValue: $status,
-            reason: $reason,
+            reason: null,
             metadata: [
                 'after_label' => $this->statusLabel($status),
                 'source' => 'staff.hospital.create',
             ],
         );
-    }
-
-    private function normalizeReason(mixed $reason): ?string
-    {
-        $reason = trim((string) $reason);
-
-        return $reason === '' ? null : $reason;
     }
 
     private function statusLabel(string $status): string

@@ -29,14 +29,10 @@ final class HospitalDoctorFactory extends Factory
                 HospitalDoctor::GENDER_MALE,
                 HospitalDoctor::GENDER_FEMALE,
             ]),
-            'position' => $this->faker->randomElement([
-                HospitalDoctor::POSITION_HEAD_DIRECTOR,
-                HospitalDoctor::POSITION_DIRECTOR,
-                HospitalDoctor::POSITION_ETC,
-            ]),
+            'position' => $this->faker->randomElement(HospitalDoctor::positions()),
             'career_started_at' => $this->faker->dateTimeBetween('-15 years', '-1 year')->format('Y-m-d'),
             'license_number' => strtoupper($this->faker->bothify('DOC-########')),
-            'is_specialist' => $this->faker->boolean(60),
+            'specialist_field' => $this->faker->randomElement(HospitalDoctor::specialistFields()),
             'educations' => collect(range(1, $educationCount))
                 ->map(fn (): string => $this->faker->company() . ' 수료')
                 ->all(),
@@ -81,6 +77,15 @@ final class HospitalDoctorFactory extends Factory
         ]);
     }
 
+    public function specialistField(string $specialistField): self
+    {
+        return $this->state(fn () => [
+            'specialist_field' => in_array($specialistField, HospitalDoctor::specialistFields(), true)
+                ? $specialistField
+                : HospitalDoctor::SPECIALIST_FIELD_NONE,
+        ]);
+    }
+
     public function withSeedMedia(): self
     {
         return $this->afterCreating(function (HospitalDoctor $doctor): void {
@@ -102,23 +107,7 @@ final class HospitalDoctorFactory extends Factory
                 'license-image',
             );
 
-            $mediaAttachAction->attachMany(
-                $doctor,
-                SeedMediaFactory::images("doctor-education-certificate-{$doctor->id}", 1),
-                'education_certificate_image',
-                'doctor',
-                'education-certificate-image',
-            );
-
-            $mediaAttachAction->attachMany(
-                $doctor,
-                SeedMediaFactory::images("doctor-etc-certificate-{$doctor->id}", 1),
-                'etc_certificate_image',
-                'doctor',
-                'etc-certificate-image',
-            );
-
-            if ($doctor->is_specialist) {
+            if ($doctor->specialist_field !== HospitalDoctor::SPECIALIST_FIELD_NONE) {
                 $mediaAttachAction->attachMany(
                     $doctor,
                     SeedMediaFactory::images("doctor-specialist-certificate-{$doctor->id}", 1),

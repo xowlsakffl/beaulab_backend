@@ -30,7 +30,8 @@ final class HospitalDoctorHospitalOptionListForStaffQuery
             ]);
 
         if ($q !== null && $q !== '') {
-            $builder->where('name', 'like', "%{$q}%");
+            $escapedKeyword = addcslashes($q, '\%_');
+            $builder->where('name', 'like', "{$escapedKeyword}%");
         }
 
         return $builder

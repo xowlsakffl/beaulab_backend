@@ -175,8 +175,6 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
      **/
     Route::get('doctors/hospital-options', [HospitalDoctorForStaffController::class, 'getDoctorHospitalOptionsForStaff'])
         ->name('doctors.getDoctorHospitalOptionsForStaff');
-    Route::get('doctors/doctor-options', [HospitalDoctorForStaffController::class, 'getDoctorOptionsForStaff'])
-        ->name('doctors.getDoctorOptionsForStaff');
     Route::get('doctors', [HospitalDoctorForStaffController::class, 'getDoctorsForStaff'])
         ->name('doctors.getDoctorsForStaff');
     Route::get('doctors/{doctor}', [HospitalDoctorForStaffController::class, 'getDoctorForStaff'])

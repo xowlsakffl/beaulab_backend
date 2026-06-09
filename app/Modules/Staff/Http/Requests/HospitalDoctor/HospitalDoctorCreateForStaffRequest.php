@@ -69,9 +69,9 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
             'specialist_field' => ['nullable', Rule::in(HospitalDoctor::specialistFields())],
             'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],
             'allow_status' => ['nullable', 'in:PENDING,APPROVED,REJECTED'],
-            'educations' => ['nullable', 'array', 'max:10'],
-            'careers' => ['nullable', 'array', 'max:10'],
-            'etc_contents' => ['nullable', 'array', 'max:10'],
+            'educations' => ['nullable', 'array', 'max:20'],
+            'careers' => ['nullable', 'array', 'max:20'],
+            'etc_contents' => ['nullable', 'array', 'max:20'],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -95,6 +95,9 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
             'profile_image.dimensions' => '1:1비율의 이미지로 업로드 가능합니다.',
             'license_number.required' => '의사면허 번호를 입력해 주세요.',
             'license_number.regex' => '의사면허 번호는 숫자만 입력할 수 있습니다.',
+            'educations.max' => '학력사항은 최대 20개까지 입력할 수 있습니다.',
+            'careers.max' => '경력사항은 최대 20개까지 입력할 수 있습니다.',
+            'etc_contents.max' => '활동사항은 최대 20개까지 입력할 수 있습니다.',
         ];
     }
 

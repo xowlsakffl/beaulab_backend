@@ -21,19 +21,19 @@ final class HospitalEvaluationSeeder extends Seeder
 
         $authorIds = $this->activeUserIds();
         $hospitalIds = $this->approvedHospitalIds();
-        $categoryIdsByDomain = $this->categoryIdsByDomain(HospitalEvaluation::categoryDomains());
+        $categoryIdsByCode = $this->categoryIdsByCode(HospitalEvaluation::categoryCodes());
 
-        if ($authorIds === [] || $hospitalIds === [] || $categoryIdsByDomain === []) {
+        if ($authorIds === [] || $hospitalIds === [] || $categoryIdsByCode === []) {
             $this->command?->warn('HospitalEvaluationSeeder skipped: active users, approved hospitals, or evaluation categories are missing.');
 
             return;
         }
 
-        $this->seedEvaluations(120, $authorIds, $hospitalIds, $categoryIdsByDomain, 'active');
-        $this->seedEvaluations(12, $authorIds, $hospitalIds, $categoryIdsByDomain, 'autoBlind');
-        $this->seedEvaluations(8, $authorIds, $hospitalIds, $categoryIdsByDomain, 'adminStopped');
-        $this->seedEvaluations(6, $authorIds, $hospitalIds, $categoryIdsByDomain, 'userDeleted');
-        $this->seedEvaluations(8, $authorIds, $hospitalIds, $categoryIdsByDomain, 'inactive');
+        $this->seedEvaluations(120, $authorIds, $hospitalIds, $categoryIdsByCode, 'active');
+        $this->seedEvaluations(12, $authorIds, $hospitalIds, $categoryIdsByCode, 'autoBlind');
+        $this->seedEvaluations(8, $authorIds, $hospitalIds, $categoryIdsByCode, 'adminStopped');
+        $this->seedEvaluations(6, $authorIds, $hospitalIds, $categoryIdsByCode, 'userDeleted');
+        $this->seedEvaluations(8, $authorIds, $hospitalIds, $categoryIdsByCode, 'inactive');
     }
 
     private function ensureSeedUsers(): void
@@ -76,20 +76,20 @@ final class HospitalEvaluationSeeder extends Seeder
     /**
      * @param  array<int, int>  $authorIds
      * @param  array<int, int>  $hospitalIds
-     * @param  array<string, array<int, int>>  $categoryIdsByDomain
+     * @param  array<string, array<int, int>>  $categoryIdsByCode
      * @return Collection<int, HospitalEvaluation>
      */
     private function seedEvaluations(
         int $count,
         array $authorIds,
         array $hospitalIds,
-        array $categoryIdsByDomain,
+        array $categoryIdsByCode,
         string $factoryState,
     ): Collection {
         $evaluations = collect();
 
         for ($index = 0; $index < $count; $index++) {
-            $domain = array_rand($categoryIdsByDomain);
+            $categoryCode = array_rand($categoryIdsByCode);
             $hospitalId = $hospitalIds[array_rand($hospitalIds)];
             $receiptState = $this->receiptState();
             $withReceiptImages = $receiptState !== null;
@@ -106,10 +106,9 @@ final class HospitalEvaluationSeeder extends Seeder
                 'author_id' => $authorIds[array_rand($authorIds)],
                 'hospital_id' => $hospitalId,
                 'doctor_id' => $this->randomDoctorId($hospitalId),
-                'category_domain' => $domain,
             ]);
 
-            $this->syncCategories($evaluation, $categoryIdsByDomain[$domain]);
+            $this->syncCategories($evaluation, $categoryIdsByCode[$categoryCode]);
             $evaluations->push($evaluation);
         }
 
@@ -133,10 +132,7 @@ final class HospitalEvaluationSeeder extends Seeder
      */
     private function syncCategories(HospitalEvaluation $evaluation, array $categoryIds): void
     {
-        $selectedIds = collect($categoryIds)
-            ->shuffle()
-            ->take(random_int(1, min(3, count($categoryIds))))
-            ->values();
+        $selectedIds = collect($categoryIds)->take(1)->values();
 
         $evaluation->categories()->sync(
             $selectedIds
@@ -200,23 +196,24 @@ final class HospitalEvaluationSeeder extends Seeder
     }
 
     /**
-     * @param  array<int, string>  $domains
+     * @param  array<int, string>  $codes
      * @return array<string, array<int, int>>
      */
-    private function categoryIdsByDomain(array $domains): array
+    private function categoryIdsByCode(array $codes): array
     {
         $categories = Category::query()
-            ->whereIn('domain', $domains)
+            ->where('domain', Category::DOMAIN_HOSPITAL_EVALUATION)
+            ->whereIn('code', $codes)
+            ->whereNull('parent_id')
             ->where('status', Category::STATUS_ACTIVE)
-            ->orderBy('domain')
             ->orderBy('depth')
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->get(['id', 'domain']);
+            ->get(['id', 'code']);
 
         $grouped = [];
         foreach ($categories as $category) {
-            $grouped[(string) $category->domain][] = (int) $category->id;
+            $grouped[(string) $category->code][] = (int) $category->id;
         }
 
         return array_filter($grouped, static fn (array $ids): bool => $ids !== []);

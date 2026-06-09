@@ -16,7 +16,6 @@ final readonly class HospitalEvaluationForStaffDetailDto
         public ?array $doctor,
         public array $categories,
         public ?array $report,
-        public string $categoryDomain,
         public string $content,
         public ?string $phone,
         public ?string $authorIp,
@@ -44,7 +43,6 @@ final readonly class HospitalEvaluationForStaffDetailDto
             doctor: self::doctor($evaluation),
             categories: self::categories($evaluation),
             report: self::report($evaluation),
-            categoryDomain: (string) $evaluation->category_domain,
             content: (string) $evaluation->content,
             phone: $evaluation->phone,
             authorIp: $evaluation->author_ip,
@@ -73,7 +71,6 @@ final readonly class HospitalEvaluationForStaffDetailDto
             'doctor' => $this->doctor,
             'categories' => $this->categories,
             'report' => $this->report,
-            'category_domain' => $this->categoryDomain,
             'content' => $this->content,
             'phone' => $this->phone,
             'author_ip' => $this->authorIp,
@@ -177,13 +174,13 @@ final readonly class HospitalEvaluationForStaffDetailDto
         }
 
         return $evaluation->categories
-            ->map(static function (Category $category) use ($evaluation): array {
+            ->map(static function (Category $category): array {
                 $attributes = $category->getAttributes();
 
                 return [
                     'id' => (int) $category->id,
                     'code' => (string) ($attributes['code'] ?? ''),
-                    'domain' => (string) ($attributes['domain'] ?? $evaluation->category_domain),
+                    'domain' => (string) ($attributes['domain'] ?? ''),
                     'name' => (string) $category->name,
                     'full_path' => (string) ($attributes['full_path'] ?? ''),
                     'is_primary' => (bool) ($category->pivot?->is_primary ?? false),

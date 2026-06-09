@@ -29,7 +29,6 @@ return new class extends Migration
                 ->constrained('hospital_doctors')
                 ->nullOnDelete();
 
-            $table->string('category_domain', 40)->comment('평가 카테고리 도메인');
             $table->longText('content')->comment('평가 내용');
             $table->string('phone', 30)->nullable()->comment('유저 연락처');
             $table->string('author_ip', 45)->nullable()->comment('작성 IP');
@@ -63,8 +62,6 @@ return new class extends Migration
             $table->index(['author_id', 'created_at'], 'h_evaluations_author_created_idx');
             $table->index(['hospital_id', 'created_at'], 'h_evaluations_hospital_created_idx');
             $table->index(['doctor_id', 'created_at'], 'h_evaluations_doctor_created_idx');
-            $table->index(['category_domain', 'created_at'], 'h_evaluations_domain_created_idx');
-            $table->index(['category_domain', 'status', 'created_at'], 'h_evaluations_domain_status_created_idx');
             $table->index(['cost', 'created_at'], 'h_evaluations_cost_created_idx');
             $table->index(['average_rating', 'created_at'], 'h_evaluations_average_rating_created_idx');
             $table->index(['view_count', 'created_at'], 'h_evaluations_view_count_created_idx');

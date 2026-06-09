@@ -145,7 +145,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])
+                    ->where('domain', Category::DOMAIN_HOSPITAL_DOCTER)
                     ->whereNull('parent_id')
                     ->where('status', Category::STATUS_ACTIVE)),
             ],

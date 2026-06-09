@@ -25,11 +25,11 @@ final class HospitalEvaluation extends Model
 {
     use HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
-    public const CATEGORY_DOMAIN_SURGERY = Category::DOMAIN_HOSPITAL_EVALUATION_SURGERY;
+    public const CATEGORY_CODE_SURGERY = 'HOSPITAL_EVALUATION_SURGERY';
 
-    public const CATEGORY_DOMAIN_TREATMENT = Category::DOMAIN_HOSPITAL_EVALUATION_TREATMENT;
+    public const CATEGORY_CODE_TREATMENT = 'HOSPITAL_EVALUATION_TREATMENT';
 
-    public const CATEGORY_DOMAIN_CONSULTATION = Category::DOMAIN_HOSPITAL_EVALUATION_CONSULTATION;
+    public const CATEGORY_CODE_CONSULTATION = 'HOSPITAL_EVALUATION_CONSULTATION';
 
     public const STATUS_ACTIVE = 'ACTIVE';
 
@@ -80,7 +80,6 @@ final class HospitalEvaluation extends Model
         'author_id',
         'hospital_id',
         'doctor_id',
-        'category_domain',
         'content',
         'phone',
         'author_ip',
@@ -160,12 +159,12 @@ final class HospitalEvaluation extends Model
     /**
      * @return list<string>
      */
-    public static function categoryDomains(): array
+    public static function categoryCodes(): array
     {
         return [
-            self::CATEGORY_DOMAIN_SURGERY,
-            self::CATEGORY_DOMAIN_TREATMENT,
-            self::CATEGORY_DOMAIN_CONSULTATION,
+            self::CATEGORY_CODE_SURGERY,
+            self::CATEGORY_CODE_TREATMENT,
+            self::CATEGORY_CODE_CONSULTATION,
         ];
     }
 

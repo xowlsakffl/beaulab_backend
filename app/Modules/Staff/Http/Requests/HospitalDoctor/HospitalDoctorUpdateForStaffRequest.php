@@ -81,12 +81,13 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             'educations' => ['nullable', 'array', 'max:20'],
             'careers' => ['nullable', 'array', 'max:20'],
             'etc_contents' => ['nullable', 'array', 'max:20'],
-            'category_ids' => ['sometimes', 'array', 'max:100'],
+            'category_ids' => ['sometimes', 'array', 'max:5'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])
+                    ->where('domain', Category::DOMAIN_HOSPITAL_DOCTER)
+                    ->whereNull('parent_id')
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],

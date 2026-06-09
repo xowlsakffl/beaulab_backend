@@ -26,7 +26,6 @@ final class HospitalEvaluationFactory extends Factory
             'author_id' => $this->randomAuthorId(),
             'hospital_id' => $hospitalId,
             'doctor_id' => $this->randomDoctorId($hospitalId),
-            'category_domain' => $this->faker->randomElement(HospitalEvaluation::categoryDomains()),
             'content' => $this->faker->paragraphs(4, true),
             'phone' => $this->faker->phoneNumber(),
             'author_ip' => $this->faker->ipv4(),

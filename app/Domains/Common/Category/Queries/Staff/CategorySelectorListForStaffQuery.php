@@ -44,6 +44,7 @@ final class CategorySelectorListForStaffQuery
                 'parent_id',
                 'depth',
                 'name',
+                'code',
                 'full_path',
                 'sort_order',
                 'status',

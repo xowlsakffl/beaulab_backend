@@ -41,13 +41,13 @@ final class HospitalDoctorListForStaffRequest extends FormRequest
             'specialist_field.*' => [Rule::in(HospitalDoctor::specialistFields())],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
-            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:5'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, Category::DOMAIN_HOSPITAL_REVIEW_SURGERY])
-                    ->where('depth', 1)
+                    ->where('domain', Category::DOMAIN_HOSPITAL_DOCTER)
+                    ->whereNull('parent_id')
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'metric' => ['nullable', Rule::in(['career_years', 'review_count', 'consultation_count'])],

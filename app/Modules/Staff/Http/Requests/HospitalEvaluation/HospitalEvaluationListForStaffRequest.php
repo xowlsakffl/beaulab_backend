@@ -47,13 +47,13 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
             'author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
             'doctor_id' => ['nullable', 'integer', Rule::exists('hospital_doctors', 'id')->where(static fn ($query) => $query->whereNull('deleted_at'))],
-            'category_domain' => ['nullable', Rule::in(HospitalEvaluation::categoryDomains())],
-            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'category_ids' => ['nullable', 'array', 'min:1', 'max:3'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->when($this->input('category_domain'), fn ($domainQuery, $domain) => $domainQuery->where('domain', $domain))
+                    ->where('domain', Category::DOMAIN_HOSPITAL_EVALUATION)
+                    ->whereNull('parent_id')
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'cost_min' => ['nullable', 'integer', 'min:0'],
@@ -83,7 +83,6 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
             'author_id' => $validated['author_id'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'doctor_id' => $validated['doctor_id'] ?? null,
-            'category_domain' => $validated['category_domain'] ?? null,
             'category_ids' => $validated['category_ids'] ?? null,
             'cost_min' => isset($validated['cost_min']) ? (int) $validated['cost_min'] : null,
             'cost_max' => isset($validated['cost_max']) ? (int) $validated['cost_max'] : null,
@@ -116,7 +115,6 @@ final class HospitalEvaluationListForStaffRequest extends FormRequest
             'author_id' => '작성자',
             'hospital_id' => '병의원',
             'doctor_id' => '의료진',
-            'category_domain' => '평가 도메인',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'cost_min' => '최소 비용',

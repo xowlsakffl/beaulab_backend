@@ -13,16 +13,15 @@ final class HospitalDoctorSeeder extends Seeder
     {
         $specialistFields = HospitalDoctor::specialistFields();
         $specialistFieldIndex = 0;
-        $fallbackCategoryIds = Category::query()
-            ->whereIn('domain', [Category::DOMAIN_HOSPITAL_REVIEW_SURGERY, Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT])
-            ->whereDoesntHave('children')
+        $doctorCategoryIds = Category::query()
+            ->where('domain', Category::DOMAIN_HOSPITAL_DOCTER)
+            ->whereNull('parent_id')
             ->pluck('id')
             ->all();
 
         Hospital::query()
-            ->with('categories:id')
             ->get()
-            ->each(function (Hospital $hospital) use ($fallbackCategoryIds, $specialistFields, &$specialistFieldIndex): void {
+            ->each(function (Hospital $hospital) use ($doctorCategoryIds, $specialistFields, &$specialistFieldIndex): void {
                 $doctors = collect();
                 $doctorCount = random_int(2, 5);
 
@@ -39,22 +38,17 @@ final class HospitalDoctorSeeder extends Seeder
                     );
                 }
 
-                $availableCategoryIds = $hospital->categories->pluck('id')->map(static fn ($id): int => (int) $id)->all();
-                if ($availableCategoryIds === []) {
-                    $availableCategoryIds = $fallbackCategoryIds;
-                }
-
-                if ($availableCategoryIds === []) {
+                if ($doctorCategoryIds === []) {
                     return;
                 }
 
-                $maxAvailable = count($availableCategoryIds);
+                $maxAvailable = count($doctorCategoryIds);
                 $minAssignCount = min(1, $maxAvailable);
                 $maxAssignCount = min(2, $maxAvailable);
 
                 foreach ($doctors as $doctor) {
                     $assignCount = random_int($minAssignCount, $maxAssignCount);
-                    $selectedCategoryIds = collect($availableCategoryIds)
+                    $selectedCategoryIds = collect($doctorCategoryIds)
                         ->shuffle()
                         ->take($assignCount)
                         ->values()

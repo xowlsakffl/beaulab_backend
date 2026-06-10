@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\DB;
 
@@ -18,7 +19,7 @@ final class CategoryFactory extends Factory
         $name = $this->faker->unique()->word();
 
         return [
-            'domain' => Category::DOMAIN_HOSPITAL_REVIEW_SURGERY,
+            'domain' => Category::DOMAIN_HOSPITAL_MEDICAL,
             'parent_id' => null,
             'depth' => 1,
             'name' => $name,
@@ -40,9 +41,22 @@ final class CategoryFactory extends Factory
     public static function seedHospitalCategories(): void
     {
         DB::transaction(function (): void {
-            self::seedDomainTree(Category::DOMAIN_HOSPITAL_REVIEW_SURGERY, self::categoryTree('hospital_review_surgery'));
-            self::seedDomainTree(Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT, self::categoryTree('hospital_review_treatment'));
-            self::seedDomainTree(Category::DOMAIN_HOSPITAL_DOCTER, self::categoryTree('hospital_docter'));
+            $tree = self::categoryTree('hospital_medical');
+
+            self::seedDomainTree(Category::DOMAIN_HOSPITAL_MEDICAL, $tree);
+            self::seedCategoryUsage(
+                CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT,
+                self::categoryUsage('hospital_doctor_subject'),
+            );
+            self::seedCategoryUsage(
+                CategoryUsage::USAGE_HOSPITAL_REVIEW_SURGERY,
+                self::categoryUsage('hospital_review_surgery'),
+            );
+            self::seedCategoryUsage(
+                CategoryUsage::USAGE_HOSPITAL_REVIEW_TREATMENT,
+                self::categoryUsage('hospital_review_treatment'),
+            );
+            self::pruneStaleDomainCategories(Category::DOMAIN_HOSPITAL_MEDICAL, self::categoryCodes($tree));
         });
     }
 
@@ -75,7 +89,7 @@ final class CategoryFactory extends Factory
     }
 
     /**
-     * @param array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string}>}>}> $tree
+     * @param  array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string}>}>}>  $tree
      */
     private static function seedDomainTree(string $domain, array $tree): void
     {
@@ -88,10 +102,15 @@ final class CategoryFactory extends Factory
                 sortOrder: $index + 1,
             );
         }
+
+        $codes = self::categoryCodes($tree);
+        if ($domain === Category::DOMAIN_HOSPITAL_MEDICAL && $codes !== []) {
+            self::markStaleDomainCategoriesInactive($domain, $codes);
+        }
     }
 
     /**
-     * @param array{name:string, code:string, children?:array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string}>}>} $node
+     * @param  array{name:string, code:string, children?:array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string}>}>}  $node
      */
     private static function upsertNode(string $domain, array $node, ?Category $parent, int $depth, int $sortOrder): Category
     {
@@ -104,12 +123,12 @@ final class CategoryFactory extends Factory
         $category = Category::query()->updateOrCreate(
             [
                 'domain' => $domain,
-                'parent_id' => $parent?->id,
-                'name' => $name,
+                'code' => $node['code'],
             ],
             [
+                'parent_id' => $parent?->id,
                 'depth' => $depth,
-                'code' => $node['code'],
+                'name' => $name,
                 'full_path' => $path,
                 'sort_order' => $sortOrder,
                 'status' => Category::STATUS_ACTIVE,
@@ -132,11 +151,33 @@ final class CategoryFactory extends Factory
     }
 
     /**
+     * @param  array<int, array<string, mixed>>  $tree
+     * @return array<int, string>
+     */
+    private static function categoryCodes(array $tree): array
+    {
+        $codes = [];
+        foreach ($tree as $node) {
+            $code = $node['code'] ?? null;
+            if (is_string($code) && $code !== '') {
+                $codes[] = $code;
+            }
+
+            $children = $node['children'] ?? [];
+            if (is_array($children) && $children !== []) {
+                array_push($codes, ...self::categoryCodes($children));
+            }
+        }
+
+        return array_values(array_unique($codes));
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private static function categoryTree(string $name): array
     {
-        $path = database_path("seeders/data/categories/{$name}.php");
+        $path = database_path("seeders/data/categories/trees/{$name}.php");
         $tree = require $path;
 
         if (! is_array($tree)) {
@@ -144,5 +185,109 @@ final class CategoryFactory extends Factory
         }
 
         return $tree;
+    }
+
+    /**
+     * @return array<int, array{code:string, sort_order?:int}>
+     */
+    private static function categoryUsage(string $name): array
+    {
+        $path = database_path("seeders/data/categories/usages/{$name}.php");
+        $usage = require $path;
+
+        if (! is_array($usage)) {
+            throw new \RuntimeException("Category usage seed data must return an array: {$path}");
+        }
+
+        return $usage;
+    }
+
+    /**
+     * @param  array<int, array{code:string, sort_order?:int}>  $items
+     */
+    private static function seedCategoryUsage(string $usage, array $items): void
+    {
+        $codes = collect($items)
+            ->pluck('code')
+            ->filter()
+            ->values()
+            ->all();
+
+        $categoriesByCode = Category::query()
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->whereIn('code', $codes)
+            ->get()
+            ->keyBy('code');
+
+        $categoryIds = [];
+
+        foreach ($items as $index => $item) {
+            $category = $categoriesByCode->get($item['code']);
+
+            if (! $category instanceof Category) {
+                throw new \RuntimeException("Category usage references missing category code: {$item['code']}");
+            }
+
+            $categoryIds[] = (int) $category->id;
+
+            CategoryUsage::query()->updateOrCreate(
+                [
+                    'usage' => $usage,
+                    'category_id' => (int) $category->id,
+                ],
+                [
+                    'sort_order' => (int) ($item['sort_order'] ?? $index + 1),
+                    'status' => CategoryUsage::STATUS_ACTIVE,
+                ],
+            );
+        }
+
+        CategoryUsage::query()
+            ->where('usage', $usage)
+            ->whereNotIn('category_id', $categoryIds)
+            ->delete();
+    }
+
+    /**
+     * @param  array<int, string>  $codes
+     */
+    private static function markStaleDomainCategoriesInactive(string $domain, array $codes): void
+    {
+        Category::query()
+            ->where('domain', $domain)
+            ->whereNotIn('code', $codes)
+            ->update(['status' => Category::STATUS_INACTIVE]);
+    }
+
+    /**
+     * @param  array<int, string>  $codes
+     */
+    private static function pruneStaleDomainCategories(string $domain, array $codes): void
+    {
+        if ($codes === []) {
+            return;
+        }
+
+        $deletableIds = Category::query()
+            ->where('domain', $domain)
+            ->whereNotIn('code', $codes)
+            ->whereDoesntHave('children')
+            ->whereDoesntHave('usages')
+            ->whereNotExists(static function ($query): void {
+                $query
+                    ->selectRaw('1')
+                    ->from('category_assignments')
+                    ->whereColumn('category_assignments.category_id', 'categories.id');
+            })
+            ->pluck('id')
+            ->all();
+
+        if ($deletableIds !== []) {
+            Category::query()
+                ->whereKey($deletableIds)
+                ->delete();
+        }
+
+        self::markStaleDomainCategoriesInactive($domain, $codes);
     }
 }

@@ -30,7 +30,7 @@ final class HospitalReviewCreateForUserAction
         }
 
         $categories = $this->resolveCategories($payload['category_codes'] ?? []);
-        $categoryDomain = (string) $categories->first()->domain;
+        $categoryDomain = $this->resolveCategoryDomain($categories);
 
         $review = DB::transaction(function () use ($user, $payload, $categories, $categoryDomain): HospitalReview {
             $review = $this->query->create([
@@ -94,6 +94,23 @@ final class HospitalReviewCreateForUserAction
                 ])
                 ->all(),
         );
+    }
+
+    /**
+     * @param  Collection<int, Category>  $categories
+     */
+    private function resolveCategoryDomain(Collection $categories): string
+    {
+        $domain = HospitalReview::categoryDomainFromFullPath(
+            $categories->first()?->full_path,
+            HospitalReview::categoryRootPathsByDomain(),
+        );
+
+        if ($domain === null) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '후기 카테고리 유형을 확인해 주세요.');
+        }
+
+        return $domain;
     }
 
     private function attachImages(HospitalReview $review, array $payload): void

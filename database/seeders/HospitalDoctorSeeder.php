@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Database\Seeder;
@@ -14,8 +15,10 @@ final class HospitalDoctorSeeder extends Seeder
         $specialistFields = HospitalDoctor::specialistFields();
         $specialistFieldIndex = 0;
         $doctorCategoryIds = Category::query()
-            ->where('domain', Category::DOMAIN_HOSPITAL_DOCTER)
-            ->whereNull('parent_id')
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->whereHas('usages', static fn ($query) => $query
+                ->where('usage', CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT)
+                ->where('status', CategoryUsage::STATUS_ACTIVE))
             ->pluck('id')
             ->all();
 

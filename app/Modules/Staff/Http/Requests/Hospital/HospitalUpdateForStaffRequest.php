@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalBusinessRegistration;
@@ -144,10 +145,9 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'category_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_DOCTER)
-                    ->whereNull('parent_id')
-                    ->where('status', Category::STATUS_ACTIVE)),
+                Rule::exists('categories', 'id')->where(static function ($query): void {
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+                }),
             ],
             'feature_ids' => ['required', 'array', 'min:1', 'max:100'],
             'feature_ids.*' => [

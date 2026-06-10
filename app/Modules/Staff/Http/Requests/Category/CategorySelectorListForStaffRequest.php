@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Category;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,10 +17,14 @@ final class CategorySelectorListForStaffRequest extends FormRequest
     {
         $status = $this->normalizeToArray($this->input('status'));
         $domain = $this->input('domain');
+        $usage = $this->input('usage');
+        $parentCode = $this->input('parent_code');
 
         $this->merge([
             'status' => $status,
             'domain' => is_string($domain) ? trim($domain) : $domain,
+            'usage' => is_string($usage) ? trim($usage) : $usage,
+            'parent_code' => is_string($parentCode) ? trim($parentCode) : $parentCode,
         ]);
     }
 
@@ -32,9 +37,11 @@ final class CategorySelectorListForStaffRequest extends FormRequest
     {
         return [
             'domain' => ['required', Rule::in(Category::domains())],
+            'usage' => ['nullable', Rule::in(CategoryUsage::usages())],
             'q' => ['nullable', 'string', 'max:100'],
             'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'depth' => ['nullable', 'integer', 'in:1,2,3'],
+            'parent_code' => ['nullable', 'string', 'max:80'],
+            'depth' => ['nullable', 'integer', 'in:1,2,3,4'],
             'status' => ['nullable', 'array'],
             'status.*' => ['in:ACTIVE,INACTIVE'],
             'is_menu_visible' => ['nullable', 'boolean'],
@@ -50,8 +57,10 @@ final class CategorySelectorListForStaffRequest extends FormRequest
 
         return [
             'domain' => (string) $validated['domain'],
+            'usage' => $validated['usage'] ?? null,
             'q' => $validated['q'] ?? null,
             'parent_id' => $validated['parent_id'] ?? null,
+            'parent_code' => $validated['parent_code'] ?? null,
             'depth' => $validated['depth'] ?? null,
             'status' => $validated['status'] ?? null,
             'is_menu_visible' => $validated['is_menu_visible'] ?? null,
@@ -65,8 +74,10 @@ final class CategorySelectorListForStaffRequest extends FormRequest
     {
         return [
             'domain' => '카테고리 분류',
+            'usage' => '카테고리 사용처',
             'q' => '검색어',
             'parent_id' => '상위 카테고리 ID',
+            'parent_code' => '상위 카테고리 코드',
             'depth' => '카테고리 단계',
             'status' => '카테고리 상태',
             'status.*' => '카테고리 상태',

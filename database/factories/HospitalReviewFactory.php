@@ -215,10 +215,20 @@ final class HospitalReviewFactory extends Factory
      */
     private function loadSmallCategoryIdsByDomain(string $domain): array
     {
+        $rootPaths = HospitalReview::categoryRootPathsByDomain()[$domain] ?? [];
+        if ($rootPaths === []) {
+            return [];
+        }
+
         return Category::query()
-            ->where('domain', $domain)
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
-            ->where('depth', 3)
+            ->where(function ($query) use ($rootPaths): void {
+                foreach ($rootPaths as $rootPath) {
+                    $query->orWhere('full_path', $rootPath)
+                        ->orWhere('full_path', 'like', $rootPath.' > %');
+                }
+            })
             ->whereDoesntHave('children')
             ->pluck('id')
             ->map(static fn (int|string $id): int => (int) $id)

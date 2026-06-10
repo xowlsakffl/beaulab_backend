@@ -23,9 +23,7 @@ final class Category extends Model
 {
     use HasFactory, HasAuditLogs;
 
-    public const DOMAIN_HOSPITAL_REVIEW_SURGERY = 'HOSPITAL_REVIEW_SURGERY';
-    public const DOMAIN_HOSPITAL_REVIEW_TREATMENT = 'HOSPITAL_REVIEW_TREATMENT';
-    public const DOMAIN_HOSPITAL_DOCTER = 'HOSPITAL_DOCTER';
+    public const DOMAIN_HOSPITAL_MEDICAL = 'HOSPITAL_MEDICAL';
     public const DOMAIN_HOSPITAL_EVALUATION = 'HOSPITAL_EVALUATION';
     public const DOMAIN_TALK = 'TALK';
 
@@ -73,6 +71,11 @@ final class Category extends Model
             ->orderBy('id');
     }
 
+    public function usages(): HasMany
+    {
+        return $this->hasMany(CategoryUsage::class, 'category_id');
+    }
+
     public function iconMedia(): MorphOne
     {
         return $this->morphOne(Media::class, 'model')
@@ -102,9 +105,7 @@ final class Category extends Model
     public static function domains(): array
     {
         return [
-            self::DOMAIN_HOSPITAL_REVIEW_SURGERY,
-            self::DOMAIN_HOSPITAL_REVIEW_TREATMENT,
-            self::DOMAIN_HOSPITAL_DOCTER,
+            self::DOMAIN_HOSPITAL_MEDICAL,
             self::DOMAIN_HOSPITAL_EVALUATION,
             self::DOMAIN_TALK,
             self::DOMAIN_BEAUTY,

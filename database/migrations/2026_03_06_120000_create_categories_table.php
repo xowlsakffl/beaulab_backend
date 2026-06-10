@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,10 +12,10 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id()->comment('카테고리 고유 ID');
 
-            $table->string('domain', 40)->comment('카테고리 도메인(HOSPITAL_REVIEW_SURGERY, HOSPITAL_REVIEW_TREATMENT, HOSPITAL_DOCTER, HOSPITAL_EVALUATION, TALK, BEAUTY, FAQ)');
+            $table->string('domain', 40)->comment('카테고리 도메인(HOSPITAL_MEDICAL, HOSPITAL_EVALUATION, TALK, BEAUTY, FAQ)');
             $table->foreignId('parent_id')->nullable()->comment('상위 카테고리 ID(대분류는 null)')->constrained('categories')->restrictOnDelete();
 
-            $table->unsignedTinyInteger('depth')->comment('카테고리 깊이(1:대분류, 2:중분류, 3:소분류)');
+            $table->unsignedTinyInteger('depth')->comment('카테고리 깊이(1:대분류, 2:중분류, 3:소분류, 4:상세분류)');
             $table->string('name', 120)->comment('카테고리명');
             $table->string('code', 80)->nullable()->comment('카테고리 운영 코드');
             $table->string('full_path', 255)->nullable()->comment('카테고리 전체 경로(예: 눈 > 쌍꺼풀 > 자연유착)');

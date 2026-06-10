@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\HospitalDoctor;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -45,10 +46,9 @@ final class HospitalDoctorListForStaffRequest extends FormRequest
             'category_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_DOCTER)
-                    ->whereNull('parent_id')
-                    ->where('status', Category::STATUS_ACTIVE)),
+                Rule::exists('categories', 'id')->where(static function ($query): void {
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+                }),
             ],
             'metric' => ['nullable', Rule::in(['career_years', 'review_count', 'consultation_count'])],
             'metric_min' => ['nullable', 'integer', 'min:0'],

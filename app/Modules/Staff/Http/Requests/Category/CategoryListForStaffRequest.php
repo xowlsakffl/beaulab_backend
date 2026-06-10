@@ -36,7 +36,7 @@ final class CategoryListForStaffRequest extends FormRequest
             'domain' => ['required', Rule::in(Category::domains())],
             'q' => ['nullable', 'string', 'max:100'],
             'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'depth' => ['nullable', 'integer', 'in:1,2,3'],
+            'depth' => ['nullable', 'integer', 'in:1,2,3,4'],
             'status' => ['nullable', 'array'],
             'status.*' => ['in:ACTIVE,INACTIVE'],
             'include' => ['nullable', 'array'],

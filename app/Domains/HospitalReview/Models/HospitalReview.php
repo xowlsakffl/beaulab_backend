@@ -5,6 +5,7 @@ namespace App\Domains\HospitalReview\Models;
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
@@ -29,9 +30,9 @@ final class HospitalReview extends Model
 {
     use HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
-    public const CATEGORY_DOMAIN_SURGERY = Category::DOMAIN_HOSPITAL_REVIEW_SURGERY;
+    public const CATEGORY_DOMAIN_SURGERY = 'HOSPITAL_REVIEW_SURGERY';
 
-    public const CATEGORY_DOMAIN_TREATMENT = Category::DOMAIN_HOSPITAL_REVIEW_TREATMENT;
+    public const CATEGORY_DOMAIN_TREATMENT = 'HOSPITAL_REVIEW_TREATMENT';
 
     public const STATUS_ACTIVE = 'ACTIVE';
 
@@ -114,6 +115,60 @@ final class HospitalReview extends Model
             self::CATEGORY_DOMAIN_SURGERY,
             self::CATEGORY_DOMAIN_TREATMENT,
         ];
+    }
+
+    public static function categoryUsageByDomain(string $domain): ?string
+    {
+        return match ($domain) {
+            self::CATEGORY_DOMAIN_SURGERY => CategoryUsage::USAGE_HOSPITAL_REVIEW_SURGERY,
+            self::CATEGORY_DOMAIN_TREATMENT => CategoryUsage::USAGE_HOSPITAL_REVIEW_TREATMENT,
+            default => null,
+        };
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public static function categoryRootPathsByDomain(): array
+    {
+        $usageByDomain = [
+            self::CATEGORY_DOMAIN_SURGERY => CategoryUsage::USAGE_HOSPITAL_REVIEW_SURGERY,
+            self::CATEGORY_DOMAIN_TREATMENT => CategoryUsage::USAGE_HOSPITAL_REVIEW_TREATMENT,
+        ];
+        $pathsByUsage = CategoryUsage::activeCategoryFullPathsByUsage(array_values($usageByDomain));
+
+        $pathsByDomain = [];
+        foreach ($usageByDomain as $domain => $usage) {
+            $pathsByDomain[$domain] = $pathsByUsage[$usage] ?? [];
+        }
+
+        return $pathsByDomain;
+    }
+
+    /**
+     * @param  array<string, array<int, string>>  $rootPathsByDomain
+     */
+    public static function categoryDomainFromFullPath(?string $fullPath, array $rootPathsByDomain): ?string
+    {
+        $path = trim((string) $fullPath);
+        if ($path === '') {
+            return null;
+        }
+
+        foreach ($rootPathsByDomain as $domain => $rootPaths) {
+            foreach ($rootPaths as $rootPath) {
+                $normalizedRootPath = trim($rootPath);
+                if ($normalizedRootPath === '') {
+                    continue;
+                }
+
+                if ($path === $normalizedRootPath || str_starts_with($path, "{$normalizedRootPath} > ")) {
+                    return $domain;
+                }
+            }
+        }
+
+        return null;
     }
 
     public function isStatusChangeLocked(): bool

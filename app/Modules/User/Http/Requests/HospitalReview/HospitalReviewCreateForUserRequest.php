@@ -42,7 +42,7 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
                 'max:80',
                 'distinct:strict',
                 Rule::exists('categories', 'code')->where(static fn ($query) => $query
-                    ->whereIn('domain', HospitalReview::categoryDomains())
+                    ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'title' => ['required', 'string', 'max:255'],
@@ -126,19 +126,28 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
         }
 
         $categories = Category::query()
-            ->whereIn('domain', HospitalReview::categoryDomains())
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
             ->whereIn('code', $codes)
             ->withCount('children')
             ->get();
 
-        if ($categories->count() !== count($codes) || $categories->pluck('domain')->unique()->count() !== 1) {
+        $rootPathsByDomain = HospitalReview::categoryRootPathsByDomain();
+        $categoryDomains = $categories
+            ->map(static fn (Category $category): ?string => HospitalReview::categoryDomainFromFullPath($category->full_path, $rootPathsByDomain))
+            ->values();
+
+        if (
+            $categories->count() !== count($codes)
+            || $categoryDomains->contains(null)
+            || $categoryDomains->unique()->count() !== 1
+        ) {
             $validator->errors()->add('category_codes', '후기 카테고리 유형을 확인해 주세요.');
 
             return;
         }
 
-        if ($categories->contains(static fn (Category $category): bool => (int) $category->depth !== 3 || (int) ($category->children_count ?? 0) > 0)) {
+        if ($categories->contains(static fn (Category $category): bool => (int) ($category->children_count ?? 0) > 0)) {
             $validator->errors()->add('category_codes', '후기 카테고리는 소분류만 선택할 수 있습니다.');
         }
     }

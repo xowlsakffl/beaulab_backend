@@ -24,7 +24,7 @@ final class HospitalReviewCreateForUserQuery
     public function categoriesByCodes(array $categoryCodes): Collection
     {
         return Category::query()
-            ->whereIn('domain', HospitalReview::categoryDomains())
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
             ->whereIn('code', array_values($categoryCodes))
             ->get();

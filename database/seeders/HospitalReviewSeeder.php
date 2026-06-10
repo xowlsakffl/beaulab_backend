@@ -358,18 +358,20 @@ final class HospitalReviewSeeder extends Seeder
     private function categoryIdsByDomain(array $domains): array
     {
         $categories = Category::query()
-            ->whereIn('domain', $domains)
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
-            ->where('depth', 3)
             ->whereDoesntHave('children')
-            ->orderBy('domain')
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->get(['id', 'domain']);
+            ->get(['id', 'full_path']);
 
+        $rootPathsByDomain = HospitalReview::categoryRootPathsByDomain();
         $grouped = [];
         foreach ($categories as $category) {
-            $grouped[(string) $category->domain][] = (int) $category->id;
+            $domain = HospitalReview::categoryDomainFromFullPath($category->full_path, $rootPathsByDomain);
+            if ($domain !== null && in_array($domain, $domains, true)) {
+                $grouped[$domain][] = (int) $category->id;
+            }
         }
 
         return array_filter($grouped, static fn (array $ids): bool => $ids !== []);

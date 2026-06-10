@@ -47,7 +47,7 @@ final class HospitalReviewListForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->where('domain', (string) $this->input('category_domain'))
+                    ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'ratings' => ['nullable', 'array', 'min:1', 'max:5'],

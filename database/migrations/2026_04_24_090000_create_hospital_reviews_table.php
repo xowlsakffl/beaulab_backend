@@ -29,7 +29,7 @@ return new class extends Migration
                 ->constrained('hospital_doctors')
                 ->nullOnDelete();
 
-            $table->string('category_domain', 40)->comment('후기 카테고리 도메인(HOSPITAL_REVIEW_SURGERY, HOSPITAL_REVIEW_TREATMENT)');
+            $table->string('category_domain', 40)->comment('후기 게시판 구분(HOSPITAL_REVIEW_SURGERY, HOSPITAL_REVIEW_TREATMENT)');
             $table->string('title', 255)->comment('후기 제목');
             $table->longText('content')->comment('후기 내용');
             $table->string('author_ip', 45)->nullable()->comment('작성자 IP(v4/v6)');

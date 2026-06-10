@@ -90,7 +90,6 @@ final class HospitalReviewListForStaffQuery
 
         $categoryIds = $filters['category_ids'] ?? null;
         if (is_array($categoryIds) && $categoryIds !== []) {
-            $categoryDomain = (string) ($filters['category_domain'] ?? '');
             $normalizedCategoryIds = collect($categoryIds)
                 ->map(static fn (int|string $value): int => (int) $value)
                 ->filter(static fn (int $value): bool => $value > 0)
@@ -101,11 +100,11 @@ final class HospitalReviewListForStaffQuery
             if ($normalizedCategoryIds === []) {
                 $builder->whereRaw('1 = 0');
             } else {
-                $expandedCategoryIds = $this->expandCategoryIdsWithDescendants($normalizedCategoryIds, $categoryDomain);
+                $expandedCategoryIds = $this->expandCategoryIdsWithDescendants($normalizedCategoryIds);
 
-                $builder->whereHas('categories', function ($query) use ($expandedCategoryIds, $categoryDomain): void {
+                $builder->whereHas('categories', function ($query) use ($expandedCategoryIds): void {
                     $query
-                        ->where('categories.domain', $categoryDomain)
+                        ->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
                         ->whereIn('categories.id', $expandedCategoryIds);
                 });
             }
@@ -169,25 +168,32 @@ final class HospitalReviewListForStaffQuery
      * @param  array<int, int>  $categoryIds
      * @return array<int, int>
      */
-    private function expandCategoryIdsWithDescendants(array $categoryIds, string $categoryDomain): array
+    private function expandCategoryIdsWithDescendants(array $categoryIds): array
     {
-        if ($categoryDomain === '') {
-            return $categoryIds;
+        $selectedCategories = Category::query()
+            ->select(['id', 'domain', 'name', 'full_path'])
+            ->whereIn('id', $categoryIds)
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->get();
+
+        if ($selectedCategories->isEmpty()) {
+            return [];
         }
 
         return Category::query()
-            ->where('domain', $categoryDomain)
-            ->where(function ($query) use ($categoryIds, $categoryDomain): void {
-                $query
-                    ->whereIn('id', $categoryIds)
-                    ->orWhereIn('parent_id', $categoryIds)
-                    ->orWhereIn('parent_id', function ($subQuery) use ($categoryIds, $categoryDomain): void {
-                        $subQuery
-                            ->select('id')
-                            ->from('categories')
-                            ->where('domain', $categoryDomain)
-                            ->whereIn('parent_id', $categoryIds);
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->where(function ($query) use ($selectedCategories): void {
+                foreach ($selectedCategories as $selectedCategory) {
+                    $pathPrefix = trim((string) ($selectedCategory->full_path ?: $selectedCategory->name));
+
+                    $query->orWhere(function ($nested) use ($selectedCategory, $pathPrefix): void {
+                        $nested->where('id', (int) $selectedCategory->id);
+
+                        if ($pathPrefix !== '') {
+                            $nested->orWhere('full_path', 'like', $pathPrefix . ' > %');
+                        }
                     });
+                }
             })
             ->pluck('id')
             ->map(static fn ($id): int => (int) $id)

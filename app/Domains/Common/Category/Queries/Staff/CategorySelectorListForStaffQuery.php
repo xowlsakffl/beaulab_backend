@@ -3,6 +3,7 @@
 namespace App\Domains\Common\Category\Queries\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -29,8 +30,10 @@ final class CategorySelectorListForStaffQuery
     {
         $domain = (string) $filters['domain'];
         $q = $filters['q'] ?? null;
+        $usage = $filters['usage'] ?? null;
         $status = $filters['status'] ?? null;
         $parentId = $filters['parent_id'] ?? null;
+        $parentCode = $filters['parent_code'] ?? null;
         $depth = $filters['depth'] ?? null;
         $isMenuVisible = $filters['is_menu_visible'] ?? null;
         $sort = $filters['sort'] ?? 'sort_order';
@@ -39,16 +42,24 @@ final class CategorySelectorListForStaffQuery
         $builder = Category::query()
             ->domain($domain)
             ->select([
-                'id',
-                'domain',
-                'parent_id',
-                'depth',
-                'name',
-                'code',
-                'full_path',
-                'sort_order',
-                'status',
+                'categories.id',
+                'categories.domain',
+                'categories.parent_id',
+                'categories.depth',
+                'categories.name',
+                'categories.code',
+                'categories.full_path',
+                'categories.sort_order',
+                'categories.status',
             ]);
+
+        if ($usage) {
+            $builder
+                ->join('category_usages', 'category_usages.category_id', '=', 'categories.id')
+                ->where('category_usages.usage', (string) $usage)
+                ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
+                ->addSelect('category_usages.sort_order as usage_sort_order');
+        }
 
         $builder->selectRaw(
             'EXISTS(
@@ -62,34 +73,49 @@ final class CategorySelectorListForStaffQuery
 
         if ($q) {
             $builder->where(function ($w) use ($q): void {
-                $w->where('name', 'like', "%{$q}%")
-                    ->orWhere('code', 'like', "%{$q}%")
-                    ->orWhere('full_path', 'like', "%{$q}%");
+                $w->where('categories.name', 'like', "%{$q}%")
+                    ->orWhere('categories.code', 'like', "%{$q}%")
+                    ->orWhere('categories.full_path', 'like', "%{$q}%");
             });
         }
 
         if ($parentId !== null) {
-            $builder->where('parent_id', (int) $parentId);
+            $builder->where('categories.parent_id', (int) $parentId);
+        } elseif (is_string($parentCode) && $parentCode !== '') {
+            $resolvedParentId = Category::query()
+                ->where('domain', $domain)
+                ->where('code', $parentCode)
+                ->value('id');
+
+            if ($resolvedParentId === null) {
+                $builder->whereRaw('1 = 0');
+            } else {
+                $builder->where('categories.parent_id', (int) $resolvedParentId);
+            }
         }
 
         if ($depth !== null) {
-            $builder->where('depth', (int) $depth);
-        } elseif ($parentId === null && ! $q) {
-            $builder->whereNull('parent_id');
+            $builder->where('categories.depth', (int) $depth);
+        } elseif ($parentId === null && ! $parentCode && ! $q && ! $usage) {
+            $builder->whereNull('categories.parent_id');
         }
 
         if (is_array($status) && $status !== []) {
-            $builder->whereIn('status', $status);
+            $builder->whereIn('categories.status', $status);
         }
 
         if ($isMenuVisible !== null) {
-            $builder->where('is_menu_visible', (bool) $isMenuVisible);
+            $builder->where('categories.is_menu_visible', (bool) $isMenuVisible);
         }
 
-        $builder->orderBy($sort, $direction);
+        if ($usage && $sort === 'sort_order') {
+            $builder->orderBy('category_usages.sort_order', $direction);
+        } else {
+            $builder->orderBy("categories.{$sort}", $direction);
+        }
 
         if ($sort !== 'id') {
-            $builder->orderBy('id');
+            $builder->orderBy('categories.id');
         }
 
         return $builder;

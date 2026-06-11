@@ -29,7 +29,7 @@ return new class extends Migration
             $table->unsignedBigInteger('normal_price')->default(0)->comment('정상 가격(원)');
             $table->unsignedBigInteger('event_price')->default(0)->comment('이벤트 가격(원)');
             $table->boolean('is_vat_included')->default(true)->comment('VAT 포함 여부');
-            $table->decimal('discount_rate', 5, 1)->default(0)->comment('할인율(%, 소수점 1자리)');
+            $table->unsignedTinyInteger('discount_rate')->default(0)->comment('할인율(%, 정수)');
 
             $table->unsignedBigInteger('base_consultation_price')->default(0)->comment('이벤트 가격 기준 상담 신청 기준 단가(원)');
             $table->unsignedBigInteger('consultation_price')->default(0)->comment('상담 신청 단가(원)');
@@ -102,7 +102,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('session_count')->default(1)->comment('회차');
             $table->unsignedBigInteger('normal_price')->default(0)->comment('옵션 정가(원)');
             $table->unsignedBigInteger('event_price')->default(0)->comment('옵션 할인가(원)');
-            $table->decimal('discount_rate', 5, 1)->default(0)->comment('옵션 할인율(%, 소수점 1자리)');
+            $table->unsignedTinyInteger('discount_rate')->default(0)->comment('옵션 할인율(%, 정수)');
 
             $table->timestamps();
 

@@ -33,7 +33,7 @@ final readonly class HospitalEventForStaffDetailDto
             'normal_price' => (int) $this->event->normal_price,
             'event_price' => (int) $this->event->event_price,
             'is_vat_included' => (bool) $this->event->is_vat_included,
-            'discount_rate' => (float) $this->event->discount_rate,
+            'discount_rate' => (int) $this->event->discount_rate,
             'base_consultation_price' => (int) $this->event->base_consultation_price,
             'consultation_price' => (int) $this->event->consultation_price,
             'has_options' => (bool) $this->event->has_options,
@@ -125,7 +125,7 @@ final readonly class HospitalEventForStaffDetailDto
                 'session_count' => (int) $option->session_count,
                 'normal_price' => (int) $option->normal_price,
                 'event_price' => (int) $option->event_price,
-                'discount_rate' => (float) $option->discount_rate,
+                'discount_rate' => (int) $option->discount_rate,
             ])
             ->values()
             ->all();

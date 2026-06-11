@@ -24,7 +24,7 @@ final class HospitalEventPayloadResolver
             throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 가격은 정상 가격을 초과할 수 없습니다.');
         }
 
-        if ($discountRate > HospitalEvent::MAX_DISCOUNT_RATE) {
+        if (HospitalEvent::exceedsMaxDiscountRate($normalPrice, $eventPrice)) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '할인율은 49%를 초과할 수 없습니다.');
         }
 
@@ -221,7 +221,7 @@ final class HospitalEventPayloadResolver
                     'session_count' => max(1, (int) ($option['session_count'] ?? 1)),
                     'normal_price' => $normalPrice,
                     'event_price' => $eventPrice,
-                    'discount_rate' => max(0, (float) $discountRate),
+                    'discount_rate' => max(0, (int) $discountRate),
                 ];
             })
             ->filter(static fn (array $option): bool => trim((string) $option['name']) !== '')

@@ -26,7 +26,7 @@ final class HospitalEventOption extends Model
         'session_count' => 'integer',
         'normal_price' => 'integer',
         'event_price' => 'integer',
-        'discount_rate' => 'float',
+        'discount_rate' => 'integer',
     ];
 
     protected $attributes = [

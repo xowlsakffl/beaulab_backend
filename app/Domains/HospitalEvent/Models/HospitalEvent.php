@@ -56,7 +56,7 @@ final class HospitalEvent extends Model
 
     public const MIN_TEXT_ITEMS = 2;
 
-    public const MAX_DISCOUNT_RATE = 49.0;
+    public const MAX_DISCOUNT_RATE = 49;
 
     protected $table = 'hospital_events';
 
@@ -90,7 +90,7 @@ final class HospitalEvent extends Model
         'normal_price' => 'integer',
         'event_price' => 'integer',
         'is_vat_included' => 'boolean',
-        'discount_rate' => 'float',
+        'discount_rate' => 'integer',
         'base_consultation_price' => 'integer',
         'consultation_price' => 'integer',
         'has_options' => 'boolean',
@@ -197,13 +197,22 @@ final class HospitalEvent extends Model
         ];
     }
 
-    public static function calculateDiscountRate(int $normalPrice, int $eventPrice): float
+    public static function calculateDiscountRate(int $normalPrice, int $eventPrice): int
     {
         if ($normalPrice <= 0) {
-            return 0.0;
+            return 0;
         }
 
-        return round((1 - ($eventPrice / $normalPrice)) * 100, 1);
+        return (int) round((1 - ($eventPrice / $normalPrice)) * 100);
+    }
+
+    public static function exceedsMaxDiscountRate(int $normalPrice, int $eventPrice): bool
+    {
+        if ($normalPrice <= 0) {
+            return false;
+        }
+
+        return $eventPrice * 100 < $normalPrice * (100 - self::MAX_DISCOUNT_RATE);
     }
 
     public static function consultationBasePrice(int $eventPrice): int

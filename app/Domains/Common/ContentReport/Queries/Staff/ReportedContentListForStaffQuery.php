@@ -248,11 +248,6 @@ final class ReportedContentListForStaffQuery
 
             return;
         }
-
-        if ($targetClass === HospitalEvaluation::class) {
-            $builder->whereHasMorph('target', [$targetClass], fn (Builder $query) => $query
-                ->where('category_domain', $categoryDomain));
-        }
     }
 
     /**

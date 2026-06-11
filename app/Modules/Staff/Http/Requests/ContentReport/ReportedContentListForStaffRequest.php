@@ -4,7 +4,6 @@ namespace App\Modules\Staff\Http\Requests\ContentReport;
 
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
-use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -36,10 +35,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
             'warning_status' => ['nullable', Rule::in(ContentReportState::warningStatuses())],
             'report_status' => ['nullable', 'array'],
             'report_status.*' => [Rule::in(ContentReportState::statuses())],
-            'category_domain' => ['nullable', Rule::in([
-                ...HospitalReview::categoryDomains(),
-                ...HospitalEvaluation::categoryDomains(),
-            ])],
+            'category_domain' => ['nullable', Rule::in(HospitalReview::categoryDomains())],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d'],
             'sort' => ['nullable', 'in:target_id,report_status,report_count,recent_hour_report_count,first_reported_at,last_reported_at,updated_at'],

@@ -34,8 +34,6 @@ final class HospitalEvent extends Model
 
     public const STATUS_INACTIVE = 'INACTIVE';
 
-    public const ALLOW_DRAFT = 'DRAFT';
-
     public const ALLOW_PENDING = 'PENDING';
 
     public const ALLOW_REVIEWING = 'REVIEWING';
@@ -112,7 +110,7 @@ final class HospitalEvent extends Model
         'base_consultation_price' => 0,
         'consultation_price' => 0,
         'has_options' => false,
-        'allow_status' => self::ALLOW_DRAFT,
+        'allow_status' => self::ALLOW_PENDING,
         'status' => self::STATUS_INACTIVE,
         'view_count' => 0,
     ];
@@ -191,7 +189,6 @@ final class HospitalEvent extends Model
     public static function allowStatuses(): array
     {
         return [
-            self::ALLOW_DRAFT,
             self::ALLOW_PENDING,
             self::ALLOW_REVIEWING,
             self::ALLOW_APPROVED,

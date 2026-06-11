@@ -43,7 +43,7 @@ return new class extends Migration
             // - thumbnail_image
             // - event_page_image
 
-            $table->string('allow_status', 20)->default('DRAFT')->comment('검수 상태(DRAFT, PENDING, REVIEWING, APPROVED, REJECTED, PARTNER_CANCELED)');
+            $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(PENDING, REVIEWING, APPROVED, REJECTED, PARTNER_CANCELED)');
             $table->string('status', 20)->default('INACTIVE')->comment('노출 상태(ACTIVE, INACTIVE)');
 
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');

@@ -56,7 +56,7 @@ final class HospitalEventPayloadResolver
             'procedure_targets' => $eventType === HospitalEvent::TYPE_TEXT ? $this->normalizeTextItems($payload['procedure_targets'] ?? $event?->procedure_targets ?? []) : null,
             'procedure_benefits' => $eventType === HospitalEvent::TYPE_TEXT ? $this->normalizeTextItems($payload['procedure_benefits'] ?? $event?->procedure_benefits ?? []) : null,
             'side_effect_notice' => $payload['side_effect_notice'] ?? $event?->side_effect_notice,
-            'allow_status' => $payload['allow_status'] ?? $event?->allow_status ?? HospitalEvent::ALLOW_DRAFT,
+            'allow_status' => $payload['allow_status'] ?? $event?->allow_status ?? HospitalEvent::ALLOW_PENDING,
             'status' => $payload['status'] ?? $event?->status ?? HospitalEvent::STATUS_INACTIVE,
         ];
 

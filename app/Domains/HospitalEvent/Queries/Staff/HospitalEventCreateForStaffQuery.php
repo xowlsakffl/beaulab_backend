@@ -34,7 +34,7 @@ final class HospitalEventCreateForStaffQuery
             'procedure_targets' => $data['procedure_targets'] ?? null,
             'procedure_benefits' => $data['procedure_benefits'] ?? null,
             'side_effect_notice' => $data['side_effect_notice'] ?? null,
-            'allow_status' => $data['allow_status'] ?? HospitalEvent::ALLOW_DRAFT,
+            'allow_status' => $data['allow_status'] ?? HospitalEvent::ALLOW_PENDING,
             'status' => $data['status'] ?? HospitalEvent::STATUS_INACTIVE,
         ];
     }

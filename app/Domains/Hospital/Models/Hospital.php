@@ -12,6 +12,7 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
+use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Database\Factories\HospitalFactory;
@@ -32,16 +33,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class Hospital extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes, HasOperationHistories;
+    use HasAdminNotes, HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
     // allow_status
-    public const ALLOW_PENDING  = 'PENDING';
+    public const ALLOW_PENDING = 'PENDING';
+
     public const ALLOW_APPROVED = 'APPROVED';
+
     public const ALLOW_REJECTED = 'REJECTED';
 
     // status
-    public const STATUS_ACTIVE    = 'ACTIVE';
+    public const STATUS_ACTIVE = 'ACTIVE';
+
     public const STATUS_SUSPENDED = 'SUSPENDED';
+
     public const STATUS_WITHDRAWN = 'WITHDRAWN';
 
     // department
@@ -118,6 +123,11 @@ final class Hospital extends Model
         return $this->hasMany(HospitalEvaluation::class, 'hospital_id');
     }
 
+    public function hospitalEvents(): HasMany
+    {
+        return $this->hasMany(HospitalEvent::class, 'hospital_id');
+    }
+
     public function logoMedia(): MorphOne
     {
         return $this->morphOne(Media::class, 'model')
@@ -131,7 +141,6 @@ final class Hospital extends Model
             ->orderBy('sort_order')
             ->orderBy('id');
     }
-
 
     public function doctors(): HasMany
     {

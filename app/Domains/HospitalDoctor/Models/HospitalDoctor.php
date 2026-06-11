@@ -8,12 +8,14 @@ use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Database\Factories\HospitalDoctorFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -26,43 +28,74 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class HospitalDoctor extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs;
+    use HasAuditLogs, HasFactory, SoftDeletes;
 
     public const GENDER_MALE = '남';
+
     public const GENDER_FEMALE = '여';
 
     public const POSITION_HEAD_DIRECTOR = '대표원장';
+
     public const POSITION_DIRECTOR = '원장';
 
     public const SPECIALIST_FIELD_NONE = 'NONE';
+
     public const SPECIALIST_FIELD_PLASTIC_SURGERY = 'PLASTIC_SURGERY';
+
     public const SPECIALIST_FIELD_SURGERY = 'SURGERY';
+
     public const SPECIALIST_FIELD_OTOLARYNGOLOGY = 'OTOLARYNGOLOGY';
+
     public const SPECIALIST_FIELD_FAMILY_MEDICINE = 'FAMILY_MEDICINE';
+
     public const SPECIALIST_FIELD_OBSTETRICS_GYNECOLOGY = 'OBSTETRICS_GYNECOLOGY';
+
     public const SPECIALIST_FIELD_ORAL_MAXILLOFACIAL_SURGERY = 'ORAL_MAXILLOFACIAL_SURGERY';
+
     public const SPECIALIST_FIELD_ANESTHESIOLOGY_PAIN_MEDICINE = 'ANESTHESIOLOGY_PAIN_MEDICINE';
+
     public const SPECIALIST_FIELD_KOREAN_MEDICINE = 'KOREAN_MEDICINE';
+
     public const SPECIALIST_FIELD_DENTISTRY = 'DENTISTRY';
+
     public const SPECIALIST_FIELD_ORTHODONTICS = 'ORTHODONTICS';
+
     public const SPECIALIST_FIELD_DERMATOLOGY = 'DERMATOLOGY';
+
     public const SPECIALIST_FIELD_OPHTHALMOLOGY = 'OPHTHALMOLOGY';
+
     public const SPECIALIST_FIELD_INTERNAL_MEDICINE = 'INTERNAL_MEDICINE';
+
     public const SPECIALIST_FIELD_NEUROLOGY = 'NEUROLOGY';
+
     public const SPECIALIST_FIELD_ORTHOPEDICS = 'ORTHOPEDICS';
+
     public const SPECIALIST_FIELD_NEUROSURGERY = 'NEUROSURGERY';
+
     public const SPECIALIST_FIELD_THORACIC_SURGERY = 'THORACIC_SURGERY';
+
     public const SPECIALIST_FIELD_PEDIATRICS = 'PEDIATRICS';
+
     public const SPECIALIST_FIELD_UROLOGY = 'UROLOGY';
+
     public const SPECIALIST_FIELD_RADIOLOGY = 'RADIOLOGY';
+
     public const SPECIALIST_FIELD_EMERGENCY_MEDICINE = 'EMERGENCY_MEDICINE';
+
     public const SPECIALIST_FIELD_REHABILITATION_MEDICINE = 'REHABILITATION_MEDICINE';
+
     public const SPECIALIST_FIELD_PROSTHODONTICS = 'PROSTHODONTICS';
+
     public const SPECIALIST_FIELD_PERIODONTICS = 'PERIODONTICS';
+
     public const SPECIALIST_FIELD_INTEGRATED_DENTISTRY = 'INTEGRATED_DENTISTRY';
+
     public const SPECIALIST_FIELD_PATHOLOGY = 'PATHOLOGY';
+
     public const SPECIALIST_FIELD_OCCUPATIONAL_ENVIRONMENTAL_MEDICINE = 'OCCUPATIONAL_ENVIRONMENTAL_MEDICINE';
+
     public const SPECIALIST_FIELD_CONSERVATIVE_DENTISTRY = 'CONSERVATIVE_DENTISTRY';
+
     public const SPECIALIST_FIELD_OTHER = 'OTHER';
 
     public const SPECIALIST_FIELD_LABELS = [
@@ -98,13 +131,17 @@ final class HospitalDoctor extends Model
         self::SPECIALIST_FIELD_OTHER => '기타',
     ];
 
-    public const ALLOW_PENDING  = 'PENDING';
+    public const ALLOW_PENDING = 'PENDING';
+
     public const ALLOW_APPROVED = 'APPROVED';
+
     public const ALLOW_REJECTED = 'REJECTED';
 
     // status
-    public const STATUS_ACTIVE    = 'ACTIVE';
+    public const STATUS_ACTIVE = 'ACTIVE';
+
     public const STATUS_SUSPENDED = 'SUSPENDED';
+
     public const STATUS_INACTIVE = 'INACTIVE';
 
     protected $table = 'hospital_doctors';
@@ -206,6 +243,13 @@ final class HospitalDoctor extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(HospitalReview::class, 'doctor_id');
+    }
+
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(HospitalEvent::class, 'hospital_event_doctor_assignments', 'hospital_doctor_id', 'hospital_event_id')
+            ->withPivot(['sort_order', 'is_career_visible', 'is_activity_visible'])
+            ->withTimestamps();
     }
 
     public function profileImage(): MorphOne

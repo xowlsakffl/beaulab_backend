@@ -4,86 +4,155 @@ namespace App\Common\Authorization;
 
 final class AccessPermissions
 {
-    public const GUARD_STAFF   = 'staff';
+    public const GUARD_STAFF = 'staff';
+
     public const GUARD_HOSPITAL = 'hospital';
+
     public const GUARD_BEAUTY = 'beauty';
-    public const GUARD_USER    = 'user';
+
+    public const GUARD_USER = 'user';
 
     // Common
     public const COMMON_ACCESS = 'common.access';
+
     public const COMMON_DASHBOARD_SHOW = 'common.dashboard.show';
+
     public const COMMON_PROFILE_SHOW = 'common.profile.show';
+
     public const COMMON_PROFILE_UPDATE = 'common.profile.update';
 
     // Beaulab
     public const BEAULAB_HOSPITAL_SHOW = 'beaulab.hospital.show';
+
     public const BEAULAB_HOSPITAL_CREATE = 'beaulab.hospital.create';
+
     public const BEAULAB_HOSPITAL_UPDATE = 'beaulab.hospital.update';
+
     public const BEAULAB_HOSPITAL_DELETE = 'beaulab.hospital.delete';
+
     public const BEAULAB_BEAUTY_SHOW = 'beaulab.beauty.show';
+
     public const BEAULAB_BEAUTY_CREATE = 'beaulab.beauty.create';
+
     public const BEAULAB_BEAUTY_UPDATE = 'beaulab.beauty.update';
+
     public const BEAULAB_BEAUTY_DELETE = 'beaulab.beauty.delete';
+
     public const BEAULAB_AGENCY_SHOW = 'beaulab.agency.show';
+
     public const BEAULAB_AGENCY_CREATE = 'beaulab.agency.create';
+
     public const BEAULAB_AGENCY_UPDATE = 'beaulab.agency.update';
+
     public const BEAULAB_AGENCY_DELETE = 'beaulab.agency.delete';
+
     public const BEAULAB_USER_SHOW = 'beaulab.user.show';
+
     public const BEAULAB_USER_UPDATE = 'beaulab.user.update';
+
     public const BEAULAB_USER_DELETE = 'beaulab.user.delete';
+
     public const BEAULAB_DOCTOR_SHOW = 'beaulab.doctor.show';
+
     public const BEAULAB_DOCTOR_CREATE = 'beaulab.doctor.create';
+
     public const BEAULAB_DOCTOR_UPDATE = 'beaulab.doctor.update';
+
     public const BEAULAB_DOCTOR_DELETE = 'beaulab.doctor.delete';
+
     public const BEAULAB_EXPERT_SHOW = 'beaulab.expert.show';
+
     public const BEAULAB_EXPERT_CREATE = 'beaulab.expert.create';
+
     public const BEAULAB_EXPERT_UPDATE = 'beaulab.expert.update';
+
     public const BEAULAB_EXPERT_DELETE = 'beaulab.expert.delete';
 
     public const BEAULAB_VIDEO_SHOW = 'beaulab.video.show';
+
     public const BEAULAB_VIDEO_CREATE = 'beaulab.video.create';
+
     public const BEAULAB_VIDEO_UPDATE = 'beaulab.video.update';
+
     public const BEAULAB_VIDEO_DELETE = 'beaulab.video.delete';
+
+    public const BEAULAB_HOSPITAL_EVENT_SHOW = 'beaulab.hospital_event.show';
+
+    public const BEAULAB_HOSPITAL_EVENT_CREATE = 'beaulab.hospital_event.create';
+
+    public const BEAULAB_HOSPITAL_EVENT_UPDATE = 'beaulab.hospital_event.update';
+
+    public const BEAULAB_HOSPITAL_EVENT_DELETE = 'beaulab.hospital_event.delete';
+
     public const BEAULAB_HOSPITAL_REVIEW_SHOW = 'beaulab.hospital_review.show';
+
     public const BEAULAB_HOSPITAL_REVIEW_UPDATE = 'beaulab.hospital_review.update';
+
     public const BEAULAB_HOSPITAL_EVALUATION_SHOW = 'beaulab.hospital_evaluation.show';
+
     public const BEAULAB_HOSPITAL_EVALUATION_UPDATE = 'beaulab.hospital_evaluation.update';
+
     public const BEAULAB_TALK_SHOW = 'beaulab.talk.show';
+
     public const BEAULAB_TALK_UPDATE = 'beaulab.talk.update';
+
     public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
+
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
+
     public const BEAULAB_NOTICE_UPDATE = 'beaulab.notice.update';
+
     public const BEAULAB_NOTICE_DELETE = 'beaulab.notice.delete';
+
     public const BEAULAB_FAQ_SHOW = 'beaulab.faq.show';
+
     public const BEAULAB_FAQ_CREATE = 'beaulab.faq.create';
+
     public const BEAULAB_FAQ_UPDATE = 'beaulab.faq.update';
+
     public const BEAULAB_FAQ_DELETE = 'beaulab.faq.delete';
+
     public const BEAULAB_CATEGORY_MANAGE = 'beaulab.category.manage';
+
     public const BEAULAB_HASHTAG_MANAGE = 'beaulab.hashtag.manage';
+
     // Hospital
     public const HOSPITAL_PROFILE_SHOW = 'hospital.profile.show';
+
     public const HOSPITAL_PROFILE_UPDATE = 'hospital.profile.update';
+
     public const HOSPITAL_PROFILE_DELETE = 'hospital.profile.delete';
+
     public const HOSPITAL_MEMBERS_MANAGE = 'hospital.members.manage';
 
     public const HOSPITAL_VIDEO_SHOW = 'hospital.video.show';
+
     public const HOSPITAL_VIDEO_CREATE = 'hospital.video.create';
+
     public const HOSPITAL_VIDEO_UPDATE = 'hospital.video.update';
+
     public const HOSPITAL_VIDEO_CANCEL = 'hospital.video.cancel';
 
     // Beauty
     public const BEAUTY_PROFILE_SHOW = 'beauty.profile.show';
+
     public const BEAUTY_PROFILE_UPDATE = 'beauty.profile.update';
+
     public const BEAUTY_PROFILE_DELETE = 'beauty.profile.delete';
+
     public const BEAUTY_MEMBERS_MANAGE = 'beauty.members.manage';
 
     public const BEAUTY_VIDEO_SHOW = 'beauty.video.show';
+
     public const BEAUTY_VIDEO_CREATE = 'beauty.video.create';
+
     public const BEAUTY_VIDEO_UPDATE = 'beauty.video.update';
+
     public const BEAUTY_VIDEO_CANCEL = 'beauty.video.cancel';
 
     // User
     public const USER_PROFILE_SHOW = 'user.profile.show';
+
     public const USER_PROFILE_UPDATE = 'user.profile.update';
 
     /**
@@ -187,6 +256,10 @@ final class AccessPermissions
             self::BEAULAB_VIDEO_CREATE,
             self::BEAULAB_VIDEO_UPDATE,
             self::BEAULAB_VIDEO_DELETE,
+            self::BEAULAB_HOSPITAL_EVENT_SHOW,
+            self::BEAULAB_HOSPITAL_EVENT_CREATE,
+            self::BEAULAB_HOSPITAL_EVENT_UPDATE,
+            self::BEAULAB_HOSPITAL_EVENT_DELETE,
             self::BEAULAB_HOSPITAL_REVIEW_SHOW,
             self::BEAULAB_HOSPITAL_REVIEW_UPDATE,
             self::BEAULAB_HOSPITAL_EVALUATION_SHOW,
@@ -265,7 +338,7 @@ final class AccessPermissions
     }
 
     /**
-     * @param array<int, string> $permissions
+     * @param  array<int, string>  $permissions
      * @return array<int, string>
      */
     private static function unique(array $permissions): array

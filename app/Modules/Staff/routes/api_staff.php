@@ -19,6 +19,7 @@ use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReviewComment\HospitalReviewCommentForStaffController;
@@ -185,6 +186,26 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('doctors.updateDoctorForStaff');
     Route::delete('doctors/{doctor}', [HospitalDoctorForStaffController::class, 'deleteDoctorForStaff'])
         ->name('doctors.deleteDoctorForStaff');
+
+    /**
+     * 병의원 이벤트 관리
+     **/
+    Route::get('hospital-events', [HospitalEventForStaffController::class, 'getHospitalEventsForStaff'])
+        ->name('hospital-events.getHospitalEventsForStaff');
+    Route::patch('hospital-events/status', [HospitalEventForStaffController::class, 'updateHospitalEventStatusForStaff'])
+        ->name('hospital-events.updateHospitalEventStatusForStaff');
+    Route::patch('hospital-events/allow-status', [HospitalEventForStaffController::class, 'updateHospitalEventAllowStatusForStaff'])
+        ->name('hospital-events.updateHospitalEventAllowStatusForStaff');
+    Route::get('hospital-events/{hospitalEvent}/operation-histories', [HospitalEventForStaffController::class, 'getHospitalEventOperationHistoriesForStaff'])
+        ->name('hospital-events.getHospitalEventOperationHistoriesForStaff');
+    Route::get('hospital-events/{hospitalEvent}', [HospitalEventForStaffController::class, 'getHospitalEventForStaff'])
+        ->name('hospital-events.getHospitalEventForStaff');
+    Route::post('hospital-events', [HospitalEventForStaffController::class, 'createHospitalEventForStaff'])
+        ->name('hospital-events.createHospitalEventForStaff');
+    Route::match(['post', 'put', 'patch'], 'hospital-events/{hospitalEvent}', [HospitalEventForStaffController::class, 'updateHospitalEventForStaff'])
+        ->name('hospital-events.updateHospitalEventForStaff');
+    Route::delete('hospital-events/{hospitalEvent}', [HospitalEventForStaffController::class, 'deleteHospitalEventForStaff'])
+        ->name('hospital-events.deleteHospitalEventForStaff');
 
     /**
      * 뷰티전문가 관리

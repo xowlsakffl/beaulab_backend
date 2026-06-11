@@ -8,6 +8,7 @@ use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
+use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
@@ -24,6 +25,8 @@ final class OperationHistoryTargetRegistry
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
 
     public const string ALIAS_HOSPITAL_EVALUATION = 'hospital_evaluation';
+
+    public const string ALIAS_HOSPITAL_EVENT = 'hospital_event';
 
     public const string ALIAS_HOSPITAL_REVIEW = 'hospital_review';
 
@@ -43,6 +46,7 @@ final class OperationHistoryTargetRegistry
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
         self::ALIAS_HOSPITAL_EVALUATION => HospitalEvaluation::class,
+        self::ALIAS_HOSPITAL_EVENT => HospitalEvent::class,
         self::ALIAS_HOSPITAL_REVIEW => HospitalReview::class,
         self::ALIAS_HOSPITAL_REVIEW_COMMENT => HospitalReviewComment::class,
         self::ALIAS_TALK => Talk::class,

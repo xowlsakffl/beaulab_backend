@@ -38,9 +38,13 @@ final class HospitalEvent extends Model
 
     public const ALLOW_PENDING = 'PENDING';
 
+    public const ALLOW_REVIEWING = 'REVIEWING';
+
     public const ALLOW_APPROVED = 'APPROVED';
 
     public const ALLOW_REJECTED = 'REJECTED';
+
+    public const ALLOW_PARTNER_CANCELED = 'PARTNER_CANCELED';
 
     public const COLLECTION_THUMBNAIL_IMAGE = 'thumbnail_image';
 
@@ -79,7 +83,6 @@ final class HospitalEvent extends Model
         'allow_status',
         'status',
         'view_count',
-        'consultation_count',
     ];
 
     protected $casts = [
@@ -96,7 +99,6 @@ final class HospitalEvent extends Model
         'procedure_targets' => 'array',
         'procedure_benefits' => 'array',
         'view_count' => 'integer',
-        'consultation_count' => 'integer',
         'deleted_at' => 'datetime',
     ];
 
@@ -113,7 +115,6 @@ final class HospitalEvent extends Model
         'allow_status' => self::ALLOW_DRAFT,
         'status' => self::STATUS_INACTIVE,
         'view_count' => 0,
-        'consultation_count' => 0,
     ];
 
     protected static function newFactory(): Factory
@@ -189,7 +190,14 @@ final class HospitalEvent extends Model
      */
     public static function allowStatuses(): array
     {
-        return [self::ALLOW_DRAFT, self::ALLOW_PENDING, self::ALLOW_APPROVED, self::ALLOW_REJECTED];
+        return [
+            self::ALLOW_DRAFT,
+            self::ALLOW_PENDING,
+            self::ALLOW_REVIEWING,
+            self::ALLOW_APPROVED,
+            self::ALLOW_REJECTED,
+            self::ALLOW_PARTNER_CANCELED,
+        ];
     }
 
     public static function calculateDiscountRate(int $normalPrice, int $eventPrice): float

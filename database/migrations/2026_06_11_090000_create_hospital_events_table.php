@@ -43,11 +43,10 @@ return new class extends Migration
             // - thumbnail_image
             // - event_page_image
 
-            $table->string('allow_status', 20)->default('DRAFT')->comment('검수 상태(DRAFT, PENDING, APPROVED, REJECTED)');
+            $table->string('allow_status', 20)->default('DRAFT')->comment('검수 상태(DRAFT, PENDING, REVIEWING, APPROVED, REJECTED, PARTNER_CANCELED)');
             $table->string('status', 20)->default('INACTIVE')->comment('노출 상태(ACTIVE, INACTIVE)');
 
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
-            $table->unsignedInteger('consultation_count')->default(0)->comment('상담 신청 수');
 
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
@@ -60,7 +59,6 @@ return new class extends Migration
             $table->index(['normal_price', 'event_price'], 'h_events_price_idx');
             $table->index('discount_rate');
             $table->index('view_count');
-            $table->index('consultation_count');
         });
 
         DB::statement("ALTER TABLE hospital_events COMMENT = '병의원 이벤트'");

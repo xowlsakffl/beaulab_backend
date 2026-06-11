@@ -31,6 +31,8 @@ final readonly class HospitalEventForStaffDto
         public string $status,
         public int $viewCount,
         public int $consultationCount,
+        public int $confirmedConsultationCount,
+        public int $totalSpentPoint,
         public array $categories,
         public array $doctors,
         public ?array $thumbnailImage,
@@ -59,7 +61,9 @@ final readonly class HospitalEventForStaffDto
             allowStatus: (string) $event->allow_status,
             status: (string) $event->status,
             viewCount: (int) $event->view_count,
-            consultationCount: (int) $event->consultation_count,
+            consultationCount: 0,
+            confirmedConsultationCount: 0,
+            totalSpentPoint: 0,
             categories: self::categories($event),
             doctors: self::doctors($event),
             thumbnailImage: self::thumbnailImage($event),
@@ -90,6 +94,8 @@ final readonly class HospitalEventForStaffDto
             'status' => $this->status,
             'view_count' => $this->viewCount,
             'consultation_count' => $this->consultationCount,
+            'confirmed_consultation_count' => $this->confirmedConsultationCount,
+            'total_spent_point' => $this->totalSpentPoint,
             'categories' => $this->categories,
             'doctors' => $this->doctors,
             'thumbnail_image' => $this->thumbnailImage,
@@ -107,6 +113,23 @@ final readonly class HospitalEventForStaffDto
         return [
             'id' => (int) $event->hospital->id,
             'name' => (string) $event->hospital->name,
+            'manager' => self::hospitalManager($event),
+        ];
+    }
+
+    private static function hospitalManager(HospitalEvent $event): ?array
+    {
+        if (! $event->hospital->relationLoaded('accountHospital') || ! $event->hospital->accountHospital) {
+            return null;
+        }
+
+        $account = $event->hospital->accountHospital;
+
+        return [
+            'id' => (int) $account->id,
+            'name' => (string) ($account->name ?: $account->nickname ?: $account->email),
+            'nickname' => $account->nickname,
+            'email' => $account->email,
         ];
     }
 

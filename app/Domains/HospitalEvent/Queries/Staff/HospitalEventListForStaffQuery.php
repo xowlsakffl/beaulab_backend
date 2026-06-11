@@ -3,14 +3,66 @@
 namespace App\Domains\HospitalEvent\Queries\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 final class HospitalEventListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $builder = HospitalEvent::query()
+        $builder = $this->baseBuilder();
+
+        $this->applyFilters($builder, $filters);
+
+        $sort = (string) ($filters['sort'] ?? 'id');
+        $direction = (string) ($filters['direction'] ?? 'desc');
+        $builder->orderBy($sort, $direction);
+
+        return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+    }
+
+    public function summary(): array
+    {
+        $now = now();
+        $recentStart = $now->copy()->subDays(30)->startOfDay();
+        $today = $now->copy()->startOfDay();
+        $endingUntil = $now->copy()->addDays(30)->endOfDay();
+
+        $baseQuery = HospitalEvent::query();
+
+        return [
+            'active_events' => (clone $baseQuery)
+                ->where('status', HospitalEvent::STATUS_ACTIVE)
+                ->count(),
+            'recent_created_events' => (clone $baseQuery)
+                ->where('created_at', '>=', $recentStart)
+                ->count(),
+            'ending_soon_events' => (clone $baseQuery)
+                ->where('is_event_period_unlimited', false)
+                ->whereNotNull('event_end_at')
+                ->whereBetween('event_end_at', [$today, $endingUntil])
+                ->count(),
+            'recent_stopped_events' => $this->recentStoppedEventCount($recentStart),
+            'pending_events' => (clone $baseQuery)
+                ->where('allow_status', HospitalEvent::ALLOW_PENDING)
+                ->count(),
+            'reviewing_events' => (clone $baseQuery)
+                ->where('allow_status', HospitalEvent::ALLOW_REVIEWING)
+                ->count(),
+            'rejected_events' => (clone $baseQuery)
+                ->where('allow_status', HospitalEvent::ALLOW_REJECTED)
+                ->count(),
+            'partner_canceled_events' => (clone $baseQuery)
+                ->where('allow_status', HospitalEvent::ALLOW_PARTNER_CANCELED)
+                ->count(),
+        ];
+    }
+
+    private function baseBuilder(): Builder
+    {
+        return HospitalEvent::query()
             ->select([
                 'id',
                 'hospital_id',
@@ -30,12 +82,12 @@ final class HospitalEventListForStaffQuery
                 'allow_status',
                 'status',
                 'view_count',
-                'consultation_count',
                 'created_at',
                 'updated_at',
             ])
             ->with([
                 'hospital:id,name',
+                'hospital.accountHospital:id,hospital_id,name,nickname,email',
                 'categories' => fn ($query) => $query
                     ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')
@@ -44,7 +96,10 @@ final class HospitalEventListForStaffQuery
                 'doctors:id,name,position',
                 'thumbnailImage',
             ]);
+    }
 
+    private function applyFilters(Builder $builder, array $filters): void
+    {
         if (! empty($filters['q'])) {
             $q = (string) $filters['q'];
             $builder->where(function ($query) use ($q): void {
@@ -57,7 +112,12 @@ final class HospitalEventListForStaffQuery
 
                 $query
                     ->orWhere('description', 'like', "%{$q}%")
-                    ->orWhereHas('hospital', fn ($hospitalQuery) => $hospitalQuery->where('name', 'like', "%{$q}%"));
+                    ->orWhereHas('hospital', fn ($hospitalQuery) => $hospitalQuery
+                        ->where('name', 'like', "%{$q}%")
+                        ->orWhereHas('accountHospital', fn ($accountQuery) => $accountQuery
+                            ->where('name', 'like', "%{$q}%")
+                            ->orWhere('nickname', 'like', "%{$q}%")
+                            ->orWhere('email', 'like', "%{$q}%")));
             });
         }
 
@@ -88,27 +148,116 @@ final class HospitalEventListForStaffQuery
             }
         }
 
-        if (! empty($filters['start_date'])) {
-            $builder->whereDate('created_at', '>=', (string) $filters['start_date']);
+        $dateTypes = is_array($filters['date_types'] ?? null) && $filters['date_types'] !== []
+            ? $filters['date_types']
+            : ['event_start_at'];
+
+        if (! empty($filters['start_date']) || ! empty($filters['end_date'])) {
+            $this->applyDateRangeFilter(
+                $builder,
+                $dateTypes,
+                $filters['start_date'] ?? null,
+                $filters['end_date'] ?? null,
+            );
         }
 
-        if (! empty($filters['end_date'])) {
-            $builder->whereDate('created_at', '<=', (string) $filters['end_date']);
-        }
+        $this->applyMetricRangeFilter(
+            $builder,
+            (string) ($filters['quantity_metric'] ?? 'all'),
+            ['view_count'],
+            $filters['quantity_min'] ?? null,
+            $filters['quantity_max'] ?? null,
+        );
 
-        if ($filters['event_price_min'] !== null) {
+        $this->applyMetricRangeFilter(
+            $builder,
+            (string) ($filters['amount_metric'] ?? 'all'),
+            ['event_price', 'consultation_price'],
+            $filters['amount_min'] ?? null,
+            $filters['amount_max'] ?? null,
+        );
+
+        if (($filters['event_price_min'] ?? null) !== null) {
             $builder->where('event_price', '>=', (int) $filters['event_price_min']);
         }
 
-        if ($filters['event_price_max'] !== null) {
+        if (($filters['event_price_max'] ?? null) !== null) {
             $builder->where('event_price', '<=', (int) $filters['event_price_max']);
         }
+    }
 
-        $sort = (string) ($filters['sort'] ?? 'id');
-        $direction = (string) ($filters['direction'] ?? 'desc');
-        $builder->orderBy($sort, $direction);
+    /**
+     * @param  array<int, string>  $dateTypes
+     */
+    private function applyDateRangeFilter(Builder $builder, array $dateTypes, mixed $startDate, mixed $endDate): void
+    {
+        $columns = collect($dateTypes)
+            ->map(static fn (mixed $dateType): string => (string) $dateType)
+            ->filter(static fn (string $dateType): bool => in_array($dateType, ['event_start_at', 'event_end_at'], true))
+            ->unique()
+            ->values()
+            ->all();
 
-        return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+        if ($columns === []) {
+            return;
+        }
+
+        $builder->where(function ($query) use ($columns, $startDate, $endDate): void {
+            foreach ($columns as $column) {
+                $query->orWhere(function ($nested) use ($column, $startDate, $endDate): void {
+                    if (! empty($startDate)) {
+                        $nested->whereDate($column, '>=', (string) $startDate);
+                    }
+
+                    if (! empty($endDate)) {
+                        $nested->whereDate($column, '<=', (string) $endDate);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * @param  array<int, string>  $allowedColumns
+     */
+    private function applyMetricRangeFilter(Builder $builder, string $metric, array $allowedColumns, mixed $min, mixed $max): void
+    {
+        if ($min === null && $max === null) {
+            return;
+        }
+
+        $columns = $metric === 'all'
+            ? $allowedColumns
+            : (in_array($metric, $allowedColumns, true) ? [$metric] : []);
+
+        if ($columns === []) {
+            return;
+        }
+
+        $builder->where(function ($query) use ($columns, $min, $max): void {
+            foreach ($columns as $column) {
+                $query->orWhere(function ($nested) use ($column, $min, $max): void {
+                    if ($min !== null) {
+                        $nested->where($column, '>=', (int) $min);
+                    }
+
+                    if ($max !== null) {
+                        $nested->where($column, '<=', (int) $max);
+                    }
+                });
+            }
+        });
+    }
+
+    private function recentStoppedEventCount(mixed $recentStart): int
+    {
+        return OperationHistory::query()
+            ->where('target_type', HospitalEvent::class)
+            ->where('field', 'status')
+            ->where('after_value', HospitalEvent::STATUS_INACTIVE)
+            ->where('created_at', '>=', $recentStart)
+            ->distinct('target_id')
+            ->count('target_id');
     }
 
     /**

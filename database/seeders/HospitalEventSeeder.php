@@ -82,7 +82,13 @@ final class HospitalEventSeeder extends Seeder
 
         $isTextType = $index % 3 === 0;
         $factory = $isTextType ? $factory->textType() : $factory->imageType();
-        $factory = $index % 5 === 0 ? $factory->pending() : $factory->approved();
+        $factory = match (true) {
+            $index % 7 === 0 => $factory->partnerCanceled(),
+            $index % 6 === 0 => $factory->rejected(),
+            $index % 5 === 0 => $factory->pending(),
+            $index % 3 === 0 => $factory->reviewing(),
+            default => $factory->approved(),
+        };
         $factory = $index % 4 === 0 ? $factory->inactive() : $factory->active();
 
         if (! $isTextType && $usage === CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT && $index % 2 === 1) {

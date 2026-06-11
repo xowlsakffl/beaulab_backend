@@ -23,6 +23,8 @@ final class HospitalEventFactory extends Factory
         $isUnlimited = $this->faker->boolean(45);
         $startAt = $this->faker->dateTimeBetween('-15 days', '+15 days');
 
+        $consultationPrice = $baseConsultationPrice + ($this->faker->boolean(25) ? $this->faker->randomElement([2500, 5000, 10000]) : 0);
+
         return [
             'hospital_id' => $this->randomHospitalId(),
             'event_type' => $this->faker->randomElement(HospitalEvent::types()),
@@ -48,7 +50,7 @@ final class HospitalEventFactory extends Factory
             'is_vat_included' => $this->faker->boolean(80),
             'discount_rate' => HospitalEvent::calculateDiscountRate($normalPrice, $eventPrice),
             'base_consultation_price' => $baseConsultationPrice,
-            'consultation_price' => $baseConsultationPrice + ($this->faker->boolean(25) ? $this->faker->randomElement([2500, 5000, 10000]) : 0),
+            'consultation_price' => $consultationPrice,
             'has_options' => false,
             'procedure_targets' => null,
             'procedure_benefits' => null,
@@ -56,7 +58,6 @@ final class HospitalEventFactory extends Factory
             'allow_status' => $this->faker->randomElement(HospitalEvent::allowStatuses()),
             'status' => $this->faker->randomElement(HospitalEvent::statuses()),
             'view_count' => $this->faker->numberBetween(0, 20000),
-            'consultation_count' => $this->faker->numberBetween(0, 300),
         ];
     }
 
@@ -117,6 +118,20 @@ final class HospitalEventFactory extends Factory
     {
         return $this->state(fn (): array => [
             'allow_status' => HospitalEvent::ALLOW_REJECTED,
+        ]);
+    }
+
+    public function reviewing(): self
+    {
+        return $this->state(fn (): array => [
+            'allow_status' => HospitalEvent::ALLOW_REVIEWING,
+        ]);
+    }
+
+    public function partnerCanceled(): self
+    {
+        return $this->state(fn (): array => [
+            'allow_status' => HospitalEvent::ALLOW_PARTNER_CANCELED,
         ]);
     }
 

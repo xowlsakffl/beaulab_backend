@@ -11,6 +11,9 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
+use Database\Factories\HospitalEventFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -21,7 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalEvent extends Model
 {
-    use HasAdminNotes, HasAuditLogs, HasOperationHistories, SoftDeletes;
+    use HasAdminNotes, HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
     public const TYPE_TEXT = 'TEXT';
 
@@ -112,6 +115,11 @@ final class HospitalEvent extends Model
         'view_count' => 0,
         'consultation_count' => 0,
     ];
+
+    protected static function newFactory(): Factory
+    {
+        return HospitalEventFactory::new();
+    }
 
     public function hospital(): BelongsTo
     {

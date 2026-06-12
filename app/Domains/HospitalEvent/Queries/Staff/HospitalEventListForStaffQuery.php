@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalEvent\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -167,13 +168,7 @@ final class HospitalEventListForStaffQuery
         $builder->where(function ($query) use ($columns, $startDate, $endDate): void {
             foreach ($columns as $column) {
                 $query->orWhere(function ($nested) use ($column, $startDate, $endDate): void {
-                    if (! empty($startDate)) {
-                        $nested->whereDate($column, '>=', (string) $startDate);
-                    }
-
-                    if (! empty($endDate)) {
-                        $nested->whereDate($column, '<=', (string) $endDate);
-                    }
+                    DateRangeFilter::apply($nested, $column, $startDate, $endDate);
                 });
             }
         });

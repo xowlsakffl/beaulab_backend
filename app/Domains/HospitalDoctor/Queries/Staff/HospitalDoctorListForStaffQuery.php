@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalDoctor\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -65,13 +66,7 @@ final class HospitalDoctorListForStaffQuery
             $builder->whereIn('specialist_field', $filters['specialist_field']);
         }
 
-        if (! empty($filters['start_date'])) {
-            $builder->whereDate('created_at', '>=', (string) $filters['start_date']);
-        }
-
-        if (! empty($filters['end_date'])) {
-            $builder->whereDate('created_at', '<=', (string) $filters['end_date']);
-        }
+        DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
 
         if (is_array($categoryIds) && $categoryIds !== []) {
             $expandedCategoryIds = $this->expandWithDescendants($categoryIds);
@@ -108,11 +103,11 @@ final class HospitalDoctorListForStaffQuery
             $today = Carbon::today();
 
             if ($min !== null) {
-                $builder->whereDate('career_started_at', '<=', $today->copy()->subYears($min)->toDateString());
+                $builder->where('career_started_at', '<=', $today->copy()->subYears($min)->toDateString());
             }
 
             if ($max !== null) {
-                $builder->whereDate('career_started_at', '>', $today->copy()->subYears($max + 1)->toDateString());
+                $builder->where('career_started_at', '>', $today->copy()->subYears($max + 1)->toDateString());
             }
 
             return;

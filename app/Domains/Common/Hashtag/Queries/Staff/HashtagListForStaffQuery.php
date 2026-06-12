@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\Hashtag\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -49,21 +50,8 @@ final class HashtagListForStaffQuery
             $builder->addSelect('status');
         }
 
-        if (is_string($startDate) && $startDate !== '') {
-            $builder->whereDate('created_at', '>=', $startDate);
-        }
-
-        if (is_string($endDate) && $endDate !== '') {
-            $builder->whereDate('created_at', '<=', $endDate);
-        }
-
-        if (is_string($updatedStartDate) && $updatedStartDate !== '') {
-            $builder->whereDate('updated_at', '>=', $updatedStartDate);
-        }
-
-        if (is_string($updatedEndDate) && $updatedEndDate !== '') {
-            $builder->whereDate('updated_at', '<=', $updatedEndDate);
-        }
+        DateRangeFilter::apply($builder, 'created_at', $startDate, $endDate);
+        DateRangeFilter::apply($builder, 'updated_at', $updatedStartDate, $updatedEndDate);
 
         if ($sort === 'usage_count' && !Hashtag::supportsUsageCount()) {
             $sort = 'id';

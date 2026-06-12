@@ -2,6 +2,7 @@
 
 namespace App\Domains\Notice\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Notice\Models\Notice;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -55,21 +56,8 @@ final class NoticeListForStaffQuery
             $query->whereIn('status', $filters['status']);
         }
 
-        if (! empty($filters['start_date'])) {
-            $query->whereDate('created_at', '>=', $filters['start_date']);
-        }
-
-        if (! empty($filters['end_date'])) {
-            $query->whereDate('created_at', '<=', $filters['end_date']);
-        }
-
-        if (! empty($filters['updated_start_date'])) {
-            $query->whereDate('updated_at', '>=', $filters['updated_start_date']);
-        }
-
-        if (! empty($filters['updated_end_date'])) {
-            $query->whereDate('updated_at', '<=', $filters['updated_end_date']);
-        }
+        DateRangeFilter::apply($query, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
+        DateRangeFilter::apply($query, 'updated_at', $filters['updated_start_date'] ?? null, $filters['updated_end_date'] ?? null);
 
         if (array_key_exists('is_pinned', $filters) && $filters['is_pinned'] !== null) {
             $query->where('is_pinned', (bool) $filters['is_pinned']);

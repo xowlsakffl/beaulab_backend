@@ -2,6 +2,7 @@
 
 namespace App\Domains\Hospital\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\Hospital\Models\Hospital;
@@ -104,25 +105,8 @@ final class HospitalListForStaffQuery
             });
         }
 
-        // 등록일(created_at) 기간 필터
-        if ($startDate && $endDate) {
-            $builder->whereDate('created_at', '>=', $startDate)
-                ->whereDate('created_at', '<=', $endDate);
-        } elseif ($startDate) {
-            $builder->whereDate('created_at', '>=', $startDate);
-        } elseif ($endDate) {
-            $builder->whereDate('created_at', '<=', $endDate);
-        }
-
-        // 수정일(updated_at) 기간 필터
-        if ($updatedStartDate && $updatedEndDate) {
-            $builder->whereDate('updated_at', '>=', $updatedStartDate)
-                ->whereDate('updated_at', '<=', $updatedEndDate);
-        } elseif ($updatedStartDate) {
-            $builder->whereDate('updated_at', '>=', $updatedStartDate);
-        } elseif ($updatedEndDate) {
-            $builder->whereDate('updated_at', '<=', $updatedEndDate);
-        }
+        DateRangeFilter::apply($builder, 'created_at', $startDate, $endDate);
+        DateRangeFilter::apply($builder, 'updated_at', $updatedStartDate, $updatedEndDate);
 
         // 필터(status, account_status, allow_status)
         if (is_array($status) && $status !== []) {

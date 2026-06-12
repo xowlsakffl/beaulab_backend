@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\AccountUser\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -57,14 +58,7 @@ final class AccountUserListForStaffQuery
             });
         }
 
-        if ($startDate && $endDate) {
-            $builder->whereDate($dateType, '>=', $startDate)
-                ->whereDate($dateType, '<=', $endDate);
-        } elseif ($startDate) {
-            $builder->whereDate($dateType, '>=', $startDate);
-        } elseif ($endDate) {
-            $builder->whereDate($dateType, '<=', $endDate);
-        }
+        DateRangeFilter::apply($builder, (string) $dateType, $startDate, $endDate);
 
         if ($signupChannel) {
             $builder->where('signup_channel', $signupChannel);

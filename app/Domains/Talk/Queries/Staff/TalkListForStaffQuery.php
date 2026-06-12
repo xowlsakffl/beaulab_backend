@@ -2,6 +2,7 @@
 
 namespace App\Domains\Talk\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -166,13 +167,7 @@ final class TalkListForStaffQuery
             }
         }
 
-        if (! empty($filters['start_date'])) {
-            $builder->whereDate('created_at', '>=', $filters['start_date']);
-        }
-
-        if (! empty($filters['end_date'])) {
-            $builder->whereDate('created_at', '<=', $filters['end_date']);
-        }
+        DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
 
         $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');
 

@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalEvaluation\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -153,13 +154,7 @@ final class HospitalEvaluationListForStaffQuery
             $builder->where('view_count', '<=', (int) $filters['view_count_max']);
         }
 
-        if (! empty($filters['start_date'])) {
-            $builder->whereDate('created_at', '>=', $filters['start_date']);
-        }
-
-        if (! empty($filters['end_date'])) {
-            $builder->whereDate('created_at', '<=', $filters['end_date']);
-        }
+        DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
 
         $direction = ($filters['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
         $sort = (string) ($filters['sort'] ?? 'id');

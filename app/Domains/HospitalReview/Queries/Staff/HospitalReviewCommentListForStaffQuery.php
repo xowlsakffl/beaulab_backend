@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalReview\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -119,13 +120,7 @@ final class HospitalReviewCommentListForStaffQuery
             $builder->where('like_count', '<=', (int) $filters['metric_max']);
         }
 
-        if (! empty($filters['start_date'])) {
-            $builder->whereDate('created_at', '>=', $filters['start_date']);
-        }
-
-        if (! empty($filters['end_date'])) {
-            $builder->whereDate('created_at', '<=', $filters['end_date']);
-        }
+        DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
 
         $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');
 

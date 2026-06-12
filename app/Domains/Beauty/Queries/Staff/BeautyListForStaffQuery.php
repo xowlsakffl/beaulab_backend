@@ -2,6 +2,7 @@
 
 namespace App\Domains\Beauty\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Category\Models\Category;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -60,15 +61,7 @@ final class BeautyListForStaffQuery
             });
         }
 
-        // 등록일(created_at) 기간 필터
-        if ($startDate && $endDate) {
-            $builder->whereDate('created_at', '>=', $startDate)
-                ->whereDate('created_at', '<=', $endDate);
-        } elseif ($startDate) {
-            $builder->whereDate('created_at', '>=', $startDate);
-        } elseif ($endDate) {
-            $builder->whereDate('created_at', '<=', $endDate);
-        }
+        DateRangeFilter::apply($builder, 'created_at', $startDate, $endDate);
 
         // 필터(status, allow_status)
         if (is_array($status) && $status !== []) {

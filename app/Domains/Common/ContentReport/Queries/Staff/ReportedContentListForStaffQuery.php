@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\ContentReport\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
@@ -207,13 +208,7 @@ final class ReportedContentListForStaffQuery
         if ($dateType === 'last_message_at' && $targetClass === ChatMessage::class) {
             $builder->whereHasMorph('target', [$targetClass], function (Builder $query) use ($filters): void {
                 $query->whereHas('chat', function (Builder $chatQuery) use ($filters): void {
-                    if (! empty($filters['start_date'])) {
-                        $chatQuery->whereDate('last_message_at', '>=', $filters['start_date']);
-                    }
-
-                    if (! empty($filters['end_date'])) {
-                        $chatQuery->whereDate('last_message_at', '<=', $filters['end_date']);
-                    }
+                    DateRangeFilter::apply($chatQuery, 'last_message_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
                 });
             });
 
@@ -222,25 +217,13 @@ final class ReportedContentListForStaffQuery
 
         if ($dateType === 'created_at') {
             $builder->whereHasMorph('target', [$targetClass], function (Builder $query) use ($filters): void {
-                if (! empty($filters['start_date'])) {
-                    $query->whereDate('created_at', '>=', $filters['start_date']);
-                }
-
-                if (! empty($filters['end_date'])) {
-                    $query->whereDate('created_at', '<=', $filters['end_date']);
-                }
+                DateRangeFilter::apply($query, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
             });
 
             return;
         }
 
-        if (! empty($filters['start_date'])) {
-            $builder->whereDate('first_reported_at', '>=', $filters['start_date']);
-        }
-
-        if (! empty($filters['end_date'])) {
-            $builder->whereDate('first_reported_at', '<=', $filters['end_date']);
-        }
+        DateRangeFilter::apply($builder, 'first_reported_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
     }
 
     /**

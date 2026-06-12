@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalVideo\Queries\Staff;
 
+use App\Common\Support\DateRangeFilter;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -74,21 +75,8 @@ final class HospitalVideoListForStaffQuery
             $builder->whereIn('distribution_channel', $filters['distribution_channel']);
         }
 
-        if (! empty($filters['start_date'])) {
-            $builder->whereDate('created_at', '>=', (string) $filters['start_date']);
-        }
-
-        if (! empty($filters['end_date'])) {
-            $builder->whereDate('created_at', '<=', (string) $filters['end_date']);
-        }
-
-        if (! empty($filters['allowed_start_date'])) {
-            $builder->whereDate('allowed_at', '>=', (string) $filters['allowed_start_date']);
-        }
-
-        if (! empty($filters['allowed_end_date'])) {
-            $builder->whereDate('allowed_at', '<=', (string) $filters['allowed_end_date']);
-        }
+        DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
+        DateRangeFilter::apply($builder, 'allowed_at', $filters['allowed_start_date'] ?? null, $filters['allowed_end_date'] ?? null);
 
         $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');
 

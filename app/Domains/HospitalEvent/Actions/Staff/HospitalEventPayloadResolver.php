@@ -29,7 +29,7 @@ final class HospitalEventPayloadResolver
         }
 
         $baseConsultationPrice = HospitalEvent::consultationBasePrice($eventPrice);
-        $consultationPrice = $this->intValue($payload['consultation_price'] ?? $baseConsultationPrice);
+        $consultationPrice = $this->intValue($payload['consultation_price'] ?? $event?->consultation_price ?? $baseConsultationPrice);
 
         if ($consultationPrice < $baseConsultationPrice) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '상담 신청 단가는 기준 단가보다 낮게 설정할 수 없습니다.');

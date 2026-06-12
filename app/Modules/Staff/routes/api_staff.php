@@ -224,6 +224,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-events.getHospitalEventForStaff');
     Route::post('hospital-events', [HospitalEventForStaffController::class, 'createHospitalEventForStaff'])
         ->name('hospital-events.createHospitalEventForStaff');
+    Route::patch('hospital-events/{hospitalEvent}/period', [HospitalEventForStaffController::class, 'updateHospitalEventPeriodForStaff'])
+        ->name('hospital-events.updateHospitalEventPeriodForStaff');
     Route::match(['post', 'put', 'patch'], 'hospital-events/{hospitalEvent}', [HospitalEventForStaffController::class, 'updateHospitalEventForStaff'])
         ->name('hospital-events.updateHospitalEventForStaff');
     Route::delete('hospital-events/{hospitalEvent}', [HospitalEventForStaffController::class, 'deleteHospitalEventForStaff'])

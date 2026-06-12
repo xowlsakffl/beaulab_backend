@@ -54,6 +54,8 @@ return new class extends Migration
             $table->index(['author_id', 'created_at'], 'h_reviews_author_created_idx');
             $table->index(['hospital_id', 'created_at'], 'h_reviews_hospital_created_idx');
             $table->index(['doctor_id', 'created_at'], 'h_reviews_doctor_created_idx');
+            $table->index(['hospital_id', 'category_domain', 'status', 'deleted_at'], 'h_reviews_hospital_domain_status_deleted_idx');
+            $table->index(['doctor_id', 'deleted_at'], 'h_reviews_doctor_deleted_idx');
             $table->index(['category_domain', 'created_at'], 'h_reviews_domain_created_idx');
             $table->index(['category_domain', 'status', 'created_at'], 'h_reviews_domain_status_created_idx');
             $table->index(['category_domain', 'is_main_featured', 'created_at'], 'h_reviews_domain_main_featured_created_idx');

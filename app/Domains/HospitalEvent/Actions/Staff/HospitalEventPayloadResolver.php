@@ -54,8 +54,12 @@ final class HospitalEventPayloadResolver
             'base_consultation_price' => $baseConsultationPrice,
             'consultation_price' => $consultationPrice,
             'has_options' => $this->boolValue($payload['has_options'] ?? $event?->has_options ?? false),
-            'procedure_targets' => $eventType === HospitalEvent::TYPE_TEXT ? $this->normalizeTextItems($payload['procedure_targets'] ?? $event?->procedure_targets ?? []) : null,
-            'procedure_benefits' => $eventType === HospitalEvent::TYPE_TEXT ? $this->normalizeTextItems($payload['procedure_benefits'] ?? $event?->procedure_benefits ?? []) : null,
+            'procedure_targets' => $eventType === HospitalEvent::TYPE_TEXT
+                ? $this->normalizeTextItems($payload['procedure_targets'] ?? $event?->procedure_targets ?? [], HospitalEvent::MAX_PROCEDURE_TARGET_ITEMS)
+                : null,
+            'procedure_benefits' => $eventType === HospitalEvent::TYPE_TEXT
+                ? $this->normalizeTextItems($payload['procedure_benefits'] ?? $event?->procedure_benefits ?? [], HospitalEvent::MAX_PROCEDURE_BENEFIT_ITEMS)
+                : null,
             'side_effect_notice' => $payload['side_effect_notice'] ?? $event?->side_effect_notice,
             'allow_status' => $payload['allow_status'] ?? $event?->allow_status ?? HospitalEvent::ALLOW_PENDING,
             'status' => $payload['status'] ?? $event?->status ?? HospitalEvent::STATUS_INACTIVE,
@@ -296,7 +300,7 @@ final class HospitalEventPayloadResolver
     /**
      * @return array<int, string>
      */
-    private function normalizeTextItems(mixed $items): array
+    private function normalizeTextItems(mixed $items, int $maxItems): array
     {
         if (is_string($items)) {
             $decoded = json_decode($items, true);
@@ -310,7 +314,7 @@ final class HospitalEventPayloadResolver
         return collect($items)
             ->map(static fn (mixed $item): string => trim((string) $item))
             ->filter(static fn (string $item): bool => $item !== '')
-            ->take(HospitalEvent::MAX_TEXT_ITEMS)
+            ->take($maxItems)
             ->values()
             ->all();
     }

@@ -52,7 +52,9 @@ final class HospitalEvent extends Model
 
     public const MAX_DOCTOR_COUNT = 3;
 
-    public const MAX_TEXT_ITEMS = 20;
+    public const MAX_PROCEDURE_TARGET_ITEMS = 5;
+
+    public const MAX_PROCEDURE_BENEFIT_ITEMS = 6;
 
     public const MIN_TEXT_ITEMS = 1;
 

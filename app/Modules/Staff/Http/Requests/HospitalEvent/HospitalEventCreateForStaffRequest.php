@@ -129,9 +129,9 @@ final class HospitalEventCreateForStaffRequest extends FormRequest
             'options.*.event_price' => ['nullable', 'integer', 'min:0'],
             'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
 
-            'procedure_targets' => ['required_if:event_type,TEXT', 'array', 'min:1', 'max:20'],
+            'procedure_targets' => ['required_if:event_type,TEXT', 'array', 'min:1', 'max:5'],
             'procedure_targets.*' => ['string', 'max:90'],
-            'procedure_benefits' => ['required_if:event_type,TEXT', 'array', 'min:1', 'max:20'],
+            'procedure_benefits' => ['required_if:event_type,TEXT', 'array', 'min:1', 'max:6'],
             'procedure_benefits.*' => ['string', 'max:90'],
 
             'thumbnail_image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048', 'dimensions:min_width=800,min_height=800,ratio=1/1'],

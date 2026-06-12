@@ -36,13 +36,15 @@ final class HospitalEventUpdateForStaffAction
             }
 
             $categoryUsage = $categorySync['usage'] ?? $this->resolveCurrentCategoryUsage($event);
-            $options = array_key_exists('options', $payload) || array_key_exists('has_options', $payload)
-                ? $this->payloadResolver->resolveOptions($payload, $categoryUsage)
-                : null;
+            $eventType = (string) ($data['event_type'] ?? $event->event_type);
+            $optionsPayloadExists = array_key_exists('options', $payload) || array_key_exists('has_options', $payload);
+            $options = null;
 
-            if ($categorySync !== null && $categoryUsage === CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY) {
+            if ($categoryUsage === CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY) {
                 $options = [];
                 $data['has_options'] = false;
+            } elseif ($optionsPayloadExists) {
+                $options = $this->payloadResolver->resolveOptions($payload, $categoryUsage);
             }
 
             if ($options !== null) {
@@ -66,7 +68,7 @@ final class HospitalEventUpdateForStaffAction
                 $this->payloadResolver->syncOptions($event, $options);
             }
 
-            if (($data['event_type'] ?? $event->event_type) === HospitalEvent::TYPE_TEXT) {
+            if ($eventType === HospitalEvent::TYPE_TEXT) {
                 $this->mediaAttachAction->deleteCollectionMedia($event, HospitalEvent::COLLECTION_EVENT_PAGE_IMAGE);
             }
 

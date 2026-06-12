@@ -22,6 +22,7 @@ final class HospitalEventUpdateForStaffQuery
         $fields = [
             'hospital_id',
             'event_type',
+            'is_male_targeted',
             'name',
             'description',
             'is_event_period_unlimited',

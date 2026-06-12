@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalEvent\Dto\Staff\HospitalEventForStaffDetailDto;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventCreateForStaffQuery;
@@ -28,7 +29,10 @@ final class HospitalEventCreateForStaffAction
                 (int) ($payload['primary_category_id'] ?? 0),
             );
             $doctorAssignments = $this->payloadResolver->resolveDoctorAssignments($payload, (int) $data['hospital_id']);
-            $options = $this->payloadResolver->resolveOptions($payload, (string) $categorySync['usage']);
+            $options = [];
+            if ($categorySync['usage'] === CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT) {
+                $options = $this->payloadResolver->resolveOptions($payload, (string) $categorySync['usage']);
+            }
             $data['has_options'] = $options !== [];
 
             $event = $this->query->create($data);

@@ -19,6 +19,7 @@ final class HospitalEventCreateForStaffQuery
         return [
             'hospital_id' => $data['hospital_id'],
             'event_type' => $data['event_type'],
+            'is_male_targeted' => $data['is_male_targeted'],
             'name' => $data['name'],
             'description' => $data['description'],
             'is_event_period_unlimited' => $data['is_event_period_unlimited'],

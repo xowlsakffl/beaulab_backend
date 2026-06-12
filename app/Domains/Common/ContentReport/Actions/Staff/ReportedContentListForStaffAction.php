@@ -323,6 +323,7 @@ final class ReportedContentListForStaffAction
             'height' => $media->height !== null ? (int) $media->height : null,
             'sort_order' => (int) $media->sort_order,
             'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
         ];
     }
 

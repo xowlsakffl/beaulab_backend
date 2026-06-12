@@ -4,6 +4,7 @@ namespace App\Domains\Common\Media\Actions;
 
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\Media\Queries\MediaAttachDeleteQuery;
+use App\Domains\Common\Media\Services\MediaVariantGenerator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +17,7 @@ final class MediaAttachDeleteAction
 {
     public function __construct(
         private readonly MediaAttachDeleteQuery $query,
+        private readonly MediaVariantGenerator $variantGenerator,
     ) {}
 
     public function attachOne(
@@ -92,7 +94,10 @@ final class MediaAttachDeleteAction
 
     public function delete(Media $media): void
     {
-        Storage::disk($media->disk)->delete($media->path);
+        Storage::disk($media->disk)->delete([
+            $media->path,
+            ...$media->variantPaths(),
+        ]);
         $this->query->delete($media);
     }
 
@@ -108,6 +113,8 @@ final class MediaAttachDeleteAction
         $path = Storage::disk($disk)->putFile($dir, $file);
 
         [$w, $h] = $this->imageSize($file);
+        $mimeType = $file->getMimeType();
+        $variants = $this->variantGenerator->generate($disk, $path, $mimeType);
 
         try {
             $media = $this->query->create([
@@ -116,7 +123,7 @@ final class MediaAttachDeleteAction
                 'collection' => $collection,
                 'disk' => $disk,
                 'path' => $path,
-                'mime_type' => $file->getMimeType(),
+                'mime_type' => $mimeType,
                 'size' => $file->getSize(),
                 'width' => $w,
                 'height' => $h,
@@ -125,10 +132,18 @@ final class MediaAttachDeleteAction
                 'metadata' => [
                     'original_name' => $file->getClientOriginalName(),
                     'extension' => $file->getClientOriginalExtension(),
+                    'variants' => $variants,
                 ],
             ]);
         } catch (\Throwable $exception) {
-            Storage::disk($disk)->delete($path);
+            Storage::disk($disk)->delete([
+                $path,
+                ...collect($variants)
+                    ->pluck('path')
+                    ->filter()
+                    ->values()
+                    ->all(),
+            ]);
 
             throw $exception;
         }

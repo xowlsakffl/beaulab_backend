@@ -2,6 +2,8 @@
 
 use App\Domains\Common\Notification\Jobs\SendPushNotificationDeliveryJob;
 use App\Domains\Common\Notification\Models\NotificationDelivery;
+use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\Media\Services\MediaVariantGenerator;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\Notice\Actions\Common\CleanupTempEditorImagesAction;
@@ -39,6 +41,59 @@ Artisan::command('notifications:send-pending-push {--limit=100}', function () {
 
     $this->info("Queued pending push deliveries: {$ids->count()}");
 })->purpose('Queue pending push notification deliveries');
+
+// 기존 업로드 이미지에 thumb/medium variant를 생성한다.
+Artisan::command('media:generate-variants {--force} {--limit=500}', function () {
+    $force = (bool) $this->option('force');
+    $limit = max(1, min((int) $this->option('limit'), 1000));
+    $generator = app(MediaVariantGenerator::class);
+    $processedCount = 0;
+    $updatedCount = 0;
+    $skippedCount = 0;
+
+    Media::query()
+        ->select(['id', 'disk', 'path', 'mime_type', 'metadata'])
+        ->where('mime_type', 'like', 'image/%')
+        ->orderBy('id')
+        ->chunkById($limit, function ($mediaItems) use (
+            $force,
+            $generator,
+            &$processedCount,
+            &$updatedCount,
+            &$skippedCount,
+        ): void {
+            foreach ($mediaItems as $media) {
+                $processedCount++;
+
+                $metadata = is_array($media->metadata) ? $media->metadata : [];
+                $existingVariants = $metadata['variants'] ?? null;
+
+                if (! $force && is_array($existingVariants) && $existingVariants !== []) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                $variants = $generator->generate(
+                    disk: (string) $media->disk,
+                    path: (string) $media->path,
+                    mimeType: $media->mime_type,
+                );
+
+                if ($variants === []) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                $metadata['variants'] = $variants;
+                $media->forceFill(['metadata' => $metadata])->save();
+                $updatedCount++;
+            }
+        });
+
+    $this->info("Processed media: {$processedCount}");
+    $this->info("Updated variants: {$updatedCount}");
+    $this->info("Skipped media: {$skippedCount}");
+})->purpose('Generate thumb and medium variants for existing image media');
 
 // 병원별 병의원 평가 수/평균 평점 집계 보정
 Artisan::command('hospital-evaluations:refresh-hospital-ratings {--hospital-id=*}', function () {

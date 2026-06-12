@@ -111,6 +111,26 @@ final class Media extends Model
     }
 
     /**
+     * @return list<string>
+     */
+    public function variantPaths(): array
+    {
+        $variants = $this->metadata['variants'] ?? null;
+
+        if (! is_array($variants)) {
+            return [];
+        }
+
+        return collect($variants)
+            ->map(static fn (mixed $variant): ?string => is_array($variant) && isset($variant['path'])
+                ? (string) $variant['path']
+                : null)
+            ->filter(static fn (?string $path): bool => is_string($path) && $path !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
      * 대표 이미지 설정 (같은 owner+collection 내 기존 대표는 false 처리)
      * 이 미디어를 대표 이미지로 지정/해제
      *

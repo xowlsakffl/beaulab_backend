@@ -21,7 +21,6 @@ final class HospitalEventListForStaffAction
         return PaginatedResponse::fromPaginator(
             $paginator,
             fn ($event): array => HospitalEventForStaffDto::fromModel($event)->toArray(),
-            ['summary' => $this->query->summary()],
         );
     }
 }

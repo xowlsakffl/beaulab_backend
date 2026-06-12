@@ -5,7 +5,6 @@ namespace App\Domains\Common\ContentReport\Queries\Staff;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
-use App\Domains\Common\ContentReport\Support\ContentReportSummaryCache;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
@@ -43,67 +42,6 @@ final class ReportedContentListForStaffQuery
             ->orderByDesc('id')
             ->paginate((int) ($filters['per_page'] ?? 15))
             ->withQueryString();
-    }
-
-    /**
-     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $targetClass
-     * @return array<string, int>
-     */
-    public function summary(string $targetClass, array $filters): array
-    {
-        $categoryDomain = $this->summaryCategoryDomain($filters);
-
-        return ContentReportSummaryCache::remember(
-            $targetClass,
-            $categoryDomain,
-            fn (): array => $this->uncachedSummary($targetClass, $categoryDomain),
-        );
-    }
-
-    /**
-     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $targetClass
-     * @return array<string, int>
-     */
-    private function uncachedSummary(string $targetClass, ?string $categoryDomain): array
-    {
-        $builder = $this->baseBuilder($targetClass, [
-            'category_domain' => $categoryDomain,
-        ]);
-
-        return [
-            'reported_or_auto_blocked_count' => (clone $builder)
-                ->whereIn('report_status', [
-                    ContentReportState::STATUS_REPORTED,
-                    ContentReportState::STATUS_AUTO_BLOCKED,
-                ])
-                ->count(),
-            'today_report_count' => ContentReport::query()
-                ->where('target_type', $targetClass)
-                ->whereDate('created_at', today())
-                ->when($categoryDomain !== null, fn (Builder $query) => $this->applyCategoryDomainFilter(
-                    $query,
-                    $targetClass,
-                    $categoryDomain,
-                ))
-                ->count(),
-            'recent_30_days_admin_hidden_count' => (clone $builder)
-                ->where('admin_hidden_at', '>=', now()->subDays(30))
-                ->count(),
-            'recent_30_days_normal_visible_count' => (clone $builder)
-                ->where('normal_visible_at', '>=', now()->subDays(30))
-                ->count(),
-        ];
-    }
-
-    private function summaryCategoryDomain(array $filters): ?string
-    {
-        $categoryDomain = $filters['category_domain'] ?? null;
-
-        if (! is_string($categoryDomain) || $categoryDomain === '') {
-            return null;
-        }
-
-        return $categoryDomain;
     }
 
     /**

@@ -49,9 +49,6 @@ final class ReportedContentListForStaffAction
                 'target' => $this->targetToArray($state->target),
                 'report' => $this->reportStateToArray($state, $reportSummaries),
             ],
-            [
-                'summary' => $this->query->summary($targetClass, $filters),
-            ],
         );
     }
 

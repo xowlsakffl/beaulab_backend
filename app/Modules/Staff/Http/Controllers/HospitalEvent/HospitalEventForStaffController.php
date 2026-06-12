@@ -11,6 +11,7 @@ use App\Domains\HospitalEvent\Actions\Staff\HospitalEventGetForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventListForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventOperationHistoriesForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventStatusUpdateForStaffAction;
+use App\Domains\HospitalEvent\Actions\Staff\HospitalEventSummaryForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventUpdateForStaffAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventAllowStatusUpdateForStaffRequest;
@@ -29,6 +30,11 @@ final class HospitalEventForStaffController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getHospitalEventSummaryForStaff(HospitalEventSummaryForStaffAction $action)
+    {
+        return ApiResponse::success($action->execute());
     }
 
     public function getHospitalEventForStaff(HospitalEvent $hospitalEvent, HospitalEventGetForStaffAction $action)

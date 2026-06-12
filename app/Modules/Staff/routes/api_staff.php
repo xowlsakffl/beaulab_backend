@@ -59,24 +59,44 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 신고 게시물 관리
      **/
+    Route::get('reported-contents/talks/summary', [ContentReportForStaffController::class, 'getReportedTalksSummaryForStaff'])
+        ->name('reported-contents.getReportedTalksSummaryForStaff');
     Route::get('reported-contents/talks', [ContentReportForStaffController::class, 'getReportedTalksForStaff'])
         ->name('reported-contents.getReportedTalksForStaff');
+    Route::get('reported-contents/talk-comments/summary', [ContentReportForStaffController::class, 'getReportedTalkCommentsSummaryForStaff'])
+        ->name('reported-contents.getReportedTalkCommentsSummaryForStaff');
     Route::get('reported-contents/talk-comments', [ContentReportForStaffController::class, 'getReportedTalkCommentsForStaff'])
         ->name('reported-contents.getReportedTalkCommentsForStaff');
+    Route::get('reported-contents/hospital-reviews/surgery/summary', [ContentReportForStaffController::class, 'getReportedSurgeryHospitalReviewsSummaryForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+        ->name('reported-contents.getReportedSurgeryHospitalReviewsSummaryForStaff');
     Route::get('reported-contents/hospital-reviews/surgery', [ContentReportForStaffController::class, 'getReportedSurgeryHospitalReviewsForStaff'])
         ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
         ->name('reported-contents.getReportedSurgeryHospitalReviewsForStaff');
+    Route::get('reported-contents/hospital-reviews/treatment/summary', [ContentReportForStaffController::class, 'getReportedTreatmentHospitalReviewsSummaryForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+        ->name('reported-contents.getReportedTreatmentHospitalReviewsSummaryForStaff');
     Route::get('reported-contents/hospital-reviews/treatment', [ContentReportForStaffController::class, 'getReportedTreatmentHospitalReviewsForStaff'])
         ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
         ->name('reported-contents.getReportedTreatmentHospitalReviewsForStaff');
+    Route::get('reported-contents/hospital-review-comments/surgery/summary', [ContentReportForStaffController::class, 'getReportedSurgeryHospitalReviewCommentsSummaryForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+        ->name('reported-contents.getReportedSurgeryHospitalReviewCommentsSummaryForStaff');
     Route::get('reported-contents/hospital-review-comments/surgery', [ContentReportForStaffController::class, 'getReportedSurgeryHospitalReviewCommentsForStaff'])
         ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
         ->name('reported-contents.getReportedSurgeryHospitalReviewCommentsForStaff');
+    Route::get('reported-contents/hospital-review-comments/treatment/summary', [ContentReportForStaffController::class, 'getReportedTreatmentHospitalReviewCommentsSummaryForStaff'])
+        ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+        ->name('reported-contents.getReportedTreatmentHospitalReviewCommentsSummaryForStaff');
     Route::get('reported-contents/hospital-review-comments/treatment', [ContentReportForStaffController::class, 'getReportedTreatmentHospitalReviewCommentsForStaff'])
         ->defaults('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
         ->name('reported-contents.getReportedTreatmentHospitalReviewCommentsForStaff');
+    Route::get('reported-contents/hospital-evaluations/summary', [ContentReportForStaffController::class, 'getReportedHospitalEvaluationsSummaryForStaff'])
+        ->name('reported-contents.getReportedHospitalEvaluationsSummaryForStaff');
     Route::get('reported-contents/hospital-evaluations', [ContentReportForStaffController::class, 'getReportedHospitalEvaluationsForStaff'])
         ->name('reported-contents.getReportedHospitalEvaluationsForStaff');
+    Route::get('reported-contents/chats/summary', [ContentReportForStaffController::class, 'getReportedChatMessagesSummaryForStaff'])
+        ->name('reported-contents.getReportedChatMessagesSummaryForStaff');
     Route::get('reported-contents/chats', [ContentReportForStaffController::class, 'getReportedChatMessagesForStaff'])
         ->name('reported-contents.getReportedChatMessagesForStaff');
     Route::get('reported-contents/detail/{targetType}/{targetId}', [ContentReportForStaffController::class, 'getReportedContentDetailForStaff'])
@@ -192,6 +212,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
      **/
     Route::get('hospital-events', [HospitalEventForStaffController::class, 'getHospitalEventsForStaff'])
         ->name('hospital-events.getHospitalEventsForStaff');
+    Route::get('hospital-events/summary', [HospitalEventForStaffController::class, 'getHospitalEventSummaryForStaff'])
+        ->name('hospital-events.getHospitalEventSummaryForStaff');
     Route::patch('hospital-events/status', [HospitalEventForStaffController::class, 'updateHospitalEventStatusForStaff'])
         ->name('hospital-events.updateHospitalEventStatusForStaff');
     Route::patch('hospital-events/allow-status', [HospitalEventForStaffController::class, 'updateHospitalEventAllowStatusForStaff'])

@@ -133,7 +133,7 @@ final class HospitalEventSeeder extends Seeder
                             ->orWhere('full_path', 'like', $rootPath.' > %');
                     }
                 })
-                ->whereDoesntHave('children')
+                ->where('depth', 3)
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)
                 ->values()

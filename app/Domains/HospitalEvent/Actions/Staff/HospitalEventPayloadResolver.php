@@ -97,19 +97,13 @@ final class HospitalEventPayloadResolver
             ->whereIn('id', $categoryIds)
             ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
-            ->get(['id', 'full_path', 'name']);
+            ->get(['id', 'full_path', 'name', 'depth']);
 
         if ($categories->count() !== count($categoryIds)) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '선택한 카테고리 값이 올바르지 않습니다.');
         }
 
-        $hasActiveChildren = Category::query()
-            ->whereIn('parent_id', $categoryIds)
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->where('status', Category::STATUS_ACTIVE)
-            ->exists();
-
-        if ($hasActiveChildren) {
+        if ($categories->contains(static fn (Category $category): bool => (int) $category->depth !== 3)) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 소분류만 선택할 수 있습니다.');
         }
 

@@ -81,9 +81,17 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
                     ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-                    ->where('status', Category::STATUS_ACTIVE)),
+                    ->where('status', Category::STATUS_ACTIVE)
+                    ->where('depth', 3)),
             ],
-            'primary_category_id' => ['required_with:category_ids', 'integer'],
+            'primary_category_id' => [
+                'required_with:category_ids',
+                'integer',
+                Rule::exists('categories', 'id')->where(static fn ($query) => $query
+                    ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+                    ->where('status', Category::STATUS_ACTIVE)
+                    ->where('depth', 3)),
+            ],
 
             'doctor_ids' => ['nullable', 'array', 'max:3'],
             'doctor_ids.*' => ['integer', 'distinct', Rule::exists('hospital_doctors', 'id')->whereNull('deleted_at')],

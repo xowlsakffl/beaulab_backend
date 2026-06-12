@@ -54,7 +54,7 @@ final class HospitalEvent extends Model
 
     public const MAX_TEXT_ITEMS = 20;
 
-    public const MIN_TEXT_ITEMS = 2;
+    public const MIN_TEXT_ITEMS = 1;
 
     public const MAX_DISCOUNT_RATE = 49;
 
@@ -220,20 +220,18 @@ final class HospitalEvent extends Model
 
     public static function consultationBasePrice(int $eventPrice): int
     {
-        $priceInTenThousands = $eventPrice / 10000;
-
         return match (true) {
-            $priceInTenThousands <= 5 => 10000,
-            $priceInTenThousands <= 10 => 12500,
-            $priceInTenThousands <= 20 => 15000,
-            $priceInTenThousands <= 30 => 17500,
-            $priceInTenThousands <= 50 => 20000,
-            $priceInTenThousands <= 80 => 22500,
-            $priceInTenThousands <= 100 => 25000,
-            $priceInTenThousands <= 150 => 27500,
-            $priceInTenThousands <= 250 => 30000,
-            $priceInTenThousands <= 300 => 32500,
-            $priceInTenThousands <= 400 => 37500,
+            $eventPrice <= 50000 => 10000,
+            $eventPrice <= 100000 => 12500,
+            $eventPrice <= 200000 => 15000,
+            $eventPrice <= 300000 => 17500,
+            $eventPrice <= 500000 => 20000,
+            $eventPrice <= 800000 => 22500,
+            $eventPrice <= 1000000 => 25000,
+            $eventPrice <= 1500000 => 27500,
+            $eventPrice <= 2500000 => 30000,
+            $eventPrice <= 3000000 => 32500,
+            $eventPrice <= 4000000 => 37500,
             default => 40000,
         };
     }

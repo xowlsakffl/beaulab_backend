@@ -53,7 +53,34 @@ final class CategorySelectorListForStaffQuery
                 'categories.status',
             ]);
 
-        if ($usage) {
+        if ($usage && $q) {
+            $builder->whereExists(function ($exists) use ($usage): void {
+                $exists
+                    ->selectRaw('1')
+                    ->from('category_usages')
+                    ->where('category_usages.usage', (string) $usage)
+                    ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
+                    ->where(function ($w): void {
+                        $w->whereColumn('category_usages.category_id', 'categories.id')
+                            ->orWhereColumn('category_usages.category_id', 'categories.parent_id')
+                            ->orWhereExists(function ($parent): void {
+                                $parent
+                                    ->selectRaw('1')
+                                    ->from('categories as c_parent_1')
+                                    ->whereColumn('c_parent_1.id', 'categories.parent_id')
+                                    ->whereColumn('category_usages.category_id', 'c_parent_1.parent_id');
+                            })
+                            ->orWhereExists(function ($grandParent): void {
+                                $grandParent
+                                    ->selectRaw('1')
+                                    ->from('categories as c_parent_1')
+                                    ->join('categories as c_parent_2', 'c_parent_2.id', '=', 'c_parent_1.parent_id')
+                                    ->whereColumn('c_parent_1.id', 'categories.parent_id')
+                                    ->whereColumn('category_usages.category_id', 'c_parent_2.parent_id');
+                            });
+                    });
+            });
+        } elseif ($usage) {
             $builder
                 ->join('category_usages', 'category_usages.category_id', '=', 'categories.id')
                 ->where('category_usages.usage', (string) $usage)
@@ -108,7 +135,7 @@ final class CategorySelectorListForStaffQuery
             $builder->where('categories.is_menu_visible', (bool) $isMenuVisible);
         }
 
-        if ($usage && $sort === 'sort_order') {
+        if ($usage && ! $q && $sort === 'sort_order') {
             $builder->orderBy('category_usages.sort_order', $direction);
         } else {
             $builder->orderBy("categories.{$sort}", $direction);

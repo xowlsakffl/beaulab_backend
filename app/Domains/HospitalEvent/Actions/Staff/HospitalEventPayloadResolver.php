@@ -321,7 +321,7 @@ final class HospitalEventPayloadResolver
     private function assertTextItems(array $items, string $label): void
     {
         if (count($items) < HospitalEvent::MIN_TEXT_ITEMS) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, "{$label}은 2개 이상 입력해 주세요.");
+            throw new CustomException(ErrorCode::INVALID_REQUEST, "{$label}은 ".HospitalEvent::MIN_TEXT_ITEMS.'개 이상 입력해 주세요.');
         }
     }
 

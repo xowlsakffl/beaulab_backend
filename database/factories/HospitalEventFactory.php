@@ -28,6 +28,7 @@ final class HospitalEventFactory extends Factory
         return [
             'hospital_id' => $this->randomHospitalId(),
             'event_type' => $this->faker->randomElement(HospitalEvent::types()),
+            'is_male_targeted' => $this->faker->boolean(15),
             'name' => $this->faker->randomElement([
                 '눈성형 이벤트',
                 '코성형 특별가',

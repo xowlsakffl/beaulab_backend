@@ -25,6 +25,7 @@ final readonly class HospitalEventForStaffDetailDto
             'id' => (int) $this->event->id,
             'hospital' => $this->hospital(),
             'event_type' => (string) $this->event->event_type,
+            'is_male_targeted' => (bool) $this->event->is_male_targeted,
             'name' => (string) $this->event->name,
             'description' => (string) $this->event->description,
             'is_event_period_unlimited' => (bool) $this->event->is_event_period_unlimited,

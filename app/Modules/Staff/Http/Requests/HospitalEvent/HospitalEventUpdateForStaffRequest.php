@@ -60,6 +60,7 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
         return [
             'hospital_id' => ['sometimes', 'integer', Rule::exists('hospitals', 'id')->whereNull('deleted_at')],
             'event_type' => ['sometimes', Rule::in(HospitalEvent::types())],
+            'is_male_targeted' => ['sometimes', 'boolean'],
             'name' => ['sometimes', 'string', 'max:20', "regex:{$allowedTextPattern}"],
             'description' => ['sometimes', 'string', 'max:40', "regex:{$allowedTextPattern}"],
             'is_event_period_unlimited' => ['sometimes', 'boolean'],
@@ -127,6 +128,7 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
         return [
             'hospital_id' => '병의원',
             'event_type' => '이벤트 유형',
+            'is_male_targeted' => '남자성형 이벤트 여부',
             'name' => '이벤트명',
             'description' => '이벤트 설명',
             'is_event_period_unlimited' => '이벤트 기간 무제한 여부',

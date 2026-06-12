@@ -18,6 +18,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('event_type', 20)->comment('이벤트 유형(TEXT, IMAGE)');
+            $table->boolean('is_male_targeted')->default(false)->comment('남자성형 이벤트 여부');
 
             $table->string('name', 20)->comment('이벤트명');
             $table->string('description', 40)->comment('이벤트 설명');

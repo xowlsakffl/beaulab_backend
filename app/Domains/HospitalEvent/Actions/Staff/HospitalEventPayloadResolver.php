@@ -41,6 +41,7 @@ final class HospitalEventPayloadResolver
         $data = [
             'hospital_id' => (int) ($payload['hospital_id'] ?? $event?->hospital_id),
             'event_type' => $eventType,
+            'is_male_targeted' => $this->boolValue($payload['is_male_targeted'] ?? $event?->is_male_targeted ?? false),
             'name' => $payload['name'] ?? $event?->name,
             'description' => $payload['description'] ?? $event?->description,
             'is_event_period_unlimited' => $isUnlimited,

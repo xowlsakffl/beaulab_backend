@@ -63,6 +63,7 @@ final class HospitalEvent extends Model
     protected $fillable = [
         'hospital_id',
         'event_type',
+        'is_male_targeted',
         'name',
         'description',
         'is_event_period_unlimited',
@@ -85,6 +86,7 @@ final class HospitalEvent extends Model
 
     protected $casts = [
         'is_event_period_unlimited' => 'boolean',
+        'is_male_targeted' => 'boolean',
         'event_start_at' => 'datetime',
         'event_end_at' => 'datetime',
         'normal_price' => 'integer',
@@ -102,6 +104,7 @@ final class HospitalEvent extends Model
 
     protected $attributes = [
         'event_type' => self::TYPE_IMAGE,
+        'is_male_targeted' => false,
         'is_event_period_unlimited' => true,
         'normal_price' => 0,
         'event_price' => 0,

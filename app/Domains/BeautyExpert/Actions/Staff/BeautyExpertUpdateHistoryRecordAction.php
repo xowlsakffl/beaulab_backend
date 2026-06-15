@@ -48,14 +48,7 @@ final class BeautyExpertUpdateHistoryRecordAction
 
     public function recordCreated(BeautyExpert $expert): void
     {
-        $this->record($expert, OperationHistory::ACTION_CREATED, 'staff.beauty_expert.create', OperationHistoryChangeSetBuilder::single(
-            key: 'created',
-            label: '생성',
-            before: null,
-            after: OperationHistory::ACTION_CREATED,
-            beforeDisplay: null,
-            afterDisplay: '생성',
-        ));
+        $this->record($expert, OperationHistory::ACTION_CREATED, 'staff.beauty_expert.create', []);
     }
 
     /**
@@ -142,7 +135,7 @@ final class BeautyExpertUpdateHistoryRecordAction
      */
     private function record(BeautyExpert $expert, string $action, string $source, array $changes): void
     {
-        if ($changes === []) {
+        if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }
 

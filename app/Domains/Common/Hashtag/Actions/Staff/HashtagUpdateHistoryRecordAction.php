@@ -34,14 +34,7 @@ final class HashtagUpdateHistoryRecordAction
 
     public function recordCreated(Hashtag $hashtag): void
     {
-        $this->record($hashtag, OperationHistory::ACTION_CREATED, 'staff.hashtag.create', OperationHistoryChangeSetBuilder::single(
-            key: 'created',
-            label: '생성',
-            before: null,
-            after: OperationHistory::ACTION_CREATED,
-            beforeDisplay: null,
-            afterDisplay: '생성',
-        ));
+        $this->record($hashtag, OperationHistory::ACTION_CREATED, 'staff.hashtag.create', []);
     }
 
     /**
@@ -65,7 +58,7 @@ final class HashtagUpdateHistoryRecordAction
      */
     private function record(Hashtag $hashtag, string $action, string $source, array $changes): void
     {
-        if ($changes === []) {
+        if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }
 

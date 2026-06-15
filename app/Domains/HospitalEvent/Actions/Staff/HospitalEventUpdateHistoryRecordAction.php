@@ -37,14 +37,7 @@ final class HospitalEventUpdateHistoryRecordAction
             event: $event,
             action: OperationHistory::ACTION_CREATED,
             source: 'staff.hospital_event.create',
-            changes: OperationHistoryChangeSetBuilder::single(
-                key: 'created',
-                label: '생성',
-                before: null,
-                after: OperationHistory::ACTION_CREATED,
-                beforeDisplay: null,
-                afterDisplay: '생성',
-            ),
+            changes: [],
         );
     }
 
@@ -266,7 +259,7 @@ final class HospitalEventUpdateHistoryRecordAction
      */
     private function record(HospitalEvent $event, string $action, string $source, array $changes): void
     {
-        if ($changes === []) {
+        if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }
 

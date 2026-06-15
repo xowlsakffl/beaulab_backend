@@ -42,14 +42,6 @@ final class HospitalDoctorUpdateHistoryRecordAction
             metadata: [
                 'source' => 'staff.hospital_doctor.create',
             ],
-            changes: OperationHistoryChangeSetBuilder::single(
-                key: 'created',
-                label: '생성',
-                before: null,
-                after: OperationHistory::ACTION_CREATED,
-                beforeDisplay: null,
-                afterDisplay: '생성',
-            ),
         );
     }
 

@@ -37,14 +37,7 @@ final class CategoryUpdateHistoryRecordAction
 
     public function recordCreated(Category $category): void
     {
-        $this->record($category, OperationHistory::ACTION_CREATED, 'staff.category.create', OperationHistoryChangeSetBuilder::single(
-            key: 'created',
-            label: '생성',
-            before: null,
-            after: OperationHistory::ACTION_CREATED,
-            beforeDisplay: null,
-            afterDisplay: '생성',
-        ));
+        $this->record($category, OperationHistory::ACTION_CREATED, 'staff.category.create', []);
     }
 
     /**
@@ -68,7 +61,7 @@ final class CategoryUpdateHistoryRecordAction
      */
     private function record(Category $category, string $action, string $source, array $changes): void
     {
-        if ($changes === []) {
+        if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }
 

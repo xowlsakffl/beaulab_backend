@@ -39,14 +39,7 @@ final class NoticeUpdateHistoryRecordAction
 
     public function recordCreated(Notice $notice): void
     {
-        $this->record($notice, OperationHistory::ACTION_CREATED, 'staff.notice.create', OperationHistoryChangeSetBuilder::single(
-            key: 'created',
-            label: '생성',
-            before: null,
-            after: OperationHistory::ACTION_CREATED,
-            beforeDisplay: null,
-            afterDisplay: '생성',
-        ));
+        $this->record($notice, OperationHistory::ACTION_CREATED, 'staff.notice.create', []);
     }
 
     /**
@@ -115,7 +108,7 @@ final class NoticeUpdateHistoryRecordAction
      */
     private function record(Notice $notice, string $action, string $source, array $changes): void
     {
-        if ($changes === []) {
+        if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }
 

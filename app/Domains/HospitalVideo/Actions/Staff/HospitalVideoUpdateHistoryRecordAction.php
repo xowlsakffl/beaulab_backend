@@ -49,14 +49,7 @@ final class HospitalVideoUpdateHistoryRecordAction
             video: $video,
             action: OperationHistory::ACTION_CREATED,
             source: 'staff.hospital_video.create',
-            changes: OperationHistoryChangeSetBuilder::single(
-                key: 'created',
-                label: '생성',
-                before: null,
-                after: OperationHistory::ACTION_CREATED,
-                beforeDisplay: null,
-                afterDisplay: '생성',
-            ),
+            changes: [],
         );
     }
 
@@ -143,7 +136,7 @@ final class HospitalVideoUpdateHistoryRecordAction
      */
     private function record(HospitalVideo $video, string $action, string $source, array $changes): void
     {
-        if ($changes === []) {
+        if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }
 

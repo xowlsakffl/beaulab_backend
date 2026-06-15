@@ -33,14 +33,7 @@ final class FaqUpdateHistoryRecordAction
 
     public function recordCreated(Faq $faq): void
     {
-        $this->record($faq, OperationHistory::ACTION_CREATED, 'staff.faq.create', OperationHistoryChangeSetBuilder::single(
-            key: 'created',
-            label: '생성',
-            before: null,
-            after: OperationHistory::ACTION_CREATED,
-            beforeDisplay: null,
-            afterDisplay: '생성',
-        ));
+        $this->record($faq, OperationHistory::ACTION_CREATED, 'staff.faq.create', []);
     }
 
     /**
@@ -101,7 +94,7 @@ final class FaqUpdateHistoryRecordAction
      */
     private function record(Faq $faq, string $action, string $source, array $changes): void
     {
-        if ($changes === []) {
+        if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }
 

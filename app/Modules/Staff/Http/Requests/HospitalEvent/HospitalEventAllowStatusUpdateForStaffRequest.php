@@ -25,8 +25,12 @@ final class HospitalEventAllowStatusUpdateForStaffRequest extends FormRequest
         return [
             'ids' => ['required', 'array', 'min:1', 'max:100'],
             'ids.*' => ['integer', 'distinct', Rule::exists('hospital_events', 'id')->whereNull('deleted_at')],
-            'allow_status' => ['required', Rule::in(HospitalEvent::allowStatuses())],
-            'reason' => ['nullable', 'string', 'max:500'],
+            'allow_status' => ['required', Rule::in(HospitalEvent::staffManageableAllowStatuses())],
+            'reason' => [
+                Rule::requiredIf(fn (): bool => $this->input('allow_status') === HospitalEvent::ALLOW_REJECTED),
+                'string',
+                'max:500',
+            ],
         ];
     }
 

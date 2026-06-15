@@ -202,6 +202,19 @@ final class HospitalEvent extends Model
         ];
     }
 
+    /**
+     * @return array<int, string>
+     */
+    public static function staffManageableAllowStatuses(): array
+    {
+        return [
+            self::ALLOW_PENDING,
+            self::ALLOW_REVIEWING,
+            self::ALLOW_APPROVED,
+            self::ALLOW_REJECTED,
+        ];
+    }
+
     public static function calculateDiscountRate(int $normalPrice, int $eventPrice): int
     {
         if ($normalPrice <= 0) {

@@ -19,8 +19,6 @@ final class HospitalEventStatusUpdateForStaffAction
 
     public function execute(array $payload): array
     {
-        Gate::authorize('update', HospitalEvent::class);
-
         $ids = collect($payload['ids'] ?? [])
             ->map(static fn (int|string $id): int => (int) $id)
             ->filter(static fn (int $id): bool => $id > 0)
@@ -32,6 +30,8 @@ final class HospitalEventStatusUpdateForStaffAction
 
         return DB::transaction(function () use ($ids, $status, $payload, $actor): array {
             $events = $this->query->getForUpdate($ids);
+            $events->each(static fn (HospitalEvent $event): mixed => Gate::authorize('update', $event));
+
             $existingIds = $events->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
             $updatedCount = $this->query->updateStatus($existingIds, $status);
 

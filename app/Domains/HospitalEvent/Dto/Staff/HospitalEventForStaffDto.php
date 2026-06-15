@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\HospitalEvent\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
@@ -151,6 +152,7 @@ final readonly class HospitalEventForStaffDto
                 'name' => (string) $category->name,
                 'full_path' => (string) ($category->full_path ?? ''),
                 'depth' => (int) ($category->depth ?? 0),
+                'usage' => self::categoryUsage($category),
                 'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
             ])
             ->values()
@@ -205,5 +207,35 @@ final readonly class HospitalEventForStaffDto
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];
+    }
+
+    private static function categoryUsage(Category $category): ?string
+    {
+        static $pathsByUsage = null;
+
+        $pathsByUsage ??= CategoryUsage::activeCategoryFullPathsByUsage([
+            CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY,
+            CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT,
+        ]);
+
+        $fullPath = trim((string) ($category->full_path ?? ''));
+        if ($fullPath === '') {
+            $fullPath = trim((string) $category->name);
+        }
+
+        foreach ($pathsByUsage as $usage => $rootPaths) {
+            foreach ($rootPaths as $rootPath) {
+                $rootPath = trim((string) $rootPath);
+                if ($rootPath === '') {
+                    continue;
+                }
+
+                if ($fullPath === $rootPath || str_starts_with($fullPath, $rootPath.' > ')) {
+                    return (string) $usage;
+                }
+            }
+        }
+
+        return null;
     }
 }

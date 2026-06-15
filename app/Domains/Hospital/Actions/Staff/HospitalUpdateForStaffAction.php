@@ -6,6 +6,7 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalUpdateForStaffQuery;
@@ -87,15 +88,18 @@ final class HospitalUpdateForStaffAction
             target: $hospital,
             action: OperationHistory::ACTION_STATUS_UPDATED,
             actor: $actor instanceof Model ? $actor : null,
-            field: 'status',
-            beforeValue: $beforeStatus,
-            afterValue: $afterStatus,
             reason: null,
             metadata: [
-                'before_label' => $this->statusLabel($beforeStatus),
-                'after_label' => $this->statusLabel($afterStatus),
                 'source' => 'staff.hospital.status',
             ],
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: 'status',
+                label: '병의원상태',
+                before: $beforeStatus,
+                after: $afterStatus,
+                beforeDisplay: $this->statusLabel($beforeStatus),
+                afterDisplay: $this->statusLabel($afterStatus),
+            ),
         );
     }
 

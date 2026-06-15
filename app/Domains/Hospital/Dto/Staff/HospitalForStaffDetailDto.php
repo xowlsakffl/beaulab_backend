@@ -173,8 +173,12 @@ final readonly class HospitalForStaffDetailDto
         }
 
         $history = $hospital->operationHistories
-            ->first(static fn ($history): bool => $history->field === 'status'
-                && (string) $history->after_value === (string) $hospital->status);
+            ->first(static function ($history) use ($hospital): bool {
+                $change = $history->changes->first();
+
+                return $change?->field_key === 'status'
+                    && (string) $change->after_value === (string) $hospital->status;
+            });
 
         return $history ? OperationHistoryDto::fromModel($history)->toArray() : null;
     }

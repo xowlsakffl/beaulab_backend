@@ -6,6 +6,7 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalReview\Queries\Staff\HospitalReviewCommentStatusUpdateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
@@ -59,16 +60,19 @@ final class HospitalReviewCommentStatusUpdateForStaffAction
                     target: $comment,
                     action: OperationHistory::ACTION_STATUS_UPDATED,
                     actor: $actor instanceof Model ? $actor : null,
-                    field: 'status',
-                    beforeValue: $beforeStatus,
-                    afterValue: $status,
                     reason: $historyReason,
                     metadata: [
-                        'before_label' => $beforeStatus === HospitalReviewComment::STATUS_ACTIVE ? '노출' : '미노출',
-                        'after_label' => $status === HospitalReviewComment::STATUS_ACTIVE ? '노출' : '미노출',
                         'source' => 'staff.hospital_review_comment.status',
                         'bulk' => count($existingIds) > 1,
                     ],
+                    changes: OperationHistoryChangeSetBuilder::single(
+                        key: 'status',
+                        label: '노출여부',
+                        before: $beforeStatus,
+                        after: $status,
+                        beforeDisplay: $beforeStatus === HospitalReviewComment::STATUS_ACTIVE ? '노출' : '미노출',
+                        afterDisplay: $status === HospitalReviewComment::STATUS_ACTIVE ? '노출' : '미노출',
+                    ),
                 );
             }
 

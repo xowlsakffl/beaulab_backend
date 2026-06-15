@@ -309,12 +309,12 @@ final readonly class TalkForStaffDetailDto
 
     private static function commentOperationHistory(OperationHistory $history): array
     {
-        $field = (string) $history->field;
+        $change = $history->changes->first();
         $historyDto = OperationHistoryDto::fromModel($history);
 
         return [
             'actor_label' => $historyDto->actorLabel,
-            'status' => $field === 'status' ? $history->after_value : null,
+            'status' => $change?->field_key === 'status' ? $change->after_value : null,
             'created_at' => $history->created_at?->toISOString(),
             'reason' => $history->reason,
         ];

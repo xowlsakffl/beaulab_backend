@@ -4,6 +4,7 @@ namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\HospitalEvent\Dto\Staff\HospitalEventForStaffDto;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventUpdateForStaffQuery;
@@ -42,13 +43,18 @@ final class HospitalEventPeriodUpdateForStaffAction
                     target: $event,
                     action: OperationHistory::ACTION_STATUS_UPDATED,
                     actor: $actor instanceof Model ? $actor : null,
-                    field: 'event_period',
-                    beforeValue: $beforePeriod,
-                    afterValue: $afterPeriod,
                     reason: null,
                     metadata: [
                         'source' => 'staff.hospital_event.period',
                     ],
+                    changes: OperationHistoryChangeSetBuilder::single(
+                        key: 'event_period',
+                        label: '기간',
+                        before: $beforePeriod,
+                        after: $afterPeriod,
+                        beforeDisplay: $beforePeriod,
+                        afterDisplay: $afterPeriod,
+                    ),
                 );
             }
 

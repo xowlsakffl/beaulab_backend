@@ -7,6 +7,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Talk\Dto\User\TalkForUserDetailDto;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Queries\User\TalkDeleteForUserQuery;
@@ -51,15 +52,18 @@ final class TalkDeleteForUserAction
                 target: $updatedTalk,
                 action: OperationHistory::ACTION_STATUS_UPDATED,
                 actor: $user,
-                field: 'status',
-                beforeValue: $beforeStatus,
-                afterValue: Talk::STATUS_INACTIVE,
                 reason: '본인삭제',
                 metadata: [
-                    'before_label' => $beforeStatus === Talk::STATUS_ACTIVE ? '노출' : '미노출',
-                    'after_label' => '미노출',
                     'source' => 'user.talk.status',
                 ],
+                changes: OperationHistoryChangeSetBuilder::single(
+                    key: 'status',
+                    label: '노출여부',
+                    before: $beforeStatus,
+                    after: Talk::STATUS_INACTIVE,
+                    beforeDisplay: $beforeStatus === Talk::STATUS_ACTIVE ? '노출' : '미노출',
+                    afterDisplay: '미노출',
+                ),
             );
 
             return $updatedTalk->fresh([

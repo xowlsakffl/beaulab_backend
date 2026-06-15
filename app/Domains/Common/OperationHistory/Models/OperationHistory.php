@@ -3,6 +3,7 @@
 namespace App\Domains\Common\OperationHistory\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 final class OperationHistory extends Model
 {
+    public const string ACTION_UPDATED = 'UPDATED';
+
     public const string ACTION_STATUS_UPDATED = 'STATUS_UPDATED';
 
     public const string ACTOR_KIND_STAFF = 'STAFF';
@@ -22,6 +25,8 @@ final class OperationHistory extends Model
 
     protected $table = 'operation_histories';
 
+    protected $with = ['changes'];
+
     /**
      * @var list<string>
      */
@@ -32,9 +37,7 @@ final class OperationHistory extends Model
         'actor_id',
         'actor_kind',
         'action',
-        'field',
-        'before_value',
-        'after_value',
+        'batch_uuid',
         'reason',
         'metadata',
     ];
@@ -55,5 +58,27 @@ final class OperationHistory extends Model
     public function actor(): MorphTo
     {
         return $this->morphTo('actor', 'actor_type', 'actor_id');
+    }
+
+    public function changes(): HasMany
+    {
+        return $this->hasMany(OperationHistoryChange::class, 'operation_history_id')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
+    public function getFieldAttribute(): ?string
+    {
+        return $this->changes->first()?->field_key;
+    }
+
+    public function getBeforeValueAttribute(): mixed
+    {
+        return $this->changes->first()?->before_value;
+    }
+
+    public function getAfterValueAttribute(): mixed
+    {
+        return $this->changes->first()?->after_value;
     }
 }

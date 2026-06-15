@@ -18,6 +18,7 @@ final class HospitalEventUpdateForStaffAction
         private readonly HospitalEventUpdateForStaffQuery $query,
         private readonly HospitalEventPayloadResolver $payloadResolver,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(HospitalEvent $event, array $payload): array
@@ -25,6 +26,8 @@ final class HospitalEventUpdateForStaffAction
         Gate::authorize('update', $event);
 
         $event = DB::transaction(function () use ($event, $payload): HospitalEvent {
+            $beforeHistory = $this->historyRecordAction->capture($event);
+
             $data = $this->payloadResolver->normalizePersistPayload($payload, $event);
 
             $categorySync = null;
@@ -86,6 +89,8 @@ final class HospitalEventUpdateForStaffAction
             if ($event->event_type === HospitalEvent::TYPE_IMAGE && ! $event->eventPageImage()->exists()) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '이미지형 이벤트는 이벤트 페이지 이미지를 등록해 주세요.');
             }
+
+            $this->historyRecordAction->execute($event, $beforeHistory);
 
             return $event;
         });

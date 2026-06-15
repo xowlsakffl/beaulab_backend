@@ -11,6 +11,7 @@ use App\Domains\Common\ContentReport\Support\ContentReportSummaryCache;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
@@ -248,18 +249,21 @@ final class ContentReportCreateForUserAction
         $this->historyCreateAction->execute(
             target: $target,
             action: OperationHistory::ACTION_STATUS_UPDATED,
-            field: 'status',
-            beforeValue: $beforeStatus,
-            afterValue: $status,
             reason: $reason,
             metadata: [
-                'before_label' => $beforeStatus === 'ACTIVE' ? '노출' : '미노출',
-                'after_label' => $status === 'ACTIVE' ? '노출' : '미노출',
                 'report_status_before' => $reportStatusBefore,
                 'report_status_after' => $reportStatusAfter,
                 'source' => $source,
             ],
             actorKind: OperationHistory::ACTOR_KIND_SYSTEM,
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: 'status',
+                label: '노출여부',
+                before: $beforeStatus,
+                after: $status,
+                beforeDisplay: $beforeStatus === 'ACTIVE' ? '노출' : '미노출',
+                afterDisplay: $status === 'ACTIVE' ? '노출' : '미노출',
+            ),
         );
     }
 }

@@ -5,6 +5,7 @@ namespace App\Domains\Hospital\Actions\Staff;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;
@@ -70,14 +71,18 @@ final class HospitalCreateForStaffAction
             target: $hospital,
             action: OperationHistory::ACTION_STATUS_UPDATED,
             actor: $actor instanceof Model ? $actor : null,
-            field: 'status',
-            beforeValue: null,
-            afterValue: $status,
             reason: null,
             metadata: [
-                'after_label' => $this->statusLabel($status),
                 'source' => 'staff.hospital.create',
             ],
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: 'status',
+                label: '병의원상태',
+                before: null,
+                after: $status,
+                beforeDisplay: null,
+                afterDisplay: $this->statusLabel($status),
+            ),
         );
     }
 

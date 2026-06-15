@@ -7,6 +7,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Talk\Dto\User\TalkCommentForUserDto;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
@@ -47,15 +48,18 @@ final class TalkCommentDeleteForUserAction
                 target: $updatedComment,
                 action: OperationHistory::ACTION_STATUS_UPDATED,
                 actor: $user,
-                field: 'status',
-                beforeValue: $beforeStatus,
-                afterValue: TalkComment::STATUS_INACTIVE,
                 reason: '본인삭제',
                 metadata: [
-                    'before_label' => $beforeStatus === TalkComment::STATUS_ACTIVE ? '노출' : '미노출',
-                    'after_label' => '미노출',
                     'source' => 'user.talk_comment.status',
                 ],
+                changes: OperationHistoryChangeSetBuilder::single(
+                    key: 'status',
+                    label: '노출여부',
+                    before: $beforeStatus,
+                    after: TalkComment::STATUS_INACTIVE,
+                    beforeDisplay: $beforeStatus === TalkComment::STATUS_ACTIVE ? '노출' : '미노출',
+                    afterDisplay: '미노출',
+                ),
             );
 
             return $updatedComment->fresh(['author', 'mentions.mentionedUser']);

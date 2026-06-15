@@ -4,6 +4,7 @@ namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventStatusUpdateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
@@ -45,16 +46,19 @@ final class HospitalEventStatusUpdateForStaffAction
                     target: $event,
                     action: OperationHistory::ACTION_STATUS_UPDATED,
                     actor: $actor instanceof Model ? $actor : null,
-                    field: 'status',
-                    beforeValue: $beforeStatus,
-                    afterValue: $status,
                     reason: $payload['reason'] ?? null,
                     metadata: [
-                        'before_label' => $beforeStatus === HospitalEvent::STATUS_ACTIVE ? '노출' : '미노출',
-                        'after_label' => $status === HospitalEvent::STATUS_ACTIVE ? '노출' : '미노출',
                         'source' => 'staff.hospital_event.status',
                         'bulk' => count($existingIds) > 1,
                     ],
+                    changes: OperationHistoryChangeSetBuilder::single(
+                        key: 'status',
+                        label: '노출여부',
+                        before: $beforeStatus,
+                        after: $status,
+                        beforeDisplay: $beforeStatus === HospitalEvent::STATUS_ACTIVE ? '노출' : '미노출',
+                        afterDisplay: $status === HospitalEvent::STATUS_ACTIVE ? '노출' : '미노출',
+                    ),
                 );
             }
 

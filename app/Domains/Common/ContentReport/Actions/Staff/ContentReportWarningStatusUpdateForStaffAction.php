@@ -13,6 +13,7 @@ use App\Domains\Common\ContentReport\Support\ContentReportSummaryCache;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -77,11 +78,16 @@ final class ContentReportWarningStatusUpdateForStaffAction
                 target: $target,
                 action: OperationHistory::ACTION_STATUS_UPDATED,
                 actor: $actor instanceof Model ? $actor : null,
-                field: 'warning_status',
-                beforeValue: $beforeWarningStatus,
-                afterValue: $warningStatus,
                 reason: $reason,
                 metadata: $metadata,
+                changes: OperationHistoryChangeSetBuilder::single(
+                    key: 'warning_status',
+                    label: '경고여부',
+                    before: $beforeWarningStatus,
+                    after: $warningStatus,
+                    beforeDisplay: $metadata['before_label'],
+                    afterDisplay: $metadata['after_label'],
+                ),
             );
 
             $state->load(['processedBy:id,name,email', 'warningProcessedBy:id,name,email']);

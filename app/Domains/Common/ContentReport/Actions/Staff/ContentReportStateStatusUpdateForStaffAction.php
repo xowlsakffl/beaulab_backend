@@ -11,6 +11,7 @@ use App\Domains\Common\ContentReport\Support\ContentReportSummaryCache;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -206,25 +207,32 @@ final class ContentReportStateStatusUpdateForStaffAction
             $target->forceFill(['status' => $status])->save();
         }
 
+        $beforeLabel = $hasStatusColumn
+            ? ($beforeStatus === 'ACTIVE' ? '노출' : '미노출')
+            : (ContentReportState::statusLabels()[$reportStatusBefore] ?? $reportStatusBefore);
+        $afterLabel = $hasStatusColumn
+            ? ($status === 'ACTIVE' ? '노출' : '미노출')
+            : (ContentReportState::statusLabels()[$reportStatusAfter] ?? $reportStatusAfter);
+        $fieldKey = $hasStatusColumn ? 'status' : 'report_status';
+
         $this->historyCreateAction->execute(
             target: $target,
             action: OperationHistory::ACTION_STATUS_UPDATED,
             actor: $actor,
-            field: $hasStatusColumn ? 'status' : 'report_status',
-            beforeValue: $beforeStatus,
-            afterValue: $hasStatusColumn ? $status : $reportStatusAfter,
             reason: $reason,
             metadata: [
-                'before_label' => $hasStatusColumn
-                    ? ($beforeStatus === 'ACTIVE' ? '노출' : '미노출')
-                    : (ContentReportState::statusLabels()[$reportStatusBefore] ?? $reportStatusBefore),
-                'after_label' => $hasStatusColumn
-                    ? ($status === 'ACTIVE' ? '노출' : '미노출')
-                    : (ContentReportState::statusLabels()[$reportStatusAfter] ?? $reportStatusAfter),
                 'report_status_before' => $reportStatusBefore,
                 'report_status_after' => $reportStatusAfter,
                 'source' => $source,
             ],
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: $fieldKey,
+                label: $hasStatusColumn ? '노출여부' : '신고상태',
+                before: $beforeStatus,
+                after: $hasStatusColumn ? $status : $reportStatusAfter,
+                beforeDisplay: $beforeLabel,
+                afterDisplay: $afterLabel,
+            ),
         );
     }
 

@@ -53,8 +53,9 @@ final class HospitalEventSummaryForStaffQuery
     {
         return OperationHistory::query()
             ->where('target_type', HospitalEvent::class)
-            ->where('field', 'status')
-            ->where('after_value', HospitalEvent::STATUS_INACTIVE)
+            ->whereHas('changes', static fn ($query) => $query
+                ->where('field_key', 'status')
+                ->whereIn('after_display', [HospitalEvent::STATUS_INACTIVE, '미노출']))
             ->where('created_at', '>=', $recentStart)
             ->distinct('target_id')
             ->count('target_id');

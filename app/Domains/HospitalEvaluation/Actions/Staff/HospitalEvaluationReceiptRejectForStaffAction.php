@@ -6,6 +6,7 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalEvaluation\Queries\Staff\HospitalEvaluationReceiptUpdateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
@@ -45,17 +46,20 @@ final class HospitalEvaluationReceiptRejectForStaffAction
                 target: $lockedEvaluation,
                 action: OperationHistory::ACTION_STATUS_UPDATED,
                 actor: $actor instanceof Model ? $actor : null,
-                field: 'receipt_status',
-                beforeValue: $beforeStatus,
-                afterValue: HospitalEvaluation::RECEIPT_STATUS_REJECTED,
                 reason: $reasonText ?? $reasonLabel,
                 metadata: [
-                    'before_label' => HospitalEvaluation::receiptStatusLabels()[$beforeStatus] ?? $beforeStatus,
-                    'after_label' => HospitalEvaluation::receiptStatusLabels()[HospitalEvaluation::RECEIPT_STATUS_REJECTED],
                     'rejection_reason' => $reason,
                     'rejection_reason_label' => $reasonLabel,
                     'source' => 'staff.hospital-evaluation.receipt.reject',
                 ],
+                changes: OperationHistoryChangeSetBuilder::single(
+                    key: 'receipt_status',
+                    label: '영수증 인증',
+                    before: $beforeStatus,
+                    after: HospitalEvaluation::RECEIPT_STATUS_REJECTED,
+                    beforeDisplay: HospitalEvaluation::receiptStatusLabels()[$beforeStatus] ?? $beforeStatus,
+                    afterDisplay: HospitalEvaluation::receiptStatusLabels()[HospitalEvaluation::RECEIPT_STATUS_REJECTED],
+                ),
             );
 
             return [

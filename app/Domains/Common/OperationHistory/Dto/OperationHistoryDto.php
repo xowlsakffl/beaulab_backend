@@ -24,17 +24,22 @@ final readonly class OperationHistoryDto
         public ?array $actor,
         public string $actorLabel,
         public string $action,
+        public ?string $batchUuid,
         public ?string $field,
         public mixed $beforeValue,
         public mixed $afterValue,
         public ?string $reason,
         public mixed $metadata,
+        public array $changes,
         public ?string $createdAt,
         public ?string $updatedAt,
     ) {}
 
     public static function fromModel(OperationHistory $history): self
     {
+        $history->loadMissing('changes');
+        $firstChange = $history->changes->first();
+
         return new self(
             id: (int) $history->id,
             targetType: (string) $history->target_type,
@@ -48,11 +53,25 @@ final readonly class OperationHistoryDto
             actor: self::actor($history),
             actorLabel: self::actorLabel($history),
             action: (string) $history->action,
-            field: $history->field,
-            beforeValue: $history->before_value,
-            afterValue: $history->after_value,
+            batchUuid: $history->batch_uuid,
+            field: $firstChange?->field_key,
+            beforeValue: $firstChange?->before_value,
+            afterValue: $firstChange?->after_value,
             reason: $history->reason,
             metadata: $history->metadata,
+            changes: $history->changes
+                ->map(static fn ($change): array => [
+                    'id' => (int) $change->id,
+                    'field_key' => (string) $change->field_key,
+                    'field_label' => (string) $change->field_label,
+                    'before_value' => $change->before_value,
+                    'after_value' => $change->after_value,
+                    'before_display' => $change->before_display,
+                    'after_display' => $change->after_display,
+                    'sort_order' => (int) $change->sort_order,
+                ])
+                ->values()
+                ->all(),
             createdAt: $history->created_at?->toISOString(),
             updatedAt: $history->updated_at?->toISOString(),
         );
@@ -72,11 +91,13 @@ final readonly class OperationHistoryDto
             'actor' => $this->actor,
             'actor_label' => $this->actorLabel,
             'action' => $this->action,
+            'batch_uuid' => $this->batchUuid,
             'field' => $this->field,
             'before_value' => $this->beforeValue,
             'after_value' => $this->afterValue,
             'reason' => $this->reason,
             'metadata' => $this->metadata,
+            'changes' => $this->changes,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

@@ -15,6 +15,7 @@
 - [Scheduler 운영 가이드](./scheduler.md)
 - [도메인 & 상태 정의서](./domain-status-definition.md)
 - [카테고리 설계](./category.md)
+- [운영 히스토리 설계](./operation-history.md)
 - [콘텐츠 신고 / 신고게시물 관리](./content-report.md)
 - [채팅 설계](./chat.md)
 - [알림 설계](./notification.md)
@@ -29,9 +30,10 @@
 - 토크/병의원 후기/병의원 평가는 Staff 운영 API와 User 작성 API를 Actor 기준으로 분리한다.
 - 병의원 후기는 `HospitalReview`, 댓글은 `HospitalReviewComment`, 병의원 평가는 `HospitalEvaluation` 도메인이 소유한다.
 - 신고 기능은 건별 로그(`ContentReport`)와 대상별 현재 상태(`ContentReportState`)를 분리한다.
+- 관리자 화면 처리 이력은 `operation_histories` 부모 이력과 `operation_history_changes` 변경 상세로 분리한다.
 - LengthAware pagination 목록은 `PaginatedResponse`를 사용하고, 채팅 메시지처럼 cursor 방식인 목록만 예외로 둔다.
 - 권한 단일 소스는 `AccessPermissions` / `AccessRoles`이며 Seeder로 동기화한다.
 - Queue 표준 런타임은 Redis + Horizon이며, Scheduler/Monitor는 별도 문서로 분리 관리한다.
 - 모든 예외 응답은 공통 예외 핸들러/응답 포맷 규칙을 따른다.
 
-작성 기준: 2026-06-10
+작성 기준: 2026-06-15

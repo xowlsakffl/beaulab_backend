@@ -31,7 +31,25 @@
 
 ---
 
-### 1-3. 큐/호라이즌 운영 로그
+### 1-3. 운영 히스토리 (Operation History, DB)
+- 저장 테이블: `operation_histories`, `operation_history_changes`
+- 주요 목적: Staff 관리자 화면에 노출할 업무 처리 이력 표시
+- 기록 대상: 노출/미노출, 신고 상태 처리, 경고/무시, 영수증 인증/부적합, 이벤트 검수/기간/상태 변경, 병원 상태 변경 등
+- 구조: 부모 이력 1건에 변경 필드별 change 여러 건을 붙이는 방식
+
+핵심 파일:
+- `app/Domains/Common/OperationHistory/Actions/OperationHistoryCreateAction.php`
+- `app/Domains/Common/OperationHistory/Models/OperationHistory.php`
+- `app/Domains/Common/OperationHistory/Models/OperationHistoryChange.php`
+- `app/Domains/Common/OperationHistory/Support/OperationHistoryChangeSetBuilder.php`
+- `database/migrations/2026_04_21_120000_create_operation_histories_table.php`
+
+상세 규칙:
+- `develop-doc/operation-history.md`
+
+---
+
+### 1-4. 큐/호라이즌 운영 로그
 - 실패 작업 저장: `failed_jobs`
 - 배치 상태 저장: `job_batches`
 - Horizon 런타임 메타/메트릭: Redis (`config/horizon.php`의 `use`, `prefix`)
@@ -44,7 +62,7 @@
 
 ---
 
-### 1-4. 스케줄 모니터 로그 (Spatie Schedule Monitor)
+### 1-5. 스케줄 모니터 로그 (Spatie Schedule Monitor)
 - 작업 마스터: `monitored_scheduled_tasks`
 - 실행 로그: `monitored_scheduled_task_log_items`
 - 동기화 명령: `schedule-monitor:sync`
@@ -55,7 +73,7 @@
 
 ---
 
-### 1-5. 개발/디버그 관측 로그 (Telescope)
+### 1-6. 개발/디버그 관측 로그 (Telescope)
 - 저장 테이블: `telescope_entries`, `telescope_entries_tags`, `telescope_monitoring`
 - 설정: `config/telescope.php`
 - 목적: 요청/쿼리/잡/예외 등 디버깅 관측

@@ -26,6 +26,7 @@
 | `HospitalEvaluation` | 병의원 평가 | 병의원 평가, 별점 5개 항목, 평가 선택 항목, 영수증 인증 |
 | `ContentReport` | 콘텐츠 신고 로그 | 사용자가 신고한 게시글/댓글/평가의 신고 건별 기록 |
 | `ContentReportState` | 콘텐츠 신고 상태 | 신고 대상별 현재 신고 상태, 신고 수, 경고/무시 처리 상태 |
+| `OperationHistory` | 운영 히스토리 | 관리자 화면에 표시할 처리 이력과 변경 상세 |
 | `Notice` | 공지사항 | 관리자 공지 콘텐츠(노출/게시기간/관리자 메인 팝업/조회수) |
 | `Faq` | FAQ | 관리자 FAQ 콘텐츠(카테고리/채널/조회수) |
 | `Media` | 공통 미디어 | 이미지/영상 파일 메타데이터(파일 경로, 크기, 정렬, 대표 여부) |
@@ -452,6 +453,7 @@
 - `REEXPOSED` 이후 신고는 자동 신고접수/자동차단 상태 변경 대상에서 제외한다.
 - 경고/무시는 `ADMIN_HIDDEN` 상태에서만 처리할 수 있다.
 - 신고 상태 변경과 경고/무시 변경은 대상 콘텐츠의 operation history에 기록한다.
+- operation history는 `operation_histories` 부모 이력과 `operation_history_changes` 변경 상세로 분리해 저장한다.
 
 ## 3) 상태 흐름 예시 (비개발자 관점)
 

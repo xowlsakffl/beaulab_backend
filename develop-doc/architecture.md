@@ -50,7 +50,7 @@
 - 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`
 - 파트너: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`
 - 콘텐츠: `Talk`, `TalkComment`, `HospitalReview`, `HospitalReviewComment`, `HospitalEvaluation`, `Notice`, `Faq`
-- 공통: `Media`, `Category`, `AdminNote`, `ContentReport`, `ContentReportState`
+- 공통: `Media`, `Category`, `AdminNote`, `ContentReport`, `ContentReportState`, `OperationHistory`
 
 파트너 계정 관계:
 
@@ -141,6 +141,14 @@ DTO 응답 원칙:
 - `AUTO_BLOCKED`, `ADMIN_HIDDEN` 상태인 콘텐츠는 일반 게시물관리에서 노출/미노출 변경이 잠긴다.
 - 신고 상태 변경, 경고/무시 처리는 operation history에 기록한다.
 
+운영 히스토리 원칙:
+
+- 관리자 화면에 표시할 처리 이력은 `operation_histories`에 부모 이력으로 저장한다.
+- 변경 필드별 전/후 값은 `operation_history_changes`에 저장한다.
+- 단건 변경도 change 1건으로 저장하고, 다중 변경은 부모 이력 1건에 여러 change를 붙인다.
+- 도메인 Action은 `OperationHistoryChangeSetBuilder`로 변경 payload를 만들고, 저장은 `OperationHistoryCreateAction`에 맡긴다.
+- 상세 구조는 `./operation-history.md`를 따른다.
+
 ## 8) API 응답 / 페이지네이션 원칙
 
 `LengthAwarePaginator` 기반 목록은 `App\Common\Support\PaginatedResponse`를 사용한다.
@@ -195,4 +203,4 @@ DTO 응답 원칙:
 - [ ] 신고 대상 추가 시 `ContentReportTargetRegistry`, User 신고 라우트, Staff 신고게시물 라우트가 같이 갱신됐는가?
 - [ ] 비동기 작업이 lane 정책(`critical`, `mail`, `sms`, `chat`, `default` 등)에 맞게 라우팅됐는가?
 
-작성 기준: 2026-05-18
+작성 기준: 2026-06-15

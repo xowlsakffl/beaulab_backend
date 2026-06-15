@@ -110,7 +110,18 @@
 
 게시글/댓글/후기/평가는 `ADMIN_HIDDEN`, `NORMAL_VISIBLE`만 사용할 수 있다. 채팅 메시지는 `VALID`, `INVALID`만 사용할 수 있다.
 
-노출중지 사유(`process_reason`)는 선택값이다. 사유가 있으면 operation history에 `신고 처리 노출중지 - 사유`로 저장하고, 없으면 `신고 처리 노출중지`로 저장한다.
+노출중지 사유(`process_reason`)는 선택값이다. 사유가 있으면 operation history의 `reason`에 `신고 처리 노출중지 - 사유`로 저장하고, 없으면 `신고 처리 노출중지`로 저장한다.
+
+신고 상태 변경과 경고/무시 변경은 `operation_histories` 부모 이력 1건과 `operation_history_changes` 변경 상세 1건으로 기록한다.
+
+예시:
+
+| 부모 action | change field | before/after 의미 |
+|---|---|---|
+| `REPORT_STATUS_UPDATED` | `report_status` | 신고 상태 변경 |
+| `WARNING_STATUS_UPDATED` | `warning_status` | 경고/무시 상태 변경 |
+
+운영 히스토리 공통 구조는 `./operation-history.md`를 따른다.
 
 ## 8) 경고 / 무시
 

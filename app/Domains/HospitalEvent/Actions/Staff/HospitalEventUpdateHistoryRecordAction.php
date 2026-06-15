@@ -71,7 +71,7 @@ final class HospitalEventUpdateHistoryRecordAction
     {
         return [
             'hospital' => $this->item('병의원', (int) $event->hospital_id, $event->hospital?->name ?? (string) $event->hospital_id),
-            'event_type' => $this->item('등록 유형', $event->event_type, $event->event_type === HospitalEvent::TYPE_TEXT ? '텍스트형' : '이미지형'),
+            'event_type' => $this->item('등록 유형', $event->event_type, $event->event_type === HospitalEvent::TYPE_TEXT ? '텍스트 등록' : '이미지 등록'),
             'is_male_targeted' => $this->item('남자성형 이벤트', (bool) $event->is_male_targeted, (bool) $event->is_male_targeted ? '선택' : '미선택'),
             'categories' => $this->item('카테고리', $this->categoryValue($event), $this->categoryDisplay($event)),
             'doctors' => $this->item('의료진 선택', $this->doctorValue($event), $this->doctorDisplay($event)),

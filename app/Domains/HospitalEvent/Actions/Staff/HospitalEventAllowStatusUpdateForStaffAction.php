@@ -56,8 +56,8 @@ final class HospitalEventAllowStatusUpdateForStaffAction
                         label: '검수상태',
                         before: $beforeStatus,
                         after: $allowStatus,
-                        beforeDisplay: $beforeStatus,
-                        afterDisplay: $allowStatus,
+                        beforeDisplay: $this->allowStatusLabel($beforeStatus),
+                        afterDisplay: $this->allowStatusLabel($allowStatus),
                     ),
                 );
             }
@@ -68,5 +68,17 @@ final class HospitalEventAllowStatusUpdateForStaffAction
                 'ids' => $existingIds,
             ];
         });
+    }
+
+    private function allowStatusLabel(string $status): string
+    {
+        return match ($status) {
+            HospitalEvent::ALLOW_PENDING => '검수신청중',
+            HospitalEvent::ALLOW_REVIEWING => '검토중',
+            HospitalEvent::ALLOW_APPROVED => '검수완료',
+            HospitalEvent::ALLOW_REJECTED => '검수반려',
+            HospitalEvent::ALLOW_PARTNER_CANCELED => '파트너취소',
+            default => $status,
+        };
     }
 }

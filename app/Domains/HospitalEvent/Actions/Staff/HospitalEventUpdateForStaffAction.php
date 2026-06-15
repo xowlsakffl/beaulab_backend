@@ -87,7 +87,7 @@ final class HospitalEventUpdateForStaffAction
 
             $event->refresh();
             if ($event->event_type === HospitalEvent::TYPE_IMAGE && ! $event->eventPageImage()->exists()) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '이미지형 이벤트는 이벤트 페이지 이미지를 등록해 주세요.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '이미지등록 이벤트는 이벤트 페이지 이미지를 등록해 주세요.');
             }
 
             $this->historyRecordAction->execute($event, $beforeHistory);

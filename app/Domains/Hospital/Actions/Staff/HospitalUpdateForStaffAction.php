@@ -4,13 +4,9 @@ namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Media\Models\Media;
-use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
-use App\Domains\Common\OperationHistory\Models\OperationHistory;
-use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalUpdateForStaffQuery;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -27,7 +23,7 @@ final class HospitalUpdateForStaffAction
         private readonly HospitalUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalBusinessRegistrationUpdateForStaffAction $businessRegistrationUpdateAction,
-        private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     /**
@@ -41,18 +37,12 @@ final class HospitalUpdateForStaffAction
             'hospital_id' => $hospital->id,
         ]);
 
-        $beforeStatus = (string) $hospital->status;
-        $afterStatus = (string) ($payload['status'] ?? $beforeStatus);
-        $shouldRecordStatusHistory = array_key_exists('status', $payload) && $beforeStatus !== $afterStatus;
-        $actor = auth()->user();
+        $beforeHistory = $this->historyRecordAction->capture($hospital);
 
         $updated = DB::transaction(function () use (
             $hospital,
             $payload,
-            $beforeStatus,
-            $afterStatus,
-            $shouldRecordStatusHistory,
-            $actor,
+            $beforeHistory,
         ) {
             $updatedHospital = $this->query->update($hospital, $payload);
 
@@ -64,9 +54,7 @@ final class HospitalUpdateForStaffAction
             if (array_key_exists('feature_ids', $payload) && is_array($payload['feature_ids'])) {
                 $this->syncFeatures($updatedHospital, $payload['feature_ids']);
             }
-            if ($shouldRecordStatusHistory) {
-                $this->recordStatusHistory($updatedHospital, $beforeStatus, $afterStatus, $actor);
-            }
+            $this->historyRecordAction->recordUpdated($updatedHospital, $beforeHistory);
 
             return $updatedHospital->fresh();
         });
@@ -76,41 +64,6 @@ final class HospitalUpdateForStaffAction
                 $updated->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features', 'operationHistories.actor'])
             )->toArray(),
         ];
-    }
-
-    private function recordStatusHistory(
-        Hospital $hospital,
-        string $beforeStatus,
-        string $afterStatus,
-        mixed $actor,
-    ): void {
-        $this->historyCreateAction->execute(
-            target: $hospital,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
-            actor: $actor instanceof Model ? $actor : null,
-            reason: null,
-            metadata: [
-                'source' => 'staff.hospital.status',
-            ],
-            changes: OperationHistoryChangeSetBuilder::single(
-                key: 'status',
-                label: '병의원상태',
-                before: $beforeStatus,
-                after: $afterStatus,
-                beforeDisplay: $this->statusLabel($beforeStatus),
-                afterDisplay: $this->statusLabel($afterStatus),
-            ),
-        );
-    }
-
-    private function statusLabel(string $status): string
-    {
-        return match ($status) {
-            Hospital::STATUS_ACTIVE => '정상',
-            Hospital::STATUS_SUSPENDED => '운영중지',
-            Hospital::STATUS_WITHDRAWN => '탈퇴',
-            default => $status,
-        };
     }
 
     private function replaceMedia(Hospital $hospital, array $payload): void

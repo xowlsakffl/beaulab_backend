@@ -90,7 +90,7 @@ final class HospitalEventUpdateForStaffAction
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '이미지등록 이벤트는 이벤트 페이지 이미지를 등록해 주세요.');
             }
 
-            $this->historyRecordAction->execute($event, $beforeHistory);
+            $this->historyRecordAction->recordUpdated($event, $beforeHistory);
 
             return $event;
         });

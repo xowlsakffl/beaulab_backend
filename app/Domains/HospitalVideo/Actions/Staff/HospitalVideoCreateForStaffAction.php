@@ -21,6 +21,7 @@ final class HospitalVideoCreateForStaffAction
     public function __construct(
         private readonly HospitalVideoCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly HospitalVideoUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -44,7 +45,7 @@ final class HospitalVideoCreateForStaffAction
 
             $this->syncCategories($video, $normalized['category_ids'] ?? []);
 
-            return $video->fresh([
+            $video = $video->fresh([
                 'hospital',
                 'hospital.businessRegistration',
                 'doctor',
@@ -52,6 +53,10 @@ final class HospitalVideoCreateForStaffAction
                 'videoFileMedia',
                 'categories',
             ]);
+
+            $this->historyRecordAction->recordCreated($video);
+
+            return $video;
         });
 
         return [

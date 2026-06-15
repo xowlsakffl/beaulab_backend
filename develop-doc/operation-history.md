@@ -72,7 +72,8 @@ $this->historyCreateAction->execute(
 ```
 
 단건 변경은 `OperationHistoryChangeSetBuilder::single()`을 사용한다.  
-여러 필드 변경은 `OperationHistoryChangeSetBuilder::make()->compare(...)->compare(...)->toArray()`로 만든다.
+여러 필드 변경은 `OperationHistoryChangeSetBuilder::make()->compare(...)->compare(...)->toArray()`로 만든다.  
+수정 전/후 스냅샷을 이미 가지고 있는 경우에는 `OperationHistoryChangeSetBuilder::fromSnapshots($before, $after)`를 사용한다.
 
 도메인 Action에서는 직접 `operation_history_changes`를 만들지 않는다. 변경 payload 조립은 공통 builder를 사용하고, 저장은 `OperationHistoryCreateAction`에 맡긴다.
 
@@ -106,7 +107,16 @@ operation_history_changes
 - `HospitalReviewComment`
 - `HospitalEvaluation`
 - `Hospital`
+- `HospitalDoctor`
 - `HospitalEvent`
+- `HospitalVideo`
+- `Notice`
+- `Faq`
+- `Category`
+- `Hashtag`
+- `AccountUser`
+- `Beauty`
+- `BeautyExpert`
 - `ContentReport`
 - `ContentReportState`
 
@@ -151,6 +161,9 @@ operation_history_changes
 - `operation_histories`에 변경 필드 컬럼을 다시 추가하지 않는다.
 - 화면 표시 문구가 필요한 값은 `before_display`, `after_display`를 함께 저장한다.
 - 단순 상태 변경도 `changes` 배열 1건으로 저장한다.
+- 생성 이력은 `CREATED`, 수정 이력은 `UPDATED`, 상태 전용 처리 이력은 `STATUS_UPDATED`를 사용한다.
+- 생성 이력은 최초 입력값 전체를 `changes`에 남기지 않는다. 대신 `field_key=created`, `field_label=생성`, `after_display=생성`인 change 1건만 남긴다. `reason`은 null로 둬 화면에서 `-`로 표시한다.
 - 한 번의 저장/수정 요청에서 여러 필드가 바뀌면 부모 이력 1건에 change 여러 건을 붙인다.
+- 스태프 관리 화면의 일반 수정 기능은 각 도메인별 `*UpdateHistoryRecordAction`에서 수정 전/후 스냅샷을 잡아 기록한다.
 - 목록 필터나 summary에서 특정 변경 필드를 봐야 하면 `operation_history_changes.field_key` 기준으로 조회한다.
 - 기존 코드 호환이 필요한 DTO 외에는 `history->field`, `history->after_value` accessor에 의존하지 않는다.

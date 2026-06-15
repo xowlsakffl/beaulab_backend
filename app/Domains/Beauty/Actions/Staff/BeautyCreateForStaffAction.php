@@ -20,6 +20,7 @@ final class BeautyCreateForStaffAction
         private readonly BeautyCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly BeautyBusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
+        private readonly BeautyUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     /**
@@ -45,7 +46,10 @@ final class BeautyCreateForStaffAction
             $this->businessRegistrationCreateAction->execute($beauty, $filters);
             $this->syncCategories($beauty, $filters['category_ids'] ?? []);
 
-            return $beauty->fresh();
+            $beauty = $beauty->fresh(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories']);
+            $this->historyRecordAction->recordCreated($beauty);
+
+            return $beauty;
         });
 
         return [

@@ -31,10 +31,27 @@ final class HospitalEventUpdateHistoryRecordAction
         return $this->snapshot($event);
     }
 
+    public function recordCreated(HospitalEvent $event): void
+    {
+        $this->record(
+            event: $event,
+            action: OperationHistory::ACTION_CREATED,
+            source: 'staff.hospital_event.create',
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: 'created',
+                label: '생성',
+                before: null,
+                after: OperationHistory::ACTION_CREATED,
+                beforeDisplay: null,
+                afterDisplay: '생성',
+            ),
+        );
+    }
+
     /**
      * @param array<string, array{label:string,value:mixed,display:?string}> $before
      */
-    public function execute(HospitalEvent $event, array $before): void
+    public function recordUpdated(HospitalEvent $event, array $before): void
     {
         $event->load([
             'hospital',
@@ -46,20 +63,10 @@ final class HospitalEventUpdateHistoryRecordAction
         ]);
 
         $changes = $this->changes($before, $this->snapshot($event));
-        if ($changes === []) {
-            return;
-        }
-
-        $actor = auth()->user();
-
-        $this->historyCreateAction->execute(
-            target: $event,
+        $this->record(
+            event: $event,
             action: OperationHistory::ACTION_UPDATED,
-            actor: $actor instanceof Model ? $actor : null,
-            reason: null,
-            metadata: [
-                'source' => 'staff.hospital_event.update',
-            ],
+            source: 'staff.hospital_event.update',
             changes: $changes,
         );
     }
@@ -252,5 +259,28 @@ final class HospitalEventUpdateHistoryRecordAction
             ->all();
 
         return $items === [] ? null : implode("\n", $items);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $changes
+     */
+    private function record(HospitalEvent $event, string $action, string $source, array $changes): void
+    {
+        if ($changes === []) {
+            return;
+        }
+
+        $actor = auth()->user();
+
+        $this->historyCreateAction->execute(
+            target: $event,
+            action: $action,
+            actor: $actor instanceof Model ? $actor : null,
+            reason: null,
+            metadata: [
+                'source' => $source,
+            ],
+            changes: $changes,
+        );
     }
 }

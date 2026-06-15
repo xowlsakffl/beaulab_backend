@@ -6,6 +6,7 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Dto\Staff\HospitalDoctorForStaffDetailDto;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalDoctor\Queries\Staff\HospitalDoctorUpdateForStaffQuery;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -18,18 +19,23 @@ final class HospitalDoctorUpdateForStaffAction
     public function __construct(
         private readonly HospitalDoctorUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction           $mediaAttachAction,
+        private readonly HospitalDoctorUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(HospitalDoctor $doctor, array $payload): array
     {
         Gate::authorize('update', $doctor);
 
-        $doctor = DB::transaction(function () use ($doctor, $payload) {
+        $beforeHistory = $this->historyRecordAction->capture($doctor);
+
+        $doctor = DB::transaction(function () use ($doctor, $payload, $beforeHistory) {
             $updated = $this->query->update($doctor, $payload);
             $this->replaceMedia($updated, $payload);
             if (array_key_exists('category_ids', $payload) && is_array($payload['category_ids'])) {
                 $this->syncCategories($updated, $payload['category_ids']);
             }
+            $this->historyRecordAction->recordUpdated($updated, $beforeHistory);
+
             return $updated->fresh();
         });
 

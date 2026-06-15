@@ -22,6 +22,7 @@ final class NoticeCreateForStaffAction
         private readonly NoticeCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachDeleteAction,
         private readonly SyncNoticeEditorImagesAction $syncNoticeEditorImagesAction,
+        private readonly NoticeUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -40,11 +41,15 @@ final class NoticeCreateForStaffAction
                 $created->forceFill(['content' => $syncedContent])->save();
             }
 
-            return $created->fresh([
+            $created = $created->fresh([
                 'attachments',
                 'creator:id,name,email',
                 'updater:id,name,email',
             ]);
+
+            $this->historyRecordAction->recordCreated($created);
+
+            return $created;
         });
 
         return [

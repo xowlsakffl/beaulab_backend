@@ -3,13 +3,9 @@
 namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
-use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
-use App\Domains\Common\OperationHistory\Models\OperationHistory;
-use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +20,7 @@ final class HospitalCreateForStaffAction
         private readonly HospitalCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalBusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
-        private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     /**
@@ -50,7 +46,7 @@ final class HospitalCreateForStaffAction
             $this->businessRegistrationCreateAction->execute($hospital, $filters);
             $this->syncCategories($hospital, $filters['category_ids'] ?? []);
             $this->syncFeatures($hospital, $filters['feature_ids'] ?? []);
-            $this->recordInitialStatusHistory($hospital);
+            $this->historyRecordAction->recordCreated($hospital);
 
             return $hospital->fresh();
         });
@@ -60,40 +56,6 @@ final class HospitalCreateForStaffAction
                 $hospital->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features', 'operationHistories.actor'])
             )->toArray(),
         ];
-    }
-
-    private function recordInitialStatusHistory(Hospital $hospital): void
-    {
-        $status = (string) $hospital->status;
-        $actor = auth()->user();
-
-        $this->historyCreateAction->execute(
-            target: $hospital,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
-            actor: $actor instanceof Model ? $actor : null,
-            reason: null,
-            metadata: [
-                'source' => 'staff.hospital.create',
-            ],
-            changes: OperationHistoryChangeSetBuilder::single(
-                key: 'status',
-                label: '병의원상태',
-                before: null,
-                after: $status,
-                beforeDisplay: null,
-                afterDisplay: $this->statusLabel($status),
-            ),
-        );
-    }
-
-    private function statusLabel(string $status): string
-    {
-        return match ($status) {
-            Hospital::STATUS_ACTIVE => '정상',
-            Hospital::STATUS_SUSPENDED => '운영중지',
-            Hospital::STATUS_WITHDRAWN => '탈퇴',
-            default => $status,
-        };
     }
 
     /**

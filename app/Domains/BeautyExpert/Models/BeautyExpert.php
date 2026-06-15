@@ -8,6 +8,7 @@ use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use Database\Factories\BeautyExpertFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class BeautyExpert extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasOperationHistories;
 
     public const ALLOW_PENDING  = 'PENDING';
     public const ALLOW_APPROVED = 'APPROVED';

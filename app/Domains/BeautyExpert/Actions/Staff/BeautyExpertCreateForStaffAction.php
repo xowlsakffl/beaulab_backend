@@ -18,6 +18,7 @@ final class BeautyExpertCreateForStaffAction
     public function __construct(
         private readonly BeautyExpertCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction         $mediaAttachAction,
+        private readonly BeautyExpertUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -33,7 +34,16 @@ final class BeautyExpertCreateForStaffAction
 
             $this->syncCategories($expert, $payload['category_ids'] ?? []);
 
-            return $expert->fresh();
+            $expert = $expert->fresh([
+                'beauty',
+                'profileImage',
+                'educationCertificateImages',
+                'etcCertificateImages',
+                'categories',
+            ]);
+            $this->historyRecordAction->recordCreated($expert);
+
+            return $expert;
         });
 
         return [

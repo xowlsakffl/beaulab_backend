@@ -24,6 +24,7 @@ final class NoticeUpdateForStaffAction
         private readonly NoticeUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachDeleteAction,
         private readonly SyncNoticeEditorImagesAction $syncNoticeEditorImagesAction,
+        private readonly NoticeUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(Notice $notice, array $payload): array
@@ -33,6 +34,7 @@ final class NoticeUpdateForStaffAction
         $normalized = $this->normalizePayload($payload);
 
         $updated = DB::transaction(function () use ($notice, $normalized) {
+            $before = $this->historyRecordAction->capture($notice);
             $saved = $this->query->update($notice, $normalized);
 
             if (array_key_exists('existing_attachment_ids', $normalized) || array_key_exists('attachments', $normalized)) {
@@ -48,11 +50,15 @@ final class NoticeUpdateForStaffAction
                 $saved->forceFill(['content' => $syncedContent])->save();
             }
 
-            return $saved->fresh([
+            $saved = $saved->fresh([
                 'attachments',
                 'creator:id,name,email',
                 'updater:id,name,email',
             ]);
+
+            $this->historyRecordAction->recordUpdated($saved, $before);
+
+            return $saved;
         });
 
         return [

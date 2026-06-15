@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Domains\Common\Hashtag\Actions\Staff;
+
+use App\Domains\Common\Hashtag\Models\Hashtag;
+use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use Illuminate\Database\Eloquent\Model;
+
+final class HashtagUpdateHistoryRecordAction
+{
+    public function __construct(
+        private readonly OperationHistoryCreateAction $historyCreateAction,
+    ) {}
+
+    /**
+     * @return array<string, array{label:string,value:mixed,display:?string}>
+     */
+    public function capture(Hashtag $hashtag): array
+    {
+        $snapshot = [
+            'name' => $this->item('해시태그명', $hashtag->name, $hashtag->name),
+            'normalized_name' => $this->item('정규화명', $hashtag->normalized_name, $hashtag->normalized_name),
+            'status' => $this->item('상태', $hashtag->resolveStatus(), $hashtag->resolveStatus()),
+        ];
+
+        if (Hashtag::supportsUsageCount()) {
+            $snapshot['usage_count'] = $this->item('사용수', $hashtag->resolveUsageCount(), (string) $hashtag->resolveUsageCount());
+        }
+
+        return $snapshot;
+    }
+
+    public function recordCreated(Hashtag $hashtag): void
+    {
+        $this->record($hashtag, OperationHistory::ACTION_CREATED, 'staff.hashtag.create', OperationHistoryChangeSetBuilder::single(
+            key: 'created',
+            label: '생성',
+            before: null,
+            after: OperationHistory::ACTION_CREATED,
+            beforeDisplay: null,
+            afterDisplay: '생성',
+        ));
+    }
+
+    /**
+     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     */
+    public function recordUpdated(Hashtag $hashtag, array $before): void
+    {
+        $this->record($hashtag, OperationHistory::ACTION_UPDATED, 'staff.hashtag.update', OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($hashtag)));
+    }
+
+    /**
+     * @return array{label:string,value:mixed,display:?string}
+     */
+    private function item(string $label, mixed $value, ?string $display): array
+    {
+        return compact('label', 'value', 'display');
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $changes
+     */
+    private function record(Hashtag $hashtag, string $action, string $source, array $changes): void
+    {
+        if ($changes === []) {
+            return;
+        }
+
+        $actor = auth()->user();
+
+        $this->historyCreateAction->execute(
+            target: $hashtag,
+            action: $action,
+            actor: $actor instanceof Model ? $actor : null,
+            reason: null,
+            metadata: ['source' => $source],
+            changes: $changes,
+        );
+    }
+}

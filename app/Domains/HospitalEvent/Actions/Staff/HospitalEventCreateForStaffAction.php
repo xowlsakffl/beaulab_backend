@@ -16,6 +16,7 @@ final class HospitalEventCreateForStaffAction
         private readonly HospitalEventCreateForStaffQuery $query,
         private readonly HospitalEventPayloadResolver $payloadResolver,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -47,7 +48,18 @@ final class HospitalEventCreateForStaffAction
                 $this->mediaAttachAction->attachOne($event, $payload['event_page_image'] ?? null, HospitalEvent::COLLECTION_EVENT_PAGE_IMAGE, 'hospital-event', 'event-page-image', true);
             }
 
-            return $event->fresh();
+            $event = $event->fresh([
+                'hospital',
+                'categories',
+                'doctors',
+                'options',
+                'thumbnailImage',
+                'eventPageImage',
+            ]);
+
+            $this->historyRecordAction->recordCreated($event);
+
+            return $event;
         });
 
         return [

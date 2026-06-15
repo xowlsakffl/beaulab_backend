@@ -4,14 +4,21 @@ namespace App\Domains\Common\OperationHistory\Support;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Beauty\Models\Beauty;
+use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\Chat\Models\ChatMessage;
+use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Hashtag\Models\Hashtag;
+use App\Domains\Faq\Models\Faq;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
+use App\Domains\Notice\Models\Notice;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Model;
@@ -20,9 +27,23 @@ final class OperationHistoryTargetRegistry
 {
     public const string ALIAS_HOSPITAL = 'hospital';
 
+    public const string ALIAS_HOSPITAL_DOCTOR = 'hospital_doctor';
+
     public const string ALIAS_BEAUTY = 'beauty';
 
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
+
+    public const string ALIAS_NOTICE = 'notice';
+
+    public const string ALIAS_FAQ = 'faq';
+
+    public const string ALIAS_CATEGORY = 'category';
+
+    public const string ALIAS_HASHTAG = 'hashtag';
+
+    public const string ALIAS_ACCOUNT_USER = 'account_user';
+
+    public const string ALIAS_BEAUTY_EXPERT = 'beauty_expert';
 
     public const string ALIAS_HOSPITAL_EVALUATION = 'hospital_evaluation';
 
@@ -43,8 +64,15 @@ final class OperationHistoryTargetRegistry
      */
     private const MAP = [
         self::ALIAS_HOSPITAL => Hospital::class,
+        self::ALIAS_HOSPITAL_DOCTOR => HospitalDoctor::class,
         self::ALIAS_BEAUTY => Beauty::class,
+        self::ALIAS_BEAUTY_EXPERT => BeautyExpert::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
+        self::ALIAS_NOTICE => Notice::class,
+        self::ALIAS_FAQ => Faq::class,
+        self::ALIAS_CATEGORY => Category::class,
+        self::ALIAS_HASHTAG => Hashtag::class,
+        self::ALIAS_ACCOUNT_USER => AccountUser::class,
         self::ALIAS_HOSPITAL_EVALUATION => HospitalEvaluation::class,
         self::ALIAS_HOSPITAL_EVENT => HospitalEvent::class,
         self::ALIAS_HOSPITAL_REVIEW => HospitalReview::class,

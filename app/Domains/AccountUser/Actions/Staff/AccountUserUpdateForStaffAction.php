@@ -7,6 +7,7 @@ namespace App\Domains\AccountUser\Actions\Staff;
 use App\Domains\AccountUser\Dto\Staff\AccountUserForStaffDetailDto;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\AccountUser\Queries\Staff\AccountUserUpdateForStaffQuery;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -18,6 +19,7 @@ final class AccountUserUpdateForStaffAction
 {
     public function __construct(
         private readonly AccountUserUpdateForStaffQuery $query,
+        private readonly AccountUserUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(AccountUser $user, array $payload): array
@@ -26,7 +28,13 @@ final class AccountUserUpdateForStaffAction
 
         Log::info('일반회원 정보 수정 실행', ['user_id' => $user->id]);
 
-        $updated = $this->query->update($user, $payload)->fresh();
+        $updated = DB::transaction(function () use ($user, $payload) {
+            $before = $this->historyRecordAction->capture($user);
+            $updated = $this->query->update($user, $payload)->fresh();
+            $this->historyRecordAction->recordUpdated($updated, $before);
+
+            return $updated;
+        });
 
         return [
             'user' => AccountUserForStaffDetailDto::fromModel($updated)->toArray(),

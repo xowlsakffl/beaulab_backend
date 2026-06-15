@@ -3,6 +3,7 @@
 namespace App\Domains\Common\Hashtag\Models;
 
 use App\Common\Concerns\HasAuditLogs;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use Database\Factories\HashtagFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
  */
 final class Hashtag extends Model
 {
-    use HasFactory, HasAuditLogs;
+    use HasFactory, HasAuditLogs, HasOperationHistories;
 
     public const NAME_MAX_LENGTH = 20;
     public const VALID_NAME_REGEX = '/^[0-9A-Za-z가-힣_]+$/u';

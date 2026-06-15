@@ -22,6 +22,7 @@ final class CategoryUpdateForStaffAction
     public function __construct(
         private readonly CategoryUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly CategoryUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(Category $category, array $payload): array
@@ -48,6 +49,7 @@ final class CategoryUpdateForStaffAction
             : $category->code;
 
         $updated = DB::transaction(function () use ($category, $payload, $name, $newFullPath, $oldFullPath, $normalizedCode) {
+            $before = $this->historyRecordAction->capture($category);
             $updatedCategory = $this->query->update($category, [
                 'name' => $name,
                 'code' => $normalizedCode,
@@ -63,7 +65,10 @@ final class CategoryUpdateForStaffAction
 
             $this->replaceIcon($updatedCategory, $payload);
 
-            return $updatedCategory->fresh();
+            $updatedCategory = $updatedCategory->fresh(['parent', 'iconMedia']);
+            $this->historyRecordAction->recordUpdated($updatedCategory, $before);
+
+            return $updatedCategory;
         });
 
         Log::info('카테고리 수정', [

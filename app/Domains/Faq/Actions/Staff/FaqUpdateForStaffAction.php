@@ -19,6 +19,7 @@ final class FaqUpdateForStaffAction
     public function __construct(
         private readonly FaqUpdateForStaffQuery $query,
         private readonly SyncFaqEditorImagesAction $syncFaqEditorImagesAction,
+        private readonly FaqUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(Faq $faq, array $payload): array
@@ -28,6 +29,7 @@ final class FaqUpdateForStaffAction
         $normalized = $this->normalizePayload($payload);
 
         $updated = DB::transaction(function () use ($faq, $normalized) {
+            $before = $this->historyRecordAction->capture($faq);
             $saved = $this->query->update($faq, $normalized);
 
             if (array_key_exists('category_id', $normalized)) {
@@ -39,11 +41,15 @@ final class FaqUpdateForStaffAction
                 $saved->forceFill(['content' => $syncedContent])->save();
             }
 
-            return $saved->fresh([
+            $saved = $saved->fresh([
                 'categories:id,name,domain,status,sort_order',
                 'creator:id,name,email',
                 'updater:id,name,email',
             ]);
+
+            $this->historyRecordAction->recordUpdated($saved, $before);
+
+            return $saved;
         });
 
         return [

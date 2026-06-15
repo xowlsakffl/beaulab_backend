@@ -5,6 +5,7 @@ namespace App\Domains\Notice\Models;
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -14,13 +15,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Notice 역할 정의.
- * 공지사항 도메인의 Eloquent 모델로, �
-�븨, 愿怨? ?�
-�퐫?? ?곹깭 ?곸닔瑜??쒓납??紐⑥븘 ?꾨찓???곗씠???묎렐 湲곗????쒓났?쒕떎.
+ * 공지사항 도메인의 Eloquent 모델로, 게시 대상과 노출 상태, 게시 기간을 관리한다.
  */
 final class Notice extends Model
 {
-    use SoftDeletes, HasAuditLogs;
+    use SoftDeletes, HasAuditLogs, HasOperationHistories;
 
     public const CHANNEL_ALL = 'ALL';
     public const CHANNEL_APP_WEB = 'APP_WEB';

@@ -19,6 +19,35 @@ final class OperationHistoryChangeSetBuilder
     }
 
     /**
+     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param array<string, array{label:string,value:mixed,display:?string}> $after
+     * @return array<int, array<string, mixed>>
+     */
+    public static function fromSnapshots(array $before, array $after): array
+    {
+        $builder = self::make();
+
+        foreach ($after as $key => $afterItem) {
+            $beforeItem = $before[$key] ?? [
+                'label' => $afterItem['label'],
+                'value' => null,
+                'display' => null,
+            ];
+
+            $builder->compare(
+                key: $key,
+                label: $afterItem['label'],
+                before: $beforeItem['value'],
+                after: $afterItem['value'],
+                beforeDisplay: $beforeItem['display'],
+                afterDisplay: $afterItem['display'],
+            );
+        }
+
+        return $builder->toArray();
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public static function single(

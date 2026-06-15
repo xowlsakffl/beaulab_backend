@@ -21,6 +21,7 @@ final class BeautyUpdateForStaffAction
         private readonly BeautyUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly BeautyBusinessRegistrationUpdateForStaffAction $businessRegistrationUpdateAction,
+        private readonly BeautyUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     /**
@@ -35,6 +36,7 @@ final class BeautyUpdateForStaffAction
         ]);
 
         $updated = DB::transaction(function () use ($beauty, $payload) {
+            $before = $this->historyRecordAction->capture($beauty);
             $updatedBeauty = $this->query->update($beauty, $payload);
 
             $this->replaceMedia($updatedBeauty, $payload);
@@ -43,7 +45,10 @@ final class BeautyUpdateForStaffAction
                 $this->syncCategories($updatedBeauty, $payload['category_ids']);
             }
 
-            return $updatedBeauty->fresh();
+            $updatedBeauty = $updatedBeauty->fresh(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories']);
+            $this->historyRecordAction->recordUpdated($updatedBeauty, $before);
+
+            return $updatedBeauty;
         });
 
         return [

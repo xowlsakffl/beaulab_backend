@@ -22,6 +22,7 @@ final class HospitalVideoUpdateForStaffAction
     public function __construct(
         private readonly HospitalVideoUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly HospitalVideoUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(HospitalVideo $video, array $payload): array
@@ -31,6 +32,7 @@ final class HospitalVideoUpdateForStaffAction
         $normalized = $this->normalizePayload($video, $payload);
 
         $video = DB::transaction(function () use ($video, $normalized) {
+            $before = $this->historyRecordAction->capture($video);
             $updated = $this->query->update($video, $normalized);
 
             if (array_key_exists('thumbnail_file', $normalized) && $normalized['thumbnail_file'] instanceof UploadedFile) {
@@ -54,7 +56,7 @@ final class HospitalVideoUpdateForStaffAction
                 $this->syncCategories($updated, $normalized['category_ids']);
             }
 
-            return $updated->fresh([
+            $updated = $updated->fresh([
                 'hospital',
                 'hospital.businessRegistration',
                 'doctor',
@@ -62,6 +64,10 @@ final class HospitalVideoUpdateForStaffAction
                 'videoFileMedia',
                 'categories',
             ]);
+
+            $this->historyRecordAction->recordUpdated($updated, $before);
+
+            return $updated;
         });
 
         return [

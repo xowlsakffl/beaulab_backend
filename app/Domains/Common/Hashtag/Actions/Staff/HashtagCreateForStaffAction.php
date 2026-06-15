@@ -19,6 +19,7 @@ final class HashtagCreateForStaffAction
 {
     public function __construct(
         private readonly HashtagCreateForStaffQuery $query,
+        private readonly HashtagUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -47,7 +48,12 @@ final class HashtagCreateForStaffAction
             $createData['usage_count'] = 0;
         }
 
-        $created = DB::transaction(fn () => $this->query->create($createData)->fresh());
+        $created = DB::transaction(function () use ($createData) {
+            $created = $this->query->create($createData)->fresh();
+            $this->historyRecordAction->recordCreated($created);
+
+            return $created;
+        });
 
         Log::info('해시태그 생성', [
             'hashtag_id' => $created->id,

@@ -7,6 +7,7 @@ namespace App\Domains\HospitalDoctor\Models;
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalReview\Models\HospitalReview;
@@ -28,7 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class HospitalDoctor extends Model
 {
-    use HasAuditLogs, HasFactory, SoftDeletes;
+    use HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
     public const GENDER_MALE = '남';
 

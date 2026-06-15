@@ -19,6 +19,7 @@ final class BeautyExpertUpdateForStaffAction
     public function __construct(
         private readonly BeautyExpertUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction         $mediaAttachAction,
+        private readonly BeautyExpertUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(BeautyExpert $expert, array $payload): array
@@ -26,12 +27,22 @@ final class BeautyExpertUpdateForStaffAction
         Gate::authorize('update', $expert);
 
         $expert = DB::transaction(function () use ($expert, $payload) {
+            $before = $this->historyRecordAction->capture($expert);
             $updated = $this->query->update($expert, $payload);
             $this->replaceMedia($updated, $payload);
             if (array_key_exists('category_ids', $payload) && is_array($payload['category_ids'])) {
                 $this->syncCategories($updated, $payload['category_ids']);
             }
-            return $updated->fresh();
+            $updated = $updated->fresh([
+                'beauty',
+                'profileImage',
+                'educationCertificateImages',
+                'etcCertificateImages',
+                'categories',
+            ]);
+            $this->historyRecordAction->recordUpdated($updated, $before);
+
+            return $updated;
         });
 
         return [

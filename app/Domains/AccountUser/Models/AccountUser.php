@@ -4,6 +4,7 @@ namespace App\Domains\AccountUser\Models;
 
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use Database\Factories\AccountUserFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,7 +21,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 final class AccountUser extends Authenticatable
 {
-    use HasAdminNotes, HasApiTokens, HasAuditLogs, HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use HasAdminNotes, HasApiTokens, HasAuditLogs, HasFactory, HasOperationHistories, HasRoles, Notifiable, SoftDeletes;
 
     protected string $guard_name = 'user';
 

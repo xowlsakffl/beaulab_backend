@@ -4,6 +4,7 @@ namespace App\Domains\Common\Category\Models;
 
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  */
 final class Category extends Model
 {
-    use HasFactory, HasAuditLogs;
+    use HasFactory, HasAuditLogs, HasOperationHistories;
 
     public const DOMAIN_HOSPITAL_MEDICAL = 'HOSPITAL_MEDICAL';
     public const DOMAIN_HOSPITAL_EVALUATION = 'HOSPITAL_EVALUATION';

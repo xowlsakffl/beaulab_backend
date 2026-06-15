@@ -19,6 +19,7 @@ final class HashtagUpdateForStaffAction
 {
     public function __construct(
         private readonly HashtagUpdateForStaffQuery $query,
+        private readonly HashtagUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(Hashtag $hashtag, array $payload): array
@@ -47,7 +48,13 @@ final class HashtagUpdateForStaffAction
             $updateData['status'] = $status;
         }
 
-        $updated = DB::transaction(fn () => $this->query->update($hashtag, $updateData));
+        $updated = DB::transaction(function () use ($hashtag, $updateData) {
+            $before = $this->historyRecordAction->capture($hashtag);
+            $updated = $this->query->update($hashtag, $updateData);
+            $this->historyRecordAction->recordUpdated($updated, $before);
+
+            return $updated;
+        });
 
         Log::info('해시태그 수정', [
             'hashtag_id' => $updated->id,

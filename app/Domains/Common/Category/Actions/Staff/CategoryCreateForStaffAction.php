@@ -22,6 +22,7 @@ final class CategoryCreateForStaffAction
     public function __construct(
         private readonly CategoryCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly CategoryUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -81,7 +82,10 @@ final class CategoryCreateForStaffAction
                 $this->mediaAttachAction->attachOne($created, $icon, 'icon', 'category', 'icon', true);
             }
 
-            return $created->fresh();
+            $created = $created->fresh(['parent', 'iconMedia']);
+            $this->historyRecordAction->recordCreated($created);
+
+            return $created;
         });
 
         Log::info('카테고리 생성', [

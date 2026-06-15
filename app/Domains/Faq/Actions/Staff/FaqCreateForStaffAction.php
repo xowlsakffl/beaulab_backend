@@ -19,6 +19,7 @@ final class FaqCreateForStaffAction
     public function __construct(
         private readonly FaqCreateForStaffQuery $query,
         private readonly SyncFaqEditorImagesAction $syncFaqEditorImagesAction,
+        private readonly FaqUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -36,11 +37,15 @@ final class FaqCreateForStaffAction
                 $created->forceFill(['content' => $syncedContent])->save();
             }
 
-            return $created->fresh([
+            $created = $created->fresh([
                 'categories:id,name,domain,status,sort_order',
                 'creator:id,name,email',
                 'updater:id,name,email',
             ]);
+
+            $this->historyRecordAction->recordCreated($created);
+
+            return $created;
         });
 
         return [

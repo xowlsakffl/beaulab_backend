@@ -2,13 +2,9 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
-use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
-use App\Domains\Common\OperationHistory\Models\OperationHistory;
-use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\HospitalEvent\Dto\Staff\HospitalEventForStaffDto;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventUpdateForStaffQuery;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,7 +12,7 @@ final class HospitalEventPeriodUpdateForStaffAction
 {
     public function __construct(
         private readonly HospitalEventUpdateForStaffQuery $query,
-        private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(HospitalEvent $event, array $payload): array
@@ -24,7 +20,7 @@ final class HospitalEventPeriodUpdateForStaffAction
         Gate::authorize('update', $event);
 
         $event = DB::transaction(function () use ($event, $payload): HospitalEvent {
-            $beforePeriod = $this->periodLabel($event);
+            $before = $this->historyRecordAction->capture($event);
             $isUnlimited = (bool) $payload['is_event_period_unlimited'];
 
             $event = $this->query->update($event, [
@@ -34,29 +30,7 @@ final class HospitalEventPeriodUpdateForStaffAction
             ]);
 
             $event->refresh();
-            $afterPeriod = $this->periodLabel($event);
-
-            if ($beforePeriod !== $afterPeriod) {
-                $actor = auth()->user();
-
-                $this->historyCreateAction->execute(
-                    target: $event,
-                    action: OperationHistory::ACTION_STATUS_UPDATED,
-                    actor: $actor instanceof Model ? $actor : null,
-                    reason: null,
-                    metadata: [
-                        'source' => 'staff.hospital_event.period',
-                    ],
-                    changes: OperationHistoryChangeSetBuilder::single(
-                        key: 'event_period',
-                        label: '기간',
-                        before: $beforePeriod,
-                        after: $afterPeriod,
-                        beforeDisplay: $beforePeriod,
-                        afterDisplay: $afterPeriod,
-                    ),
-                );
-            }
+            $this->historyRecordAction->recordUpdated($event, $before);
 
             return $event;
         });
@@ -69,15 +43,5 @@ final class HospitalEventPeriodUpdateForStaffAction
                 'thumbnailImage',
             ]))->toArray(),
         ];
-    }
-
-    private function periodLabel(HospitalEvent $event): string
-    {
-        $startAt = $event->event_start_at?->toDateString() ?? '';
-        if ((bool) $event->is_event_period_unlimited) {
-            return "{$startAt} ~ 무기한";
-        }
-
-        return "{$startAt} ~ {$event->event_end_at?->toDateString()}";
     }
 }

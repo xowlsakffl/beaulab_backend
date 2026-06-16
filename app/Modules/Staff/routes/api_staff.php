@@ -226,6 +226,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-events.getHospitalEventForStaff');
     Route::post('hospital-events', [HospitalEventForStaffController::class, 'createHospitalEventForStaff'])
         ->name('hospital-events.createHospitalEventForStaff');
+    Route::post('hospital-events/{hospitalEvent}/duplicate', [HospitalEventForStaffController::class, 'duplicateHospitalEventForStaff'])
+        ->name('hospital-events.duplicateHospitalEventForStaff');
     Route::patch('hospital-events/{hospitalEvent}/period', [HospitalEventForStaffController::class, 'updateHospitalEventPeriodForStaff'])
         ->name('hospital-events.updateHospitalEventPeriodForStaff');
     Route::match(['post', 'put', 'patch'], 'hospital-events/{hospitalEvent}', [HospitalEventForStaffController::class, 'updateHospitalEventForStaff'])

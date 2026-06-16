@@ -7,6 +7,7 @@ use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventAllowStatusUpdateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventCreateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventDeleteForStaffAction;
+use App\Domains\HospitalEvent\Actions\Staff\HospitalEventDuplicateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventGetForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventListForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventOperationHistoriesForStaffAction;
@@ -17,6 +18,7 @@ use App\Domains\HospitalEvent\Actions\Staff\HospitalEventUpdateForStaffAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventAllowStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventCreateForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventDuplicateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventPeriodUpdateForStaffRequest;
@@ -51,6 +53,16 @@ final class HospitalEventForStaffController extends Controller
         HospitalEventCreateForStaffAction $action,
     ) {
         $result = $action->execute($request->validated());
+
+        return ApiResponse::success($result['event'] ?? $result);
+    }
+
+    public function duplicateHospitalEventForStaff(
+        HospitalEvent $hospitalEvent,
+        HospitalEventDuplicateForStaffRequest $request,
+        HospitalEventDuplicateForStaffAction $action,
+    ) {
+        $result = $action->execute($hospitalEvent, $request->validated());
 
         return ApiResponse::success($result['event'] ?? $result);
     }

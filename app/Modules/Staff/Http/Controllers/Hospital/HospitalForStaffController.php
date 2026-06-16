@@ -12,6 +12,7 @@ use App\Domains\Hospital\Actions\Staff\HospitalCreateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalDeleteForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalGetForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalListForStaffAction;
+use App\Domains\Hospital\Actions\Staff\HospitalStatusUpdateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalSummaryForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Models\Hospital;
@@ -20,6 +21,7 @@ use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckNameForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalListForStaffRequest;
+use App\Modules\Staff\Http\Requests\Hospital\HospitalStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalUpdateForStaffRequest;
 
 /**
@@ -111,6 +113,20 @@ final class HospitalForStaffController extends Controller
         Hospital $hospital,
         HospitalUpdateForStaffRequest $request,
         HospitalUpdateForStaffAction $action,
+    ) {
+        $result = $action->execute($hospital, $request->validated());
+
+        return ApiResponse::success($result['hospital'] ?? $result);
+    }
+
+    /**
+     * PATCH /api/v1/staff/hospitals/{hospital}/status
+     * (Beaulab) Staff 전용 병원 상태 변경
+     */
+    public function updateHospitalStatusForStaff(
+        Hospital $hospital,
+        HospitalStatusUpdateForStaffRequest $request,
+        HospitalStatusUpdateForStaffAction $action,
     ) {
         $result = $action->execute($hospital, $request->validated());
 

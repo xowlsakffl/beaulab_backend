@@ -24,6 +24,7 @@ final readonly class OperationHistoryDto
         public ?array $actor,
         public string $actorLabel,
         public string $action,
+        public string $actionLabel,
         public ?string $batchUuid,
         public ?string $field,
         public mixed $beforeValue,
@@ -53,6 +54,7 @@ final readonly class OperationHistoryDto
             actor: self::actor($history),
             actorLabel: self::actorLabel($history),
             action: (string) $history->action,
+            actionLabel: self::actionLabel((string) $history->action),
             batchUuid: $history->batch_uuid,
             field: $firstChange?->field_key,
             beforeValue: $firstChange?->before_value,
@@ -91,6 +93,7 @@ final readonly class OperationHistoryDto
             'actor' => $this->actor,
             'actor_label' => $this->actorLabel,
             'action' => $this->action,
+            'action_label' => $this->actionLabel,
             'batch_uuid' => $this->batchUuid,
             'field' => $this->field,
             'before_value' => $this->beforeValue,
@@ -131,5 +134,16 @@ final readonly class OperationHistoryDto
         }
 
         return (string) $history->actor_kind;
+    }
+
+    private static function actionLabel(string $action): string
+    {
+        return match ($action) {
+            OperationHistory::ACTION_CREATED => '생성',
+            OperationHistory::ACTION_UPDATED => '수정',
+            OperationHistory::ACTION_STATUS_UPDATED => '상태 변경',
+            OperationHistory::ACTION_DELETED => '삭제',
+            default => $action,
+        };
     }
 }

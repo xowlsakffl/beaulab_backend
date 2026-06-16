@@ -58,6 +58,7 @@ final class HospitalListForStaffQuery
                 'accountHospital:id,hospital_id,nickname,email,status,last_login_at',
             ])
             ->withCount([
+                'hospitalEvents as event_count',
                 'hospitalReviews as surgery_review_count' => fn (Builder $query) => $query
                     ->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
                     ->where('status', HospitalReview::STATUS_ACTIVE),

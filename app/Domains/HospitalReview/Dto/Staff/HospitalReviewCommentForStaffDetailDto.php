@@ -141,6 +141,12 @@ final readonly class HospitalReviewCommentForStaffDetailDto
 
                 return [
                     'actor_label' => $historyDto->actorLabel,
+                    'action' => $historyDto->action,
+                    'action_label' => $historyDto->actionLabel,
+                    'field' => $historyDto->field,
+                    'before_value' => $historyDto->beforeValue,
+                    'after_value' => $historyDto->afterValue,
+                    'changes' => $historyDto->changes,
                     'status' => $change?->field_key === 'status' ? $change->after_value : null,
                     'created_at' => $history->created_at?->toISOString(),
                     'reason' => $history->reason,

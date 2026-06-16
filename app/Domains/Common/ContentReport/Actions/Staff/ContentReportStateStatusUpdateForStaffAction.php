@@ -207,13 +207,26 @@ final class ContentReportStateStatusUpdateForStaffAction
             $target->forceFill(['status' => $status])->save();
         }
 
-        $beforeLabel = $hasStatusColumn
-            ? ($beforeStatus === 'ACTIVE' ? '노출' : '미노출')
-            : (ContentReportState::statusLabels()[$reportStatusBefore] ?? $reportStatusBefore);
-        $afterLabel = $hasStatusColumn
-            ? ($status === 'ACTIVE' ? '노출' : '미노출')
-            : (ContentReportState::statusLabels()[$reportStatusAfter] ?? $reportStatusAfter);
-        $fieldKey = $hasStatusColumn ? 'status' : 'report_status';
+        $changesBuilder = OperationHistoryChangeSetBuilder::make()
+            ->compare(
+                key: 'report_status',
+                label: '신고상태',
+                before: $reportStatusBefore,
+                after: $reportStatusAfter,
+                beforeDisplay: ContentReportState::statusLabels()[$reportStatusBefore] ?? $reportStatusBefore,
+                afterDisplay: ContentReportState::statusLabels()[$reportStatusAfter] ?? $reportStatusAfter,
+            );
+
+        if ($hasStatusColumn) {
+            $changesBuilder->compare(
+                key: 'status',
+                label: '노출여부',
+                before: $beforeStatus,
+                after: $status,
+                beforeDisplay: $beforeStatus === 'ACTIVE' ? '노출' : '미노출',
+                afterDisplay: $status === 'ACTIVE' ? '노출' : '미노출',
+            );
+        }
 
         $this->historyCreateAction->execute(
             target: $target,
@@ -225,14 +238,7 @@ final class ContentReportStateStatusUpdateForStaffAction
                 'report_status_after' => $reportStatusAfter,
                 'source' => $source,
             ],
-            changes: OperationHistoryChangeSetBuilder::single(
-                key: $fieldKey,
-                label: $hasStatusColumn ? '노출여부' : '신고상태',
-                before: $beforeStatus,
-                after: $hasStatusColumn ? $status : $reportStatusAfter,
-                beforeDisplay: $beforeLabel,
-                afterDisplay: $afterLabel,
-            ),
+            changes: $changesBuilder->toArray(),
         );
     }
 

@@ -21,6 +21,7 @@ final readonly class HospitalForStaffDto
         public ?string $email,
         public ?string $tel,
         public int $viewCount,
+        public int $eventCount,
         public array $evaluation,
         public array $reviewCounts,
         public string $allowStatus,
@@ -43,6 +44,7 @@ final readonly class HospitalForStaffDto
             email: $hospital->email,
             tel: $hospital->tel,
             viewCount: (int) $hospital->view_count,
+            eventCount: (int) $hospital->getAttribute('event_count'),
             evaluation: [
                 'count' => (int) $hospital->evaluation_count,
                 'average_rating' => round((float) $hospital->evaluation_average_rating, 1),
@@ -72,6 +74,7 @@ final readonly class HospitalForStaffDto
             'email'        => $this->email,
             'tel'          => $this->tel,
             'view_count'   => $this->viewCount,
+            'event_count'  => $this->eventCount,
             'evaluation'   => $this->evaluation,
             'review_counts' => $this->reviewCounts,
             'allow_status' => $this->allowStatus,

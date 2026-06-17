@@ -153,6 +153,11 @@ final class HospitalEvent extends Model
             ->orderBy('id');
     }
 
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(HospitalEventConsultation::class, 'hospital_event_id');
+    }
+
     public function categories(): MorphToMany
     {
         return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')

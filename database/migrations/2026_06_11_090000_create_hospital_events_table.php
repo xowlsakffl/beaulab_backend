@@ -112,10 +112,78 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE hospital_event_options COMMENT = '병의원 이벤트 옵션'");
+
+        Schema::create('hospital_event_consultations', function (Blueprint $table) {
+            $table->id()->comment('병의원 이벤트 DB ID');
+
+            $table->foreignId('account_user_id')
+                ->nullable()
+                ->comment('신청 일반회원 account_users ID')
+                ->constrained('account_users')
+                ->nullOnDelete();
+
+            $table->foreignId('hospital_id')
+                ->comment('병의원 ID')
+                ->constrained('hospitals')
+                ->cascadeOnDelete();
+
+            $table->foreignId('hospital_event_id')
+                ->comment('병의원 이벤트 ID')
+                ->constrained('hospital_events')
+                ->cascadeOnDelete();
+
+            $table->foreignId('hospital_doctor_id')
+                ->nullable()
+                ->comment('선택 의료진 ID')
+                ->constrained('hospital_doctors')
+                ->nullOnDelete();
+
+            $table->string('name', 50)->comment('신청자 이름');
+            $table->string('phone', 30)->comment('신청자 전화번호');
+            $table->string('phone_normalized', 30)->comment('검색/중복판정용 정규화 전화번호');
+            $table->string('contact_method', 20)->comment('연락수단(KAKAO, PHONE, SMS)');
+            $table->string('preferred_time', 20)->comment('선호시간(MORNING, AFTERNOON, ANYTIME)');
+
+            $table->unsignedBigInteger('event_price')->default(0)->comment('신청 시점 이벤트 가격(원)');
+            $table->unsignedBigInteger('consultation_price')->default(0)->comment('신청 시점 소진 단가(원)');
+
+            $table->string('status', 20)->default('NEW')->comment('상담 여부 상태(NEW, CONFIRMED, DUPLICATE)');
+            $table->string('allow_status', 30)->default('NORMAL_CONFIRMED')->comment('검증 상태(UNVERIFIED_REPORTED, UNVERIFIED_CONFIRMED, NORMAL_CONFIRMED)');
+
+            $table->timestamp('contacted_at')->nullable()->comment('연락 처리 시각');
+            $table->timestamp('confirmed_at')->nullable()->comment('상담 확인 처리 시각');
+            $table->timestamp('duplicated_at')->nullable()->comment('중복 처리 시각');
+
+            $table->string('author_ip', 45)->nullable()->comment('신청 IP(v4/v6)');
+            $table->string('user_agent', 500)->nullable()->comment('신청 User-Agent');
+            $table->timestamp('privacy_agreed_at')->nullable()->comment('개인정보 수집/이용 동의 시각');
+            $table->timestamp('marketing_agreed_at')->nullable()->comment('마케팅 수신 동의 시각');
+
+            $table->timestamps();
+            $table->softDeletes()->comment('소프트 삭제 시각');
+
+            $table->index(['created_at', 'id'], 'h_event_consults_created_id_idx');
+            $table->index(['account_user_id', 'created_at'], 'h_event_consults_user_created_idx');
+            $table->index(['hospital_id', 'created_at'], 'h_event_consults_hospital_created_idx');
+            $table->index(['hospital_event_id', 'created_at'], 'h_event_consults_event_created_idx');
+            $table->index(['hospital_event_id', 'phone_normalized', 'name'], 'h_event_consults_event_phone_name_idx');
+            $table->index(['hospital_doctor_id', 'created_at'], 'h_event_consults_doctor_created_idx');
+            $table->index(['contact_method', 'created_at'], 'h_event_consults_contact_created_idx');
+            $table->index(['preferred_time', 'created_at'], 'h_event_consults_preferred_created_idx');
+            $table->index(['status', 'created_at'], 'h_event_consults_status_created_idx');
+            $table->index(['allow_status', 'created_at'], 'h_event_consults_allow_status_created_idx');
+            $table->index(['event_price', 'consultation_price'], 'h_event_consults_amount_idx');
+            $table->index('phone', 'h_event_consults_phone_idx');
+            $table->index('phone_normalized', 'h_event_consults_phone_normalized_idx');
+            $table->index('author_ip', 'h_event_consults_author_ip_idx');
+        });
+
+        DB::statement("ALTER TABLE hospital_event_consultations COMMENT = '병의원 이벤트 DB 신청'");
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('hospital_event_consultations');
         Schema::dropIfExists('hospital_event_options');
         Schema::dropIfExists('hospital_event_doctor_assignments');
         Schema::dropIfExists('hospital_events');

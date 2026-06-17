@@ -19,6 +19,7 @@ use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventConsultationForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
@@ -212,6 +213,14 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 병의원 이벤트 관리
      **/
+    Route::get('hospital-event-consultations', [HospitalEventConsultationForStaffController::class, 'getHospitalEventConsultationsForStaff'])
+        ->name('hospital-event-consultations.getHospitalEventConsultationsForStaff');
+    Route::patch('hospital-event-consultations/status', [HospitalEventConsultationForStaffController::class, 'updateHospitalEventConsultationStatusForStaff'])
+        ->name('hospital-event-consultations.updateHospitalEventConsultationStatusForStaff');
+    Route::patch('hospital-event-consultations/allow-status', [HospitalEventConsultationForStaffController::class, 'updateHospitalEventConsultationAllowStatusForStaff'])
+        ->name('hospital-event-consultations.updateHospitalEventConsultationAllowStatusForStaff');
+    Route::get('hospital-event-consultations/{hospitalEventConsultation}/operation-histories', [HospitalEventConsultationForStaffController::class, 'getHospitalEventConsultationOperationHistoriesForStaff'])
+        ->name('hospital-event-consultations.getHospitalEventConsultationOperationHistoriesForStaff');
     Route::get('hospital-events', [HospitalEventForStaffController::class, 'getHospitalEventsForStaff'])
         ->name('hospital-events.getHospitalEventsForStaff');
     Route::get('hospital-events/summary', [HospitalEventForStaffController::class, 'getHospitalEventSummaryForStaff'])

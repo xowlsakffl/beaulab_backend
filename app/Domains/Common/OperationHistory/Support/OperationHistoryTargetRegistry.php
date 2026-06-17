@@ -15,6 +15,7 @@ use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
@@ -49,6 +50,8 @@ final class OperationHistoryTargetRegistry
 
     public const string ALIAS_HOSPITAL_EVENT = 'hospital_event';
 
+    public const string ALIAS_HOSPITAL_EVENT_CONSULTATION = 'hospital_event_consultation';
+
     public const string ALIAS_HOSPITAL_REVIEW = 'hospital_review';
 
     public const string ALIAS_HOSPITAL_REVIEW_COMMENT = 'hospital_review_comment';
@@ -75,6 +78,7 @@ final class OperationHistoryTargetRegistry
         self::ALIAS_ACCOUNT_USER => AccountUser::class,
         self::ALIAS_HOSPITAL_EVALUATION => HospitalEvaluation::class,
         self::ALIAS_HOSPITAL_EVENT => HospitalEvent::class,
+        self::ALIAS_HOSPITAL_EVENT_CONSULTATION => HospitalEventConsultation::class,
         self::ALIAS_HOSPITAL_REVIEW => HospitalReview::class,
         self::ALIAS_HOSPITAL_REVIEW_COMMENT => HospitalReviewComment::class,
         self::ALIAS_TALK => Talk::class,

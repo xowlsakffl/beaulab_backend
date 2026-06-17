@@ -42,6 +42,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'hospital-reviews' => '병의원 후기',
         'hospital-review-comments' => '병의원 후기 댓글',
         'hospital-evaluations' => '병의원 평가',
+        'hospital-events' => '병의원 이벤트',
+        'hospital-event-consultations' => '이벤트 DB',
         'talks' => '토크',
         'talk-comments' => '토크 댓글',
         'notices' => '공지사항',
@@ -77,6 +79,10 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'get staff/hospital-evaluations/{hospitalEvaluation}' => '병의원 평가 상세 조회',
         'patch staff/hospital-evaluations/{hospitalEvaluation}/receipt/verify' => '병의원 평가 영수증 인증 처리',
         'patch staff/hospital-evaluations/{hospitalEvaluation}/receipt/reject' => '병의원 평가 영수증 부적합 처리',
+        'get staff/hospital-event-consultations' => '이벤트 DB 목록 조회',
+        'patch staff/hospital-event-consultations/status' => '이벤트 DB 상담여부 일괄 수정',
+        'patch staff/hospital-event-consultations/allow-status' => '이벤트 DB 검증상태 일괄 수정',
+        'get staff/hospital-event-consultations/{hospitalEventConsultation}/operation-histories' => '이벤트 DB 히스토리 조회',
         'post staff/notices/editor-images' => '공지사항 에디터 이미지 업로드',
         'delete staff/notices/editor-images' => '공지사항 에디터 임시 이미지 정리',
         'post staff/faqs/editor-images' => 'FAQ 에디터 이미지 업로드',
@@ -108,6 +114,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'post user/talks/{talk}/comments' => '토크 댓글 생성',
         'delete user/talks/{talk}/comments/{comment}' => '토크 댓글 삭제',
         'post user/talks/{talk}/poll-votes' => '토크 투표',
+
+        'post user/hospital-events/{hospitalEvent}/consultations' => '이벤트 상담 신청',
 
         'post user/hospital-reviews' => '후기 생성',
         'delete user/hospital-reviews/{hospitalReview}' => '후기 삭제',

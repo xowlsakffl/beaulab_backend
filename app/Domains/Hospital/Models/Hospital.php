@@ -13,6 +13,7 @@ use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Database\Factories\HospitalFactory;
@@ -126,6 +127,11 @@ final class Hospital extends Model
     public function hospitalEvents(): HasMany
     {
         return $this->hasMany(HospitalEvent::class, 'hospital_id');
+    }
+
+    public function hospitalEventConsultations(): HasMany
+    {
+        return $this->hasMany(HospitalEventConsultation::class, 'hospital_id');
     }
 
     public function logoMedia(): MorphOne

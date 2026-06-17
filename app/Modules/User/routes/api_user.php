@@ -9,6 +9,7 @@ use App\Modules\User\Http\Controllers\Auth\AuthForUserController;
 use App\Modules\User\Http\Controllers\Block\AccountUserBlockForUserController;
 use App\Modules\User\Http\Controllers\Chat\ChatForUserController;
 use App\Modules\User\Http\Controllers\ContentReport\ContentReportForUserController;
+use App\Modules\User\Http\Controllers\HospitalEvent\HospitalEventForUserController;
 use App\Modules\User\Http\Controllers\HospitalReview\HospitalReviewForUserController;
 use App\Modules\User\Http\Controllers\Notification\NotificationForUserController;
 use App\Modules\User\Http\Controllers\Talk\TalkForUserController;
@@ -89,6 +90,9 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
 
     Route::post('hospital-evaluations/{hospitalEvaluation}/reports', [ContentReportForUserController::class, 'reportHospitalEvaluationForUser'])
         ->name('hospital-evaluations.reportHospitalEvaluationForUser');
+
+    Route::post('hospital-events/{hospitalEvent}/consultations', [HospitalEventForUserController::class, 'createHospitalEventConsultationForUser'])
+        ->name('hospital-events.createHospitalEventConsultationForUser');
 
     // 앱 사용자 차단 API. 차단은 방향성 있는 유저 관계로 저장하고, 메시지 발송 전 검증에 사용한다.
     Route::get('blocks', [AccountUserBlockForUserController::class, 'getBlocksForUser'])

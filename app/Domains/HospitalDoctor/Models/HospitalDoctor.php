@@ -10,6 +10,7 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Database\Factories\HospitalDoctorFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -251,6 +252,11 @@ final class HospitalDoctor extends Model
         return $this->belongsToMany(HospitalEvent::class, 'hospital_event_doctor_assignments', 'hospital_doctor_id', 'hospital_event_id')
             ->withPivot(['sort_order', 'is_career_visible', 'is_activity_visible'])
             ->withTimestamps();
+    }
+
+    public function eventConsultations(): HasMany
+    {
+        return $this->hasMany(HospitalEventConsultation::class, 'hospital_doctor_id');
     }
 
     public function profileImage(): MorphOne

@@ -56,9 +56,14 @@ final class ReportedContentSummaryForStaffQuery
                 ))
                 ->count(),
             'recent_30_days_admin_hidden_count' => (clone $builder)
+                ->where('report_status', ContentReportState::STATUS_ADMIN_HIDDEN)
                 ->where('admin_hidden_at', '>=', now()->subDays(30))
                 ->count(),
             'recent_30_days_normal_visible_count' => (clone $builder)
+                ->whereIn('report_status', [
+                    ContentReportState::STATUS_NORMAL_VISIBLE,
+                    ContentReportState::STATUS_REEXPOSED,
+                ])
                 ->where('normal_visible_at', '>=', now()->subDays(30))
                 ->count(),
         ];

@@ -117,10 +117,9 @@ return new class extends Migration
             $table->id()->comment('병의원 이벤트 DB ID');
 
             $table->foreignId('account_user_id')
-                ->nullable()
                 ->comment('신청 일반회원 account_users ID')
                 ->constrained('account_users')
-                ->nullOnDelete();
+                ->cascadeOnDelete();
 
             $table->foreignId('hospital_id')
                 ->comment('병의원 ID')

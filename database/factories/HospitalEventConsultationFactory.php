@@ -113,7 +113,7 @@ final class HospitalEventConsultationFactory extends Factory
         return $doctorIds->random();
     }
 
-    private function randomAccountUserId(): ?int
+    private function randomAccountUserId(): int
     {
         /** @var array<int, int>|null $userIds */
         static $userIds = null;
@@ -125,8 +125,11 @@ final class HospitalEventConsultationFactory extends Factory
                 ->all();
         }
 
-        if ($userIds === [] || $this->faker->boolean(20)) {
-            return null;
+        if ($userIds === []) {
+            $user = AccountUser::factory()->create();
+            $userIds[] = (int) $user->id;
+
+            return (int) $user->id;
         }
 
         return $userIds[array_rand($userIds)];

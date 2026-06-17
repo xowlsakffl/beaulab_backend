@@ -67,7 +67,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
                 'source' => 'staff.content_report.warning_status',
             ];
 
-            $reason = $this->applyWarningTransition($authorId, $beforeWarningStatus, $warningStatus, $metadata);
+            $this->applyWarningTransition($authorId, $beforeWarningStatus, $warningStatus, $metadata);
 
             $state->warning_status = $warningStatus;
             $state->warning_processed_at = now();
@@ -78,7 +78,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
                 target: $target,
                 action: OperationHistory::ACTION_STATUS_UPDATED,
                 actor: $actor instanceof Model ? $actor : null,
-                reason: $reason,
+                reason: null,
                 metadata: $metadata,
                 changes: OperationHistoryChangeSetBuilder::single(
                     key: 'warning_status',
@@ -142,19 +142,21 @@ final class ContentReportWarningStatusUpdateForStaffAction
         string $beforeWarningStatus,
         string $warningStatus,
         array &$metadata,
-    ): string {
+    ): void {
         if ($warningStatus === ContentReportState::WARNING_STATUS_WARNED) {
-            return $this->applyUserWarning($authorId, $metadata);
+            $this->applyUserWarning($authorId, $metadata);
+
+            return;
         }
 
         if ($beforeWarningStatus === ContentReportState::WARNING_STATUS_WARNED) {
-            return $this->removeUserWarning($authorId, $metadata);
-        }
+            $this->removeUserWarning($authorId, $metadata);
 
-        return '신고 경고 무시';
+            return;
+        }
     }
 
-    private function applyUserWarning(int $authorId, array &$metadata): string
+    private function applyUserWarning(int $authorId, array &$metadata): void
     {
         $author = AccountUser::query()
             ->whereKey($authorId)
@@ -190,11 +192,9 @@ final class ContentReportWarningStatusUpdateForStaffAction
         $metadata['account_status_before'] = $beforeAccountStatus;
         $metadata['account_status_after'] = (string) $author->status;
         $metadata['account_blocked'] = $accountBlocked;
-
-        return $accountBlocked ? '신고 경고 처리 - 누적 10회 차단' : '신고 경고 처리';
     }
 
-    private function removeUserWarning(int $authorId, array &$metadata): string
+    private function removeUserWarning(int $authorId, array &$metadata): void
     {
         $author = AccountUser::query()
             ->whereKey($authorId)
@@ -230,7 +230,5 @@ final class ContentReportWarningStatusUpdateForStaffAction
         $metadata['account_status_before'] = $beforeAccountStatus;
         $metadata['account_status_after'] = (string) $author->status;
         $metadata['account_unblocked'] = $accountUnblocked;
-
-        return $accountUnblocked ? '신고 경고 무시 - 누적 차단 해제' : '신고 경고 무시';
     }
 }

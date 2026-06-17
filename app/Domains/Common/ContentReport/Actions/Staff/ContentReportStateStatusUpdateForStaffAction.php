@@ -58,7 +58,7 @@ final class ContentReportStateStatusUpdateForStaffAction
                 $this->applyTargetStatus(
                     target: $target,
                     status: 'INACTIVE',
-                    reason: $this->adminHiddenHistoryReason($processReason),
+                    reason: $processReason,
                     reportStatusBefore: $previousReportStatus,
                     reportStatusAfter: ContentReportState::STATUS_ADMIN_HIDDEN,
                     actor: $actor instanceof Model ? $actor : null,
@@ -85,7 +85,7 @@ final class ContentReportStateStatusUpdateForStaffAction
                 $this->applyTargetStatus(
                     target: $target,
                     status: 'ACTIVE',
-                    reason: $this->normalVisibleHistoryReason($processReason, $reportStatusAfter),
+                    reason: $processReason,
                     reportStatusBefore: $previousReportStatus,
                     reportStatusAfter: $reportStatusAfter,
                     actor: $actor instanceof Model ? $actor : null,
@@ -101,7 +101,7 @@ final class ContentReportStateStatusUpdateForStaffAction
                 $this->applyTargetStatus(
                     target: $target,
                     status: 'INACTIVE',
-                    reason: $this->validHistoryReason($processReason),
+                    reason: $processReason,
                     reportStatusBefore: $previousReportStatus,
                     reportStatusAfter: ContentReportState::STATUS_VALID,
                     actor: $actor instanceof Model ? $actor : null,
@@ -115,7 +115,7 @@ final class ContentReportStateStatusUpdateForStaffAction
                 $this->applyTargetStatus(
                     target: $target,
                     status: 'ACTIVE',
-                    reason: $this->invalidHistoryReason($processReason),
+                    reason: $processReason,
                     reportStatusBefore: $previousReportStatus,
                     reportStatusAfter: ContentReportState::STATUS_INVALID,
                     actor: $actor instanceof Model ? $actor : null,
@@ -161,40 +161,10 @@ final class ContentReportStateStatusUpdateForStaffAction
         return $reason === '' ? null : $reason;
     }
 
-    private function adminHiddenHistoryReason(?string $processReason): string
-    {
-        if ($processReason === null) {
-            return '신고 처리 노출중지';
-        }
-
-        return "신고 처리 노출중지 - {$processReason}";
-    }
-
-    private function normalVisibleHistoryReason(?string $processReason, string $reportStatusAfter): string
-    {
-        if ($processReason !== null) {
-            return $processReason;
-        }
-
-        return $reportStatusAfter === ContentReportState::STATUS_REEXPOSED
-            ? '신고 처리 재노출'
-            : '신고 처리 정상노출';
-    }
-
-    private function validHistoryReason(?string $processReason): string
-    {
-        return $processReason === null ? '신고 처리' : "신고 처리 - {$processReason}";
-    }
-
-    private function invalidHistoryReason(?string $processReason): string
-    {
-        return $processReason === null ? '신고 무시 처리' : "신고 무시 처리 - {$processReason}";
-    }
-
     private function applyTargetStatus(
         Model $target,
         string $status,
-        string $reason,
+        ?string $reason,
         string $reportStatusBefore,
         string $reportStatusAfter,
         ?Model $actor,

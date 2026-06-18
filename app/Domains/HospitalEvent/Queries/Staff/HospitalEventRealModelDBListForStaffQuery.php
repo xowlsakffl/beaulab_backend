@@ -84,6 +84,10 @@ final class HospitalEventRealModelDBListForStaffQuery
             $builder->where('hospital_event_id', (int) $filters['hospital_event_id']);
         }
 
+        if (! empty($filters['birth_start_date']) || ! empty($filters['birth_end_date'])) {
+            DateRangeFilter::apply($builder, 'birth_date', $filters['birth_start_date'] ?? null, $filters['birth_end_date'] ?? null);
+        }
+
         if (! empty($filters['start_date']) || ! empty($filters['end_date'])) {
             DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
         }
@@ -96,19 +100,13 @@ final class HospitalEventRealModelDBListForStaffQuery
             return;
         }
 
-        $normalizedPhone = HospitalEventRealModelDB::normalizePhone($keyword);
-
-        $builder->where(function ($query) use ($keyword, $normalizedPhone): void {
+        $builder->where(function ($query) use ($keyword): void {
             if (ctype_digit($keyword)) {
                 $query->whereKey((int) $keyword);
             }
 
             $query
                 ->orWhere('name', 'like', "%{$keyword}%")
-                ->orWhere('phone', 'like', "%{$keyword}%")
-                ->orWhere('support_part', 'like', "%{$keyword}%")
-                ->when($normalizedPhone !== '', fn ($phoneQuery) => $phoneQuery
-                    ->orWhere('phone_normalized', 'like', "%{$normalizedPhone}%"))
                 ->orWhereHas('hospital', fn ($hospitalQuery) => $hospitalQuery
                     ->where('name', 'like', "%{$keyword}%"))
                 ->orWhereHas('event', fn ($eventQuery) => $eventQuery

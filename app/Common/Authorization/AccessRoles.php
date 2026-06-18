@@ -19,8 +19,6 @@ final class AccessRoles
 
     // Hospital
     public const HOSPITAL_OWNER      = 'hospital.owner';
-    public const HOSPITAL_MANAGER    = 'hospital.manager';
-    public const HOSPITAL_STAFF      = 'hospital.staff';
 
     // Beauty
     public const BEAUTY_OWNER        = 'beauty.owner';
@@ -47,17 +45,11 @@ final class AccessRoles
             ],
             AccessPermissions::GUARD_HOSPITAL => [
                 self::HOSPITAL_OWNER,
-                self::HOSPITAL_MANAGER,
-                self::HOSPITAL_STAFF,
             ],
             AccessPermissions::GUARD_BEAUTY => [
                 self::BEAUTY_OWNER,
                 self::BEAUTY_MANAGER,
                 self::BEAUTY_STAFF,
-            ],
-            AccessPermissions::GUARD_USER => [
-                // 유저는 role을 안 쓰면 비워둬도 됨.
-                // 필요하면 예: 'user.basic'
             ],
         ];
     }
@@ -78,7 +70,6 @@ final class AccessRoles
 
         // guard별로 생성될 permission 집합 (Seeder에서 그대로 생성되는 목록)
         $staffAllPermissions   = AccessPermissions::byGuard()[AccessPermissions::GUARD_STAFF];
-        $userAllPermissions    = AccessPermissions::byGuard()[AccessPermissions::GUARD_USER];
 
         return [
             // =========================
@@ -130,27 +121,11 @@ final class AccessRoles
             // Partner (guard: partner)
             // =========================
             AccessPermissions::GUARD_HOSPITAL => [
+                // 1병원 1계정 정책: 현재 병원 파트너는 owner 단일 role만 사용한다.
+                // 다계정 정책 재도입 시 manager/staff role을 새로 정의한다.
                 self::HOSPITAL_OWNER => self::unique([
                     ...$partnerCommon,
                     ...$hospital,
-                ]),
-                self::HOSPITAL_MANAGER => self::unique([
-                    ...$partnerCommon,
-                    AccessPermissions::HOSPITAL_PROFILE_SHOW,
-                    AccessPermissions::HOSPITAL_PROFILE_UPDATE,
-                    AccessPermissions::HOSPITAL_MEMBERS_MANAGE,
-                    AccessPermissions::HOSPITAL_VIDEO_SHOW,
-                    AccessPermissions::HOSPITAL_VIDEO_CREATE,
-                    AccessPermissions::HOSPITAL_VIDEO_UPDATE,
-                    AccessPermissions::HOSPITAL_VIDEO_CANCEL,
-                ]),
-                self::HOSPITAL_STAFF => self::unique([
-                    ...$partnerCommon,
-                    AccessPermissions::HOSPITAL_PROFILE_SHOW,
-                    AccessPermissions::HOSPITAL_VIDEO_SHOW,
-                    AccessPermissions::HOSPITAL_VIDEO_CREATE,
-                    AccessPermissions::HOSPITAL_VIDEO_UPDATE,
-                    AccessPermissions::HOSPITAL_VIDEO_CANCEL,
                 ]),
             ],
 
@@ -179,13 +154,6 @@ final class AccessRoles
                 ]),
             ],
 
-            // =========================
-            // User (guard: user)
-            // =========================
-            AccessPermissions::GUARD_USER => [
-                // 유저는 role 기반을 안 쓰면 비워둬도 됨.
-                // role을 쓴다면 예: 'user.basic' => $userAllPermissions
-            ],
         ];
     }
 
@@ -200,7 +168,6 @@ final class AccessRoles
         $merged = [];
 
         foreach (self::mapByGuard() as $guard => $map) {
-            // user는 role 안 쓰는 전제면 비어있음
             foreach ($map as $role => $permissions) {
                 $merged[$role] = $permissions;
             }

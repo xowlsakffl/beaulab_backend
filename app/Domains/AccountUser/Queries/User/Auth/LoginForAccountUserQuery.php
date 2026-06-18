@@ -16,7 +16,7 @@ final class LoginForAccountUserQuery
 {
     /**
      * @param array{email:string,password:string,device_name?:string|null} $data
-     * @return array{token:string, user: AccountUser, roles: list<string>, permissions: list<string>}
+     * @return array{token:string, user: AccountUser}
      */
     public function login(array $data): array
     {
@@ -25,7 +25,7 @@ final class LoginForAccountUserQuery
 
     /**
      * @param array{email:string,password:string,device_name?:string|null} $data
-     * @return array{token:string, user: AccountUser, roles: list<string>, permissions: list<string>}
+     * @return array{token:string, user: AccountUser}
      */
     private function loginInTransaction(array $data): array
     {
@@ -64,8 +64,6 @@ final class LoginForAccountUserQuery
         return [
             'token' => $token,
             'user' => $user,
-            'roles' => $user->getRoleNames()->values()->all(),
-            'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
         ];
     }
 }

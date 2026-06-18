@@ -18,7 +18,7 @@ final class LoginForAccountUserAction
 
     /**
      * @param array{email:string,password:string,device_name?:string|null} $filters
-     * @return array{token:string, actor:string, user: array, roles: list<string>, permissions: list<string>}
+     * @return array{token:string, actor:string, user: array}
      */
     public function execute(array $filters): array
     {
@@ -32,8 +32,6 @@ final class LoginForAccountUserAction
             'token' => $result['token'],
             'actor' => 'user',
             'user' => AccountUserForAccountUserDto::fromModel($result['user'])->toArray(),
-            'roles' => $result['roles'],
-            'permissions' => $result['permissions'],
         ];
     }
 }

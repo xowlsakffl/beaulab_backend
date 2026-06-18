@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 
 /**
  * AccountUser 역할 정의.
@@ -23,9 +22,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 final class AccountUser extends Authenticatable
 {
-    use HasAdminNotes, HasApiTokens, HasAuditLogs, HasFactory, HasOperationHistories, HasRoles, Notifiable, SoftDeletes;
-
-    protected string $guard_name = 'user';
+    use HasAdminNotes, HasApiTokens, HasAuditLogs, HasFactory, HasOperationHistories, Notifiable, SoftDeletes;
 
     protected $table = 'account_users';
 

@@ -2,10 +2,9 @@
 
 return [
 
-    'default_guard_name' => 'user',
+    'default_guard_name' => 'staff',
 
     'guards' => [
-        'user',
         'hospital',
         'beauty',
         'staff',

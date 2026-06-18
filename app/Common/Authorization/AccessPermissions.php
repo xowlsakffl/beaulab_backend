@@ -10,8 +10,6 @@ final class AccessPermissions
 
     public const GUARD_BEAUTY = 'beauty';
 
-    public const GUARD_USER = 'user';
-
     // Common
     public const COMMON_ACCESS = 'common.access';
 
@@ -123,8 +121,6 @@ final class AccessPermissions
 
     public const HOSPITAL_PROFILE_DELETE = 'hospital.profile.delete';
 
-    public const HOSPITAL_MEMBERS_MANAGE = 'hospital.members.manage';
-
     public const HOSPITAL_VIDEO_SHOW = 'hospital.video.show';
 
     public const HOSPITAL_VIDEO_CREATE = 'hospital.video.create';
@@ -150,18 +146,13 @@ final class AccessPermissions
 
     public const BEAUTY_VIDEO_CANCEL = 'beauty.video.cancel';
 
-    // User
-    public const USER_PROFILE_SHOW = 'user.profile.show';
-
-    public const USER_PROFILE_UPDATE = 'user.profile.update';
-
     /**
      * guard별 생성해야 할 permission 목록 (Seeder는 이걸 기준으로 생성)
      *
      * - staff: 내부 직원(뷰랩)
      * - hospital: 병원 파트너
      * - beauty: 뷰티 파트너
-     * - user: 일반 사용자(앱) => 프로필만
+     * - user: 일반 사용자(앱)는 Spatie permission을 사용하지 않는다.
      */
     public static function byGuard(): array
     {
@@ -180,10 +171,6 @@ final class AccessPermissions
             self::GUARD_BEAUTY => self::unique([
                 ...self::common(),
                 ...self::beauty(),
-            ]),
-
-            self::GUARD_USER => self::unique([
-                ...self::user(),
             ]),
         ];
     }
@@ -301,7 +288,6 @@ final class AccessPermissions
             self::HOSPITAL_PROFILE_SHOW,
             self::HOSPITAL_PROFILE_UPDATE,
             self::HOSPITAL_PROFILE_DELETE,
-            self::HOSPITAL_MEMBERS_MANAGE,
             self::HOSPITAL_VIDEO_SHOW,
             self::HOSPITAL_VIDEO_CREATE,
             self::HOSPITAL_VIDEO_UPDATE,
@@ -323,17 +309,6 @@ final class AccessPermissions
             self::BEAUTY_VIDEO_CREATE,
             self::BEAUTY_VIDEO_UPDATE,
             self::BEAUTY_VIDEO_CANCEL,
-        ];
-    }
-
-    /**
-     * User(앱) 권한
-     */
-    public static function user(): array
-    {
-        return [
-            self::USER_PROFILE_SHOW,
-            self::USER_PROFILE_UPDATE,
         ];
     }
 

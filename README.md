@@ -369,7 +369,7 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 | Guard | Role |
 | --- | --- |
 | Staff | `beaulab.super_admin`, `beaulab.admin`, `beaulab.staff`, `beaulab.dev` |
-| Hospital | `hospital.owner`, `hospital.manager`, `hospital.staff` |
+| Hospital | `hospital.owner` |
 | Beauty | `beauty.owner`, `beauty.manager`, `beauty.staff` |
 | User | 현재 role 기반 매핑 없음 |
 

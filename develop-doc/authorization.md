@@ -13,7 +13,8 @@
 - `beauty`: 뷰티 파트너
 - `user`: 일반 앱 사용자
 
-Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
+Permission은 Staff/Hospital/Beauty guard별로 생성/관리하며 Seeder에서 동기화한다.
+User는 Spatie role/permission을 사용하지 않는다.
 
 ## 2) Role 목록
 
@@ -27,10 +28,9 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 ### 2.2 Hospital (`guard: hospital`)
 
 - `hospital.owner`
-- `hospital.manager`
-- `hospital.staff`
 - 현재 파트너 계정 구조는 `Hospital` 1개당 `AccountHospital` 1개다.
-- Role/Permission 체계는 유지하지만, 병원에 여러 병원계정을 발급하는 구조는 사용하지 않는다.
+- 병원 파트너 role은 `hospital.owner` 단일로 운영한다.
+- 향후 다계정 정책이 다시 필요해지면 `manager`, `staff` 역할을 새로 정의해 확장한다.
 
 ### 2.3 Beauty (`guard: beauty`)
 
@@ -42,7 +42,8 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 
 ### 2.4 User (`guard: user`)
 
-- 현재 role 기반 매핑은 비워둔 상태(필요 시 확장)
+- User API는 Spatie role/permission을 사용하지 않는다.
+- 사용자 기능 권한은 인증 여부, 계정 상태, 도메인 Policy/Action 규칙으로 처리한다.
 
 ## 3) Permission 목록 (현재 코드 반영)
 
@@ -76,7 +77,6 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 ### 3.3 Hospital 전용
 
 - `hospital.profile.show|update|delete`
-- `hospital.members.manage`
 - `hospital.video.show|create|update|cancel`
 
 ### 3.4 Beauty 전용
@@ -87,8 +87,7 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 
 ### 3.5 User 전용
 
-- `user.profile.show`
-- `user.profile.update`
+- 없음. User guard 권한/역할은 생성하지 않는다.
 
 ## 4) Role -> Permission 매핑 요약
 
@@ -102,10 +101,8 @@ Permission은 guard별로 생성/관리하며 Seeder에서 동기화한다.
 
 - `hospital.owner`
   - common + hospital 전체
-- `hospital.manager`
-  - common + 조회/수정/멤버관리 중심
-- `hospital.staff`
-  - common + 조회 중심
+- 과거 다계정 병원 role
+  - 현재 사용하지 않음. Seeder에서 잔여 role을 제거한다.
 
 - `beauty.owner`
   - common + beauty 전체

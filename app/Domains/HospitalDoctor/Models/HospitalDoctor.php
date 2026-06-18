@@ -10,7 +10,7 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Database\Factories\HospitalDoctorFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -254,9 +254,9 @@ final class HospitalDoctor extends Model
             ->withTimestamps();
     }
 
-    public function eventConsultations(): HasMany
+    public function eventDBs(): HasMany
     {
-        return $this->hasMany(HospitalEventConsultation::class, 'hospital_doctor_id');
+        return $this->hasMany(HospitalEventDB::class, 'hospital_doctor_id');
     }
 
     public function profileImage(): MorphOne

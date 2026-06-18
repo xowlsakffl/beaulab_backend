@@ -153,9 +153,14 @@ final class HospitalEvent extends Model
             ->orderBy('id');
     }
 
-    public function consultations(): HasMany
+    public function eventDBs(): HasMany
     {
-        return $this->hasMany(HospitalEventConsultation::class, 'hospital_event_id');
+        return $this->hasMany(HospitalEventDB::class, 'hospital_event_id');
+    }
+
+    public function realModelDBs(): HasMany
+    {
+        return $this->hasMany(HospitalEventRealModelDB::class, 'hospital_event_id');
     }
 
     public function categories(): MorphToMany

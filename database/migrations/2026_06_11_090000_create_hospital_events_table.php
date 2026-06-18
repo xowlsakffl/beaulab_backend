@@ -113,7 +113,7 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE hospital_event_options COMMENT = '병의원 이벤트 옵션'");
 
-        Schema::create('hospital_event_consultations', function (Blueprint $table) {
+        Schema::create('hospital_event_dbs', function (Blueprint $table) {
             $table->id()->comment('병의원 이벤트 DB ID');
 
             $table->foreignId('account_user_id')
@@ -177,12 +177,64 @@ return new class extends Migration
             $table->index('author_ip', 'h_event_consults_author_ip_idx');
         });
 
-        DB::statement("ALTER TABLE hospital_event_consultations COMMENT = '병의원 이벤트 DB 신청'");
+        DB::statement("ALTER TABLE hospital_event_dbs COMMENT = '병의원 이벤트 DB 신청'");
+
+        Schema::create('hospital_event_real_model_dbs', function (Blueprint $table) {
+            $table->id()->comment('병의원 이벤트 리얼모델 신청 ID');
+
+            $table->foreignId('account_user_id')
+                ->comment('신청 일반회원 account_users ID')
+                ->constrained('account_users')
+                ->cascadeOnDelete();
+
+            $table->foreignId('hospital_id')
+                ->comment('병의원 ID')
+                ->constrained('hospitals')
+                ->cascadeOnDelete();
+
+            $table->foreignId('hospital_event_id')
+                ->comment('병의원 이벤트 ID')
+                ->constrained('hospital_events')
+                ->cascadeOnDelete();
+
+            $table->string('name', 50)->comment('신청자 이름');
+            $table->string('gender', 10)->comment('성별(MALE, FEMALE)');
+            $table->date('birth_date')->comment('생년월일');
+            $table->string('phone', 30)->comment('신청자 전화번호');
+            $table->string('phone_normalized', 30)->comment('검색용 정규화 전화번호');
+            $table->unsignedSmallInteger('height_cm')->comment('키(cm)');
+            $table->unsignedSmallInteger('weight_kg')->comment('몸무게(kg)');
+            $table->string('surgery_period', 50)->comment('수술시기');
+            $table->string('support_part', 100)->comment('지원부위');
+            $table->string('instagram_url', 255)->nullable()->comment('인스타그램 주소');
+            $table->string('blog_url', 255)->nullable()->comment('블로그 주소');
+            $table->json('special_notes')->nullable()->comment('회원 특이사항 코드 목록');
+            $table->text('application_reason')->comment('리얼모델 지원이유');
+            $table->text('inquiry')->nullable()->comment('문의사항');
+            $table->string('status', 20)->default('RECEIVED')->comment('승인여부(RECEIVED, APPROVED, REJECTED)');
+            $table->string('author_ip', 45)->nullable()->comment('신청 IP(v4/v6)');
+            $table->string('user_agent', 500)->nullable()->comment('신청 User-Agent');
+
+            $table->timestamps();
+            $table->softDeletes()->comment('소프트 삭제 시각');
+
+            $table->index(['created_at', 'id'], 'h_event_real_models_created_id_idx');
+            $table->index(['account_user_id', 'created_at'], 'h_event_real_models_user_created_idx');
+            $table->index(['hospital_id', 'created_at'], 'h_event_real_models_hospital_created_idx');
+            $table->index(['hospital_event_id', 'created_at'], 'h_event_real_models_event_created_idx');
+            $table->index(['status', 'created_at'], 'h_event_real_models_status_created_idx');
+            $table->index(['gender', 'created_at'], 'h_event_real_models_gender_created_idx');
+            $table->index('phone', 'h_event_real_models_phone_idx');
+            $table->index('phone_normalized', 'h_event_real_models_phone_normalized_idx');
+        });
+
+        DB::statement("ALTER TABLE hospital_event_real_model_dbs COMMENT = '병의원 이벤트 리얼모델 신청'");
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hospital_event_consultations');
+        Schema::dropIfExists('hospital_event_real_model_dbs');
+        Schema::dropIfExists('hospital_event_dbs');
         Schema::dropIfExists('hospital_event_options');
         Schema::dropIfExists('hospital_event_doctor_assignments');
         Schema::dropIfExists('hospital_events');

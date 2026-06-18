@@ -5,26 +5,26 @@ namespace Database\Factories;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<HospitalEventConsultation>
+ * @extends Factory<HospitalEventDB>
  */
-final class HospitalEventConsultationFactory extends Factory
+final class HospitalEventDBFactory extends Factory
 {
-    protected $model = HospitalEventConsultation::class;
+    protected $model = HospitalEventDB::class;
 
     public function definition(): array
     {
         $event = $this->randomEvent();
         $doctorId = $this->randomDoctorId($event);
         $status = $this->faker->randomElement([
-            HospitalEventConsultation::STATUS_NEW,
-            HospitalEventConsultation::STATUS_CONFIRMED,
+            HospitalEventDB::STATUS_NEW,
+            HospitalEventDB::STATUS_CONFIRMED,
         ]);
         $createdAt = $this->faker->dateTimeBetween('-60 days', 'now');
-        $processedAt = $status === HospitalEventConsultation::STATUS_CONFIRMED
+        $processedAt = $status === HospitalEventDB::STATUS_CONFIRMED
             ? $this->faker->dateTimeBetween($createdAt, 'now')
             : null;
 
@@ -35,12 +35,12 @@ final class HospitalEventConsultationFactory extends Factory
             'hospital_doctor_id' => $doctorId,
             'name' => $this->faker->name(),
             'phone' => $this->faker->numerify('010-####-####'),
-            'contact_method' => $this->faker->randomElement(HospitalEventConsultation::contactMethods()),
-            'preferred_time' => $this->faker->randomElement(HospitalEventConsultation::preferredTimes()),
+            'contact_method' => $this->faker->randomElement(HospitalEventDB::contactMethods()),
+            'preferred_time' => $this->faker->randomElement(HospitalEventDB::preferredTimes()),
             'event_price' => (int) $event->event_price,
             'consultation_price' => (int) $event->consultation_price,
             'status' => $status,
-            'allow_status' => $this->faker->randomElement(HospitalEventConsultation::allowStatuses()),
+            'allow_status' => $this->faker->randomElement(HospitalEventDB::allowStatuses()),
             'contacted_at' => $processedAt,
             'confirmed_at' => $processedAt,
             'author_ip' => $this->faker->ipv4(),

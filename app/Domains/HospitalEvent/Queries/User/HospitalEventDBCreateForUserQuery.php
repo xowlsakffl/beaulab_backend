@@ -3,20 +3,20 @@
 namespace App\Domains\HospitalEvent\Queries\User;
 
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
 
-final class HospitalEventConsultationCreateForUserQuery
+final class HospitalEventDBCreateForUserQuery
 {
-    public function create(array $values): HospitalEventConsultation
+    public function create(array $values): HospitalEventDB
     {
-        return HospitalEventConsultation::query()->create($values);
+        return HospitalEventDB::query()->create($values);
     }
 
     public function existsDuplicate(HospitalEvent $event, string $name, string $phone): bool
     {
-        return HospitalEventConsultation::query()
+        return HospitalEventDB::query()
             ->where('hospital_event_id', (int) $event->id)
-            ->where('phone_normalized', HospitalEventConsultation::normalizePhone($phone))
+            ->where('phone_normalized', HospitalEventDB::normalizePhone($phone))
             ->where('name', trim($name))
             ->exists();
     }

@@ -5,7 +5,8 @@ namespace App\Domains\AccountUser\Models;
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
+use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use Database\Factories\AccountUserFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -179,9 +180,14 @@ final class AccountUser extends Authenticatable
         return $this->hasMany(AccountUserAccessLog::class, 'account_user_id');
     }
 
-    public function hospitalEventConsultations(): HasMany
+    public function hospitalEventDBs(): HasMany
     {
-        return $this->hasMany(HospitalEventConsultation::class, 'account_user_id');
+        return $this->hasMany(HospitalEventDB::class, 'account_user_id');
+    }
+
+    public function hospitalEventRealModelDBs(): HasMany
+    {
+        return $this->hasMany(HospitalEventRealModelDB::class, 'account_user_id');
     }
 
     public function isActive(): bool

@@ -8,14 +8,14 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
-use Database\Factories\HospitalEventConsultationFactory;
+use Database\Factories\HospitalEventDBFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-final class HospitalEventConsultation extends Model
+final class HospitalEventDB extends Model
 {
     use HasFactory, HasOperationHistories, SoftDeletes;
 
@@ -67,7 +67,7 @@ final class HospitalEventConsultation extends Model
         self::ALLOW_STATUS_NORMAL_CONFIRMED => '정상DB 확정',
     ];
 
-    protected $table = 'hospital_event_consultations';
+    protected $table = 'hospital_event_dbs';
 
     protected $fillable = [
         'account_user_id',
@@ -118,13 +118,13 @@ final class HospitalEventConsultation extends Model
 
     protected static function newFactory(): Factory
     {
-        return HospitalEventConsultationFactory::new();
+        return HospitalEventDBFactory::new();
     }
 
     protected static function booted(): void
     {
-        static::saving(static function (self $consultation): void {
-            $consultation->phone_normalized = self::normalizePhone($consultation->phone);
+        static::saving(static function (self $eventDB): void {
+            $eventDB->phone_normalized = self::normalizePhone($eventDB->phone);
         });
     }
 

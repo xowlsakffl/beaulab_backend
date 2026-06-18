@@ -5,7 +5,7 @@ namespace App\Domains\HospitalEvent\Queries\Staff;
 use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -61,13 +61,13 @@ final class HospitalEventListForStaffQuery
                 'thumbnailImage',
             ])
             ->withCount([
-                'consultations as consultation_count',
-                'consultations as confirmed_consultation_count' => fn ($query) => $query
-                    ->where('status', HospitalEventConsultation::STATUS_CONFIRMED),
+                'eventDBs as consultation_count',
+                'eventDBs as confirmed_consultation_count' => fn ($query) => $query
+                    ->where('status', HospitalEventDB::STATUS_CONFIRMED),
             ])
             ->withSum([
-                'consultations as total_spent_point' => fn ($query) => $query
-                    ->where('status', HospitalEventConsultation::STATUS_CONFIRMED),
+                'eventDBs as total_spent_point' => fn ($query) => $query
+                    ->where('status', HospitalEventDB::STATUS_CONFIRMED),
             ], 'consultation_price');
     }
 

@@ -25,7 +25,8 @@ final class DatabaseSeeder extends Seeder
             HospitalReviewSeeder::class,
             HospitalEvaluationSeeder::class,
             HospitalEventSeeder::class,
-            HospitalEventConsultationSeeder::class,
+            HospitalEventDBSeeder::class,
+            HospitalEventRealModelDBSeeder::class,
         ]);
     }
 }

@@ -1,63 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domains\HospitalEvent\Actions\User;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
-use App\Domains\HospitalEvent\Queries\User\HospitalEventConsultationCreateForUserQuery;
+use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
+use App\Domains\HospitalEvent\Queries\User\HospitalEventRealModelDBCreateForUserQuery;
 use Illuminate\Support\Facades\DB;
 
-final class HospitalEventConsultationCreateForUserAction
+final class HospitalEventRealModelDBCreateForUserAction
 {
     public function __construct(
-        private readonly HospitalEventConsultationCreateForUserQuery $query,
+        private readonly HospitalEventRealModelDBCreateForUserQuery $query,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
     ) {}
 
     public function execute(AccountUser $user, HospitalEvent $event, array $payload): array
     {
         $this->assertEventCanBeApplied($event);
 
-        if (! empty($payload['hospital_doctor_id'])) {
-            if (! $this->query->doctorBelongsToEvent($event, (int) $payload['hospital_doctor_id'])) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '선택한 의료진이 이벤트에 등록되어 있지 않습니다.');
-            }
-        }
-
         DB::transaction(function () use ($user, $event, $payload): void {
-            $isDuplicate = $this->query->existsDuplicate(
-                $event,
-                (string) $payload['name'],
-                (string) $payload['phone'],
-            );
-
-            $this->query->create([
+            $application = $this->query->create([
                 'account_user_id' => (int) $user->id,
                 'hospital_id' => (int) $event->hospital_id,
                 'hospital_event_id' => (int) $event->id,
-                'hospital_doctor_id' => $payload['hospital_doctor_id'] ?? null,
                 'name' => $payload['name'],
+                'gender' => $payload['gender'],
+                'birth_date' => $payload['birth_date'],
                 'phone' => $payload['phone'],
-                'contact_method' => $payload['contact_method'],
-                'preferred_time' => $payload['preferred_time'],
-                'event_price' => (int) $event->event_price,
-                'consultation_price' => (int) $event->consultation_price,
-                'status' => $isDuplicate
-                    ? HospitalEventConsultation::STATUS_DUPLICATE
-                    : HospitalEventConsultation::STATUS_NEW,
-                'allow_status' => HospitalEventConsultation::ALLOW_STATUS_NORMAL_CONFIRMED,
-                'duplicated_at' => $isDuplicate ? now() : null,
+                'height_cm' => (int) $payload['height_cm'],
+                'weight_kg' => (int) $payload['weight_kg'],
+                'surgery_period' => $payload['surgery_period'],
+                'support_part' => $payload['support_part'],
+                'instagram_url' => $payload['instagram_url'] ?? null,
+                'blog_url' => $payload['blog_url'] ?? null,
+                'special_notes' => $payload['special_notes'] ?? [],
+                'application_reason' => $payload['application_reason'],
+                'inquiry' => $payload['inquiry'] ?? null,
+                'status' => HospitalEventRealModelDB::STATUS_RECEIVED,
                 'author_ip' => $payload['author_ip'] ?? null,
                 'user_agent' => $payload['user_agent'] ?? null,
-                'privacy_agreed_at' => now(),
-                'marketing_agreed_at' => ! empty($payload['marketing_agreed']) ? now() : null,
             ]);
+
+            $this->mediaAttachAction->attachMany(
+                $application,
+                $payload['images'] ?? [],
+                HospitalEventRealModelDB::COLLECTION_IMAGES,
+                'hospital-event-real-model-db',
+                'images',
+                true,
+            );
         });
 
         return [
-            'message' => '신청이 완료되었습니다.',
+            'message' => '리얼모델 신청이 완료되었습니다.',
         ];
     }
 

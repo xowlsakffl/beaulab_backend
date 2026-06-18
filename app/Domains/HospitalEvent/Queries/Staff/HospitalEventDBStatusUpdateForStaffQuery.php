@@ -2,14 +2,14 @@
 
 namespace App\Domains\HospitalEvent\Queries\Staff;
 
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use Illuminate\Support\Collection;
 
-final class HospitalEventConsultationStatusUpdateForStaffQuery
+final class HospitalEventDBStatusUpdateForStaffQuery
 {
     /**
      * @param  array<int, int|string>  $consultationIds
-     * @return Collection<int, HospitalEventConsultation>
+     * @return Collection<int, HospitalEventDB>
      */
     public function getForUpdate(array $consultationIds): Collection
     {
@@ -19,7 +19,7 @@ final class HospitalEventConsultationStatusUpdateForStaffQuery
             return collect();
         }
 
-        return HospitalEventConsultation::query()
+        return HospitalEventDB::query()
             ->with('event:id,hospital_id,status,allow_status')
             ->whereIn('id', $ids)
             ->orderBy('id')
@@ -48,7 +48,7 @@ final class HospitalEventConsultationStatusUpdateForStaffQuery
             return 0;
         }
 
-        return HospitalEventConsultation::query()
+        return HospitalEventDB::query()
             ->whereIn('id', $ids)
             ->update($values);
     }
@@ -64,7 +64,7 @@ final class HospitalEventConsultationStatusUpdateForStaffQuery
             return 0;
         }
 
-        return HospitalEventConsultation::query()
+        return HospitalEventDB::query()
             ->whereIn('id', $ids)
             ->update($values);
     }

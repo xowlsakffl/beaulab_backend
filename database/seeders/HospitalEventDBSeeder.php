@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use Illuminate\Database\Seeder;
 
-final class HospitalEventConsultationSeeder extends Seeder
+final class HospitalEventDBSeeder extends Seeder
 {
     public function run(): void
     {
@@ -25,30 +25,30 @@ final class HospitalEventConsultationSeeder extends Seeder
         }
 
         if ($eventIds->isEmpty()) {
-            $this->command?->warn('HospitalEventConsultationSeeder skipped: hospital events are missing.');
+            $this->command?->warn('HospitalEventDBSeeder skipped: hospital events are missing.');
 
             return;
         }
 
         foreach ($eventIds as $index => $eventId) {
-            $consultations = HospitalEventConsultation::factory()
+            $eventDBs = HospitalEventDB::factory()
                 ->count(($index % 5) + 1)
                 ->forEvent($eventId)
                 ->create();
 
-            if ($consultations->count() < 2) {
+            if ($eventDBs->count() < 2) {
                 continue;
             }
 
-            /** @var HospitalEventConsultation $original */
-            $original = $consultations->first();
-            /** @var HospitalEventConsultation $duplicate */
-            $duplicate = $consultations->last();
+            /** @var HospitalEventDB $original */
+            $original = $eventDBs->first();
+            /** @var HospitalEventDB $duplicate */
+            $duplicate = $eventDBs->last();
 
             $duplicate->update([
                 'name' => $original->name,
                 'phone' => $original->phone,
-                'status' => HospitalEventConsultation::STATUS_DUPLICATE,
+                'status' => HospitalEventDB::STATUS_DUPLICATE,
                 'contacted_at' => now(),
                 'confirmed_at' => null,
                 'duplicated_at' => now(),

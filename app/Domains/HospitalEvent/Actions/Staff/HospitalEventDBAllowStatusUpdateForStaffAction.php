@@ -5,16 +5,16 @@ namespace App\Domains\HospitalEvent\Actions\Staff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
-use App\Domains\HospitalEvent\Queries\Staff\HospitalEventConsultationStatusUpdateForStaffQuery;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
+use App\Domains\HospitalEvent\Queries\Staff\HospitalEventDBStatusUpdateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-final class HospitalEventConsultationAllowStatusUpdateForStaffAction
+final class HospitalEventDBAllowStatusUpdateForStaffAction
 {
     public function __construct(
-        private readonly HospitalEventConsultationStatusUpdateForStaffQuery $query,
+        private readonly HospitalEventDBStatusUpdateForStaffQuery $query,
         private readonly OperationHistoryCreateAction $historyCreateAction,
     ) {}
 
@@ -30,39 +30,39 @@ final class HospitalEventConsultationAllowStatusUpdateForStaffAction
         $actor = auth()->user();
 
         return DB::transaction(function () use ($ids, $allowStatus, $payload, $actor): array {
-            $consultations = $this->query->getForUpdate($ids);
-            $consultations->each(static function (HospitalEventConsultation $consultation): void {
-                if ($consultation->event !== null) {
-                    Gate::authorize('update', $consultation->event);
+            $eventDBs = $this->query->getForUpdate($ids);
+            $eventDBs->each(static function (HospitalEventDB $eventDB): void {
+                if ($eventDB->event !== null) {
+                    Gate::authorize('update', $eventDB->event);
                 }
             });
 
-            $existingIds = $consultations->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
+            $existingIds = $eventDBs->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
             $updatedCount = $this->query->updateAllowStatus($existingIds, [
                 'allow_status' => $allowStatus,
             ]);
 
-            foreach ($consultations as $consultation) {
-                if ($consultation->allow_status === $allowStatus) {
+            foreach ($eventDBs as $eventDB) {
+                if ($eventDB->allow_status === $allowStatus) {
                     continue;
                 }
 
                 $this->historyCreateAction->execute(
-                    target: $consultation,
+                    target: $eventDB,
                     action: OperationHistory::ACTION_STATUS_UPDATED,
                     actor: $actor instanceof Model ? $actor : null,
                     reason: $payload['reason'] ?? null,
                     metadata: [
-                        'source' => 'staff.hospital_event_consultation.allow_status',
+                        'source' => 'staff.hospital_event_db.allow_status',
                         'bulk' => count($existingIds) > 1,
                     ],
                     changes: OperationHistoryChangeSetBuilder::single(
                         key: 'allow_status',
                         label: '검증상태',
-                        before: $consultation->allow_status,
+                        before: $eventDB->allow_status,
                         after: $allowStatus,
-                        beforeDisplay: HospitalEventConsultation::allowStatusLabel($consultation->allow_status),
-                        afterDisplay: HospitalEventConsultation::allowStatusLabel($allowStatus),
+                        beforeDisplay: HospitalEventDB::allowStatusLabel($eventDB->allow_status),
+                        afterDisplay: HospitalEventDB::allowStatusLabel($allowStatus),
                     ),
                 );
             }

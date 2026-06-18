@@ -5,17 +5,17 @@ namespace App\Domains\HospitalEvent\Actions\Staff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
-use App\Domains\HospitalEvent\Queries\Staff\HospitalEventConsultationStatusUpdateForStaffQuery;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
+use App\Domains\HospitalEvent\Queries\Staff\HospitalEventDBStatusUpdateForStaffQuery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-final class HospitalEventConsultationStatusUpdateForStaffAction
+final class HospitalEventDBStatusUpdateForStaffAction
 {
     public function __construct(
-        private readonly HospitalEventConsultationStatusUpdateForStaffQuery $query,
+        private readonly HospitalEventDBStatusUpdateForStaffQuery $query,
         private readonly OperationHistoryCreateAction $historyCreateAction,
     ) {}
 
@@ -31,14 +31,14 @@ final class HospitalEventConsultationStatusUpdateForStaffAction
         $actor = auth()->user();
 
         return DB::transaction(function () use ($ids, $status, $payload, $actor): array {
-            $consultations = $this->query->getForUpdate($ids);
-            $consultations->each(static function (HospitalEventConsultation $consultation): void {
-                if ($consultation->event !== null) {
-                    Gate::authorize('update', $consultation->event);
+            $eventDBs = $this->query->getForUpdate($ids);
+            $eventDBs->each(static function (HospitalEventDB $eventDB): void {
+                if ($eventDB->event !== null) {
+                    Gate::authorize('update', $eventDB->event);
                 }
             });
 
-            if ($consultations->isEmpty()) {
+            if ($eventDBs->isEmpty()) {
                 return [
                     'updated_count' => 0,
                     'status' => $status,
@@ -46,18 +46,18 @@ final class HospitalEventConsultationStatusUpdateForStaffAction
                 ];
             }
 
-            $existingIds = $consultations->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
+            $existingIds = $eventDBs->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
             $values = $this->statusUpdateValues($status);
             $updatedCount = $this->query->updateStatus($existingIds, $values);
 
-            foreach ($consultations as $consultation) {
+            foreach ($eventDBs as $eventDB) {
                 $changes = OperationHistoryChangeSetBuilder::single(
                         key: 'status',
                         label: '상담여부',
-                        before: $consultation->status,
+                        before: $eventDB->status,
                         after: $status,
-                        beforeDisplay: HospitalEventConsultation::statusLabel($consultation->status),
-                        afterDisplay: HospitalEventConsultation::statusLabel($status),
+                        beforeDisplay: HospitalEventDB::statusLabel($eventDB->status),
+                        afterDisplay: HospitalEventDB::statusLabel($status),
                     );
 
                 if ($changes === []) {
@@ -65,12 +65,12 @@ final class HospitalEventConsultationStatusUpdateForStaffAction
                 }
 
                 $this->historyCreateAction->execute(
-                    target: $consultation,
+                    target: $eventDB,
                     action: OperationHistory::ACTION_STATUS_UPDATED,
                     actor: $actor instanceof Model ? $actor : null,
                     reason: $payload['reason'] ?? null,
                     metadata: [
-                        'source' => 'staff.hospital_event_consultation.status',
+                        'source' => 'staff.hospital_event_db.status',
                         'bulk' => count($existingIds) > 1,
                     ],
                     changes: $changes,
@@ -93,20 +93,20 @@ final class HospitalEventConsultationStatusUpdateForStaffAction
         $now = Carbon::now();
 
         return match ($status) {
-            HospitalEventConsultation::STATUS_CONFIRMED => [
+            HospitalEventDB::STATUS_CONFIRMED => [
                 'status' => $status,
                 'contacted_at' => $now,
                 'confirmed_at' => $now,
                 'duplicated_at' => null,
             ],
-            HospitalEventConsultation::STATUS_DUPLICATE => [
+            HospitalEventDB::STATUS_DUPLICATE => [
                 'status' => $status,
                 'contacted_at' => $now,
                 'confirmed_at' => null,
                 'duplicated_at' => $now,
             ],
             default => [
-                'status' => HospitalEventConsultation::STATUS_NEW,
+                'status' => HospitalEventDB::STATUS_NEW,
                 'contacted_at' => null,
                 'confirmed_at' => null,
                 'duplicated_at' => null,

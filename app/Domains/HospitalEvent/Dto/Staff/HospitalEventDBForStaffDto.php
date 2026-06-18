@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Domains\HospitalEvent\Dto\Staff;
 
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\HospitalEvent\Models\HospitalEventConsultation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
 
-final readonly class HospitalEventConsultationForStaffDto
+final readonly class HospitalEventDBForStaffDto
 {
-    public function __construct(private HospitalEventConsultation $consultation) {}
+    public function __construct(private HospitalEventDB $eventDB) {}
 
-    public static function fromModel(HospitalEventConsultation $consultation): self
+    public static function fromModel(HospitalEventDB $eventDB): self
     {
-        return new self($consultation);
+        return new self($eventDB);
     }
 
     public function toArray(): array
@@ -29,21 +29,21 @@ final readonly class HospitalEventConsultationForStaffDto
             'phone_normalized' => (string) $this->consultation->phone_normalized,
             'contact_method' => [
                 'code' => (string) $this->consultation->contact_method,
-                'label' => HospitalEventConsultation::contactMethodLabel($this->consultation->contact_method),
+                'label' => HospitalEventDB::contactMethodLabel($this->consultation->contact_method),
             ],
             'preferred_time' => [
                 'code' => (string) $this->consultation->preferred_time,
-                'label' => HospitalEventConsultation::preferredTimeLabel($this->consultation->preferred_time),
+                'label' => HospitalEventDB::preferredTimeLabel($this->consultation->preferred_time),
             ],
             'event_price' => (int) $this->consultation->event_price,
             'consultation_price' => (int) $this->consultation->consultation_price,
             'status' => [
                 'code' => (string) $this->consultation->status,
-                'label' => HospitalEventConsultation::statusLabel($this->consultation->status),
+                'label' => HospitalEventDB::statusLabel($this->consultation->status),
             ],
             'allow_status' => [
                 'code' => (string) $this->consultation->allow_status,
-                'label' => HospitalEventConsultation::allowStatusLabel($this->consultation->allow_status),
+                'label' => HospitalEventDB::allowStatusLabel($this->consultation->allow_status),
             ],
             'contacted_at' => $this->consultation->contacted_at?->toISOString(),
             'confirmed_at' => $this->consultation->confirmed_at?->toISOString(),

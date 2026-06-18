@@ -19,8 +19,9 @@ use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForStaffController;
-use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventConsultationForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventDBForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventRealModelDBForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReviewComment\HospitalReviewCommentForStaffController;
@@ -213,14 +214,20 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 병의원 이벤트 관리
      **/
-    Route::get('hospital-event-consultations', [HospitalEventConsultationForStaffController::class, 'getHospitalEventConsultationsForStaff'])
-        ->name('hospital-event-consultations.getHospitalEventConsultationsForStaff');
-    Route::patch('hospital-event-consultations/status', [HospitalEventConsultationForStaffController::class, 'updateHospitalEventConsultationStatusForStaff'])
-        ->name('hospital-event-consultations.updateHospitalEventConsultationStatusForStaff');
-    Route::patch('hospital-event-consultations/allow-status', [HospitalEventConsultationForStaffController::class, 'updateHospitalEventConsultationAllowStatusForStaff'])
-        ->name('hospital-event-consultations.updateHospitalEventConsultationAllowStatusForStaff');
-    Route::get('hospital-event-consultations/{hospitalEventConsultation}/operation-histories', [HospitalEventConsultationForStaffController::class, 'getHospitalEventConsultationOperationHistoriesForStaff'])
-        ->name('hospital-event-consultations.getHospitalEventConsultationOperationHistoriesForStaff');
+    Route::get('hospital-event-dbs', [HospitalEventDBForStaffController::class, 'getHospitalEventDBsForStaff'])
+        ->name('hospital-event-dbs.getHospitalEventDBsForStaff');
+    Route::patch('hospital-event-dbs/status', [HospitalEventDBForStaffController::class, 'updateHospitalEventDBStatusForStaff'])
+        ->name('hospital-event-dbs.updateHospitalEventDBStatusForStaff');
+    Route::patch('hospital-event-dbs/allow-status', [HospitalEventDBForStaffController::class, 'updateHospitalEventDBAllowStatusForStaff'])
+        ->name('hospital-event-dbs.updateHospitalEventDBAllowStatusForStaff');
+    Route::get('hospital-event-dbs/{hospitalEventDB}/operation-histories', [HospitalEventDBForStaffController::class, 'getHospitalEventDBOperationHistoriesForStaff'])
+        ->name('hospital-event-dbs.getHospitalEventDBOperationHistoriesForStaff');
+    Route::get('hospital-event-real-model-dbs', [HospitalEventRealModelDBForStaffController::class, 'getHospitalEventRealModelDBsForStaff'])
+        ->name('hospital-event-real-model-dbs.getHospitalEventRealModelDBsForStaff');
+    Route::patch('hospital-event-real-model-dbs/status', [HospitalEventRealModelDBForStaffController::class, 'updateHospitalEventRealModelDBStatusForStaff'])
+        ->name('hospital-event-real-model-dbs.updateHospitalEventRealModelDBStatusForStaff');
+    Route::get('hospital-event-real-model-dbs/{hospitalEventRealModelDB}/operation-histories', [HospitalEventRealModelDBForStaffController::class, 'getHospitalEventRealModelDBOperationHistoriesForStaff'])
+        ->name('hospital-event-real-model-dbs.getHospitalEventRealModelDBOperationHistoriesForStaff');
     Route::get('hospital-events', [HospitalEventForStaffController::class, 'getHospitalEventsForStaff'])
         ->name('hospital-events.getHospitalEventsForStaff');
     Route::get('hospital-events/summary', [HospitalEventForStaffController::class, 'getHospitalEventSummaryForStaff'])

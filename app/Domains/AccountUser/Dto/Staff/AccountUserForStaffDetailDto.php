@@ -120,9 +120,9 @@ final readonly class AccountUserForStaffDetailDto
     private static function consultationInfo(): array
     {
         return [
-            'event_applications' => 0,
+            'event_dbs' => 0,
             'remote_consultations' => 0,
-            'real_model_applications' => 0,
+            'real_model_dbs' => 0,
         ];
     }
 }

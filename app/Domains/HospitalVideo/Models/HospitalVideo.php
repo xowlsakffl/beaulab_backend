@@ -10,6 +10,9 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
+use Database\Factories\HospitalVideoFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -22,7 +25,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class HospitalVideo extends Model
 {
-    use SoftDeletes, HasAuditLogs, HasAdminNotes, HasOperationHistories;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes, HasOperationHistories;
 
     public const DISTRIBUTION_CHANNEL_YOUTUBE_APP = 'YOUTUBE_APP';
     public const DISTRIBUTION_CHANNEL_APP = 'APP';
@@ -85,6 +88,11 @@ final class HospitalVideo extends Model
         'is_publish_period_unlimited' => false,
         'allow_status' => self::ALLOW_SUBMITTED,
     ];
+
+    protected static function newFactory(): Factory
+    {
+        return HospitalVideoFactory::new();
+    }
 
     public function hospital(): BelongsTo
     {

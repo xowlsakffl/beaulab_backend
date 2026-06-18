@@ -228,6 +228,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-event-real-model-dbs.updateHospitalEventRealModelDBStatusForStaff');
     Route::get('hospital-event-real-model-dbs/{hospitalEventRealModelDB}/operation-histories', [HospitalEventRealModelDBForStaffController::class, 'getHospitalEventRealModelDBOperationHistoriesForStaff'])
         ->name('hospital-event-real-model-dbs.getHospitalEventRealModelDBOperationHistoriesForStaff');
+    Route::get('hospital-event-real-model-dbs/{hospitalEventRealModelDB}', [HospitalEventRealModelDBForStaffController::class, 'getHospitalEventRealModelDBForStaff'])
+        ->name('hospital-event-real-model-dbs.getHospitalEventRealModelDBForStaff');
     Route::get('hospital-events', [HospitalEventForStaffController::class, 'getHospitalEventsForStaff'])
         ->name('hospital-events.getHospitalEventsForStaff');
     Route::get('hospital-events/summary', [HospitalEventForStaffController::class, 'getHospitalEventSummaryForStaff'])

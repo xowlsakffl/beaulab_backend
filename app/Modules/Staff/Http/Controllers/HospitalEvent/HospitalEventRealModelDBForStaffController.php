@@ -6,6 +6,7 @@ namespace App\Modules\Staff\Http\Controllers\HospitalEvent;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\HospitalEvent\Actions\Staff\HospitalEventRealModelDBGetForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventRealModelDBListForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventRealModelDBOperationHistoriesForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventRealModelDBStatusUpdateForStaffAction;
@@ -23,6 +24,13 @@ final class HospitalEventRealModelDBForStaffController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getHospitalEventRealModelDBForStaff(
+        HospitalEventRealModelDB $hospitalEventRealModelDB,
+        HospitalEventRealModelDBGetForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($hospitalEventRealModelDB));
     }
 
     public function updateHospitalEventRealModelDBStatusForStaff(

@@ -31,11 +31,18 @@ final class HospitalEventRealModelDBSeeder extends Seeder
         }
 
         foreach ($eventIds as $index => $eventId) {
-            HospitalEventRealModelDB::factory()
-                ->count(($index % 4) + 1)
-                ->forEvent($eventId)
-                ->withSeedMedia(random_int(1, 5))
-                ->create();
+            $applicationCount = ($index % 4) + 1;
+
+            for ($offset = 0; $offset < $applicationCount; $offset++) {
+                $factory = HospitalEventRealModelDB::factory()
+                    ->forEvent($eventId);
+
+                if (($index + $offset) % 3 !== 0) {
+                    $factory = $factory->withSeedMedia(random_int(1, 5));
+                }
+
+                $factory->create();
+            }
         }
     }
 }

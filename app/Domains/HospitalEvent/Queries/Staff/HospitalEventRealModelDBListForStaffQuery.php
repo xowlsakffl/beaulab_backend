@@ -84,8 +84,12 @@ final class HospitalEventRealModelDBListForStaffQuery
             $builder->where('hospital_event_id', (int) $filters['hospital_event_id']);
         }
 
-        if (! empty($filters['birth_start_date']) || ! empty($filters['birth_end_date'])) {
-            DateRangeFilter::apply($builder, 'birth_date', $filters['birth_start_date'] ?? null, $filters['birth_end_date'] ?? null);
+        if (! empty($filters['birth_year_min'])) {
+            $builder->where('birth_date', '>=', sprintf('%04d-01-01', (int) $filters['birth_year_min']));
+        }
+
+        if (! empty($filters['birth_year_max'])) {
+            $builder->where('birth_date', '<=', sprintf('%04d-12-31', (int) $filters['birth_year_max']));
         }
 
         if (! empty($filters['start_date']) || ! empty($filters['end_date'])) {

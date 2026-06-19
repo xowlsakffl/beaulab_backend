@@ -7,6 +7,7 @@ namespace App\Modules\Staff\Http\Requests\HospitalEvent;
 use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 final class HospitalEventRealModelDBListForStaffRequest extends FormRequest
 {
@@ -33,8 +34,8 @@ final class HospitalEventRealModelDBListForStaffRequest extends FormRequest
             'genders.*' => ['string', Rule::in(HospitalEventRealModelDB::genders())],
             'statuses' => ['nullable', 'array'],
             'statuses.*' => ['string', Rule::in(HospitalEventRealModelDB::statuses())],
-            'birth_start_date' => ['nullable', 'date_format:Y-m-d'],
-            'birth_end_date' => ['nullable', 'date_format:Y-m-d'],
+            'birth_year_min' => ['nullable', 'integer', 'digits:4', 'min:1900', 'max:'.date('Y')],
+            'birth_year_max' => ['nullable', 'integer', 'digits:4', 'min:1900', 'max:'.date('Y')],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d'],
             'sort' => ['nullable', 'in:id,status,gender,birth_date,created_at,updated_at'],
@@ -53,14 +54,26 @@ final class HospitalEventRealModelDBListForStaffRequest extends FormRequest
             'hospital_event_id' => $validated['hospital_event_id'] ?? null,
             'genders' => $validated['genders'] ?? null,
             'statuses' => $validated['statuses'] ?? null,
-            'birth_start_date' => $validated['birth_start_date'] ?? null,
-            'birth_end_date' => $validated['birth_end_date'] ?? null,
+            'birth_year_min' => $validated['birth_year_min'] ?? null,
+            'birth_year_max' => $validated['birth_year_max'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
             'sort' => $validated['sort'] ?? 'id',
             'direction' => $validated['direction'] ?? 'desc',
             'per_page' => (int) ($validated['per_page'] ?? 15),
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $min = $this->input('birth_year_min');
+            $max = $this->input('birth_year_max');
+
+            if ($min !== null && $min !== '' && $max !== null && $max !== '' && (int) $min > (int) $max) {
+                $validator->errors()->add('birth_year_min', '출생연도 최소값은 최대값보다 클 수 없습니다.');
+            }
+        });
     }
 
     public function attributes(): array
@@ -73,8 +86,8 @@ final class HospitalEventRealModelDBListForStaffRequest extends FormRequest
             'genders.*' => '성별',
             'statuses' => '승인여부',
             'statuses.*' => '승인여부',
-            'birth_start_date' => '생년월일 시작일',
-            'birth_end_date' => '생년월일 종료일',
+            'birth_year_min' => '출생연도 최소값',
+            'birth_year_max' => '출생연도 최대값',
             'start_date' => '신청 시작일',
             'end_date' => '신청 종료일',
             'sort' => '정렬 기준',

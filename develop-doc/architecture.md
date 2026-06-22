@@ -47,10 +47,12 @@
 
 ## 5) 현재 주요 도메인
 
-- 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`
-- 파트너: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`
-- 콘텐츠: `Talk`, `TalkComment`, `HospitalReview`, `HospitalReviewComment`, `HospitalEvaluation`, `Notice`, `Faq`
-- 공통: `Media`, `Category`, `AdminNote`, `ContentReport`, `ContentReportState`, `OperationHistory`
+- 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`, `AccountUserAccessLog`, `AccountUserBlock`
+- 파트너: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `HospitalFeature`
+- 병원 이벤트/고객 DB: `HospitalEvent`, `HospitalEventDB`, `HospitalEventRealModelDB`, `HospitalEventOption`, `HospitalEventDoctorAssignment`
+- 콘텐츠: `Talk`, `TalkComment`, `TalkCommentMention`, `TalkPoll`, `TalkPollOption`, `TalkPollVote`, `TalkSave`, `HospitalReview`, `HospitalReviewComment`, `HospitalReviewCommentMention`, `HospitalEvaluation`, `HospitalVideo`, `Notice`, `Faq`
+- 커뮤니케이션: `Chat`, `ChatMessage`, `ChatParticipant`, `NotificationInbox`, `NotificationDelivery`, `NotificationDevice`, `NotificationPreference`
+- 공통 운영: `Media`, `Category`, `CategoryUsage`, `Hashtag`, `AdminNote`, `ContentReport`, `ContentReportItem`, `ContentReportState`, `OperationHistory`, `OperationHistoryChange`
 
 파트너 계정 관계:
 
@@ -174,25 +176,31 @@ DTO 응답 원칙:
 - Queue: `./queue.md`
 - Scheduler: `./scheduler.md`
 
-## 10) 구현 상태 요약
+## 10) 현재 API 범위 요약
 
 - Staff
-  - 인증, 프로필/비밀번호 수정
-  - 병원/뷰티/회원/의사/전문가 CRUD
-  - 토크/토크댓글 관리
-  - 병의원 후기/후기댓글 관리
-  - 병의원 평가/영수증 인증 관리
-  - 신고게시물 관리, 신고 상태 처리, 경고/무시 처리
-  - 공지사항 관리
-  - FAQ 관리
+  - 인증, 프로필/비밀번호 수정, 관리자 메모, 대시보드
+  - 병원/뷰티/일반회원/의료진/뷰티전문가 관리
+  - 병원 특징, 카테고리, 해시태그 관리
+  - 병원 이벤트, 이벤트 DB, 리얼모델 DB 관리
+  - 동영상 목록/상세/생성/수정/삭제/원본 다운로드
+  - 토크/토크댓글, 병의원 후기/후기댓글, 병의원 평가/영수증 인증 관리
+  - 신고게시물 관리, 신고 상태 처리, 경고/무시 처리, 채팅 메시지 신고 조회
+  - 공지사항/FAQ CRUD와 에디터 이미지 업로드/정리
 - Hospital
-  - 인증, 프로필/비밀번호 수정
-  - 영상요청 생성/조회/수정/취소
+  - 인증, 프로필/비밀번호 수정, 관리자 메모
+  - 병원 동영상 요청 생성과 파트너 취소
+  - 현재 Hospital Actor API에는 동영상 목록/상세/수정 라우트가 없다.
 - Beauty
-  - 인증, 프로필/비밀번호 수정
-  - 파트너 기능 일부 추가 진행 중
+  - 인증, 프로필/비밀번호 수정, 관리자 메모
+  - 현재 Beauty Actor API에는 뷰티 파트너 업무 라우트가 없다.
 - User
-  - 모듈 경로 존재, API는 최소 구성
+  - 인증, 프로필/비밀번호 수정
+  - 채팅방/메시지/읽음/알림 설정, 채팅 메시지 신고
+  - 토크 작성/삭제/댓글/투표/신고
+  - 병의원 후기 작성/삭제/댓글/신고, 병의원 평가 신고
+  - 병원 이벤트 DB/리얼모델 DB 신청
+  - 사용자 차단/해제, 알림함/디바이스/알림 설정
 
 ## 11) 체크리스트
 
@@ -203,4 +211,4 @@ DTO 응답 원칙:
 - [ ] 신고 대상 추가 시 `ContentReportTargetRegistry`, User 신고 라우트, Staff 신고게시물 라우트가 같이 갱신됐는가?
 - [ ] 비동기 작업이 lane 정책(`critical`, `mail`, `sms`, `chat`, `default` 등)에 맞게 라우팅됐는가?
 
-작성 기준: 2026-06-15
+작성 기준: 2026-06-22

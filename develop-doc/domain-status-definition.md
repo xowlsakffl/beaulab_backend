@@ -1,6 +1,5 @@
-﻿# 도메인 & 상태 정의서 (비개발자용)
-
-- 작성일: 2026-05-18
+﻿# 도메인 & 상태 정의서
+- 작성일: 2026-06-22
 - 목적: 서비스에서 관리하는 핵심 도메인(업무 단위)과 상태값을 비개발자도 이해할 수 있게 정리
 - 기준: 현재 코드(`app/Domains/*/Models`, `database/migrations`) 기준
 
@@ -12,23 +11,50 @@
 | `AccountHospital` | 병원 계정 | 병원 소속 사용자의 로그인 계정 |
 | `AccountBeauty` | 뷰티 계정 | 뷰티 소속 사용자의 로그인 계정 |
 | `AccountUser` | 일반 사용자 계정 | 일반 앱 사용자 로그인 계정 |
+| `AccountUserAccessLog` | 일반 사용자 접속 로그 | 앱 사용자 접근/접속 기록 |
+| `AccountUserBlock` | 사용자 차단 | 앱 사용자 간 차단 관계 |
 | `Hospital` | 병원 | 병원 기본 정보(소개, 위치, 연락처, 노출 여부 등) |
 | `Beauty` | 뷰티 업체 | 뷰티 업체 기본 정보(소개, 위치, 연락처, 노출 여부 등) |
 | `HospitalDoctor` | 병원 의사 | 병원 소속 의사 프로필/자격/노출 정보 |
 | `BeautyExpert` | 뷰티 전문가 | 뷰티 소속 전문가 프로필/경력/노출 정보 |
 | `HospitalBusinessRegistration` | 병원 사업자등록 | 병원 사업자등록 정보와 등록증 파일 |
 | `BeautyBusinessRegistration` | 뷰티 사업자등록 | 뷰티 사업자등록 정보와 등록증 파일 |
-| `HospitalVideoRequest` | 병원 영상요청 | 병원이 등록/게시를 요청한 영상의 검수 상태 |
+| `HospitalFeature` | 병원 특징 | 병원 관리 화면에서 선택하는 특징 마스터 |
+| `HospitalVideo` | 병원 동영상 | 병원이 요청하거나 Staff가 등록한 영상과 검수/노출 상태 |
+| `HospitalEvent` | 병원 이벤트 | 병원 광고/이벤트 상품, 기간, 이미지, 카테고리, 의료진 연결 |
+| `HospitalEventOption` | 병원 이벤트 옵션 | 이벤트 가격/혜택 옵션 항목 |
+| `HospitalEventDoctorAssignment` | 이벤트 의료진 연결 | 이벤트에 연결된 의료진 목록 |
+| `HospitalEventDB` | 병원 이벤트 DB | 이벤트 상담/문의 신청 DB와 확인 상태 |
+| `HospitalEventRealModelDB` | 리얼모델 DB | 리얼모델 신청자 정보, 이미지, 승인/반려 상태 |
 | `Talk` | 토크 게시글 | 일반 사용자가 작성한 병원 토크 게시글, 이미지, 투표, 통계 |
 | `TalkComment` | 토크 댓글 | 토크 게시글의 댓글/대댓글과 멘션 |
+| `TalkCommentMention` | 토크 댓글 멘션 | 토크 댓글에서 언급한 사용자 정보 |
+| `TalkPoll` | 토크 투표 | 토크 게시글에 붙는 투표 |
+| `TalkPollOption` | 토크 투표 선택지 | 투표 항목 |
+| `TalkPollVote` | 토크 투표 응답 | 사용자별 투표 응답 |
+| `TalkSave` | 토크 저장 | 사용자별 토크 저장/스크랩 |
 | `HospitalReview` | 병의원 후기 | 성형후기/시술후기 게시글, 병원/의료진/카테고리/전후 이미지/평점/비용 |
 | `HospitalReviewComment` | 병의원 후기 댓글 | 후기 게시글의 댓글/대댓글과 멘션 |
+| `HospitalReviewCommentMention` | 병의원 후기 댓글 멘션 | 후기 댓글에서 언급한 사용자 정보 |
 | `HospitalEvaluation` | 병의원 평가 | 병의원 평가, 별점 5개 항목, 평가 선택 항목, 영수증 인증 |
+| `Chat` | 채팅방 | 앱 사용자 간 1:1 채팅방 |
+| `ChatMessage` | 채팅 메시지 | 텍스트/이미지/파일 메시지와 신고 대상 |
+| `ChatParticipant` | 채팅 참여자 | 채팅방별 사용자 참여/읽음/알림 상태 |
 | `ContentReport` | 콘텐츠 신고 로그 | 사용자가 신고한 게시글/댓글/평가의 신고 건별 기록 |
+| `ContentReportItem` | 콘텐츠 신고 항목 | 한 신고 안에 포함된 개별 신고 대상 스냅샷 |
 | `ContentReportState` | 콘텐츠 신고 상태 | 신고 대상별 현재 신고 상태, 신고 수, 경고/무시 처리 상태 |
 | `OperationHistory` | 운영 히스토리 | 관리자 화면에 표시할 처리 이력과 변경 상세 |
+| `OperationHistoryChange` | 운영 히스토리 변경 상세 | 처리 이력의 필드별 변경 전/후 값 |
 | `Notice` | 공지사항 | 관리자 공지 콘텐츠(노출/게시기간/관리자 메인 팝업/조회수) |
 | `Faq` | FAQ | 관리자 FAQ 콘텐츠(카테고리/채널/조회수) |
+| `Category` | 카테고리 | 병원 의료/평가/토크/뷰티/FAQ 카테고리 트리 |
+| `CategoryUsage` | 카테고리 사용처 | 화면/기능별 카테고리 노출 범위 |
+| `Hashtag` | 해시태그 | 운영자가 관리하는 해시태그 마스터 |
+| `AdminNote` | 관리자 메모 | Staff/Hospital/Beauty가 남기는 대상별 운영 메모 |
+| `NotificationInbox` | 알림함 | 사용자별 알림 수신함 |
+| `NotificationDelivery` | 알림 발송 로그 | 채널/제공자별 알림 발송 상태 |
+| `NotificationDevice` | 알림 디바이스 | 사용자 디바이스 토큰과 플랫폼 |
+| `NotificationPreference` | 알림 설정 | 사용자별 알림 이벤트 설정 |
 | `Media` | 공통 미디어 | 이미지/영상 파일 메타데이터(파일 경로, 크기, 정렬, 대표 여부) |
 
 ## 2) 도메인별 상태 정의
@@ -206,21 +232,44 @@
 기본값:
 - `status`: `STATUS_ACTIVE` (유효)
 
-### 2.11 `HospitalVideoRequest` (병원 영상요청)
+### 2.11 `HospitalVideo` (병원 동영상)
+
+#### 배포 채널 (`distribution_channel`)
+
+| 상수명 | 저장값 | 의미 |
+|---|---|---|
+| `DISTRIBUTION_CHANNEL_YOUTUBE_APP` | `YOUTUBE_APP` | 유튜브/앱 동시 배포 |
+| `DISTRIBUTION_CHANNEL_APP` | `APP` | 앱 배포 |
+
+#### 운영 상태 (`status`)
 
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
-| `REVIEW_STATUS_APPLYING` | `APPLYING` | 신청중 | 파트너가 요청을 올린 직후 상태 |
-| `REVIEW_STATUS_IN_REVIEW` | `IN_REVIEW` | 검토중 | 운영팀 검토 진행 상태 |
-| `REVIEW_STATUS_APPROVED` | `APPROVED` | 검수 | 게시 가능 검수 완료 |
-| `REVIEW_STATUS_REJECTED` | `REJECTED` | 반려 | 검토 결과 거절 |
-| `REVIEW_STATUS_PARTNER_CANCELED` | `PARTNER_CANCELED` | 파트너 취소 | 요청자가 직접 취소 |
+| `STATUS_ACTIVE` | `ACTIVE` | 노출 | 서비스 노출 가능 |
+| `STATUS_INACTIVE` | `INACTIVE` | 미노출 | 서비스 비노출 |
+
+#### 검수 상태 (`allow_status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `ALLOW_SUBMITTED` | `SUBMITTED` | 제출 | 동영상 등록/요청 직후 상태 |
+| `ALLOW_IN_REVIEW` | `IN_REVIEW` | 검토중 | 운영팀 검토 진행 상태 |
+| `ALLOW_APPROVED` | `APPROVED` | 승인 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 반려 | 검수 반려 |
+| `ALLOW_EXCLUDED` | `EXCLUDED` | 제외 | 운영 대상에서 제외 |
+| `ALLOW_PARTNER_CANCELED` | `PARTNER_CANCELED` | 파트너 취소 | 병원 계정이 요청을 취소 |
 
 기본값:
-- `review_status`: `REVIEW_STATUS_APPLYING` (신청중)
+- `distribution_channel`: `DISTRIBUTION_CHANNEL_YOUTUBE_APP`
+- `status`: `STATUS_INACTIVE` (미노출)
+- `allow_status`: `ALLOW_SUBMITTED` (제출)
+- `view_count`: `0`
+- `like_count`: `0`
+- `is_usage_consented`: `false`
 
 업무 규칙(코드 기준):
-- 파트너가 `수정` 또는 `취소`할 수 있는 상태는 `REVIEW_STATUS_APPLYING`(신청중)일 때만 가능
+- Hospital Actor API는 현재 동영상 요청 생성과 파트너 취소 라우트만 제공한다.
+- Staff API는 동영상 목록/상세/생성/수정/삭제와 원본 파일 다운로드 라우트를 제공한다.
 
 ### 2.12 `Media` (공통 미디어)
 
@@ -445,8 +494,9 @@
 
 업무 규칙:
 
-- 신고 대상은 `talk`, `talk_comment`, `hospital_review`, `hospital_review_comment`, `hospital_evaluation`이다.
+- 신고 대상은 `talk`, `talk_comment`, `hospital_review`, `hospital_review_comment`, `hospital_evaluation`, `chat_message`이다.
 - 신고 로그는 건별로 `content_reports`에 저장하고, 대상별 현재 상태는 `content_report_states`에 1건만 유지한다.
+- 한 신고 안에 포함된 개별 대상 스냅샷은 `content_report_items`에 저장한다.
 - 1시간 내 신고 10건 이상이면 `AUTO_BLOCKED`로 변경하고 대상 콘텐츠 `status`를 `INACTIVE`로 변경한다.
 - 관리자가 `NORMAL_VISIBLE`로 처리하면 대상 콘텐츠 `status`는 `ACTIVE`가 되고 `recent_hour_report_count`는 0으로 초기화된다.
 - `NORMAL_VISIBLE` 처리 횟수(`normal_visible_count`)가 3회차가 되면 상태는 `REEXPOSED`로 저장된다.
@@ -454,6 +504,23 @@
 - 경고/무시는 `ADMIN_HIDDEN` 상태에서만 처리할 수 있다.
 - 신고 상태 변경과 경고/무시 변경은 대상 콘텐츠의 operation history에 기록한다.
 - operation history는 `operation_histories` 부모 이력과 `operation_history_changes` 변경 상세로 분리해 저장한다.
+
+### 2.19 추가 도메인 상태 요약
+
+아래 도메인은 현재 코드에 모델과 상수가 있으며, 상세 업무 흐름은 각 도메인 Action/Query와 개별 설계 문서를 기준으로 한다.
+
+- `Category`: `domain`은 `HOSPITAL_MEDICAL`, `HOSPITAL_EVALUATION`, `TALK`, `BEAUTY`, `FAQ`를 사용하고, `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
+- `CategoryUsage`: `usage`는 `HOSPITAL_DOCTOR_SUBJECT`, `HOSPITAL_REVIEW_SURGERY`, `HOSPITAL_REVIEW_TREATMENT`, `HOSPITAL_EVENT_SURGERY`, `HOSPITAL_EVENT_TREATMENT`를 사용하고, `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
+- `Hashtag`: `status`는 `ACTIVE`/`INACTIVE`를 사용하며, 이름은 최대 20자와 한글/영문/숫자/언더스코어 규칙을 따른다.
+- `HospitalFeature`: `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
+- `HospitalEvent`: `type`은 `TEXT`/`IMAGE`, `status`는 `ACTIVE`/`INACTIVE`, `allow_status`는 `PENDING`/`REVIEWING`/`APPROVED`/`REJECTED`/`PARTNER_CANCELED`를 사용한다.
+- `HospitalEventDB`: `status`는 `NEW`/`CONFIRMED`/`DUPLICATE`, `allow_status`는 `UNVERIFIED_REPORTED`/`UNVERIFIED_CONFIRMED`/`NORMAL_CONFIRMED`를 사용한다.
+- `HospitalEventRealModelDB`: `status`는 `RECEIVED`/`APPROVED`/`REJECTED`를 사용한다.
+- `Chat`: `status`는 `ACTIVE`/`SUSPENDED`/`CLOSED`를 사용한다.
+- `ChatMessage`: `type`은 `TEXT`/`IMAGE`/`FILE`을 사용하며, 메시지 첨부 컬렉션은 `attachments`를 사용한다.
+- `NotificationDevice`: `platform`은 `IOS`/`ANDROID`/`WEB`을 사용한다.
+- `NotificationDelivery`: `channel`은 `IN_APP`/`PUSH`/`EMAIL`/`WEB`, `status`는 `PENDING`/`SENT`/`FAILED`, `provider`는 `REVERB`/`FCM`/`APNS`/`MIXED`를 사용한다.
+- `NotificationInbox`: 현재 사용자 알림 수신함은 `recipient_type=USER`, `actor_type=USER`, 채팅 메시지 이벤트 `chat.message.created`, 대상 `chat`을 상수로 둔다.
 
 ## 3) 상태 흐름 예시 (비개발자 관점)
 
@@ -475,8 +542,9 @@
 
 ### 3.5 영상요청 검토 흐름
 
-- `REVIEW_STATUS_APPLYING`(신청중) -> `REVIEW_STATUS_IN_REVIEW`(검토중) -> `REVIEW_STATUS_APPROVED`(검수) 또는 `REVIEW_STATUS_REJECTED`(반려)
-- 신청중 단계에서는 파트너가 `REVIEW_STATUS_PARTNER_CANCELED`(파트너 취소)로 종료 가능
+- `ALLOW_SUBMITTED`(제출) -> `ALLOW_IN_REVIEW`(검토중) -> `ALLOW_APPROVED`(승인) 또는 `ALLOW_REJECTED`(반려)
+- 제출 단계에서는 파트너가 `ALLOW_PARTNER_CANCELED`(파트너 취소)로 종료 가능
+- 운영 제외가 필요하면 `ALLOW_EXCLUDED`를 사용한다.
 
 ### 3.6 공지/FAQ/콘텐츠 노출 흐름
 

@@ -40,6 +40,7 @@ final readonly class AccountUserForStaffDetailDto
 
     public static function fromModel(
         AccountUser $user,
+        array $consultationInfo = [],
         array $activityInfo = [],
         array $reportedInfo = [],
         array $accessLogs = [],
@@ -66,7 +67,7 @@ final readonly class AccountUserForStaffDetailDto
             updatedAt: $user->updated_at?->toISOString() ?? '',
             deletedAt: $user->deleted_at?->toISOString(),
             notificationSettings: self::notificationSettings($user),
-            consultationInfo: self::consultationInfo(),
+            consultationInfo: self::consultationInfo($consultationInfo),
             activityInfo: $activityInfo,
             reportedInfo: $reportedInfo,
             accessLogs: $accessLogs,
@@ -117,12 +118,12 @@ final readonly class AccountUserForStaffDetailDto
         ];
     }
 
-    private static function consultationInfo(): array
+    private static function consultationInfo(array $counts = []): array
     {
         return [
-            'event_dbs' => 0,
-            'remote_consultations' => 0,
-            'real_model_dbs' => 0,
+            'event_dbs' => (int) ($counts['event_dbs'] ?? 0),
+            'remote_consultations' => (int) ($counts['remote_consultations'] ?? 0),
+            'real_model_dbs' => (int) ($counts['real_model_dbs'] ?? 0),
         ];
     }
 }

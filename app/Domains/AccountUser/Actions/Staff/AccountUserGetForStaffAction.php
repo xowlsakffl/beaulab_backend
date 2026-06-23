@@ -26,9 +26,10 @@ final class AccountUserGetForStaffAction
         return [
             'user' => AccountUserForStaffDetailDto::fromModel(
                 $user,
-                $this->query->activityCounts($user),
-                $this->query->reportedCounts($user),
-                $this->query->recentAccessLogs($user),
+                consultationInfo: $this->query->consultationCounts($user),
+                activityInfo: $this->query->activityCounts($user),
+                reportedInfo: $this->query->reportedCounts($user),
+                accessLogs: $this->query->recentAccessLogs($user),
             )->toArray(),
         ];
     }

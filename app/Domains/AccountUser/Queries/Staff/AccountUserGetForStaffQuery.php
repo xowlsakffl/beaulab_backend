@@ -8,6 +8,8 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
+use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\Talk\Models\Talk;
@@ -15,6 +17,20 @@ use App\Domains\Talk\Models\TalkComment;
 
 final class AccountUserGetForStaffQuery
 {
+    /**
+     * @return array<string, int>
+     */
+    public function consultationCounts(AccountUser $user): array
+    {
+        $userId = (int) $user->id;
+
+        return [
+            'event_dbs' => HospitalEventDB::query()->where('account_user_id', $userId)->count(),
+            'remote_consultations' => 0,
+            'real_model_dbs' => HospitalEventRealModelDB::query()->where('account_user_id', $userId)->count(),
+        ];
+    }
+
     /**
      * @return array<string, array<string, int>>
      */

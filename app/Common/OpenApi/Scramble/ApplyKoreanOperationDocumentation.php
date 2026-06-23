@@ -68,6 +68,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'patch staff/password' => '관리자 비밀번호 변경',
         'get staff/dashboard' => '관리자 대시보드 조회',
         'get staff/hospital-entries' => '입점신청 목록 조회',
+        'get staff/hospital-entries/summary' => '입점신청 집계 조회',
         'get staff/hospital-entries/{hospitalEntry}' => '입점신청 상세 조회',
         'post staff/hospitals/check-name' => '병의원명 중복 확인',
         'post staff/hospitals/check-business-number' => '사업자등록번호 중복 확인',

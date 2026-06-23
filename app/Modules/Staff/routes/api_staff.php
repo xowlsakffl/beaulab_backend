@@ -18,6 +18,7 @@ use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalEntry\HospitalEntryForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventDBForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventForStaffController;
@@ -115,6 +116,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     /**
      * 병원 관리
      **/
+    Route::get('hospital-entries', [HospitalEntryForStaffController::class, 'getHospitalEntriesForStaff'])
+        ->name('hospital-entries.getHospitalEntriesForStaff');
     Route::get('hospital-features', [HospitalFeatureForStaffController::class, 'getHospitalFeaturesForStaff'])
         ->name('hospital-features.getHospitalFeaturesForStaff');
     Route::get('hospitals', [HospitalForStaffController::class, 'getHospitalsForStaff'])

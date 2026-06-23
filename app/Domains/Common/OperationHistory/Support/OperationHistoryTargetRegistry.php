@@ -13,6 +13,7 @@ use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Faq\Models\Faq;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
+use App\Domains\HospitalEntry\Models\HospitalEntry;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Models\HospitalEventDB;
@@ -30,6 +31,8 @@ final class OperationHistoryTargetRegistry
     public const string ALIAS_HOSPITAL = 'hospital';
 
     public const string ALIAS_HOSPITAL_DOCTOR = 'hospital_doctor';
+
+    public const string ALIAS_HOSPITAL_ENTRY = 'hospital_entry';
 
     public const string ALIAS_BEAUTY = 'beauty';
 
@@ -71,6 +74,7 @@ final class OperationHistoryTargetRegistry
     private const MAP = [
         self::ALIAS_HOSPITAL => Hospital::class,
         self::ALIAS_HOSPITAL_DOCTOR => HospitalDoctor::class,
+        self::ALIAS_HOSPITAL_ENTRY => HospitalEntry::class,
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_BEAUTY_EXPERT => BeautyExpert::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,

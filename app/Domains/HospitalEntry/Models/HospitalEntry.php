@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\HospitalEntry\Models;
 
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use Database\Factories\HospitalEntryFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalEntry extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasOperationHistories, SoftDeletes;
 
     public const ALLOW_PENDING = 'PENDING';
 

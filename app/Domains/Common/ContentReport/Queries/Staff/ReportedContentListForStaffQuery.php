@@ -154,6 +154,10 @@ final class ReportedContentListForStaffQuery
             $builder->where('warning_status', (string) $filters['warning_status']);
         }
 
+        if (! empty($filters['target_author_id'])) {
+            $this->applyTargetAuthorFilter($builder, $targetClass, (int) $filters['target_author_id']);
+        }
+
         if (! empty($filters['start_date']) || ! empty($filters['end_date'])) {
             $this->applyDateFilter($builder, $targetClass, $filters);
         }
@@ -166,6 +170,22 @@ final class ReportedContentListForStaffQuery
                 (string) $filters['q'],
             );
         }
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $targetClass
+     */
+    private function applyTargetAuthorFilter(Builder $builder, string $targetClass, int $authorId): void
+    {
+        $builder->whereHasMorph('target', [$targetClass], function (Builder $query) use ($targetClass, $authorId): void {
+            if ($targetClass === ChatMessage::class) {
+                $query->where('sender_user_id', $authorId);
+
+                return;
+            }
+
+            $query->where('author_id', $authorId);
+        });
     }
 
     /**

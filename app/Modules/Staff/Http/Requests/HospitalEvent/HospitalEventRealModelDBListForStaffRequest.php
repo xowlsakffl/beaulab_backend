@@ -28,6 +28,7 @@ final class HospitalEventRealModelDBListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
+            'account_user_id' => ['nullable', 'integer', 'min:1'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->whereNull('deleted_at')],
             'hospital_event_id' => ['nullable', 'integer', Rule::exists('hospital_events', 'id')->whereNull('deleted_at')],
             'genders' => ['nullable', 'array'],
@@ -50,6 +51,7 @@ final class HospitalEventRealModelDBListForStaffRequest extends FormRequest
 
         return [
             'q' => $validated['q'] ?? null,
+            'account_user_id' => $validated['account_user_id'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'hospital_event_id' => $validated['hospital_event_id'] ?? null,
             'genders' => $validated['genders'] ?? null,
@@ -80,6 +82,7 @@ final class HospitalEventRealModelDBListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
+            'account_user_id' => '회원',
             'hospital_id' => '병의원',
             'hospital_event_id' => '이벤트',
             'genders' => '성별',

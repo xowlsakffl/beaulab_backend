@@ -26,6 +26,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
+            'target_author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'search_type' => ['nullable', Rule::in(['all', 'id', 'nickname', 'hospital_name', 'content'])],
             'date_type' => ['nullable', Rule::in(['created_at', 'first_reported_at', 'last_message_at'])],
             'report_reason' => ['nullable', Rule::in(ContentReport::reasons())],
@@ -50,6 +51,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
 
         return [
             'q' => $validated['q'] ?? null,
+            'target_author_id' => $validated['target_author_id'] ?? null,
             'search_type' => $validated['search_type'] ?? null,
             'date_type' => $validated['date_type'] ?? 'first_reported_at',
             'report_reason' => $validated['report_reason'] ?? null,
@@ -74,6 +76,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
+            'target_author_id' => '작성자',
             'search_type' => '검색 유형',
             'date_type' => '기간 기준',
             'report_reason' => '신고 사유',

@@ -85,6 +85,10 @@ final class HospitalEventDBListForStaffQuery
             $builder->whereIn('allow_status', $filters['allow_statuses']);
         }
 
+        if (! empty($filters['account_user_id'])) {
+            $builder->where('account_user_id', (int) $filters['account_user_id']);
+        }
+
         if (! empty($filters['hospital_id'])) {
             $builder->where('hospital_id', (int) $filters['hospital_id']);
         }

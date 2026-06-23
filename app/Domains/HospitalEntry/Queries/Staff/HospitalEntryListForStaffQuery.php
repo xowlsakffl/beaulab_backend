@@ -65,8 +65,6 @@ final class HospitalEntryListForStaffQuery
 
             $query
                 ->orWhere('hospital_name', 'like', "%{$keyword}%")
-                ->orWhere('address', 'like', "%{$keyword}%")
-                ->orWhere('business_number', 'like', "%{$keyword}%")
                 ->orWhere('ceo_name', 'like', "%{$keyword}%")
                 ->orWhere('applicant_name', 'like', "%{$keyword}%");
         });

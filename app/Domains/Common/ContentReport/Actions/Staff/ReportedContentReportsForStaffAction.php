@@ -7,6 +7,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Common\Support\PaginatedResponse;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReportItem;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\ContentReport\Queries\Staff\ReportedContentDetailForStaffQuery;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use Illuminate\Support\Facades\Gate;
@@ -27,7 +28,7 @@ final class ReportedContentReportsForStaffAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 신고 대상입니다.');
         }
 
-        Gate::authorize('viewAny', $targetClass);
+        Gate::authorize('viewAny', [ContentReportState::class, $targetAlias]);
         $this->query->state($targetClass, $targetId);
 
         $reports = $this->query->reportsQuery($targetClass, $targetId)->paginate(

@@ -35,7 +35,7 @@ final class ReportedContentListForStaffAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 신고 대상입니다.');
         }
 
-        Gate::authorize('viewAny', $targetClass);
+        Gate::authorize('viewAny', [ContentReportState::class, $targetAlias]);
 
         $paginator = $this->query->paginate($targetClass, $filters);
         $states = $paginator->getCollection();

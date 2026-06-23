@@ -76,7 +76,14 @@ User는 Spatie role/permission을 사용하지 않는다.
 - Hospital Evaluation: `beaulab.hospital_evaluation.show|update`
 - Talk: `beaulab.talk.show|update`
 - Talk Comment: 별도 권한 없음 (Talk 권한 `beaulab.talk.show|update` 사용)
-- Reported Content: 별도 권한 없음. 신고 대상 도메인의 show/update Policy를 그대로 사용
+- Reported Talk: `beaulab.reported_talk.show|update`
+  - 신고 토크/토크댓글 조회는 `show`, 신고 처리/경고 처리는 `update` 권한을 사용한다.
+- Reported Hospital Review: `beaulab.reported_hospital_review.show|update`
+  - 신고 후기/후기댓글 조회는 `show`, 신고 처리/경고 처리는 `update` 권한을 사용한다.
+- Reported Hospital Evaluation: `beaulab.reported_hospital_evaluation.show|update`
+  - 신고 평점 조회는 `show`, 신고 처리/경고 처리는 `update` 권한을 사용한다.
+- Reported Chat Message: `beaulab.reported_chat_message.show|update`
+  - 신고 채팅 메시지 조회는 `show`, 적합/부적합 처리와 경고/무시는 `update` 권한을 사용한다.
 - Notice: `beaulab.notice.show|create|update|delete`
 - FAQ: `beaulab.faq.show|create|update|delete`
 - Category: `beaulab.category.manage`
@@ -107,6 +114,7 @@ User는 Spatie role/permission을 사용하지 않는다.
   - common + 조회 중심 권한
   - 입점신청은 `beaulab.hospital_entry.show`만 포함
   - 이벤트 DB/리얼모델 DB는 각각 `beaulab.hospital_event_db.show`, `beaulab.hospital_event_real_model_db.show`만 포함
+  - 신고게시물은 신고 토크/후기/평가/채팅 메시지별 `show` 권한만 포함
   - Notice/FAQ는 기본적으로 `beaulab.notice.show`, `beaulab.faq.show`만 포함
 
 - `hospital.owner`

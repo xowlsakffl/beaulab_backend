@@ -31,7 +31,8 @@
 | `hospital_evaluation` | `HospitalEvaluation` | 병의원 평가 |
 | `chat_message` | `ChatMessage` | 사용자 채팅 메시지 |
 
-새 신고 대상이 추가되면 `ContentReportTargetRegistry`, User 신고 라우트, Staff 신고게시물 라우트, Policy 권한을 같이 갱신해야 한다.
+새 신고 대상이 추가되면 `ContentReportTargetRegistry`, User 신고 라우트, Staff 신고게시물 라우트, 신고 대상별 Policy 권한을 같이 갱신해야 한다.
+Staff 신고게시물 관리는 일반 토크/후기/평가 관리 권한과 분리해서 `beaulab.reported_*` 권한을 사용한다.
 
 ## 3) 신고 사유
 

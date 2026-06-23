@@ -33,7 +33,7 @@ final class ContentReportStateStatusUpdateForStaffAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 신고 대상입니다.');
         }
 
-        Gate::authorize('update', $targetClass);
+        Gate::authorize('update', [ContentReportState::class, $targetAlias]);
 
         $target = ContentReportTargetRegistry::resolveTarget($targetAlias, (int) $payload['target_id']);
         $nextReportStatus = (string) $payload['report_status'];

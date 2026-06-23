@@ -38,7 +38,7 @@ final class ReportedContentDetailForStaffAction
             throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 신고 대상입니다.');
         }
 
-        Gate::authorize('viewAny', $targetClass);
+        Gate::authorize('viewAny', [ContentReportState::class, $targetAlias]);
 
         $target = ContentReportTargetRegistry::resolveTarget($targetAlias, $targetId);
         $target->loadMissing($this->targetLoadRelations($target));

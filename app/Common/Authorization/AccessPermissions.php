@@ -106,6 +106,22 @@ final class AccessPermissions
 
     public const BEAULAB_TALK_UPDATE = 'beaulab.talk.update';
 
+    public const BEAULAB_REPORTED_TALK_SHOW = 'beaulab.reported_talk.show';
+
+    public const BEAULAB_REPORTED_TALK_UPDATE = 'beaulab.reported_talk.update';
+
+    public const BEAULAB_REPORTED_HOSPITAL_REVIEW_SHOW = 'beaulab.reported_hospital_review.show';
+
+    public const BEAULAB_REPORTED_HOSPITAL_REVIEW_UPDATE = 'beaulab.reported_hospital_review.update';
+
+    public const BEAULAB_REPORTED_HOSPITAL_EVALUATION_SHOW = 'beaulab.reported_hospital_evaluation.show';
+
+    public const BEAULAB_REPORTED_HOSPITAL_EVALUATION_UPDATE = 'beaulab.reported_hospital_evaluation.update';
+
+    public const BEAULAB_REPORTED_CHAT_MESSAGE_SHOW = 'beaulab.reported_chat_message.show';
+
+    public const BEAULAB_REPORTED_CHAT_MESSAGE_UPDATE = 'beaulab.reported_chat_message.update';
+
     public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
 
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
@@ -271,6 +287,14 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_EVALUATION_UPDATE,
             self::BEAULAB_TALK_SHOW,
             self::BEAULAB_TALK_UPDATE,
+            self::BEAULAB_REPORTED_TALK_SHOW,
+            self::BEAULAB_REPORTED_TALK_UPDATE,
+            self::BEAULAB_REPORTED_HOSPITAL_REVIEW_SHOW,
+            self::BEAULAB_REPORTED_HOSPITAL_REVIEW_UPDATE,
+            self::BEAULAB_REPORTED_HOSPITAL_EVALUATION_SHOW,
+            self::BEAULAB_REPORTED_HOSPITAL_EVALUATION_UPDATE,
+            self::BEAULAB_REPORTED_CHAT_MESSAGE_SHOW,
+            self::BEAULAB_REPORTED_CHAT_MESSAGE_UPDATE,
             self::BEAULAB_NOTICE_SHOW,
             self::BEAULAB_NOTICE_CREATE,
             self::BEAULAB_NOTICE_UPDATE,

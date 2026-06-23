@@ -48,7 +48,7 @@
 ## 5) 현재 주요 도메인
 
 - 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`, `AccountUserAccessLog`, `AccountUserBlock`
-- 파트너: `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `HospitalFeature`
+- 파트너: `Hospital`, `HospitalEntry`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `HospitalFeature`
 - 병원 이벤트/고객 DB: `HospitalEvent`, `HospitalEventDB`, `HospitalEventRealModelDB`, `HospitalEventOption`, `HospitalEventDoctorAssignment`
 - 콘텐츠: `Talk`, `TalkComment`, `TalkCommentMention`, `TalkPoll`, `TalkPollOption`, `TalkPollVote`, `TalkSave`, `HospitalReview`, `HospitalReviewComment`, `HospitalReviewCommentMention`, `HospitalEvaluation`, `HospitalVideo`, `Notice`, `Faq`
 - 커뮤니케이션: `Chat`, `ChatMessage`, `ChatParticipant`, `NotificationInbox`, `NotificationDelivery`, `NotificationDevice`, `NotificationPreference`
@@ -180,7 +180,7 @@ DTO 응답 원칙:
 
 - Staff
   - 인증, 프로필/비밀번호 수정, 관리자 메모, 대시보드
-  - 병원/뷰티/일반회원/의료진/뷰티전문가 관리
+  - 병원/입점신청/뷰티/일반회원/의료진/뷰티전문가 관리
   - 병원 특징, 카테고리, 해시태그 관리
   - 병원 이벤트, 이벤트 DB, 리얼모델 DB 관리
   - 동영상 목록/상세/생성/수정/삭제/원본 다운로드
@@ -211,4 +211,4 @@ DTO 응답 원칙:
 - [ ] 신고 대상 추가 시 `ContentReportTargetRegistry`, User 신고 라우트, Staff 신고게시물 라우트가 같이 갱신됐는가?
 - [ ] 비동기 작업이 lane 정책(`critical`, `mail`, `sms`, `chat`, `default` 등)에 맞게 라우팅됐는가?
 
-작성 기준: 2026-06-22
+작성 기준: 2026-06-23

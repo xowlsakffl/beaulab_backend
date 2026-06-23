@@ -17,15 +17,12 @@ final class HospitalEntryListForStaffQuery
             ->select([
                 'id',
                 'hospital_name',
-                'hospital_phone',
                 'address',
                 'address_detail',
-                'business_number',
                 'ceo_name',
                 'applicant_name',
                 'allow_status',
                 'created_at',
-                'updated_at',
             ]);
 
         $this->applyFilters($builder, $filters);
@@ -47,8 +44,8 @@ final class HospitalEntryListForStaffQuery
             $this->applySearch($builder, (string) $filters['q']);
         }
 
-        if (is_array($filters['allow_statuses'] ?? null) && $filters['allow_statuses'] !== []) {
-            $builder->whereIn('allow_status', $filters['allow_statuses']);
+        if (is_array($filters['allow_status'] ?? null) && $filters['allow_status'] !== []) {
+            $builder->whereIn('allow_status', $filters['allow_status']);
         }
 
         DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);

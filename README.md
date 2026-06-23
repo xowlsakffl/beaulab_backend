@@ -45,8 +45,8 @@
   - 후기 답글, 신고 대응, 운영자 검수 요청
   - 파트너 계정/직원 권한 관리
 - 내부 운영자
-  - 병원/뷰티 업체, 회원, 의사, 전문가, 영상 요청, 토크, 공지사항, FAQ, 카테고리, 해시태그 관리
-  - 병원/뷰티 검수, 의료진/전문가 검수, 영상 게시 검수
+  - 병원/뷰티 업체, 병의원 입점신청, 회원, 의사, 전문가, 영상 요청, 토크, 공지사항, FAQ, 카테고리, 해시태그 관리
+  - 병원/뷰티 검수, 병의원 입점신청 조회/검토, 의료진/전문가 검수, 영상 게시 검수
   - 이벤트/프로모션/쿠폰 검수와 노출 관리
   - 후기/전후 사진/부작용 후기 검수와 블라인드 처리
   - 게시글/댓글/채팅/후기 신고 접수와 처리
@@ -106,7 +106,7 @@
 | Context | 포함 도메인 | 설명 |
 | --- | --- | --- |
 | Account | `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser` | Actor별 로그인 계정과 상태 관리 |
-| Partner | `Hospital`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `HospitalBusinessRegistration`, `BeautyBusinessRegistration` | 병원/뷰티 파트너 정보, 검수, 노출 관리 |
+| Partner | `Hospital`, `HospitalEntry`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `HospitalBusinessRegistration`, `BeautyBusinessRegistration` | 병원/뷰티 파트너 정보, 입점신청, 검수, 노출 관리 |
 | Video | `HospitalVideo` | 병원 영상 게시 요청, 검토, 게시 상태 관리 |
 | Community | `Talk`, `TalkComment`, `TalkSave` | 사용자 커뮤니티 게시글, 댓글, 저장 기능 |
 | Communication | `Chat`, `ChatMessage`, `NotificationInbox`, `NotificationDelivery`, `NotificationDevice`, `NotificationPreference` | 사용자 간 채팅, 실시간 이벤트, 인앱/푸시 알림 |
@@ -154,6 +154,7 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 - 대시보드 API
 - 관리자 메모(Admin Note) 조회/작성/수정
 - 병원 관리
+  - 병의원 입점신청 목록/상세 조회
   - 병원 목록/상세 조회
   - 병원 생성/수정/삭제
   - 병원명 중복 확인
@@ -255,6 +256,7 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 | `AccountBeauty` | 뷰티 파트너 계정 |
 | `AccountUser` | 일반 앱 사용자 계정 |
 | `Hospital` | 병원 기본 정보, 노출, 검수, 운영 상태 |
+| `HospitalEntry` | 병의원 신규 입점신청 정보와 제출 파일 |
 | `Beauty` | 뷰티 업체 기본 정보, 노출, 검수, 운영 상태 |
 | `HospitalDoctor` | 병원 소속 의사 프로필과 노출 정보 |
 | `BeautyExpert` | 뷰티 소속 전문가 프로필과 노출 정보 |
@@ -293,6 +295,9 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 - 병원/뷰티 검수
   - `PENDING` -> `APPROVED` 또는 `REJECTED`
   - 운영 상태는 `ACTIVE`, `SUSPENDED`, `WITHDRAWN`을 사용합니다.
+- 병의원 입점신청
+  - `PENDING`(입점신청) -> `APPROVED`(입점승인) 또는 `REJECTED`(입점반려)
+  - 사업자등록증과 면허증은 공통 `Media`의 입점신청 전용 collection으로 관리합니다.
 - 병의원 평가 평점
   - 각 평가는 5개 별점 항목의 평균을 `hospital_evaluations.average_rating`에 저장합니다.
   - 병원별 노출 평가 수와 평균 평점은 `hospitals.evaluation_count`, `hospitals.evaluation_average_rating`에 저장합니다.
@@ -503,6 +508,7 @@ beaulab/
 │   │   ├── AccountBeauty/         # 뷰티 파트너 계정
 │   │   ├── AccountUser/           # 일반 사용자 계정/차단
 │   │   ├── Hospital/              # 병원 도메인
+│   │   ├── HospitalEntry/         # 병의원 입점신청 도메인
 │   │   ├── Beauty/                # 뷰티 업체 도메인
 │   │   ├── HospitalDoctor/        # 병원 의사 도메인
 │   │   ├── BeautyExpert/          # 뷰티 전문가 도메인

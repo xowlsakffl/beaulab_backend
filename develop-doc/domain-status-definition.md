@@ -1,5 +1,5 @@
 ﻿# 도메인 & 상태 정의서
-- 작성일: 2026-06-22
+- 작성일: 2026-06-23
 - 목적: 서비스에서 관리하는 핵심 도메인(업무 단위)과 상태값을 비개발자도 이해할 수 있게 정리
 - 기준: 현재 코드(`app/Domains/*/Models`, `database/migrations`) 기준
 
@@ -14,6 +14,7 @@
 | `AccountUserAccessLog` | 일반 사용자 접속 로그 | 앱 사용자 접근/접속 기록 |
 | `AccountUserBlock` | 사용자 차단 | 앱 사용자 간 차단 관계 |
 | `Hospital` | 병원 | 병원 기본 정보(소개, 위치, 연락처, 노출 여부 등) |
+| `HospitalEntry` | 병의원 입점신청 | 신규 입점신청 병의원/신청자 정보와 제출 파일 |
 | `Beauty` | 뷰티 업체 | 뷰티 업체 기본 정보(소개, 위치, 연락처, 노출 여부 등) |
 | `HospitalDoctor` | 병원 의사 | 병원 소속 의사 프로필/자격/노출 정보 |
 | `BeautyExpert` | 뷰티 전문가 | 뷰티 소속 전문가 프로필/경력/노출 정보 |
@@ -165,6 +166,29 @@
 기본값:
 - `allow_status`: `ALLOW_PENDING` (검수 대기)
 - `status`: `STATUS_SUSPENDED` (운영정지)
+
+### 2.5.1 `HospitalEntry` (병의원 입점신청)
+
+#### 승인 상태 (`allow_status`)
+
+| 상수명 | 저장값 | 상태명 | 의미 |
+|---|---|---|---|
+| `ALLOW_PENDING` | `PENDING` | 입점신청 | 입점 신청 접수 후 승인/반려 대기 |
+| `ALLOW_APPROVED` | `APPROVED` | 입점승인 | 운영자가 입점 신청을 승인 |
+| `ALLOW_REJECTED` | `REJECTED` | 입점반려 | 운영자가 입점 신청을 반려 |
+
+주요 필드:
+
+- 병의원 정보: `hospital_name`, `hospital_phone`, `address`, `address_detail`, `business_number`, `ceo_name`, `license_number`
+- 신청자 정보: `applicant_name`, `applicant_position`, `applicant_phone`, `applicant_email`
+- 제출 파일은 공통 `Media` 테이블의 polymorphic relation으로 관리한다.
+  - 사업자등록증: `hospital_entry_business_registration_file`
+  - 면허증: `hospital_entry_license_file`
+
+현재 API 범위:
+
+- Staff API에서 목록/상세 조회를 제공한다.
+- 승인/반려 처리는 별도 상태 변경 API와 operation history 기록을 함께 설계해야 한다.
 
 ### 2.7 `HospitalDoctor` (병원 의사)
 
@@ -527,6 +551,10 @@
 ### 3.1 병원 검수 흐름
 
 - `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+
+### 3.1.1 병의원 입점신청 흐름
+
+- `ALLOW_PENDING`(입점신청) -> `ALLOW_APPROVED`(입점승인) 또는 `ALLOW_REJECTED`(입점반려)
 
 ### 3.2 뷰티 검수 흐름
 

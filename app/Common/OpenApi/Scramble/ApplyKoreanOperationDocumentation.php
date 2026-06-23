@@ -30,6 +30,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'password' => '비밀번호',
         'notes' => '관리자 메모',
         'dashboard' => '대시보드',
+        'hospital-entries' => '입점신청',
         'hospital-features' => '병의원 특징',
         'hospitals' => '병의원',
         'categories' => '카테고리',
@@ -66,6 +67,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'put staff/password' => '관리자 비밀번호 변경',
         'patch staff/password' => '관리자 비밀번호 변경',
         'get staff/dashboard' => '관리자 대시보드 조회',
+        'get staff/hospital-entries' => '입점신청 목록 조회',
+        'get staff/hospital-entries/{hospitalEntry}' => '입점신청 상세 조회',
         'post staff/hospitals/check-name' => '병의원명 중복 확인',
         'post staff/hospitals/check-business-number' => '사업자등록번호 중복 확인',
         'get staff/categories/selector' => '카테고리 선택 목록 조회',
@@ -251,7 +254,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
     }
 
     /**
-     * @param array<int, string> $segments
+     * @param  array<int, string>  $segments
      */
     private function resourceLabel(array $segments): string
     {
@@ -269,7 +272,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
     }
 
     /**
-     * @param array<int, string> $segments
+     * @param  array<int, string>  $segments
      */
     private function hasRouteParameter(array $segments): bool
     {
@@ -315,6 +318,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
 
         return [
             'hospital' => '병의원 ID',
+            'hospitalEntry' => '입점신청 ID',
             'hospitalEvaluation' => '병의원 평가 ID',
             'beauty' => '뷰티업체 ID',
             'doctor' => '의사 ID',

@@ -13,7 +13,7 @@ final class HospitalEntryListForStaffRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'allow_statuses' => $this->normalizeToArray($this->input('allow_statuses') ?? $this->input('allow_status')),
+            'allow_status' => $this->normalizeToArray($this->input('allow_status') ?? $this->input('allow_statuses')),
         ]);
     }
 
@@ -26,8 +26,8 @@ final class HospitalEntryListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
-            'allow_statuses' => ['nullable', 'array'],
-            'allow_statuses.*' => ['string', Rule::in(HospitalEntry::allowStatuses())],
+            'allow_status' => ['nullable', 'array'],
+            'allow_status.*' => ['string', Rule::in(HospitalEntry::allowStatuses())],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
             'sort' => ['nullable', 'in:id,created_at,hospital_name,address,ceo_name,applicant_name,allow_status'],
@@ -43,7 +43,7 @@ final class HospitalEntryListForStaffRequest extends FormRequest
 
         return [
             'q' => $validated['q'] ?? null,
-            'allow_statuses' => $validated['allow_statuses'] ?? null,
+            'allow_status' => $validated['allow_status'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
             'sort' => $validated['sort'] ?? 'id',
@@ -56,8 +56,8 @@ final class HospitalEntryListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
-            'allow_statuses' => '승인상태',
-            'allow_statuses.*' => '승인상태',
+            'allow_status' => '승인상태',
+            'allow_status.*' => '승인상태',
             'start_date' => '신청 시작일',
             'end_date' => '신청 종료일',
             'sort' => '정렬 기준',

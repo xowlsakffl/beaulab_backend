@@ -61,7 +61,7 @@ final class HospitalEntry extends Model
             ->where('collection', 'hospital_entry_business_registration_file');
     }
 
-    public function doctorLicenseFile(): MorphOne
+    public function licenseFile(): MorphOne
     {
         return $this->morphOne(Media::class, 'model')
             ->where('collection', 'hospital_entry_license_file');

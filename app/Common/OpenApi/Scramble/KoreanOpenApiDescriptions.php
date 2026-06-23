@@ -19,7 +19,7 @@ final class KoreanOpenApiDescriptions
     private static ?array $requestAttributesBySchemaName = null;
 
     /**
-     * @param array<string, string> $requestAttributes
+     * @param  array<string, string>  $requestAttributes
      */
     public static function field(string $name, array $requestAttributes = []): ?string
     {
@@ -45,7 +45,7 @@ final class KoreanOpenApiDescriptions
         }
 
         try {
-            $request = new $className();
+            $request = new $className;
             if (! method_exists($request, 'attributes')) {
                 return [];
             }
@@ -141,6 +141,7 @@ final class KoreanOpenApiDescriptions
 
             if (count($comments) === 1) {
                 $descriptions[$column] = $comments[0];
+
                 continue;
             }
 
@@ -154,7 +155,7 @@ final class KoreanOpenApiDescriptions
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      * @return array<string, string>
      */
     private static function normalizeAttributes(array $attributes): array
@@ -178,7 +179,7 @@ final class KoreanOpenApiDescriptions
     }
 
     /**
-     * @param array<string, string> $requestAttributes
+     * @param  array<string, string>  $requestAttributes
      */
     private static function attributeDescription(string $name, array $requestAttributes): ?string
     {
@@ -298,9 +299,21 @@ final class KoreanOpenApiDescriptions
             'width' => '이미지 너비',
             'height' => '이미지 높이',
             'hospital' => '병의원 정보',
+            'hospital_entry' => '입점신청 정보',
             'hospital_id' => '병의원 ID',
+            'hospital_name' => '병의원명',
+            'hospital_phone' => '병의원 전화번호',
             'doctor' => '의료진 정보',
             'doctor_id' => '의료진 ID',
+            'address_detail' => '상세주소',
+            'business_number' => '사업자등록번호',
+            'ceo_name' => '대표자명',
+            'license_number' => '면허번호',
+            'license_file' => '면허증 파일',
+            'applicant_name' => '신청자 이름',
+            'applicant_position' => '신청자 직책',
+            'applicant_phone' => '신청자 전화번호',
+            'applicant_email' => '신청자 이메일주소',
             'phone' => '전화번호',
             'cost' => '비용',
             'cost_min' => '최소 비용',

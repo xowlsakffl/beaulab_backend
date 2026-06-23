@@ -8,35 +8,53 @@ use App\Domains\HospitalEntry\Models\HospitalEntry;
 
 final readonly class HospitalEntryForStaffDto
 {
-    public function __construct(private HospitalEntry $entry) {}
+    /**
+     * @param  array{code: string, label: string}  $allowStatus
+     */
+    public function __construct(
+        public int $id,
+        public ?string $createdAt,
+        public string $hospitalName,
+        public string $address,
+        public string $ceoName,
+        public string $applicantName,
+        public array $allowStatus,
+    ) {}
 
     public static function fromModel(HospitalEntry $entry): self
     {
-        return new self($entry);
+        return new self(
+            id: (int) $entry->id,
+            createdAt: $entry->created_at?->toISOString(),
+            hospitalName: (string) $entry->hospital_name,
+            address: self::address($entry),
+            ceoName: (string) $entry->ceo_name,
+            applicantName: (string) $entry->applicant_name,
+            allowStatus: [
+                'code' => (string) $entry->allow_status,
+                'label' => HospitalEntry::allowStatusLabel($entry->allow_status),
+            ],
+        );
     }
 
     public function toArray(): array
     {
         return [
-            'id' => (int) $this->entry->id,
-            'applied_at' => $this->entry->created_at?->toISOString(),
-            'created_at' => $this->entry->created_at?->toISOString(),
-            'hospital_name' => (string) $this->entry->hospital_name,
-            'address' => $this->address(),
-            'ceo_name' => (string) $this->entry->ceo_name,
-            'applicant_name' => (string) $this->entry->applicant_name,
-            'allow_status' => [
-                'code' => (string) $this->entry->allow_status,
-                'label' => HospitalEntry::allowStatusLabel($this->entry->allow_status),
-            ],
+            'id' => $this->id,
+            'created_at' => $this->createdAt,
+            'hospital_name' => $this->hospitalName,
+            'address' => $this->address,
+            'ceo_name' => $this->ceoName,
+            'applicant_name' => $this->applicantName,
+            'allow_status' => $this->allowStatus,
         ];
     }
 
-    private function address(): string
+    private static function address(HospitalEntry $entry): string
     {
         return trim(implode(' ', array_filter([
-            (string) $this->entry->address,
-            $this->entry->address_detail,
+            (string) $entry->address,
+            $entry->address_detail,
         ])));
     }
 }

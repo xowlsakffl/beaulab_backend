@@ -57,6 +57,9 @@ User는 Spatie role/permission을 사용하지 않는다.
 ### 3.2 Beaulab(Staff 전용)
 
 - Hospital: `beaulab.hospital.show|create|update|delete`
+- Hospital Entry: `beaulab.hospital_entry.show|update`
+  - 현재 목록/상세 조회 API는 `show` 권한을 사용한다.
+  - `update` 권한은 입점신청 수정/승인/반려 API 추가 시 사용한다.
 - Beauty: `beaulab.beauty.show|create|update|delete`
 - Agency: `beaulab.agency.show|create|update|delete` (정의만 존재, API 미연결)
 - User: `beaulab.user.show|update|delete`
@@ -97,6 +100,7 @@ User는 Spatie role/permission을 사용하지 않는다.
   - common + beaulab 전체
 - `beaulab.staff`, `beaulab.dev`
   - common + 조회 중심 권한
+  - 입점신청은 `beaulab.hospital_entry.show`만 포함
   - Notice/FAQ는 기본적으로 `beaulab.notice.show`, `beaulab.faq.show`만 포함
 
 - `hospital.owner`
@@ -152,4 +156,4 @@ User는 Spatie role/permission을 사용하지 않는다.
 php artisan db:seed --class=AuthorizationSeeder
 ```
 
-작성 기준: 2026-05-18
+작성 기준: 2026-06-23

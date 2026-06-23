@@ -118,6 +118,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
      **/
     Route::get('hospital-entries', [HospitalEntryForStaffController::class, 'getHospitalEntriesForStaff'])
         ->name('hospital-entries.getHospitalEntriesForStaff');
+    Route::get('hospital-entries/{hospitalEntry}', [HospitalEntryForStaffController::class, 'getHospitalEntryForStaff'])
+        ->name('hospital-entries.getHospitalEntryForStaff');
     Route::get('hospital-features', [HospitalFeatureForStaffController::class, 'getHospitalFeaturesForStaff'])
         ->name('hospital-features.getHospitalFeaturesForStaff');
     Route::get('hospitals', [HospitalForStaffController::class, 'getHospitalsForStaff'])

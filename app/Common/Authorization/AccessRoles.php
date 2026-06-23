@@ -9,25 +9,31 @@ final class AccessRoles
     // =========================
 
     public const BEAULAB_SUPER_ADMIN = 'beaulab.super_admin';
-    public const BEAULAB_ADMIN       = 'beaulab.admin';
-    public const BEAULAB_STAFF       = 'beaulab.staff';
-    public const BEAULAB_DEV         = 'beaulab.dev';
+
+    public const BEAULAB_ADMIN = 'beaulab.admin';
+
+    public const BEAULAB_STAFF = 'beaulab.staff';
+
+    public const BEAULAB_DEV = 'beaulab.dev';
 
     // =========================
     // Partner Roles (guard: partner)
     // =========================
 
     // Hospital
-    public const HOSPITAL_OWNER      = 'hospital.owner';
+    public const HOSPITAL_OWNER = 'hospital.owner';
 
     // Beauty
-    public const BEAUTY_OWNER        = 'beauty.owner';
-    public const BEAUTY_MANAGER      = 'beauty.manager';
-    public const BEAUTY_STAFF        = 'beauty.staff';
+    public const BEAUTY_OWNER = 'beauty.owner';
+
+    public const BEAUTY_MANAGER = 'beauty.manager';
+
+    public const BEAUTY_STAFF = 'beauty.staff';
 
     // Agency
-    public const AGENCY_OWNER        = 'agency.owner';
-    public const AGENCY_STAFF        = 'agency.staff';
+    public const AGENCY_OWNER = 'agency.owner';
+
+    public const AGENCY_STAFF = 'agency.staff';
 
     /**
      * guard별 role 목록
@@ -57,19 +63,19 @@ final class AccessRoles
     /**
      * guard별 role => permissions 매핑
      *
-     * @return array<string, array<string, list<string>>>  guard => [role => permissions]
+     * @return array<string, array<string, list<string>>> guard => [role => permissions]
      */
     public static function mapByGuard(): array
     {
-        $staffCommon   = AccessPermissions::common();
+        $staffCommon = AccessPermissions::common();
         $partnerCommon = AccessPermissions::common();
 
-        $beaulab  = AccessPermissions::beaulab();
+        $beaulab = AccessPermissions::beaulab();
         $hospital = AccessPermissions::hospital();
-        $beauty   = AccessPermissions::beauty();
+        $beauty = AccessPermissions::beauty();
 
         // guard별로 생성될 permission 집합 (Seeder에서 그대로 생성되는 목록)
-        $staffAllPermissions   = AccessPermissions::byGuard()[AccessPermissions::GUARD_STAFF];
+        $staffAllPermissions = AccessPermissions::byGuard()[AccessPermissions::GUARD_STAFF];
 
         return [
             // =========================
@@ -88,6 +94,7 @@ final class AccessRoles
                     ...$staffCommon,
                     // 조회 중심
                     AccessPermissions::BEAULAB_HOSPITAL_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_ENTRY_SHOW,
                     AccessPermissions::BEAULAB_BEAUTY_SHOW,
                     AccessPermissions::BEAULAB_AGENCY_SHOW,
                     AccessPermissions::BEAULAB_USER_SHOW,
@@ -104,6 +111,7 @@ final class AccessRoles
                 self::BEAULAB_DEV => self::unique([
                     ...$staffCommon,
                     AccessPermissions::BEAULAB_HOSPITAL_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_ENTRY_SHOW,
                     AccessPermissions::BEAULAB_BEAUTY_SHOW,
                     AccessPermissions::BEAULAB_AGENCY_SHOW,
                     AccessPermissions::BEAULAB_USER_SHOW,
@@ -177,7 +185,7 @@ final class AccessRoles
     }
 
     /**
-     * @param array<int, string> $items
+     * @param  array<int, string>  $items
      * @return array<int, string>
      */
     private static function unique(array $items): array

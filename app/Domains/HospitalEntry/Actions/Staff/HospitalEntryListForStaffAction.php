@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domains\HospitalEntry\Actions\Staff;
 
 use App\Common\Support\PaginatedResponse;
-use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEntry\Dto\Staff\HospitalEntryForStaffDto;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
 use App\Domains\HospitalEntry\Queries\Staff\HospitalEntryListForStaffQuery;
@@ -17,7 +16,7 @@ final class HospitalEntryListForStaffAction
 
     public function execute(array $filters): array
     {
-        Gate::authorize('viewAny', Hospital::class);
+        Gate::authorize('viewAny', HospitalEntry::class);
 
         $paginator = $this->query->paginate($filters);
 

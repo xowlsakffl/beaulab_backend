@@ -2,10 +2,8 @@
 
 namespace App\Domains\Chat\Policies;
 
-use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Models\ChatMessage;
-use App\Domains\Chat\Policies\Staff\ChatMessageForStaffPolicy;
 
 final class ChatMessagePolicy
 {
@@ -27,7 +25,6 @@ final class ChatMessagePolicy
     private function delegate(mixed $actor): object
     {
         return match (true) {
-            $actor instanceof AccountStaff => app(ChatMessageForStaffPolicy::class),
             $actor instanceof AccountUser => new class
             {
                 public function viewAny(mixed $actor): bool

@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Domains\HospitalEntry\Models;
 
 use App\Domains\Common\Media\Models\Media;
+use Database\Factories\HospitalEntryFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class HospitalEntry extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     public const ALLOW_PENDING = 'PENDING';
 
@@ -41,6 +44,11 @@ final class HospitalEntry extends Model
         'applicant_email',
         'allow_status',
     ];
+
+    protected static function newFactory(): Factory
+    {
+        return HospitalEntryFactory::new();
+    }
 
     /**
      * @return array<int, string>

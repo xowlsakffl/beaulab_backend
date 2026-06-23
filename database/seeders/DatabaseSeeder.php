@@ -16,6 +16,7 @@ final class DatabaseSeeder extends Seeder
             AccountStaffSeeder::class,
             CategorySeeder::class,
             HospitalFeatureSeeder::class,
+            HospitalEntrySeeder::class,
             HospitalSeeder::class,
             HospitalDoctorSeeder::class,
             HospitalVideoSeeder::class,

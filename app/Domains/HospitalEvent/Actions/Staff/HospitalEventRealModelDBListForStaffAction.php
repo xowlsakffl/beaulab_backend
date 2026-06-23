@@ -6,7 +6,7 @@ namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Common\Support\PaginatedResponse;
 use App\Domains\HospitalEvent\Dto\Staff\HospitalEventRealModelDBForStaffDto;
-use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventRealModelDBImageSummaryQuery;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventRealModelDBListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
@@ -17,7 +17,7 @@ final class HospitalEventRealModelDBListForStaffAction
 
     public function execute(array $filters): array
     {
-        Gate::authorize('viewAny', HospitalEvent::class);
+        Gate::authorize('viewAny', HospitalEventRealModelDB::class);
 
         $paginator = $this->query->paginate($filters);
         $imageSummaries = HospitalEventRealModelDBImageSummaryQuery::forApplicationIds(

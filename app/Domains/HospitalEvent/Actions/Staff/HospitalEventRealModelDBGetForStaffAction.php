@@ -22,10 +22,10 @@ final class HospitalEventRealModelDBGetForStaffAction
         ]);
 
         if ($application->event === null) {
-            throw (new ModelNotFoundException())->setModel(HospitalEventRealModelDB::class, [$application->id]);
+            throw (new ModelNotFoundException)->setModel(HospitalEventRealModelDB::class, [$application->id]);
         }
 
-        Gate::authorize('view', $application->event);
+        Gate::authorize('view', $application);
 
         return HospitalEventRealModelDBForStaffDetailDto::fromModel($application)->toArray();
     }

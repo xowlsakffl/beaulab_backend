@@ -32,11 +32,7 @@ final class HospitalEventDBStatusUpdateForStaffAction
 
         return DB::transaction(function () use ($ids, $status, $payload, $actor): array {
             $eventDBs = $this->query->getForUpdate($ids);
-            $eventDBs->each(static function (HospitalEventDB $eventDB): void {
-                if ($eventDB->event !== null) {
-                    Gate::authorize('update', $eventDB->event);
-                }
-            });
+            $eventDBs->each(static fn (HospitalEventDB $eventDB): mixed => Gate::authorize('update', $eventDB));
 
             if ($eventDBs->isEmpty()) {
                 return [
@@ -52,13 +48,13 @@ final class HospitalEventDBStatusUpdateForStaffAction
 
             foreach ($eventDBs as $eventDB) {
                 $changes = OperationHistoryChangeSetBuilder::single(
-                        key: 'status',
-                        label: '상담여부',
-                        before: $eventDB->status,
-                        after: $status,
-                        beforeDisplay: HospitalEventDB::statusLabel($eventDB->status),
-                        afterDisplay: HospitalEventDB::statusLabel($status),
-                    );
+                    key: 'status',
+                    label: '상담여부',
+                    before: $eventDB->status,
+                    after: $status,
+                    beforeDisplay: HospitalEventDB::statusLabel($eventDB->status),
+                    afterDisplay: HospitalEventDB::statusLabel($status),
+                );
 
                 if ($changes === []) {
                     continue;

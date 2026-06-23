@@ -66,6 +66,11 @@ User는 Spatie role/permission을 사용하지 않는다.
 - Doctor: `beaulab.doctor.show|create|update|delete`
 - Expert: `beaulab.expert.show|create|update|delete`
 - Video: `beaulab.video.show|create|update|delete`
+- Hospital Event: `beaulab.hospital_event.show|create|update|delete`
+- Hospital Event DB: `beaulab.hospital_event_db.show|update`
+  - 목록/운영이력 조회는 `show`, 상담여부/검증상태 변경은 `update` 권한을 사용한다.
+- Hospital Event Real Model DB: `beaulab.hospital_event_real_model_db.show|update`
+  - 목록/상세/운영이력 조회는 `show`, 승인여부 변경은 `update` 권한을 사용한다.
 - Hospital Review: `beaulab.hospital_review.show|update`
 - Hospital Review Comment: 별도 권한 없음 (Hospital Review 권한 `beaulab.hospital_review.show|update` 사용)
 - Hospital Evaluation: `beaulab.hospital_evaluation.show|update`
@@ -101,6 +106,7 @@ User는 Spatie role/permission을 사용하지 않는다.
 - `beaulab.staff`, `beaulab.dev`
   - common + 조회 중심 권한
   - 입점신청은 `beaulab.hospital_entry.show`만 포함
+  - 이벤트 DB/리얼모델 DB는 각각 `beaulab.hospital_event_db.show`, `beaulab.hospital_event_real_model_db.show`만 포함
   - Notice/FAQ는 기본적으로 `beaulab.notice.show`, `beaulab.faq.show`만 포함
 
 - `hospital.owner`

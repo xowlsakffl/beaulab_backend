@@ -6,7 +6,7 @@ namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Common\Support\PaginatedResponse;
 use App\Domains\HospitalEvent\Dto\Staff\HospitalEventDBForStaffDto;
-use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventDBListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,7 +16,7 @@ final class HospitalEventDBListForStaffAction
 
     public function execute(array $filters): array
     {
-        Gate::authorize('viewAny', HospitalEvent::class);
+        Gate::authorize('viewAny', HospitalEventDB::class);
 
         $paginator = $this->query->paginate($filters);
 

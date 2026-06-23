@@ -11,10 +11,7 @@ final class HospitalEventDBOperationHistoriesForStaffAction
 {
     public function execute(HospitalEventDB $eventDB, array $filters = []): array
     {
-        $eventDB->loadMissing('event:id,hospital_id,status,allow_status');
-        if ($eventDB->event !== null) {
-            Gate::authorize('view', $eventDB->event);
-        }
+        Gate::authorize('view', $eventDB);
 
         $operationHistories = $eventDB->operationHistories()->with('actor')->paginate(
             perPage: (int) ($filters['operation_histories_per_page'] ?? 10),

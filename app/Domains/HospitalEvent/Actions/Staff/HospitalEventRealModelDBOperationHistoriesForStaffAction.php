@@ -13,10 +13,7 @@ final class HospitalEventRealModelDBOperationHistoriesForStaffAction
 {
     public function execute(HospitalEventRealModelDB $application, array $filters = []): array
     {
-        $application->loadMissing('event:id,hospital_id,status,allow_status');
-        if ($application->event !== null) {
-            Gate::authorize('view', $application->event);
-        }
+        Gate::authorize('view', $application);
 
         $operationHistories = $application->operationHistories()->with('actor')->paginate(
             perPage: (int) ($filters['operation_histories_per_page'] ?? 10),

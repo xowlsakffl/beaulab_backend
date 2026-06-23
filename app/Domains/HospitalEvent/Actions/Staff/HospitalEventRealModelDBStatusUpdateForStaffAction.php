@@ -33,11 +33,7 @@ final class HospitalEventRealModelDBStatusUpdateForStaffAction
 
         return DB::transaction(function () use ($ids, $status, $payload, $actor): array {
             $applications = $this->query->getForUpdate($ids);
-            $applications->each(static function (HospitalEventRealModelDB $application): void {
-                if ($application->event !== null) {
-                    Gate::authorize('update', $application->event);
-                }
-            });
+            $applications->each(static fn (HospitalEventRealModelDB $application): mixed => Gate::authorize('update', $application));
 
             $existingIds = $applications->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
             $updatedCount = $this->query->updateStatus($existingIds, $status);

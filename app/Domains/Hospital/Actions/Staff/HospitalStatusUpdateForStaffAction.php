@@ -25,11 +25,15 @@ final class HospitalStatusUpdateForStaffAction
     {
         Gate::authorize('update', $hospital);
 
-        $beforeHistory = $this->historyRecordAction->capture($hospital);
+        $beforeStatus = (string) $hospital->status;
 
-        $updated = DB::transaction(function () use ($hospital, $payload, $beforeHistory): Hospital {
+        $updated = DB::transaction(function () use ($hospital, $payload, $beforeStatus): Hospital {
             $updatedHospital = $this->query->update($hospital, $payload['status']);
-            $this->historyRecordAction->recordUpdated($updatedHospital, $beforeHistory);
+            $this->historyRecordAction->recordStatusUpdated(
+                $updatedHospital,
+                $beforeStatus,
+                (string) $updatedHospital->status,
+            );
 
             return $updatedHospital->fresh();
         });

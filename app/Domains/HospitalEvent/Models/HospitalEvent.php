@@ -198,6 +198,15 @@ final class HospitalEvent extends Model
         return [self::STATUS_ACTIVE, self::STATUS_INACTIVE];
     }
 
+    public static function statusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::STATUS_ACTIVE => '노출',
+            self::STATUS_INACTIVE => '미노출',
+            default => $status ?: '-',
+        };
+    }
+
     /**
      * @return array<int, string>
      */
@@ -210,6 +219,18 @@ final class HospitalEvent extends Model
             self::ALLOW_REJECTED,
             self::ALLOW_PARTNER_CANCELED,
         ];
+    }
+
+    public static function allowStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::ALLOW_PENDING => '검수신청중',
+            self::ALLOW_REVIEWING => '검토중',
+            self::ALLOW_APPROVED => '검수완료',
+            self::ALLOW_REJECTED => '검수반려',
+            self::ALLOW_PARTNER_CANCELED => '파트너취소',
+            default => $status ?: '-',
+        };
     }
 
     /**

@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domains\Hospital\Actions\Staff;
 
-use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
-use App\Domains\Common\OperationHistory\Models\OperationHistory;
-use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalAllowStatusUpdateForStaffQuery;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -17,7 +13,7 @@ final class HospitalAllowStatusUpdateForStaffAction
 {
     public function __construct(
         private readonly HospitalAllowStatusUpdateForStaffQuery $query,
-        private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -29,9 +25,8 @@ final class HospitalAllowStatusUpdateForStaffAction
             ->values()
             ->all();
         $allowStatus = (string) $payload['allow_status'];
-        $actor = auth()->user();
 
-        return DB::transaction(function () use ($ids, $allowStatus, $payload, $actor): array {
+        return DB::transaction(function () use ($ids, $allowStatus, $payload): array {
             $hospitals = $this->query->getForUpdate($ids);
             $hospitals->each(static fn (Hospital $hospital): mixed => Gate::authorize('update', $hospital));
 
@@ -44,23 +39,12 @@ final class HospitalAllowStatusUpdateForStaffAction
                     continue;
                 }
 
-                $this->historyCreateAction->execute(
-                    target: $hospital,
-                    action: OperationHistory::ACTION_STATUS_UPDATED,
-                    actor: $actor instanceof Model ? $actor : null,
-                    reason: $payload['reason'] ?? null,
-                    metadata: [
-                        'source' => 'staff.hospital.allow_status',
-                        'bulk' => count($existingIds) > 1,
-                    ],
-                    changes: OperationHistoryChangeSetBuilder::single(
-                        key: 'allow_status',
-                        label: '검수상태',
-                        before: $beforeStatus,
-                        after: $allowStatus,
-                        beforeDisplay: Hospital::allowStatusLabel($beforeStatus),
-                        afterDisplay: Hospital::allowStatusLabel($allowStatus),
-                    ),
+                $this->historyRecordAction->recordAllowStatusUpdated(
+                    $hospital,
+                    $beforeStatus,
+                    $allowStatus,
+                    $payload['reason'] ?? null,
+                    count($existingIds) > 1,
                 );
             }
 

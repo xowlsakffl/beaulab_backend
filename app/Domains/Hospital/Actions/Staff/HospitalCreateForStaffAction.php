@@ -73,8 +73,8 @@ final class HospitalCreateForStaffAction
             ->map(static fn (int|string $categoryId): int => (int) $categoryId)
             ->unique()
             ->values()
-            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
-                $categoryId => ['is_primary' => $index === 0],
+            ->mapWithKeys(static fn (int $categoryId): array => [
+                $categoryId => ['is_primary' => false],
             ])
             ->all();
 

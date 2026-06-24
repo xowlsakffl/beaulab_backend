@@ -2,12 +2,8 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
-use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
-use App\Domains\Common\OperationHistory\Models\OperationHistory;
-use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventStatusUpdateForStaffQuery;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -15,7 +11,7 @@ final class HospitalEventStatusUpdateForStaffAction
 {
     public function __construct(
         private readonly HospitalEventStatusUpdateForStaffQuery $query,
-        private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -27,9 +23,8 @@ final class HospitalEventStatusUpdateForStaffAction
             ->values()
             ->all();
         $status = (string) $payload['status'];
-        $actor = auth()->user();
 
-        return DB::transaction(function () use ($ids, $status, $payload, $actor): array {
+        return DB::transaction(function () use ($ids, $status, $payload): array {
             $events = $this->query->getForUpdate($ids);
             $events->each(static fn (HospitalEvent $event): mixed => Gate::authorize('update', $event));
 
@@ -42,23 +37,12 @@ final class HospitalEventStatusUpdateForStaffAction
                     continue;
                 }
 
-                $this->historyCreateAction->execute(
-                    target: $event,
-                    action: OperationHistory::ACTION_STATUS_UPDATED,
-                    actor: $actor instanceof Model ? $actor : null,
-                    reason: $payload['reason'] ?? null,
-                    metadata: [
-                        'source' => 'staff.hospital_event.status',
-                        'bulk' => count($existingIds) > 1,
-                    ],
-                    changes: OperationHistoryChangeSetBuilder::single(
-                        key: 'status',
-                        label: '노출여부',
-                        before: $beforeStatus,
-                        after: $status,
-                        beforeDisplay: $beforeStatus === HospitalEvent::STATUS_ACTIVE ? '노출' : '미노출',
-                        afterDisplay: $status === HospitalEvent::STATUS_ACTIVE ? '노출' : '미노출',
-                    ),
+                $this->historyRecordAction->recordStatusUpdated(
+                    $event,
+                    $beforeStatus,
+                    $status,
+                    $payload['reason'] ?? null,
+                    count($existingIds) > 1,
                 );
             }
 

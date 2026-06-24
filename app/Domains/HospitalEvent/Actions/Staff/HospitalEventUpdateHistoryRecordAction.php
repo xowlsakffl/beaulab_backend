@@ -64,6 +64,54 @@ final class HospitalEventUpdateHistoryRecordAction
         );
     }
 
+    public function recordStatusUpdated(
+        HospitalEvent $event,
+        string $beforeStatus,
+        string $afterStatus,
+        ?string $reason = null,
+        bool $bulk = false,
+    ): void {
+        $this->record(
+            event: $event,
+            action: OperationHistory::ACTION_STATUS_UPDATED,
+            source: 'staff.hospital_event.status',
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: 'status',
+                label: '노출여부',
+                before: $beforeStatus,
+                after: $afterStatus,
+                beforeDisplay: HospitalEvent::statusLabel($beforeStatus),
+                afterDisplay: HospitalEvent::statusLabel($afterStatus),
+            ),
+            reason: $reason,
+            metadata: ['bulk' => $bulk],
+        );
+    }
+
+    public function recordAllowStatusUpdated(
+        HospitalEvent $event,
+        string $beforeStatus,
+        string $afterStatus,
+        ?string $reason = null,
+        bool $bulk = false,
+    ): void {
+        $this->record(
+            event: $event,
+            action: OperationHistory::ACTION_STATUS_UPDATED,
+            source: 'staff.hospital_event.allow_status',
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: 'allow_status',
+                label: '검수상태',
+                before: $beforeStatus,
+                after: $afterStatus,
+                beforeDisplay: HospitalEvent::allowStatusLabel($beforeStatus),
+                afterDisplay: HospitalEvent::allowStatusLabel($afterStatus),
+            ),
+            reason: $reason,
+            metadata: ['bulk' => $bulk],
+        );
+    }
+
     /**
      * @return array<string, array{label:string,value:mixed,display:?string}>
      */
@@ -257,7 +305,14 @@ final class HospitalEventUpdateHistoryRecordAction
     /**
      * @param array<int, array<string, mixed>> $changes
      */
-    private function record(HospitalEvent $event, string $action, string $source, array $changes): void
+    private function record(
+        HospitalEvent $event,
+        string $action,
+        string $source,
+        array $changes,
+        ?string $reason = null,
+        array $metadata = [],
+    ): void
     {
         if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
@@ -269,10 +324,8 @@ final class HospitalEventUpdateHistoryRecordAction
             target: $event,
             action: $action,
             actor: $actor instanceof Model ? $actor : null,
-            reason: null,
-            metadata: [
-                'source' => $source,
-            ],
+            reason: $reason,
+            metadata: ['source' => $source] + $metadata,
             changes: $changes,
         );
     }

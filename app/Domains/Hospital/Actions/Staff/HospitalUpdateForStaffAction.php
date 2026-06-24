@@ -276,8 +276,8 @@ final class HospitalUpdateForStaffAction
             ->filter(static fn (int $categoryId): bool => $categoryId > 0)
             ->unique()
             ->values()
-            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
-                $categoryId => ['is_primary' => $index === 0],
+            ->mapWithKeys(static fn (int $categoryId): array => [
+                $categoryId => ['is_primary' => false],
             ])
             ->all();
 

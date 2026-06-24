@@ -77,6 +77,74 @@ final class HospitalUpdateHistoryRecordAction
         );
     }
 
+    public function recordStatusUpdated(
+        Hospital $hospital,
+        string $beforeStatus,
+        string $afterStatus,
+        ?string $reason = null,
+    ): void {
+        $changes = OperationHistoryChangeSetBuilder::single(
+            key: 'status',
+            label: '병의원상태',
+            before: $beforeStatus,
+            after: $afterStatus,
+            beforeDisplay: Hospital::statusLabel($beforeStatus),
+            afterDisplay: Hospital::statusLabel($afterStatus),
+        );
+
+        if ($changes === []) {
+            return;
+        }
+
+        $actor = auth()->user();
+
+        $this->historyCreateAction->execute(
+            target: $hospital,
+            action: OperationHistory::ACTION_STATUS_UPDATED,
+            actor: $actor instanceof Model ? $actor : null,
+            reason: $reason,
+            metadata: [
+                'source' => 'staff.hospital.status',
+            ],
+            changes: $changes,
+        );
+    }
+
+    public function recordAllowStatusUpdated(
+        Hospital $hospital,
+        string $beforeStatus,
+        string $afterStatus,
+        ?string $reason = null,
+        bool $bulk = false,
+    ): void {
+        $changes = OperationHistoryChangeSetBuilder::single(
+            key: 'allow_status',
+            label: '검수상태',
+            before: $beforeStatus,
+            after: $afterStatus,
+            beforeDisplay: Hospital::allowStatusLabel($beforeStatus),
+            afterDisplay: Hospital::allowStatusLabel($afterStatus),
+        );
+
+        if ($changes === []) {
+            return;
+        }
+
+        $actor = auth()->user();
+
+        $this->historyCreateAction->execute(
+            target: $hospital,
+            action: OperationHistory::ACTION_STATUS_UPDATED,
+            actor: $actor instanceof Model ? $actor : null,
+            reason: $reason,
+            metadata: [
+                'source' => 'staff.hospital.allow_status',
+                'bulk' => $bulk,
+            ],
+            changes: $changes,
+        );
+    }
+
     /**
      * @return array<string, array{label:string,value:mixed,display:?string}>
      */
@@ -87,7 +155,7 @@ final class HospitalUpdateHistoryRecordAction
         return [
             'name' => $this->item('병의원명', $hospital->name, $hospital->name),
             'department' => $this->item('분과', $hospital->department, $hospital->departmentLabel()),
-            'description' => $this->item('병원소개', $hospital->description, $hospital->description),
+            'description' => $this->item('병의원소개', $hospital->description, $hospital->description),
             'address' => $this->item('병의원주소', [
                 'address' => $hospital->address,
                 'address_detail' => $hospital->address_detail,
@@ -104,7 +172,7 @@ final class HospitalUpdateHistoryRecordAction
             ])),
             'email' => $this->item('이메일', $hospital->email, $hospital->email),
             'consulting_hours' => $this->item('상담시간', $hospital->consulting_hours, $hospital->consulting_hours),
-            'operation_hours' => $this->item('진료시간', $hospital->operation_hours, $this->jsonDisplay($hospital->operation_hours)),
+            'operation_hours' => $this->item('진료시간', $hospital->operation_hours, $this->operationHoursLabel($hospital->operation_hours)),
             'direction' => $this->item('오시는 길', $hospital->direction, $hospital->direction),
             'categories' => $this->item('진료과목', $this->categoryValue($hospital), $this->categoryDisplay($hospital)),
             'features' => $this->item('병원정보', $this->featureValue($hospital), $this->featureDisplay($hospital)),
@@ -181,15 +249,45 @@ final class HospitalUpdateHistoryRecordAction
         ]);
     }
 
-    private function jsonDisplay(mixed $value): ?string
+    private function operationHoursLabel(mixed $operationHours): ?string
     {
-        if ($value === null || $value === []) {
+        if (! is_array($operationHours) || $operationHours === []) {
             return null;
         }
 
-        $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $dayLabels = [
+            'mon' => '월',
+            'tue' => '화',
+            'wed' => '수',
+            'thu' => '목',
+            'fri' => '금',
+            'sat' => '토',
+            'sun' => '일',
+        ];
 
-        return $encoded === false ? null : $encoded;
+        $lines = [];
+        foreach ($dayLabels as $key => $label) {
+            $item = $operationHours[$key] ?? null;
+            if (! is_array($item)) {
+                continue;
+            }
+
+            if ($this->isOperationDayClosed($item['is_closed'] ?? false)) {
+                $lines[] = "{$label} 진료안함";
+                continue;
+            }
+
+            $start = trim((string) ($item['start'] ?? ''));
+            $end = trim((string) ($item['end'] ?? ''));
+            $lines[] = sprintf('%s %s ~ %s', $label, $start !== '' ? $start : '-', $end !== '' ? $end : '-');
+        }
+
+        return $this->lineList($lines);
+    }
+
+    private function isOperationDayClosed(mixed $value): bool
+    {
+        return in_array($value, [true, 1, '1', 'true', 'TRUE'], true);
     }
 
     private function mediaLabel(?string $path): ?string
@@ -202,7 +300,7 @@ final class HospitalUpdateHistoryRecordAction
     }
 
     /**
-     * @return array<int, array{id:int,path:string,is_primary:bool}>
+     * @return array<int, array{id:int,path:string}>
      */
     private function categoryValue(Hospital $hospital): array
     {
@@ -210,7 +308,6 @@ final class HospitalUpdateHistoryRecordAction
             ->map(static fn ($category): array => [
                 'id' => (int) $category->id,
                 'path' => (string) ($category->full_path ?: $category->name),
-                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
             ])
             ->sortBy('path')
             ->values()
@@ -220,7 +317,7 @@ final class HospitalUpdateHistoryRecordAction
     private function categoryDisplay(Hospital $hospital): ?string
     {
         return $this->lineList(collect($this->categoryValue($hospital))
-            ->map(static fn (array $category): string => ($category['is_primary'] ? '[대표] ' : '').$category['path'])
+            ->pluck('path')
             ->all());
     }
 

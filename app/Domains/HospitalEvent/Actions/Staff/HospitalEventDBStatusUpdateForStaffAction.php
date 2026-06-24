@@ -2,12 +2,8 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
-use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
-use App\Domains\Common\OperationHistory\Models\OperationHistory;
-use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventDBStatusUpdateForStaffQuery;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -16,7 +12,7 @@ final class HospitalEventDBStatusUpdateForStaffAction
 {
     public function __construct(
         private readonly HospitalEventDBStatusUpdateForStaffQuery $query,
-        private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalEventDBUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -28,9 +24,8 @@ final class HospitalEventDBStatusUpdateForStaffAction
             ->values()
             ->all();
         $status = (string) $payload['status'];
-        $actor = auth()->user();
 
-        return DB::transaction(function () use ($ids, $status, $payload, $actor): array {
+        return DB::transaction(function () use ($ids, $status, $payload): array {
             $eventDBs = $this->query->getForUpdate($ids);
             $eventDBs->each(static fn (HospitalEventDB $eventDB): mixed => Gate::authorize('update', $eventDB));
 
@@ -47,29 +42,12 @@ final class HospitalEventDBStatusUpdateForStaffAction
             $updatedCount = $this->query->updateStatus($existingIds, $values);
 
             foreach ($eventDBs as $eventDB) {
-                $changes = OperationHistoryChangeSetBuilder::single(
-                    key: 'status',
-                    label: '상담여부',
-                    before: $eventDB->status,
-                    after: $status,
-                    beforeDisplay: HospitalEventDB::statusLabel($eventDB->status),
-                    afterDisplay: HospitalEventDB::statusLabel($status),
-                );
-
-                if ($changes === []) {
-                    continue;
-                }
-
-                $this->historyCreateAction->execute(
-                    target: $eventDB,
-                    action: OperationHistory::ACTION_STATUS_UPDATED,
-                    actor: $actor instanceof Model ? $actor : null,
-                    reason: $payload['reason'] ?? null,
-                    metadata: [
-                        'source' => 'staff.hospital_event_db.status',
-                        'bulk' => count($existingIds) > 1,
-                    ],
-                    changes: $changes,
+                $this->historyRecordAction->recordStatusUpdated(
+                    $eventDB,
+                    (string) $eventDB->status,
+                    $status,
+                    $payload['reason'] ?? null,
+                    count($existingIds) > 1,
                 );
             }
 

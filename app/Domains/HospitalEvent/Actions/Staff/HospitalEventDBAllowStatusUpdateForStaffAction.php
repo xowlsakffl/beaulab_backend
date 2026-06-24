@@ -2,12 +2,8 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
-use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
-use App\Domains\Common\OperationHistory\Models\OperationHistory;
-use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventDBStatusUpdateForStaffQuery;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -15,7 +11,7 @@ final class HospitalEventDBAllowStatusUpdateForStaffAction
 {
     public function __construct(
         private readonly HospitalEventDBStatusUpdateForStaffQuery $query,
-        private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalEventDBUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
@@ -27,9 +23,8 @@ final class HospitalEventDBAllowStatusUpdateForStaffAction
             ->values()
             ->all();
         $allowStatus = (string) $payload['allow_status'];
-        $actor = auth()->user();
 
-        return DB::transaction(function () use ($ids, $allowStatus, $payload, $actor): array {
+        return DB::transaction(function () use ($ids, $allowStatus, $payload): array {
             $eventDBs = $this->query->getForUpdate($ids);
             $eventDBs->each(static fn (HospitalEventDB $eventDB): mixed => Gate::authorize('update', $eventDB));
 
@@ -43,23 +38,12 @@ final class HospitalEventDBAllowStatusUpdateForStaffAction
                     continue;
                 }
 
-                $this->historyCreateAction->execute(
-                    target: $eventDB,
-                    action: OperationHistory::ACTION_STATUS_UPDATED,
-                    actor: $actor instanceof Model ? $actor : null,
-                    reason: $payload['reason'] ?? null,
-                    metadata: [
-                        'source' => 'staff.hospital_event_db.allow_status',
-                        'bulk' => count($existingIds) > 1,
-                    ],
-                    changes: OperationHistoryChangeSetBuilder::single(
-                        key: 'allow_status',
-                        label: '검증상태',
-                        before: $eventDB->allow_status,
-                        after: $allowStatus,
-                        beforeDisplay: HospitalEventDB::allowStatusLabel($eventDB->allow_status),
-                        afterDisplay: HospitalEventDB::allowStatusLabel($allowStatus),
-                    ),
+                $this->historyRecordAction->recordAllowStatusUpdated(
+                    $eventDB,
+                    (string) $eventDB->allow_status,
+                    $allowStatus,
+                    $payload['reason'] ?? null,
+                    count($existingIds) > 1,
                 );
             }
 

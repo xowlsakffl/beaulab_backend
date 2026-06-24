@@ -36,12 +36,10 @@ final class HospitalGetForStaffAction
             $relations[] = 'doctors';
         }
 
-        if ($relations !== []) {
-            $hospital->load($relations);
-        }
-
         return [
-            'hospital' => HospitalForStaffDetailDto::fromModel($hospital)->toArray(),
+            'hospital' => HospitalForStaffDetailDto::fromModel(
+                $hospital->load($relations)->loadNewEventDBCount()
+            )->toArray(),
         ];
     }
 }

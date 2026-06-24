@@ -135,6 +135,17 @@ final class Hospital extends Model
         return $this->hasMany(HospitalEventDB::class, 'hospital_id');
     }
 
+    public function newHospitalEventDBs(): HasMany
+    {
+        return $this->hasMany(HospitalEventDB::class, 'hospital_id')
+            ->where('status', HospitalEventDB::STATUS_NEW);
+    }
+
+    public function loadNewEventDBCount(): self
+    {
+        return $this->loadCount(['newHospitalEventDBs as new_event_db_count']);
+    }
+
     public function hospitalEventRealModelDBs(): HasMany
     {
         return $this->hasMany(HospitalEventRealModelDB::class, 'hospital_id');

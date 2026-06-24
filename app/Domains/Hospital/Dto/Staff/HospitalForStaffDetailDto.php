@@ -158,6 +158,7 @@ final readonly class HospitalForStaffDetailDto
             'name' => $accountHospital->name,
             'nickname' => $accountHospital->nickname,
             'email' => $accountHospital->email,
+            'phone' => $accountHospital->phone,
             'status' => $accountHospital->status,
             'roles' => $accountHospital->getRoleNames()->values()->all(),
             'last_login_at' => $accountHospital->last_login_at?->toISOString(),

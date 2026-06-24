@@ -20,6 +20,7 @@ final class AccountHospitalFactory extends Factory
             'name'              => $this->faker->name(),
             'nickname'          => $this->faker->unique()->userName(),
             'email'             => $this->faker->unique()->safeEmail(),
+            'phone'             => $this->faker->numerify('010-####-####'),
 
             'password'          => Hash::make('password'),
 
@@ -53,6 +54,13 @@ final class AccountHospitalFactory extends Factory
             'name' => $name,
             'nickname' => $nickname,
             'email' => $email,
+        ]);
+    }
+
+    public function withPhone(?string $phone): self
+    {
+        return $this->state(fn () => [
+            'phone' => $phone,
         ]);
     }
 

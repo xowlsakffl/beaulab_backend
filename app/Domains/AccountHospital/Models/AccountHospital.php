@@ -48,6 +48,7 @@ class AccountHospital extends Authenticatable
         'name',
         'nickname',
         'email',
+        'phone',
         'password',
         'status',
         'hospital_id',

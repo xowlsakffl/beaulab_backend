@@ -49,7 +49,7 @@ final class HospitalListForStaffRequest extends FormRequest
             'account_status' => ['nullable', 'array'],
             'account_status.*' => [Rule::in(AccountHospital::statuses())],
             'allow_status' => ['nullable', 'array'],
-            'allow_status.*' => ['in:PENDING,APPROVED,REJECTED'],
+            'allow_status.*' => [Rule::in(Hospital::allowStatuses())],
             'department' => ['nullable', 'array'],
             'department.*' => ['string', Rule::in(Hospital::departments())],
             'category_ids' => ['nullable', 'array', 'min:1', 'max:5'],

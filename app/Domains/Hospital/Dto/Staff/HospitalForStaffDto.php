@@ -108,6 +108,7 @@ final readonly class HospitalForStaffDto
             'id' => (int) $account->getKey(),
             'nickname' => (string) $account->nickname,
             'email' => (string) $account->email,
+            'phone' => $account->phone,
             'status' => (string) $account->status,
             'last_login_at' => $account->last_login_at?->toISOString(),
         ];

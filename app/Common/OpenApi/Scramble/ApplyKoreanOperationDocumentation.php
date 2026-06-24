@@ -85,6 +85,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'get staff/hospital-evaluations/{hospitalEvaluation}' => '병의원 평가 상세 조회',
         'patch staff/hospital-evaluations/{hospitalEvaluation}/receipt/verify' => '병의원 평가 영수증 인증 처리',
         'patch staff/hospital-evaluations/{hospitalEvaluation}/receipt/reject' => '병의원 평가 영수증 부적합 처리',
+        'patch staff/hospitals/allow-status' => '병의원 검수상태 일괄 수정',
         'get staff/hospital-event-dbs' => '이벤트 DB 목록 조회',
         'patch staff/hospital-event-dbs/status' => '이벤트 DB 상담여부 일괄 수정',
         'patch staff/hospital-event-dbs/allow-status' => '이벤트 DB 검증상태 일괄 수정',

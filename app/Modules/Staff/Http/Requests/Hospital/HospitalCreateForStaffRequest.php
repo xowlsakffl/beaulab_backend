@@ -72,7 +72,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'operation_hours.*.is_closed' => ['required', 'boolean'],
             'operation_hours.*.start' => ['nullable', 'date_format:H:i'],
             'operation_hours.*.end' => ['nullable', 'date_format:H:i'],
-            'allow_status' => ['required', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
+            'allow_status' => ['required', Rule::in(Hospital::allowStatuses())],
             'status' => ['required', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
 
             'business_number' => ['required', 'string', 'max:20', 'unique:hospital_business_registrations,business_number'],

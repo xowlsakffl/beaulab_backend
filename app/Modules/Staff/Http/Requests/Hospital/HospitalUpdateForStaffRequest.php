@@ -121,7 +121,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'operation_hours.*.is_closed' => ['required_with:operation_hours', 'boolean'],
             'operation_hours.*.start' => ['nullable', 'date_format:H:i'],
             'operation_hours.*.end' => ['nullable', 'date_format:H:i'],
-            'allow_status' => ['nullable', Rule::in([Hospital::ALLOW_PENDING, Hospital::ALLOW_APPROVED, Hospital::ALLOW_REJECTED])],
+            'allow_status' => ['nullable', Rule::in(Hospital::allowStatuses())],
             'status' => ['nullable', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
             'business_number' => [
                 'nullable',

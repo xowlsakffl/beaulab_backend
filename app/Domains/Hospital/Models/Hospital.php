@@ -40,6 +40,8 @@ final class Hospital extends Model
     // allow_status
     public const ALLOW_PENDING = 'PENDING';
 
+    public const ALLOW_REVIEWING = 'REVIEWING';
+
     public const ALLOW_APPROVED = 'APPROVED';
 
     public const ALLOW_REJECTED = 'REJECTED';
@@ -202,6 +204,11 @@ final class Hospital extends Model
         return $this->allow_status === self::ALLOW_PENDING;
     }
 
+    public function isReviewing(): bool
+    {
+        return $this->allow_status === self::ALLOW_REVIEWING;
+    }
+
     public function isRejected(): bool
     {
         return $this->allow_status === self::ALLOW_REJECTED;
@@ -236,6 +243,40 @@ final class Hospital extends Model
             self::DEPARTMENT_KOREAN_MEDICINE,
             self::DEPARTMENT_OTHER,
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function allowStatuses(): array
+    {
+        return [
+            self::ALLOW_PENDING,
+            self::ALLOW_REVIEWING,
+            self::ALLOW_APPROVED,
+            self::ALLOW_REJECTED,
+        ];
+    }
+
+    public static function allowStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::ALLOW_PENDING => '신청',
+            self::ALLOW_REVIEWING => '검수',
+            self::ALLOW_APPROVED => '승인',
+            self::ALLOW_REJECTED => '반려',
+            default => '-',
+        };
+    }
+
+    public static function statusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::STATUS_ACTIVE => '정상',
+            self::STATUS_SUSPENDED => '운영중지',
+            self::STATUS_WITHDRAWN => '탈퇴',
+            default => $status ?: '-',
+        };
     }
 
     /**

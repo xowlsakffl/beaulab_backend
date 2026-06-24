@@ -6,6 +6,7 @@ namespace App\Modules\Staff\Http\Controllers\Hospital;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\Hospital\Actions\Staff\HospitalAllowStatusUpdateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalCheckBusinessNumberForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalCheckNameForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalCreateForStaffAction;
@@ -16,6 +17,7 @@ use App\Domains\Hospital\Actions\Staff\HospitalStatusUpdateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalSummaryForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Models\Hospital;
+use App\Modules\Staff\Http\Requests\Hospital\HospitalAllowStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckBusinessNumberForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckNameForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCreateForStaffRequest;
@@ -131,6 +133,17 @@ final class HospitalForStaffController extends Controller
         $result = $action->execute($hospital, $request->validated());
 
         return ApiResponse::success($result['hospital'] ?? $result);
+    }
+
+    /**
+     * PATCH /api/v1/staff/hospitals/allow-status
+     * (Beaulab) Staff 전용 병원 검수상태 변경
+     */
+    public function updateHospitalAllowStatusForStaff(
+        HospitalAllowStatusUpdateForStaffRequest $request,
+        HospitalAllowStatusUpdateForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($request->validated()));
     }
 
     /**

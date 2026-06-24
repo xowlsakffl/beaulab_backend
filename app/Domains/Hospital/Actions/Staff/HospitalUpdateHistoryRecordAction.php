@@ -126,8 +126,8 @@ final class HospitalUpdateHistoryRecordAction
                 $businessRegistration?->certificateMedia?->path,
                 $this->mediaLabel($businessRegistration?->certificateMedia?->path),
             ),
-            'allow_status' => $this->item('검수상태', $hospital->allow_status, $this->allowStatusLabel((string) $hospital->allow_status)),
-            'status' => $this->item('병의원상태', $hospital->status, $this->statusLabel((string) $hospital->status)),
+            'allow_status' => $this->item('검수상태', $hospital->allow_status, Hospital::allowStatusLabel((string) $hospital->allow_status)),
+            'status' => $this->item('병의원상태', $hospital->status, Hospital::statusLabel((string) $hospital->status)),
         ];
     }
 
@@ -161,26 +161,6 @@ final class HospitalUpdateHistoryRecordAction
         }
 
         return $builder->toArray();
-    }
-
-    private function statusLabel(string $status): string
-    {
-        return match ($status) {
-            Hospital::STATUS_ACTIVE => '정상',
-            Hospital::STATUS_SUSPENDED => '운영중지',
-            Hospital::STATUS_WITHDRAWN => '탈퇴',
-            default => $status,
-        };
-    }
-
-    private function allowStatusLabel(string $status): string
-    {
-        return match ($status) {
-            Hospital::ALLOW_PENDING => '검수 대기',
-            Hospital::ALLOW_APPROVED => '검수 완료',
-            Hospital::ALLOW_REJECTED => '검수 반려',
-            default => $status,
-        };
     }
 
     private function addressLabel(?string $address, ?string $detail): ?string

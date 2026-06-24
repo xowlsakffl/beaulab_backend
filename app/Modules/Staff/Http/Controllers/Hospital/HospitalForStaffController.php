@@ -13,6 +13,7 @@ use App\Domains\Hospital\Actions\Staff\HospitalCreateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalDeleteForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalGetForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalListForStaffAction;
+use App\Domains\Hospital\Actions\Staff\HospitalOperationHistoriesForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalStatusUpdateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalSummaryForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalUpdateForStaffAction;
@@ -66,6 +67,16 @@ final class HospitalForStaffController extends Controller
         $result = $action->execute($hospital, $request->filters()['include']);
 
         return ApiResponse::success($result['hospital'] ?? $result);
+    }
+
+    public function getHospitalOperationHistoriesForStaff(
+        Hospital $hospital,
+        HospitalGetForStaffRequest $request,
+        HospitalOperationHistoriesForStaffAction $action,
+    ) {
+        $result = $action->execute($hospital, $request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
     /**

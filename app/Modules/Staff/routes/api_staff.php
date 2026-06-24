@@ -136,6 +136,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospitals.checkHospitalBusinessNumberDuplicateForStaff');
     Route::patch('hospitals/allow-status', [HospitalForStaffController::class, 'updateHospitalAllowStatusForStaff'])
         ->name('hospitals.updateHospitalAllowStatusForStaff');
+    Route::get('hospitals/{hospital}/operation-histories', [HospitalForStaffController::class, 'getHospitalOperationHistoriesForStaff'])
+        ->name('hospitals.getHospitalOperationHistoriesForStaff');
     Route::get('hospitals/{hospital}', [HospitalForStaffController::class, 'getHospitalForStaff'])
         ->name('hospitals.getHospitalForStaff');
     Route::post('hospitals', [HospitalForStaffController::class, 'createHospitalForStaff'])

@@ -29,6 +29,8 @@ final class HospitalGetForStaffRequest extends FormRequest
         return [
             'include' => ['nullable', 'array'],
             'include.*' => ['in:business_registration,account_hospital,doctors,categories,features'],
+            'operation_histories_page' => ['nullable', 'integer', 'min:1'],
+            'operation_histories_per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
         ];
     }
 
@@ -38,6 +40,8 @@ final class HospitalGetForStaffRequest extends FormRequest
 
         return [
             'include' => $validated['include'] ?? [],
+            'operation_histories_page' => (int) ($validated['operation_histories_page'] ?? 1),
+            'operation_histories_per_page' => (int) ($validated['operation_histories_per_page'] ?? 10),
         ];
     }
 
@@ -81,6 +85,8 @@ final class HospitalGetForStaffRequest extends FormRequest
         return [
             'include' => '포함 항목',
             'include.*' => '포함 항목',
+            'operation_histories_page' => '운영 히스토리 페이지',
+            'operation_histories_per_page' => '운영 히스토리 페이지당 개수',
         ];
     }
 

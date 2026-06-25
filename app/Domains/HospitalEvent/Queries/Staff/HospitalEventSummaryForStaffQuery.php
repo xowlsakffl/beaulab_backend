@@ -40,11 +40,11 @@ final class HospitalEventSummaryForStaffQuery
             'reviewing_events' => (clone $baseQuery)
                 ->where('allow_status', HospitalEvent::ALLOW_REVIEWING)
                 ->count(),
+            'approved_events' => (clone $baseQuery)
+                ->where('allow_status', HospitalEvent::ALLOW_APPROVED)
+                ->count(),
             'rejected_events' => (clone $baseQuery)
                 ->where('allow_status', HospitalEvent::ALLOW_REJECTED)
-                ->count(),
-            'partner_canceled_events' => (clone $baseQuery)
-                ->where('allow_status', HospitalEvent::ALLOW_PARTNER_CANCELED)
                 ->count(),
         ];
     }

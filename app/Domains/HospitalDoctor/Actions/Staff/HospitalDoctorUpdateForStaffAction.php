@@ -27,14 +27,15 @@ final class HospitalDoctorUpdateForStaffAction
         Gate::authorize('update', $doctor);
 
         $beforeHistory = $this->historyRecordAction->capture($doctor);
+        $historyReason = $this->historyReason($doctor, $payload);
 
-        $doctor = DB::transaction(function () use ($doctor, $payload, $beforeHistory) {
+        $doctor = DB::transaction(function () use ($doctor, $payload, $beforeHistory, $historyReason) {
             $updated = $this->query->update($doctor, $payload);
             $this->replaceMedia($updated, $payload);
             if (array_key_exists('category_ids', $payload) && is_array($payload['category_ids'])) {
                 $this->syncCategories($updated, $payload['category_ids']);
             }
-            $this->historyRecordAction->recordUpdated($updated, $beforeHistory);
+            $this->historyRecordAction->recordUpdated($updated, $beforeHistory, $historyReason);
 
             return $updated->fresh();
         });
@@ -48,6 +49,21 @@ final class HospitalDoctorUpdateForStaffAction
                 'categories',
             ]))->toArray(),
         ];
+    }
+
+    private function historyReason(HospitalDoctor $doctor, array $payload): ?string
+    {
+        if (! array_key_exists('allow_status', $payload)) {
+            return null;
+        }
+
+        if ((string) $doctor->allow_status === (string) $payload['allow_status']) {
+            return null;
+        }
+
+        $reason = $payload['reason'] ?? null;
+
+        return is_string($reason) && trim($reason) !== '' ? trim($reason) : null;
     }
 
     private function replaceMedia(HospitalDoctor $doctor, array $payload): void

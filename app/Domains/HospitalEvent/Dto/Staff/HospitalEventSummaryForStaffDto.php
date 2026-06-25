@@ -13,8 +13,8 @@ final readonly class HospitalEventSummaryForStaffDto
         private int $recentStoppedEvents,
         private int $pendingEvents,
         private int $reviewingEvents,
+        private int $approvedEvents,
         private int $rejectedEvents,
-        private int $partnerCanceledEvents,
     ) {}
 
     /**
@@ -29,8 +29,8 @@ final readonly class HospitalEventSummaryForStaffDto
             recentStoppedEvents: (int) ($data['recent_stopped_events'] ?? 0),
             pendingEvents: (int) ($data['pending_events'] ?? 0),
             reviewingEvents: (int) ($data['reviewing_events'] ?? 0),
+            approvedEvents: (int) ($data['approved_events'] ?? 0),
             rejectedEvents: (int) ($data['rejected_events'] ?? 0),
-            partnerCanceledEvents: (int) ($data['partner_canceled_events'] ?? 0),
         );
     }
 
@@ -46,8 +46,8 @@ final readonly class HospitalEventSummaryForStaffDto
             'recent_stopped_events' => $this->recentStoppedEvents,
             'pending_events' => $this->pendingEvents,
             'reviewing_events' => $this->reviewingEvents,
+            'approved_events' => $this->approvedEvents,
             'rejected_events' => $this->rejectedEvents,
-            'partner_canceled_events' => $this->partnerCanceledEvents,
         ];
     }
 }

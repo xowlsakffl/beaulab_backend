@@ -42,8 +42,6 @@ final class HospitalEvent extends Model
 
     public const ALLOW_REJECTED = 'REJECTED';
 
-    public const ALLOW_PARTNER_CANCELED = 'PARTNER_CANCELED';
-
     public const COLLECTION_THUMBNAIL_IMAGE = 'thumbnail_image';
 
     public const COLLECTION_EVENT_PAGE_IMAGE = 'event_page_image';
@@ -217,33 +215,18 @@ final class HospitalEvent extends Model
             self::ALLOW_REVIEWING,
             self::ALLOW_APPROVED,
             self::ALLOW_REJECTED,
-            self::ALLOW_PARTNER_CANCELED,
         ];
     }
 
     public static function allowStatusLabel(?string $status): string
     {
         return match ($status) {
-            self::ALLOW_PENDING => '검수신청중',
-            self::ALLOW_REVIEWING => '검토중',
-            self::ALLOW_APPROVED => '검수완료',
-            self::ALLOW_REJECTED => '검수반려',
-            self::ALLOW_PARTNER_CANCELED => '파트너취소',
+            self::ALLOW_PENDING => '신청',
+            self::ALLOW_REVIEWING => '검수',
+            self::ALLOW_APPROVED => '승인',
+            self::ALLOW_REJECTED => '반려',
             default => $status ?: '-',
         };
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    public static function staffManageableAllowStatuses(): array
-    {
-        return [
-            self::ALLOW_PENDING,
-            self::ALLOW_REVIEWING,
-            self::ALLOW_APPROVED,
-            self::ALLOW_REJECTED,
-        ];
     }
 
     public static function calculateDiscountRate(int $normalPrice, int $eventPrice): int

@@ -129,13 +129,6 @@ final class HospitalEventFactory extends Factory
         ]);
     }
 
-    public function partnerCanceled(): self
-    {
-        return $this->state(fn (): array => [
-            'allow_status' => HospitalEvent::ALLOW_PARTNER_CANCELED,
-        ]);
-    }
-
     public function forHospital(Hospital|int $hospital): self
     {
         return $this->state(fn (): array => [

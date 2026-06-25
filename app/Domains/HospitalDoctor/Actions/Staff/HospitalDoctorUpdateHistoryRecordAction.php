@@ -48,7 +48,7 @@ final class HospitalDoctorUpdateHistoryRecordAction
     /**
      * @param array<string, array{label:string,value:mixed,display:?string}> $before
      */
-    public function recordUpdated(HospitalDoctor $doctor, array $before): void
+    public function recordUpdated(HospitalDoctor $doctor, array $before, ?string $reason = null): void
     {
         $doctor->load([
             'hospital',
@@ -69,7 +69,7 @@ final class HospitalDoctorUpdateHistoryRecordAction
             target: $doctor,
             action: OperationHistory::ACTION_UPDATED,
             actor: $actor instanceof Model ? $actor : null,
-            reason: null,
+            reason: $reason,
             metadata: [
                 'source' => 'staff.hospital_doctor.update',
             ],

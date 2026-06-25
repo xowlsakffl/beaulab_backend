@@ -92,6 +92,11 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             ],
             'status' => ['nullable', Rule::in(HospitalDoctor::statuses())],
             'allow_status' => ['nullable', Rule::in(HospitalDoctor::allowStatuses())],
+            'reason' => [
+                Rule::requiredIf(fn (): bool => $this->input('allow_status') === HospitalDoctor::ALLOW_REJECTED),
+                'string',
+                'max:500',
+            ],
 
             'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
             'license_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
@@ -133,6 +138,7 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             'category_ids.*' => '카테고리',
             'status' => '운영 상태',
             'allow_status' => '검수 상태',
+            'reason' => '사유',
 
             'profile_image' => '프로필 이미지',
             'license_image' => '면허증 이미지',

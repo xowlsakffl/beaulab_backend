@@ -156,6 +156,7 @@ final class HospitalUpdateHistoryRecordAction
             'name' => $this->item('병의원명', $hospital->name, $hospital->name),
             'department' => $this->item('분과', $hospital->department, $hospital->departmentLabel()),
             'description' => $this->item('병의원소개', $hospital->description, $hospital->description),
+            'youtube_link' => $this->item('유튜브 링크', $hospital->youtube_link, $hospital->youtube_link),
             'address' => $this->item('병의원주소', [
                 'address' => $hospital->address,
                 'address_detail' => $hospital->address_detail,

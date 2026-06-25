@@ -20,6 +20,7 @@ final class HospitalUpdateForStaffQuery
         $hospital->fill([
             'department' => array_key_exists('department', $filter) ? $filter['department'] : $hospital->department,
             'description' => array_key_exists('description', $filter) ? $filter['description'] : $hospital->description,
+            'youtube_link' => array_key_exists('youtube_link', $filter) ? $filter['youtube_link'] : $hospital->youtube_link,
             'address' => array_key_exists('address', $filter) ? $filter['address'] : $hospital->address,
             'address_detail' => array_key_exists('address_detail', $filter) ? $filter['address_detail'] : $hospital->address_detail,
             'latitude' => array_key_exists('latitude', $filter)

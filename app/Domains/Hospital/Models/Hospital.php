@@ -74,6 +74,7 @@ final class Hospital extends Model
         'name',
         'department',
         'description',
+        'youtube_link',
         'address',
         'address_detail',
         'latitude',

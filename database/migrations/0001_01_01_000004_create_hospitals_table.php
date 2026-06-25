@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('department', 30)->default('OTHER')->comment('분과(성형외과, 피부과, 의원, 치과, 안과, 한의원, 기타)');
 
             $table->text('description')->nullable()->comment('병원 소개');
+            $table->string('youtube_link', 500)->nullable()->comment('유튜브 링크');
 
             $table->string('address')->nullable()->comment('병원 주소');
             $table->string('address_detail')->nullable()->comment('병원 상세 주소');

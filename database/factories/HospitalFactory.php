@@ -24,6 +24,11 @@ final class HospitalFactory extends Factory
             'name'            => $name,
             'department'      => $this->faker->randomElement(Hospital::departments()),
             'description'     => $this->faker->optional(0.7)->paragraph(),
+            'youtube_link'    => $this->faker->optional(0.5)->randomElement([
+                'https://www.youtube.com/@beaulabclinic',
+                'https://www.youtube.com/@skinclinic',
+                'https://www.youtube.com/@plasticclinic',
+            ]),
             'address'         => $this->faker->address(),
             'address_detail'  => $this->faker->secondaryAddress(),
 

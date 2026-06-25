@@ -21,6 +21,7 @@ final class HospitalCreateForStaffQuery
             'department'       => $data['department'] ?? Hospital::DEPARTMENT_OTHER,
 
             'description'      => $data['description'] ?? null,
+            'youtube_link'     => $data['youtube_link'] ?? null,
 
             'address'          => $data['address'] ?? null,
             'address_detail'   => $data['address_detail'] ?? null,

@@ -23,6 +23,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
         $nullableKeys = [
             'description',
+            'youtube_link',
             'department',
             'consulting_hours',
             'direction',
@@ -105,6 +106,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     {
         return [
             'description' => ['nullable', 'string', 'max:5000'],
+            'youtube_link' => ['nullable', 'url:http,https', 'max:500'],
             'department' => ['nullable', 'string', Rule::in(Hospital::departments())],
             'consulting_hours' => ['nullable', 'string', 'max:5000'],
             'direction' => ['nullable', 'string', 'max:5000'],
@@ -293,6 +295,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     public function withValidator(\Illuminate\Validation\Validator $validator): void
     {
         $validator->after(function (\Illuminate\Validation\Validator $validator): void {
+            $this->validateYoutubeLink($validator);
             $this->validateOperationHours($validator);
 
             $galleryOrder = $this->input('gallery_order');
@@ -335,6 +338,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         return [
             'name' => '병의원명',
             'description' => '병의원 소개',
+            'youtube_link' => '유튜브 링크',
             'department' => '분과',
             'consulting_hours' => '상담 가능 시간',
             'direction' => '찾아오는 길',
@@ -464,6 +468,31 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             if (is_string($start) && is_string($end) && $start !== '' && $end !== '' && $start >= $end) {
                 $validator->errors()->add("operation_hours.{$day}.end", '진료 종료 시간은 시작 시간보다 늦어야 합니다.');
             }
+        }
+    }
+
+    private function validateYoutubeLink(\Illuminate\Validation\Validator $validator): void
+    {
+        $value = $this->input('youtube_link');
+
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        if (! is_string($value)) {
+            return;
+        }
+
+        $host = parse_url($value, PHP_URL_HOST);
+
+        if (! is_string($host)) {
+            return;
+        }
+
+        $host = strtolower(preg_replace('/^www\./', '', $host));
+
+        if ($host !== 'youtube.com' && $host !== 'youtu.be' && ! str_ends_with($host, '.youtube.com')) {
+            $validator->errors()->add('youtube_link', '유튜브 링크 형식이 올바르지 않습니다.');
         }
     }
 

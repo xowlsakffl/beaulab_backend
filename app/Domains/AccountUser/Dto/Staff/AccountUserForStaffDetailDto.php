@@ -122,7 +122,6 @@ final readonly class AccountUserForStaffDetailDto
     {
         return [
             'event_dbs' => (int) ($counts['event_dbs'] ?? 0),
-            'remote_consultations' => (int) ($counts['remote_consultations'] ?? 0),
             'real_model_dbs' => (int) ($counts['real_model_dbs'] ?? 0),
         ];
     }

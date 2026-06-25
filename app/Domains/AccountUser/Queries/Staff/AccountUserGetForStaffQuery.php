@@ -26,7 +26,6 @@ final class AccountUserGetForStaffQuery
 
         return [
             'event_dbs' => HospitalEventDB::query()->where('account_user_id', $userId)->count(),
-            'remote_consultations' => 0,
             'real_model_dbs' => HospitalEventRealModelDB::query()->where('account_user_id', $userId)->count(),
         ];
     }

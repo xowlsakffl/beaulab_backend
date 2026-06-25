@@ -105,8 +105,8 @@ final class HospitalDoctorUpdateHistoryRecordAction
                 $this->certificateValue($doctor),
                 $this->certificateDisplay($doctor),
             ),
-            'allow_status' => $this->item('검수상태', $doctor->allow_status, $this->allowStatusLabel((string) $doctor->allow_status)),
-            'status' => $this->item('의료진상태', $doctor->status, $this->statusLabel((string) $doctor->status)),
+            'allow_status' => $this->item('검수상태', $doctor->allow_status, HospitalDoctor::allowStatusLabel((string) $doctor->allow_status)),
+            'status' => $this->item('의료진상태', $doctor->status, HospitalDoctor::statusLabel((string) $doctor->status)),
         ];
     }
 
@@ -140,26 +140,6 @@ final class HospitalDoctorUpdateHistoryRecordAction
         }
 
         return $builder->toArray();
-    }
-
-    private function statusLabel(string $status): string
-    {
-        return match ($status) {
-            HospitalDoctor::STATUS_ACTIVE => '활성',
-            HospitalDoctor::STATUS_SUSPENDED => '정지',
-            HospitalDoctor::STATUS_INACTIVE => '비활성',
-            default => $status,
-        };
-    }
-
-    private function allowStatusLabel(string $status): string
-    {
-        return match ($status) {
-            HospitalDoctor::ALLOW_PENDING => '검수 대기',
-            HospitalDoctor::ALLOW_APPROVED => '검수 완료',
-            HospitalDoctor::ALLOW_REJECTED => '검수 반려',
-            default => $status,
-        };
     }
 
     /**

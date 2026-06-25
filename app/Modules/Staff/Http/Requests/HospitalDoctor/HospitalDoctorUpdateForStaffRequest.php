@@ -90,8 +90,8 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
                     CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
                 }),
             ],
-            'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],
-            'allow_status' => ['nullable', 'in:PENDING,APPROVED,REJECTED'],
+            'status' => ['nullable', Rule::in(HospitalDoctor::statuses())],
+            'allow_status' => ['nullable', Rule::in(HospitalDoctor::allowStatuses())],
 
             'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
             'license_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],

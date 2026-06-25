@@ -135,6 +135,8 @@ final class HospitalDoctor extends Model
 
     public const ALLOW_PENDING = 'PENDING';
 
+    public const ALLOW_REVIEWING = 'REVIEWING';
+
     public const ALLOW_APPROVED = 'APPROVED';
 
     public const ALLOW_REJECTED = 'REJECTED';
@@ -237,6 +239,52 @@ final class HospitalDoctor extends Model
         return self::SPECIALIST_FIELD_LABELS[$value] ?? $value;
     }
 
+    /**
+     * @return list<string>
+     */
+    public static function allowStatuses(): array
+    {
+        return [
+            self::ALLOW_PENDING,
+            self::ALLOW_REVIEWING,
+            self::ALLOW_APPROVED,
+            self::ALLOW_REJECTED,
+        ];
+    }
+
+    public static function allowStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::ALLOW_PENDING => '신청',
+            self::ALLOW_REVIEWING => '검수',
+            self::ALLOW_APPROVED => '승인',
+            self::ALLOW_REJECTED => '반려',
+            default => '-',
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_ACTIVE,
+            self::STATUS_SUSPENDED,
+            self::STATUS_INACTIVE,
+        ];
+    }
+
+    public static function statusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::STATUS_ACTIVE => '정상',
+            self::STATUS_SUSPENDED => '정지',
+            self::STATUS_INACTIVE => '비활성',
+            default => '-',
+        };
+    }
+
     public function hospital(): BelongsTo
     {
         return $this->belongsTo(Hospital::class, 'hospital_id');
@@ -289,6 +337,11 @@ final class HospitalDoctor extends Model
     public function isPending(): bool
     {
         return $this->allow_status === self::ALLOW_PENDING;
+    }
+
+    public function isReviewing(): bool
+    {
+        return $this->allow_status === self::ALLOW_REVIEWING;
     }
 
     public function isRejected(): bool

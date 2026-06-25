@@ -49,6 +49,7 @@ final class HospitalDoctorFactory extends Factory
             ]),
             'allow_status' => $this->faker->randomElement([
                 HospitalDoctor::ALLOW_PENDING,
+                HospitalDoctor::ALLOW_REVIEWING,
                 HospitalDoctor::ALLOW_APPROVED,
                 HospitalDoctor::ALLOW_REJECTED,
             ]),

@@ -35,7 +35,7 @@ final class HospitalDoctorListForStaffRequest extends FormRequest
             'hospital_id' => ['nullable', 'integer', 'exists:hospitals,id'],
             'q' => ['nullable', 'string', 'max:100'],
             'allow_status' => ['nullable', 'array'],
-            'allow_status.*' => ['in:PENDING,APPROVED,REJECTED'],
+            'allow_status.*' => [Rule::in(HospitalDoctor::allowStatuses())],
             'position' => ['nullable', 'array'],
             'position.*' => [Rule::in(HospitalDoctor::positions())],
             'specialist_field' => ['nullable', 'array'],

@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -38,6 +38,7 @@ return new class extends Migration
             // indexes
             $table->index(['model_type', 'model_id'], 'media_model_index');
             $table->index(['model_type', 'model_id', 'collection'], 'media_model_collection_index');
+            $table->index(['model_type', 'collection', 'model_id', 'sort_order', 'id'], 'media_model_collection_sort_idx');
             $table->index('collection');
             $table->index('disk');
             $table->index('is_primary');

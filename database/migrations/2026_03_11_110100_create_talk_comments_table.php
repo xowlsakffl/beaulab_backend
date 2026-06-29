@@ -41,6 +41,14 @@ return new class extends Migration
             $table->index(['talk_id', 'parent_id'], 'talk_comments_post_parent_idx');
             $table->index(['status', 'created_at'], 'talk_comments_status_created_idx');
             $table->index(['author_id', 'created_at'], 'talk_comments_author_created_idx');
+            $table->index(['talk_id', 'id'], 'talk_comments_talk_id_idx');
+            $table->index(['deleted_at', 'id'], 'talk_comments_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'talk_comments_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'talk_comments_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'talk_id', 'id'], 'talk_comments_deleted_talk_id_idx');
+            $table->index(['deleted_at', 'parent_id', 'id'], 'talk_comments_deleted_parent_id_idx');
+            $table->index(['deleted_at', 'author_id', 'id'], 'talk_comments_deleted_author_id_idx');
+            $table->index(['deleted_at', 'status', 'id'], 'talk_comments_deleted_status_id_idx');
         });
 
         DB::statement("ALTER TABLE talk_comments COMMENT = '토크 댓글'");

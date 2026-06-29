@@ -62,6 +62,15 @@ return new class extends Migration
             $table->index(['category_domain', 'is_sub_featured', 'created_at'], 'h_reviews_domain_sub_featured_created_idx');
             $table->index(['rating', 'created_at'], 'h_reviews_rating_created_idx');
             $table->index(['cost', 'created_at'], 'h_reviews_cost_created_idx');
+            $table->index(['deleted_at', 'id'], 'h_reviews_deleted_id_idx');
+            $table->index(['deleted_at', 'category_domain', 'id'], 'h_reviews_deleted_domain_id_idx');
+            $table->index(['deleted_at', 'category_domain', 'created_at', 'id'], 'h_reviews_deleted_domain_created_id_idx');
+            $table->index(['deleted_at', 'category_domain', 'updated_at', 'id'], 'h_reviews_deleted_domain_updated_id_idx');
+            $table->index(['deleted_at', 'category_domain', 'status', 'id'], 'h_reviews_deleted_domain_status_id_idx');
+            $table->index(['deleted_at', 'author_id', 'id'], 'h_reviews_deleted_author_id_idx');
+            $table->index(['deleted_at', 'hospital_id', 'id'], 'h_reviews_deleted_hospital_id_idx');
+            $table->index(['deleted_at', 'doctor_id', 'id'], 'h_reviews_deleted_doctor_id_idx');
+            $table->index(['deleted_at', 'rating', 'id'], 'h_reviews_deleted_rating_id_idx');
         });
 
         DB::statement("ALTER TABLE hospital_reviews COMMENT = '병의원 성형/시술 후기'");

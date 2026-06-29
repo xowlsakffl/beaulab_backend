@@ -36,6 +36,7 @@ return new class extends Migration
 
             $table->index('reporter_user_id', 'content_reports_reporter_user_idx');
             $table->index(['target_type', 'target_id', 'created_at'], 'content_reports_target_created_idx');
+            $table->index(['target_type', 'target_id', 'id'], 'content_reports_target_id_idx');
             $table->index(['target_type', 'target_id', 'reason'], 'content_reports_target_reason_idx');
             $table->index(['target_type', 'created_at'], 'content_reports_type_created_idx');
             $table->index(['reason', 'created_at'], 'content_reports_reason_created_idx');

@@ -154,7 +154,11 @@ final class HospitalReviewListForStaffQuery
 
         DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
 
-        $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');
+        $sort = (string) ($filters['sort'] ?? 'id');
+        $builder->orderBy($sort, $filters['direction'] ?? 'desc');
+        if ($sort !== 'id') {
+            $builder->orderByDesc('id');
+        }
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
     }
@@ -185,7 +189,7 @@ final class HospitalReviewListForStaffQuery
                         $nested->where('id', (int) $selectedCategory->id);
 
                         if ($pathPrefix !== '') {
-                            $nested->orWhere('full_path', 'like', $pathPrefix . ' > %');
+                            $nested->orWhere('full_path', 'like', $pathPrefix.' > %');
                         }
                     });
                 }

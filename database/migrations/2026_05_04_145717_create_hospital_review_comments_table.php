@@ -43,6 +43,13 @@ return new class extends Migration
             $table->index(['hospital_review_id', 'parent_id'], 'h_review_comments_post_parent_idx');
             $table->index(['status', 'created_at'], 'h_review_comments_status_created_idx');
             $table->index(['author_id', 'created_at'], 'h_review_comments_author_created_idx');
+            $table->index(['deleted_at', 'id'], 'h_review_comments_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'h_review_comments_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'h_review_comments_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'hospital_review_id', 'id'], 'h_review_comments_deleted_review_id_idx');
+            $table->index(['deleted_at', 'parent_id', 'id'], 'h_review_comments_deleted_parent_id_idx');
+            $table->index(['deleted_at', 'author_id', 'id'], 'h_review_comments_deleted_author_id_idx');
+            $table->index(['deleted_at', 'status', 'id'], 'h_review_comments_deleted_status_id_idx');
         });
 
         DB::statement("ALTER TABLE hospital_review_comments COMMENT = '병의원후기 댓글'");

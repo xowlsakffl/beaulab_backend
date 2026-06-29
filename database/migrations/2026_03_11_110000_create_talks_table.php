@@ -38,6 +38,12 @@ return new class extends Migration
             $table->index(['status', 'created_at'], 'talks_status_created_idx');
             $table->index(['is_pinned', 'pinned_order', 'created_at'], 'talks_pinned_created_idx');
             $table->index(['author_id', 'created_at'], 'talks_author_created_idx');
+            $table->index(['deleted_at', 'id'], 'talks_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'talks_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'talks_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'status', 'id'], 'talks_deleted_status_id_idx');
+            $table->index(['deleted_at', 'author_id', 'id'], 'talks_deleted_author_id_idx');
+            $table->index(['deleted_at', 'is_pinned', 'pinned_order', 'id'], 'talks_deleted_pinned_order_id_idx');
         });
 
         DB::statement("ALTER TABLE talks COMMENT = '커뮤니티 토크 게시글'");

@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -50,6 +50,12 @@ return new class extends Migration
             $table->index('view_count');
             $table->index('evaluation_count');
             $table->index('evaluation_average_rating');
+            $table->index(['deleted_at', 'id'], 'hospitals_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'hospitals_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'hospitals_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'status', 'id'], 'hospitals_deleted_status_id_idx');
+            $table->index(['deleted_at', 'allow_status', 'id'], 'hospitals_deleted_allow_status_id_idx');
+            $table->index(['deleted_at', 'department', 'id'], 'hospitals_deleted_department_id_idx');
         });
 
         DB::statement("ALTER TABLE hospitals COMMENT = '병원 테이블'");

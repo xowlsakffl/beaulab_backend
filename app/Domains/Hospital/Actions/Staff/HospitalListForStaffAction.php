@@ -7,7 +7,6 @@ use App\Domains\Hospital\Dto\Staff\HospitalForStaffDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * HospitalListForStaffAction 역할 정의.
@@ -36,10 +35,6 @@ final class HospitalListForStaffAction
     public function execute(array $filters): array
     {
         Gate::authorize('viewAny', Hospital::class);
-
-        Log::info('병원 목록 조회 실행', [
-            'filters' => $filters,
-        ]);
 
         $paginator = $this->query->paginate($filters);
 

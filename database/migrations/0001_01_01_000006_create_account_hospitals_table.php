@@ -31,6 +31,7 @@ return new class extends Migration
             $table->unique('hospital_id');
             $table->index('status');
             $table->index('last_login_at');
+            $table->index(['last_login_at', 'status', 'hospital_id'], 'account_hospitals_login_status_hospital_idx');
         });
 
         DB::statement("ALTER TABLE account_hospitals COMMENT = '병원 관리자 계정 테이블'");

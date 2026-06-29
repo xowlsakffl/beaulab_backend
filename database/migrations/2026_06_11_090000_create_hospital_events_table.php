@@ -60,6 +60,14 @@ return new class extends Migration
             $table->index(['normal_price', 'event_price'], 'h_events_price_idx');
             $table->index('discount_rate');
             $table->index('view_count');
+            $table->index(['deleted_at', 'id'], 'h_events_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'h_events_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'h_events_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'event_start_at', 'id'], 'h_events_deleted_start_id_idx');
+            $table->index(['deleted_at', 'event_end_at', 'id'], 'h_events_deleted_end_id_idx');
+            $table->index(['deleted_at', 'status', 'id'], 'h_events_deleted_status_id_idx');
+            $table->index(['deleted_at', 'allow_status', 'id'], 'h_events_deleted_allow_status_id_idx');
+            $table->index(['deleted_at', 'event_type', 'id'], 'h_events_deleted_type_id_idx');
         });
 
         DB::statement("ALTER TABLE hospital_events COMMENT = '병의원 이벤트'");
@@ -172,6 +180,7 @@ return new class extends Migration
             $table->index(['status', 'created_at'], 'h_event_consults_status_created_idx');
             $table->index(['allow_status', 'created_at'], 'h_event_consults_allow_status_created_idx');
             $table->index(['event_price', 'consultation_price'], 'h_event_consults_amount_idx');
+            $table->index(['hospital_event_id', 'status', 'consultation_price'], 'h_event_dbs_event_status_price_idx');
             $table->index('phone', 'h_event_consults_phone_idx');
             $table->index('phone_normalized', 'h_event_consults_phone_normalized_idx');
             $table->index('author_ip', 'h_event_consults_author_ip_idx');

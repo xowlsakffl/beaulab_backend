@@ -20,6 +20,9 @@ final class HospitalEventListForStaffQuery
         $sort = (string) ($filters['sort'] ?? 'id');
         $direction = (string) ($filters['direction'] ?? 'desc');
         $builder->orderBy($sort, $direction);
+        if ($sort !== 'id') {
+            $builder->orderByDesc('id');
+        }
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
     }

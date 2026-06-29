@@ -34,8 +34,9 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['created_at', 'id'], 'hospital_entries_created_id_idx');
-            $table->index(['allow_status', 'created_at'], 'hospital_entries_allow_status_created_idx');
+            $table->index(['deleted_at', 'id'], 'hospital_entries_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'hospital_entries_deleted_created_id_idx');
+            $table->index(['deleted_at', 'allow_status', 'id'], 'hospital_entries_deleted_allow_status_id_idx');
             $table->index('hospital_name', 'hospital_entries_hospital_name_idx');
             $table->index('business_number', 'hospital_entries_business_number_idx');
             $table->index('ceo_name', 'hospital_entries_ceo_name_idx');

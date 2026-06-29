@@ -46,6 +46,14 @@ return new class extends Migration
             $table->index('allow_status');
             $table->index('view_count');
             $table->index('specialist_field');
+            $table->index(['deleted_at', 'id'], 'h_doctors_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'h_doctors_deleted_created_id_idx');
+            $table->index(['deleted_at', 'hospital_id', 'id'], 'h_doctors_deleted_hospital_id_idx');
+            $table->index(['deleted_at', 'hospital_id', 'sort_order', 'id'], 'h_doctors_deleted_hospital_sort_id_idx');
+            $table->index(['deleted_at', 'allow_status', 'id'], 'h_doctors_deleted_allow_status_id_idx');
+            $table->index(['deleted_at', 'position', 'id'], 'h_doctors_deleted_position_id_idx');
+            $table->index(['deleted_at', 'specialist_field', 'id'], 'h_doctors_deleted_specialist_id_idx');
+            $table->index(['deleted_at', 'career_started_at', 'id'], 'h_doctors_deleted_career_id_idx');
         });
 
         DB::statement("ALTER TABLE hospital_doctors COMMENT = '병원 소속 의사 테이블'");

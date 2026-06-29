@@ -132,19 +132,24 @@ final class HospitalDoctorListForStaffQuery
 
     private function applySort($builder, array $filters): void
     {
-        $sort = $filters['sort'] ?? 'id';
+        $sort = (string) ($filters['sort'] ?? 'id');
         $direction = $filters['direction'] ?? 'desc';
 
         if ($sort === 'career_years') {
             $builder->orderBy('career_started_at', $direction === 'desc' ? 'asc' : 'desc');
+            $builder->orderByDesc('id');
+
             return;
         }
 
         $builder->orderBy($sort, $direction);
+        if ($sort !== 'id') {
+            $builder->orderByDesc('id');
+        }
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @param  array<int, int|string>  $categoryIds
      * @return array<int, int>
      */
     private function expandWithDescendants(array $categoryIds): array
@@ -182,7 +187,7 @@ final class HospitalDoctorListForStaffQuery
                                 $pathQuery->where('id', (int) $selectedCategory->id);
 
                                 if ($pathPrefix !== '') {
-                                    $pathQuery->orWhere('full_path', 'like', $pathPrefix . ' > %');
+                                    $pathQuery->orWhere('full_path', 'like', $pathPrefix.' > %');
                                 }
                             });
                     });

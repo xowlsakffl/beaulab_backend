@@ -57,14 +57,18 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['post_status', 'status', 'created_at'], 'h_evaluations_post_status_status_created_idx');
-            $table->index(['receipt_status', 'created_at'], 'h_evaluations_receipt_status_created_idx');
-            $table->index(['author_id', 'created_at'], 'h_evaluations_author_created_idx');
-            $table->index(['hospital_id', 'created_at'], 'h_evaluations_hospital_created_idx');
-            $table->index(['doctor_id', 'created_at'], 'h_evaluations_doctor_created_idx');
-            $table->index(['cost', 'created_at'], 'h_evaluations_cost_created_idx');
-            $table->index(['average_rating', 'created_at'], 'h_evaluations_average_rating_created_idx');
-            $table->index(['view_count', 'created_at'], 'h_evaluations_view_count_created_idx');
+            $table->index(['deleted_at', 'id'], 'h_evaluations_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'h_evaluations_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'h_evaluations_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'status', 'id'], 'h_evaluations_deleted_status_id_idx');
+            $table->index(['deleted_at', 'post_status', 'status', 'created_at', 'id'], 'h_evals_deleted_post_status_created_idx');
+            $table->index(['deleted_at', 'receipt_status', 'created_at', 'id'], 'h_evals_deleted_receipt_created_idx');
+            $table->index(['deleted_at', 'author_id', 'created_at', 'id'], 'h_evals_deleted_author_created_idx');
+            $table->index(['deleted_at', 'hospital_id', 'created_at', 'id'], 'h_evals_deleted_hospital_created_idx');
+            $table->index(['deleted_at', 'doctor_id', 'created_at', 'id'], 'h_evals_deleted_doctor_created_idx');
+            $table->index(['deleted_at', 'cost', 'created_at', 'id'], 'h_evals_deleted_cost_created_idx');
+            $table->index(['deleted_at', 'average_rating', 'created_at', 'id'], 'h_evals_deleted_rating_created_idx');
+            $table->index(['deleted_at', 'view_count', 'created_at', 'id'], 'h_evals_deleted_view_created_idx');
         });
 
         DB::statement("ALTER TABLE hospital_evaluations COMMENT = '병의원 평가'");

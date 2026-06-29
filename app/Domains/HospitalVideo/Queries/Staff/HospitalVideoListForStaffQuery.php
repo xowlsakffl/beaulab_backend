@@ -78,7 +78,11 @@ final class HospitalVideoListForStaffQuery
         DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
         DateRangeFilter::apply($builder, 'allowed_at', $filters['allowed_start_date'] ?? null, $filters['allowed_end_date'] ?? null);
 
-        $builder->orderBy($filters['sort'] ?? 'id', $filters['direction'] ?? 'desc');
+        $sort = (string) ($filters['sort'] ?? 'id');
+        $builder->orderBy($sort, $filters['direction'] ?? 'desc');
+        if ($sort !== 'id') {
+            $builder->orderByDesc('id');
+        }
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
     }

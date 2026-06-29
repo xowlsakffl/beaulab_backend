@@ -164,6 +164,9 @@ final class HospitalEvaluationListForStaffQuery
         } else {
             $builder->orderBy($sort, $direction);
         }
+        if ($sort !== 'id') {
+            $builder->orderByDesc('id');
+        }
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
     }

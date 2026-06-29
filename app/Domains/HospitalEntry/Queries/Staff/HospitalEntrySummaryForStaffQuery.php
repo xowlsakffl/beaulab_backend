@@ -13,18 +13,15 @@ final class HospitalEntrySummaryForStaffQuery
      */
     public function get(): array
     {
-        $baseQuery = HospitalEntry::query();
+        $counts = HospitalEntry::query()
+            ->selectRaw('allow_status, COUNT(*) as aggregate_count')
+            ->groupBy('allow_status')
+            ->pluck('aggregate_count', 'allow_status');
 
         return [
-            'pending_entries' => (clone $baseQuery)
-                ->where('allow_status', HospitalEntry::ALLOW_PENDING)
-                ->count(),
-            'rejected_entries' => (clone $baseQuery)
-                ->where('allow_status', HospitalEntry::ALLOW_REJECTED)
-                ->count(),
-            'approved_entries' => (clone $baseQuery)
-                ->where('allow_status', HospitalEntry::ALLOW_APPROVED)
-                ->count(),
+            'pending_entries' => (int) ($counts[HospitalEntry::ALLOW_PENDING] ?? 0),
+            'rejected_entries' => (int) ($counts[HospitalEntry::ALLOW_REJECTED] ?? 0),
+            'approved_entries' => (int) ($counts[HospitalEntry::ALLOW_APPROVED] ?? 0),
         ];
     }
 }

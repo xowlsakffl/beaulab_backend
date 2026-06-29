@@ -18,7 +18,7 @@ return new class extends Migration
 
             $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(ACTIVE, INACTIVE)');
             $table->boolean('is_pinned')->default(false)->comment('상단 공지 여부');
-            //$table->unsignedInteger('pinned_order')->default(0)->comment('상단 공지 정렬 순서');
+            // $table->unsignedInteger('pinned_order')->default(0)->comment('상단 공지 정렬 순서');
 
             $table->boolean('is_publish_period_unlimited')->default(true)->comment('게시기간 무제한 여부');
             $table->timestamp('publish_start_at')->nullable()->comment('게시 시작 일시');
@@ -42,10 +42,13 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 일시');
 
-            $table->index(['channel', 'status', 'created_at'], 'notices_channel_status_created_idx');
-            $table->index(['is_pinned', 'created_at'], 'notices_pinned_created_idx');
-            $table->index(['status', 'publish_start_at', 'publish_end_at'], 'notices_status_publish_period_idx');
-            $table->index(['is_important', 'status', 'created_at'], 'notices_important_status_created_idx');
+            $table->index(['deleted_at', 'id'], 'notices_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'notices_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'notices_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'channel', 'status', 'created_at', 'id'], 'notices_deleted_channel_status_created_idx');
+            $table->index(['deleted_at', 'is_pinned', 'publish_start_at', 'id'], 'notices_deleted_pinned_publish_idx');
+            $table->index(['deleted_at', 'status', 'publish_start_at', 'publish_end_at', 'id'], 'notices_deleted_status_publish_idx');
+            $table->index(['deleted_at', 'is_important', 'status', 'created_at', 'id'], 'notices_deleted_important_status_idx');
         });
 
         DB::statement("ALTER TABLE notices COMMENT = '관리자 공지사항 관리 테이블'");

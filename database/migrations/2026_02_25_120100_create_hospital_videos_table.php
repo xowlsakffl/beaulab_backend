@@ -62,13 +62,20 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 
-            $table->index(['status', 'publish_start_at', 'publish_end_at'], 'videos_status_publish_period_idx');
+            $table->index(['deleted_at', 'id'], 'videos_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'videos_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'videos_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'allowed_at', 'id'], 'videos_deleted_allowed_id_idx');
+            $table->index(['deleted_at', 'status', 'publish_start_at', 'publish_end_at', 'id'], 'videos_deleted_status_publish_idx');
             $table->index(['distribution_channel', 'external_video_id'], 'videos_channel_external_idx');
-            $table->index(['hospital_id', 'status'], 'videos_hospital_status_idx');
+            $table->index(['deleted_at', 'hospital_id', 'status', 'id'], 'videos_deleted_hospital_status_idx');
             $table->index('is_publish_period_unlimited');
 
-            $table->index(['allow_status', 'created_at'], 'videos_allow_created_idx');
-            $table->index(['hospital_id', 'allow_status'], 'videos_hospital_allow_idx');
+            $table->index(['deleted_at', 'allow_status', 'created_at', 'id'], 'videos_deleted_allow_created_idx');
+            $table->index(['deleted_at', 'hospital_id', 'allow_status', 'id'], 'videos_deleted_hospital_allow_idx');
+            $table->index(['deleted_at', 'distribution_channel', 'id'], 'videos_deleted_channel_id_idx');
+            $table->index(['deleted_at', 'view_count', 'id'], 'videos_deleted_view_count_id_idx');
+            $table->index(['deleted_at', 'like_count', 'id'], 'videos_deleted_like_count_id_idx');
             $table->index('allowed_by_staff_id');
             $table->index('submitted_by_account_id');
         });

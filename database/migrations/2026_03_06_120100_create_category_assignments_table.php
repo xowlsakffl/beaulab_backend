@@ -27,7 +27,6 @@ return new class extends Migration
             );
             $table->index(['categorizable_type', 'categorizable_id'], 'category_assignments_model_index');
             $table->index(['category_id', 'categorizable_type', 'categorizable_id'], 'category_assignments_category_model_idx');
-            $table->index('category_id');
             $table->index('is_primary');
         });
 

@@ -30,7 +30,6 @@ return new class extends Migration
 
             $table->unique('hospital_id');
             $table->index('status');
-            $table->index('last_login_at');
             $table->index(['last_login_at', 'status', 'hospital_id'], 'account_hospitals_login_status_hospital_idx');
         });
 

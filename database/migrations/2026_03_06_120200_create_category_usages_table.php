@@ -21,6 +21,7 @@ return new class extends Migration
 
             $table->unique(['usage', 'category_id'], 'category_usages_usage_category_unique');
             $table->index(['usage', 'status', 'sort_order', 'id'], 'category_usages_usage_status_sort_id_idx');
+            $table->index(['usage', 'status', 'category_id'], 'category_usages_usage_status_category_idx');
             $table->index('category_id');
             $table->index('status');
         });

@@ -36,8 +36,6 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('탈퇴 처리 시각');
 
-            $table->index('status');
-            $table->index('signup_channel');
             $table->index('last_login_at');
             $table->index('last_accessed_at');
             $table->index(['status', 'created_at']);

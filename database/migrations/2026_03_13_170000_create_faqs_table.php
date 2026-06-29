@@ -17,7 +17,7 @@ return new class extends Migration
             $table->longText('content')->comment('에디터 HTML 답변 본문');
 
             $table->string('status', 20)->default('ACTIVE')->comment('FAQ 상태(ACTIVE, INACTIVE)');
-            //$table->unsignedInteger('sort_order')->default(0)->comment('노출 순서');
+            $table->unsignedInteger('sort_order')->default(0)->comment('노출 순서');
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
 
             $table->foreignId('created_by_staff_id')
@@ -35,8 +35,13 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 일시');
 
-            $table->index(['channel', 'status', 'id'], 'faqs_channel_status_sort_idx');
-            $table->index(['status', 'id'], 'faqs_status_sort_idx');
+            $table->index(['deleted_at', 'id'], 'faqs_deleted_id_idx');
+            $table->index(['deleted_at', 'sort_order', 'id'], 'faqs_deleted_sort_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'faqs_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'faqs_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'channel', 'status', 'sort_order', 'id'], 'faqs_deleted_channel_status_sort_idx');
+            $table->index(['deleted_at', 'status', 'sort_order', 'id'], 'faqs_deleted_status_sort_idx');
+            $table->index(['deleted_at', 'view_count', 'id'], 'faqs_deleted_view_count_id_idx');
         });
 
         DB::statement("ALTER TABLE faqs COMMENT = '관리자 FAQ 관리 테이블'");

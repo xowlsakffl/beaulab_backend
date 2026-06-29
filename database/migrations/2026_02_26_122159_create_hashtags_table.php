@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -20,9 +21,11 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index('name');
-            $table->index('status');
-            $table->index('usage_count');
+            $table->index(['name', 'id'], 'hashtags_name_id_idx');
+            $table->index(['status', 'id'], 'hashtags_status_id_idx');
+            $table->index(['usage_count', 'id'], 'hashtags_usage_count_id_idx');
+            $table->index(['created_at', 'id'], 'hashtags_created_id_idx');
+            $table->index(['updated_at', 'id'], 'hashtags_updated_id_idx');
         });
 
         DB::statement("ALTER TABLE hashtags COMMENT = '공용 해시태그 마스터 테이블(병원/의사/동영상 공통 사용)'");
@@ -38,7 +41,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['hashtag_id', 'hashtaggable_type', 'hashtaggable_id'], 'hashtaggables_unique');
-            $table->index(['hashtaggable_type', 'hashtaggable_id'], 'hashtaggable_model_index');
             $table->index(['hashtaggable_type', 'hashtaggable_id', 'sort_order', 'id'], 'hashtaggables_model_sort_index');
         });
 

@@ -29,13 +29,14 @@ return new class extends Migration
             $table->unique(['domain', 'parent_id', 'name'], 'categories_domain_parent_name_unique');
             $table->unique(['domain', 'code'], 'categories_domain_code_unique');
 
-            $table->index('domain');
             $table->index('parent_id');
             $table->index('depth');
             $table->index('status');
             $table->index('is_menu_visible');
-            $table->index(['domain', 'depth', 'sort_order'], 'categories_domain_depth_sort_index');
+            $table->index(['domain', 'depth', 'sort_order', 'id'], 'categories_domain_depth_sort_id_idx');
+            $table->index(['domain', 'parent_id', 'sort_order', 'id'], 'categories_domain_parent_sort_id_idx');
             $table->index(['domain', 'parent_id', 'status', 'sort_order', 'id'], 'categories_domain_parent_status_sort_id_idx');
+            $table->index(['domain', 'is_menu_visible', 'sort_order', 'id'], 'categories_domain_visible_sort_id_idx');
         });
 
         DB::statement("ALTER TABLE categories COMMENT = '카테고리 마스터 테이블(도메인 통합 + 3단계 계층 구조)'");

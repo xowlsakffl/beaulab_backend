@@ -36,7 +36,6 @@ return new class extends Migration
             $table->softDeletes()->comment('소프트 삭제 시각');
 
             // indexes
-            $table->index(['model_type', 'model_id'], 'media_model_index');
             $table->index(['model_type', 'model_id', 'collection'], 'media_model_collection_index');
             $table->index(['model_type', 'collection', 'model_id', 'sort_order', 'id'], 'media_model_collection_sort_idx');
             $table->index('collection');

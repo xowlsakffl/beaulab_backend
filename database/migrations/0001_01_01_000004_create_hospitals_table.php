@@ -51,6 +51,7 @@ return new class extends Migration
             $table->index('evaluation_count');
             $table->index('evaluation_average_rating');
             $table->index(['deleted_at', 'id'], 'hospitals_deleted_id_idx');
+            $table->index(['deleted_at', 'name', 'id'], 'hospitals_deleted_name_id_idx');
             $table->index(['deleted_at', 'created_at', 'id'], 'hospitals_deleted_created_id_idx');
             $table->index(['deleted_at', 'updated_at', 'id'], 'hospitals_deleted_updated_id_idx');
             $table->index(['deleted_at', 'status', 'id'], 'hospitals_deleted_status_id_idx');

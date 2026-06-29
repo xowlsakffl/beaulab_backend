@@ -44,9 +44,11 @@ return new class extends Migration
             $table->unique(['target_type', 'target_id'], 'content_report_states_target_unique');
             $table->index(['target_type', 'report_status', 'updated_at'], 'content_report_states_type_status_updated_idx');
             $table->index(['target_type', 'report_status', 'first_reported_at'], 'content_report_states_type_status_first_reported_idx');
+            $table->index(['target_type', 'report_status', 'target_id'], 'content_report_states_type_status_target_idx');
             $table->index(['report_status', 'last_reported_at'], 'content_report_states_status_reported_idx');
             $table->index(['processed_by', 'updated_at'], 'content_report_states_processed_updated_idx');
             $table->index(['warning_status', 'warning_processed_at'], 'content_report_states_warning_processed_idx');
+            $table->index(['target_type', 'warning_status', 'target_id'], 'content_report_states_type_warning_target_idx');
         });
 
         DB::statement("ALTER TABLE content_report_states COMMENT = '콘텐츠 신고 대상별 현재 상태'");

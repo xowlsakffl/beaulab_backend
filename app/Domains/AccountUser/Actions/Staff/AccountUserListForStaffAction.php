@@ -9,7 +9,6 @@ use App\Domains\AccountUser\Dto\Staff\AccountUserForStaffDto;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\AccountUser\Queries\Staff\AccountUserListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * AccountUserListForStaffAction 역할 정의.
@@ -24,8 +23,6 @@ final class AccountUserListForStaffAction
     public function execute(array $filters): array
     {
         Gate::authorize('viewAny', AccountUser::class);
-
-        Log::info('일반회원 목록 조회 실행', ['filters' => $filters]);
 
         $paginator = $this->query->paginate($filters);
 

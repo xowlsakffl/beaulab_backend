@@ -42,6 +42,13 @@ return new class extends Migration
             $table->index('last_accessed_at');
             $table->index(['status', 'created_at']);
             $table->index(['signup_channel', 'created_at']);
+            $table->index(['deleted_at', 'id'], 'account_users_deleted_id_idx');
+            $table->index(['deleted_at', 'created_at', 'id'], 'account_users_deleted_created_id_idx');
+            $table->index(['deleted_at', 'updated_at', 'id'], 'account_users_deleted_updated_id_idx');
+            $table->index(['deleted_at', 'last_accessed_at', 'id'], 'account_users_deleted_accessed_id_idx');
+            $table->index(['deleted_at', 'status', 'id'], 'account_users_deleted_status_id_idx');
+            $table->index(['deleted_at', 'signup_channel', 'id'], 'account_users_deleted_signup_id_idx');
+            $table->index(['deleted_at', 'warning_count', 'id'], 'account_users_deleted_warning_id_idx');
         });
 
         DB::statement("ALTER TABLE account_users COMMENT = '뷰랩 서비스 일반 사용자 계정 (Sanctum 토큰 인증)'");

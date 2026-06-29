@@ -82,6 +82,9 @@ final class AccountUserListForStaffQuery
         }
 
         $builder->orderBy($sort, $direction);
+        if ($sort !== 'id') {
+            $builder->orderByDesc('id');
+        }
 
         return $builder->paginate($perPage)->withQueryString();
     }

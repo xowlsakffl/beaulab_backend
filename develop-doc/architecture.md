@@ -14,6 +14,8 @@
 
 실제 상세 라우트는 `app/Modules/*/routes/api_*.php`에서 관리한다.
 
+Staff 프론트 메뉴 prefix와 API path는 반드시 같을 필요가 없다. API는 리소스 소유권 기준으로 `hospital-entries`, `hospital-event-dbs`, `hospital-event-real-model-dbs`처럼 도메인 리소스명을 유지한다.
+
 ## 2) 디렉토리 구조 원칙
 
 - `app/Modules/*`
@@ -24,6 +26,15 @@
   - 도메인 규칙과 상태 전이 관리
 - `app/Common/*`
   - 공통 응답, 예외, 권한 상수, 공통 미들웨어
+
+## 2.1) 도메인 계층 리팩토링 규칙
+
+- Controller는 Request 검증 결과를 Action에 넘기고 `ApiResponse`를 연결하는 역할만 한다.
+- Action은 권한 확인, 트랜잭션, Query 호출 조합, operation history 기록 조합을 담당한다.
+- Query는 조회/저장 조건을 캡슐화한다. 목록 필터, summary aggregate, selector option 조회는 Query에 둔다.
+- DTO는 모델/relation을 응답 구조로 바꾸는 역할만 한다. DTO에서 새 DB 조회를 만들지 않는다.
+- 상태 라벨은 프론트에서 임의로 만들지 않고 모델의 `statusLabel()` / `allowStatusLabel()`을 통해 DTO로 내려준다.
+- 운영 히스토리 기록은 각 도메인의 `*UpdateHistoryRecordAction`에서 변경 전/후 스냅샷을 조립하고, 저장은 `OperationHistoryCreateAction`에 맡긴다.
 
 ## 3) 요청 처리 흐름
 
@@ -151,6 +162,14 @@ DTO 응답 원칙:
 - 도메인 Action은 `OperationHistoryChangeSetBuilder`로 변경 payload를 만들고, 저장은 `OperationHistoryCreateAction`에 맡긴다.
 - 상세 구조는 `./operation-history.md`를 따른다.
 
+상태/검수 상태 표기 원칙:
+
+- `status`는 실제 운영/노출 상태다.
+- `allow_status`는 검수/승인 흐름이다.
+- 병원/의료진/이벤트 `allow_status` 화면 표기는 모델 라벨 기준으로 `신청`/`검수`/`승인`/`반려`를 사용한다.
+- 입점신청 `allow_status` 화면 표기는 `입점신청`/`입점승인`/`입점반려`를 사용한다.
+- 상태 전용 변경 이력은 `OperationHistory::ACTION_STATUS_UPDATED`를 사용하고, 변경 필드는 `status` 또는 `allow_status`로 구분한다.
+
 ## 8) API 응답 / 페이지네이션 원칙
 
 `LengthAwarePaginator` 기반 목록은 `App\Common\Support\PaginatedResponse`를 사용한다.
@@ -181,6 +200,7 @@ DTO 응답 원칙:
 - Staff
   - 인증, 프로필/비밀번호 수정, 관리자 메모, 대시보드
   - 병원/입점신청/뷰티/일반회원/의료진/뷰티전문가 관리
+  - 입점신청 목록/summary/상세/승인상태 변경
   - 병원 특징, 카테고리, 해시태그 관리
   - 병원 이벤트, 이벤트 DB, 리얼모델 DB 관리
   - 동영상 목록/상세/생성/수정/삭제/원본 다운로드
@@ -210,5 +230,7 @@ DTO 응답 원칙:
 - [ ] 목록 응답이 `PaginatedResponse` 또는 명시적인 cursor pagination 규칙을 따르는가?
 - [ ] 신고 대상 추가 시 `ContentReportTargetRegistry`, User 신고 라우트, Staff 신고게시물 라우트가 같이 갱신됐는가?
 - [ ] 비동기 작업이 lane 정책(`critical`, `mail`, `sms`, `chat`, `default` 등)에 맞게 라우팅됐는가?
+- [ ] 목록/summary/selector Query가 불필요한 N+1, 중복 count, 중복 인덱스를 만들지 않는가?
+- [ ] 새 인덱스가 필요하면 기존 create migration에 반영할지, 운영용 add migration이 필요한지 결정했는가?
 
-작성 기준: 2026-06-23
+작성 기준: 2026-06-29

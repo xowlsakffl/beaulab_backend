@@ -653,7 +653,8 @@ php artisan db:seed --class=AuthorizationSeeder
 
 - 신고/제재 후속
   - 토크, 토크 댓글, 병의원 후기, 후기 댓글, 병의원 평가는 신고 생성/신고게시물 관리/상태 처리/경고 처리가 구현됨
-  - 유저 자체 신고와 채팅 메시지 신고는 아직 미구현
+  - 채팅 메시지 신고는 `ContentReport` 기반 신고채팅 관리와 경고/무시 처리가 구현됨
+  - 유저 자체 신고는 아직 미구현
   - 동일 사용자 중복 신고 정책은 운영 정책 확정 필요
   - 파트너 제재 연동은 미구현
 - 후기/검증
@@ -690,6 +691,7 @@ php artisan db:seed --class=AuthorizationSeeder
 - [API 응답 / 페이지네이션 규칙](develop-doc/api-response.md)
 - [권한 / 메뉴 설계](develop-doc/authorization.md)
 - [도메인 & 상태 정의서](develop-doc/domain-status-definition.md)
+- [성능 / 인덱스 / 쿼리 규칙](develop-doc/performance.md)
 - [콘텐츠 신고 / 신고게시물 관리](develop-doc/content-report.md)
 - [채팅 설계](develop-doc/chat.md)
 - [알림 설계](develop-doc/notification.md)

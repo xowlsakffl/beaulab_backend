@@ -1,6 +1,6 @@
 # 운영 히스토리 설계
 
-작성 기준: 2026-06-15
+작성 기준: 2026-06-29
 
 이 문서는 Staff 운영 화면에서 표시하는 처리 이력 구조를 정리한다.  
 운영 히스토리는 `activity_log` 감사 로그와 목적이 다르다. `activity_log`는 모델 변경 감사 추적용이고, `operation_histories`는 관리자 화면에 노출되는 업무 처리 이력이다.
@@ -107,8 +107,11 @@ operation_history_changes
 - `HospitalReviewComment`
 - `HospitalEvaluation`
 - `Hospital`
+- `HospitalEntry`
 - `HospitalDoctor`
 - `HospitalEvent`
+- `HospitalEventDB`
+- `HospitalEventRealModelDB`
 - `HospitalVideo`
 - `Notice`
 - `Faq`
@@ -162,8 +165,21 @@ operation_history_changes
 - 화면 표시 문구가 필요한 값은 `before_display`, `after_display`를 함께 저장한다.
 - 단순 상태 변경도 `changes` 배열 1건으로 저장한다.
 - 생성 이력은 `CREATED`, 수정 이력은 `UPDATED`, 상태 전용 처리 이력은 `STATUS_UPDATED`를 사용한다.
+- `status` 변경과 `allow_status` 변경은 모두 상태 전용 처리이지만, change의 `field_key`로 의미를 구분한다.
+- `allow_status` 변경의 `field_label`은 도메인 화면 용어에 맞춘다.
+  - 병원/의료진/이벤트: `검수상태`
+  - 입점신청: `승인상태`
+  - 이벤트 DB: `검증상태`
 - 생성 이력은 최초 입력값 전체를 `changes`에 남기지 않는다. 부모 이력 1건만 남기고 `reason`은 null로 둬 화면에서 `-`로 표시한다.
 - 한 번의 저장/수정 요청에서 여러 필드가 바뀌면 부모 이력 1건에 change 여러 건을 붙인다.
 - 스태프 관리 화면의 일반 수정 기능은 각 도메인별 `*UpdateHistoryRecordAction`에서 수정 전/후 스냅샷을 잡아 기록한다.
 - 목록 필터나 summary에서 특정 변경 필드를 봐야 하면 `operation_history_changes.field_key` 기준으로 조회한다.
 - 기존 코드 호환이 필요한 DTO 외에는 `history->field`, `history->after_value` accessor에 의존하지 않는다.
+
+## 9) 화면 표시 규칙
+
+- 신규 상세 이력 UI는 `changes` 배열을 기준으로 렌더링한다.
+- `field`, `before_value`, `after_value`는 기존 호환 필드로만 취급한다.
+- JSON 원본 값을 그대로 노출하지 않고, 도메인 history action에서 사람이 읽을 수 있는 표시값을 저장한다.
+- 운영자가 상태만 바꾼 경우 사유 문구를 무조건 `수정`으로 만들지 않는다. `ACTION_STATUS_UPDATED`와 `field_label`을 조합해 `상태 변경`, `검수상태 변경`처럼 구분한다.
+- 프론트는 히스토리 페이지네이션 중 기존 목록 영역을 불필요하게 비우지 않는다. 일반 목록과 같은 loading state를 사용해 스크롤 튐을 막는다.

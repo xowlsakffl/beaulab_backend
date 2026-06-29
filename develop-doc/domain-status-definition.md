@@ -1,5 +1,5 @@
 ﻿# 도메인 & 상태 정의서
-- 작성일: 2026-06-23
+- 작성일: 2026-06-29
 - 목적: 서비스에서 관리하는 핵심 도메인(업무 단위)과 상태값을 비개발자도 이해할 수 있게 정리
 - 기준: 현재 코드(`app/Domains/*/Models`, `database/migrations`) 기준
 
@@ -129,9 +129,10 @@
 
 | 상수명 | 저장값 | 상태명   | 의미 |
 |---|---|-------|---|
-| `ALLOW_PENDING` | `PENDING` | 검수 대기 | 검수 신청 후 결과 대기 |
-| `ALLOW_APPROVED` | `APPROVED` | 검수 완료 | 검수 통과 |
-| `ALLOW_REJECTED` | `REJECTED` | 검수 거절 | 검수 반려 |
+| `ALLOW_PENDING` | `PENDING` | 신청 | 검수 신청 접수 |
+| `ALLOW_REVIEWING` | `REVIEWING` | 검수 | 운영자가 검수 진행 중 |
+| `ALLOW_APPROVED` | `APPROVED` | 승인 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 반려 | 검수 반려 |
 
 #### 운영 상태 (`status`)
 
@@ -142,7 +143,7 @@
 | `STATUS_WITHDRAWN` | `WITHDRAWN` | 탈퇴/종료 | 운영 종료 상태 |
 
 기본값:
-- `allow_status`: `ALLOW_PENDING` (검수 대기)
+- `allow_status`: `ALLOW_PENDING` (신청)
 - `status`: `STATUS_SUSPENDED` (운영정지)
 
 ### 2.6 `Beauty` (뷰티 업체)
@@ -151,9 +152,9 @@
 
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
-| `ALLOW_PENDING` | `PENDING` | 검수 대기 | 검수 신청 후 결과 대기 |
-| `ALLOW_APPROVED` | `APPROVED` | 검수 완료 | 검수 통과 |
-| `ALLOW_REJECTED` | `REJECTED` | 검수 거절 | 검수 반려 |
+| `ALLOW_PENDING` | `PENDING` | 신청 | 검수 신청 접수 |
+| `ALLOW_APPROVED` | `APPROVED` | 승인 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 반려 | 검수 반려 |
 
 #### 운영 상태 (`status`)
 
@@ -164,8 +165,10 @@
 | `STATUS_WITHDRAWN` | `WITHDRAWN` | 탈퇴/종료 | 운영 종료 상태 |
 
 기본값:
-- `allow_status`: `ALLOW_PENDING` (검수 대기)
+- `allow_status`: `ALLOW_PENDING` (신청)
 - `status`: `STATUS_SUSPENDED` (운영정지)
+
+현재 `Beauty` 모델은 병원/의료진/이벤트와 달리 `REVIEWING` 단계를 갖지 않는다.
 
 ### 2.5.1 `HospitalEntry` (병의원 입점신청)
 
@@ -188,7 +191,8 @@
 현재 API 범위:
 
 - Staff API에서 목록/상세 조회를 제공한다.
-- 승인/반려 처리는 별도 상태 변경 API와 operation history 기록을 함께 설계해야 한다.
+- Staff API에서 summary 조회와 승인상태 변경을 제공한다.
+- 승인상태 변경은 `operation_histories`와 `operation_history_changes`에 기록한다.
 
 ### 2.7 `HospitalDoctor` (병원 의사)
 
@@ -196,9 +200,10 @@
 
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
-| `ALLOW_PENDING` | `PENDING` | 검수 대기 | 프로필/서류 검수 대기 |
-| `ALLOW_APPROVED` | `APPROVED` | 검수 완료 | 검수 통과 |
-| `ALLOW_REJECTED` | `REJECTED` | 검수 거절 | 검수 반려 |
+| `ALLOW_PENDING` | `PENDING` | 신청 | 프로필/서류 검수 신청 |
+| `ALLOW_REVIEWING` | `REVIEWING` | 검수 | 운영자가 검수 진행 중 |
+| `ALLOW_APPROVED` | `APPROVED` | 승인 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 반려 | 검수 반려 |
 
 #### 운영 상태 (`status`)
 
@@ -209,7 +214,7 @@
 | `STATUS_INACTIVE` | `INACTIVE` | 비활성 | 노출/활동 비활성 |
 
 기본값:
-- `allow_status`: `ALLOW_PENDING` (검수 대기)
+- `allow_status`: `ALLOW_PENDING` (신청)
 - `status`: `STATUS_SUSPENDED` (정지)
 
 ### 2.8 `BeautyExpert` (뷰티 전문가)
@@ -218,9 +223,9 @@
 
 | 상수명 | 저장값 | 상태명 | 의미 |
 |---|---|---|---|
-| `ALLOW_PENDING` | `PENDING` | 검수 대기 | 프로필/서류 검수 대기 |
-| `ALLOW_APPROVED` | `APPROVED` | 검수 완료 | 검수 통과 |
-| `ALLOW_REJECTED` | `REJECTED` | 검수 거절 | 검수 반려 |
+| `ALLOW_PENDING` | `PENDING` | 신청 | 프로필/서류 검수 신청 |
+| `ALLOW_APPROVED` | `APPROVED` | 승인 | 검수 통과 |
+| `ALLOW_REJECTED` | `REJECTED` | 반려 | 검수 반려 |
 
 #### 운영 상태 (`status`)
 
@@ -231,8 +236,10 @@
 | `STATUS_INACTIVE` | `INACTIVE` | 비활성 | 노출/활동 비활성 |
 
 기본값:
-- `allow_status`: `ALLOW_PENDING` (검수 대기)
+- `allow_status`: `ALLOW_PENDING` (신청)
 - `status`: `STATUS_SUSPENDED` (정지)
+
+현재 `BeautyExpert` 모델은 병원 의료진과 달리 `REVIEWING` 단계를 갖지 않는다.
 
 ### 2.9 `HospitalBusinessRegistration` (병원 사업자등록)
 
@@ -507,6 +514,8 @@
 | `STATUS_ADMIN_HIDDEN` | `ADMIN_HIDDEN` | 노출중지 | 관리자가 신고게시물 관리에서 노출중지 처리 |
 | `STATUS_NORMAL_VISIBLE` | `NORMAL_VISIBLE` | 정상노출 | 관리자가 신고건을 정상노출 처리 |
 | `STATUS_REEXPOSED` | `REEXPOSED` | 재노출 | 정상노출 처리 3회차부터 자동 전이 잠금 |
+| `STATUS_VALID` | `VALID` | 적합 | 채팅 메시지 신고를 적합 처리 |
+| `STATUS_INVALID` | `INVALID` | 부적합 | 채팅 메시지 신고를 부적합 처리 |
 
 #### 경고 처리 상태 (`ContentReportState.warning_status`)
 
@@ -525,7 +534,7 @@
 - 관리자가 `NORMAL_VISIBLE`로 처리하면 대상 콘텐츠 `status`는 `ACTIVE`가 되고 `recent_hour_report_count`는 0으로 초기화된다.
 - `NORMAL_VISIBLE` 처리 횟수(`normal_visible_count`)가 3회차가 되면 상태는 `REEXPOSED`로 저장된다.
 - `REEXPOSED` 이후 신고는 자동 신고접수/자동차단 상태 변경 대상에서 제외한다.
-- 경고/무시는 `ADMIN_HIDDEN` 상태에서만 처리할 수 있다.
+- 경고/무시는 일반 게시물/댓글/후기/평가는 `ADMIN_HIDDEN` 상태에서만 처리할 수 있고, 채팅 메시지는 `INVALID` 상태에서만 처리할 수 있다.
 - 신고 상태 변경과 경고/무시 변경은 대상 콘텐츠의 operation history에 기록한다.
 - operation history는 `operation_histories` 부모 이력과 `operation_history_changes` 변경 상세로 분리해 저장한다.
 
@@ -537,7 +546,7 @@
 - `CategoryUsage`: `usage`는 `HOSPITAL_DOCTOR_SUBJECT`, `HOSPITAL_REVIEW_SURGERY`, `HOSPITAL_REVIEW_TREATMENT`, `HOSPITAL_EVENT_SURGERY`, `HOSPITAL_EVENT_TREATMENT`를 사용하고, `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
 - `Hashtag`: `status`는 `ACTIVE`/`INACTIVE`를 사용하며, 이름은 최대 20자와 한글/영문/숫자/언더스코어 규칙을 따른다.
 - `HospitalFeature`: `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
-- `HospitalEvent`: `type`은 `TEXT`/`IMAGE`, `status`는 `ACTIVE`/`INACTIVE`, `allow_status`는 `PENDING`/`REVIEWING`/`APPROVED`/`REJECTED`/`PARTNER_CANCELED`를 사용한다.
+- `HospitalEvent`: `type`은 `TEXT`/`IMAGE`, `status`는 `ACTIVE`/`INACTIVE`, `allow_status`는 `PENDING`/`REVIEWING`/`APPROVED`/`REJECTED`를 사용한다. 화면 표기는 `신청`/`검수`/`승인`/`반려`다.
 - `HospitalEventDB`: `status`는 `NEW`/`CONFIRMED`/`DUPLICATE`, `allow_status`는 `UNVERIFIED_REPORTED`/`UNVERIFIED_CONFIRMED`/`NORMAL_CONFIRMED`를 사용한다.
 - `HospitalEventRealModelDB`: `status`는 `RECEIVED`/`APPROVED`/`REJECTED`를 사용한다.
 - `Chat`: `status`는 `ACTIVE`/`SUSPENDED`/`CLOSED`를 사용한다.
@@ -550,7 +559,7 @@
 
 ### 3.1 병원 검수 흐름
 
-- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+- `ALLOW_PENDING`(신청) -> `ALLOW_REVIEWING`(검수) -> `ALLOW_APPROVED`(승인) 또는 `ALLOW_REJECTED`(반려)
 
 ### 3.1.1 병의원 입점신청 흐름
 
@@ -558,15 +567,15 @@
 
 ### 3.2 뷰티 검수 흐름
 
-- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+- `ALLOW_PENDING`(신청) -> `ALLOW_APPROVED`(승인) 또는 `ALLOW_REJECTED`(반려)
 
 ### 3.3 병원 의사 검수 흐름
 
-- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+- `ALLOW_PENDING`(신청) -> `ALLOW_REVIEWING`(검수) -> `ALLOW_APPROVED`(승인) 또는 `ALLOW_REJECTED`(반려)
 
 ### 3.4 뷰티 전문가 검수 흐름
 
-- `ALLOW_PENDING`(검수 대기) -> `ALLOW_APPROVED`(검수 완료) 또는 `ALLOW_REJECTED`(검수 반려)
+- `ALLOW_PENDING`(신청) -> `ALLOW_APPROVED`(승인) 또는 `ALLOW_REJECTED`(반려)
 
 ### 3.5 영상요청 검토 흐름
 

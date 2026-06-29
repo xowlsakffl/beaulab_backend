@@ -1,6 +1,6 @@
 # 콘텐츠 신고 / 신고게시물 관리
 
-작성 기준: 2026-05-19
+작성 기준: 2026-06-29
 
 이 문서는 현재 코드 기준의 콘텐츠 신고 기능과 Staff 신고게시물 관리 구조를 정리한다.
 
@@ -33,6 +33,7 @@
 
 새 신고 대상이 추가되면 `ContentReportTargetRegistry`, User 신고 라우트, Staff 신고게시물 라우트, 신고 대상별 Policy 권한을 같이 갱신해야 한다.
 Staff 신고게시물 관리는 일반 토크/후기/평가 관리 권한과 분리해서 `beaulab.reported_*` 권한을 사용한다.
+채팅 메시지 신고도 `ContentReport`/`ContentReportState` 구조를 사용하지만, 정책은 Chat 도메인이 아니라 신고게시물 도메인의 `ContentReportStateForStaffPolicy`에서 target alias별 권한으로 분기한다.
 
 ## 3) 신고 사유
 

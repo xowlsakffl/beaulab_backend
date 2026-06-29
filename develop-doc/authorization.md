@@ -59,7 +59,7 @@ User는 Spatie role/permission을 사용하지 않는다.
 - Hospital: `beaulab.hospital.show|create|update|delete`
 - Hospital Entry: `beaulab.hospital_entry.show|update`
   - 현재 목록/상세 조회 API는 `show` 권한을 사용한다.
-  - `update` 권한은 입점신청 수정/승인/반려 API 추가 시 사용한다.
+  - 승인상태 변경 API는 `update` 권한을 사용한다.
 - Beauty: `beaulab.beauty.show|create|update|delete`
 - Agency: `beaulab.agency.show|create|update|delete` (정의만 존재, API 미연결)
 - User: `beaulab.user.show|update|delete`
@@ -67,6 +67,7 @@ User는 Spatie role/permission을 사용하지 않는다.
 - Expert: `beaulab.expert.show|create|update|delete`
 - Video: `beaulab.video.show|create|update|delete`
 - Hospital Event: `beaulab.hospital_event.show|create|update|delete`
+  - 검수상태 변경은 `update` 권한을 사용한다.
 - Hospital Event DB: `beaulab.hospital_event_db.show|update`
   - 목록/운영이력 조회는 `show`, 상담여부/검증상태 변경은 `update` 권한을 사용한다.
 - Hospital Event Real Model DB: `beaulab.hospital_event_real_model_db.show|update`
@@ -165,9 +166,13 @@ User는 Spatie role/permission을 사용하지 않는다.
 1. 문자열 하드코딩 대신 `AccessPermissions`, `AccessRoles` 상수 사용
 2. 신규 API 추가 시 라우트 미들웨어/Policy/Seeder 동시 반영
 3. 권한 변경 후 반드시 시더 동기화
+4. 같은 메뉴 안에 있더라도 리소스 책임이 다르면 권한을 분리한다.
+   - 예: 병의원과 입점신청, 이벤트와 이벤트 DB/리얼모델 DB, 일반 게시물과 신고게시물
+5. Staff 프론트 신규 route는 fail-closed를 기본으로 한다. route permission 매핑이 없으면 접근 불가가 맞다.
+6. `common.access`는 Staff 보호 라우트 공통 진입 권한일 뿐, 도메인 조회/수정 권한을 대체하지 않는다.
 
 ```bash
 php artisan db:seed --class=AuthorizationSeeder
 ```
 
-작성 기준: 2026-06-23
+작성 기준: 2026-06-29

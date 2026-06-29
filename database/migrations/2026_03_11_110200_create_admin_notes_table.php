@@ -24,6 +24,8 @@ return new class extends Migration
             $table->softDeletes()->comment('소프트 삭제 시각');
 
             $table->index(['target_type', 'target_id'], 'admin_notes_target_idx');
+            $table->index(['target_type', 'target_id', 'deleted_at', 'id'], 'admin_notes_target_deleted_id_idx');
+            $table->index(['target_type', 'target_id', 'is_internal', 'deleted_at', 'id'], 'admin_notes_target_internal_deleted_id_idx');
             $table->index(['creator_type', 'creator_id'], 'admin_notes_creator_actor_idx');
         });
 

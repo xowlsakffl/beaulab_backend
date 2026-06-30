@@ -82,6 +82,7 @@ final class ReportedContentListForStaffAction
             HospitalEvaluation::class => [
                 'author:id,name,nickname,email',
                 'hospital:id,name',
+                'categories',
             ],
             ChatMessage::class => [
                 'chat:id,last_message_at',
@@ -176,6 +177,7 @@ final class ReportedContentListForStaffAction
             'id' => (int) $evaluation->id,
             'created_at' => $evaluation->created_at?->toISOString() ?? '',
             'category_domain' => (string) $evaluation->category_domain,
+            'categories' => $this->categoriesToArray($evaluation),
             'author' => $this->authorToArray($evaluation),
             'hospital' => $this->hospitalToArray($evaluation),
             'phone' => $evaluation->phone,
@@ -293,6 +295,7 @@ final class ReportedContentListForStaffAction
             'name' => (string) $category->name,
             'full_path' => (string) ($attributes['full_path'] ?? ''),
             'depth' => isset($attributes['depth']) ? (int) $attributes['depth'] : null,
+            'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
         ];
     }
 

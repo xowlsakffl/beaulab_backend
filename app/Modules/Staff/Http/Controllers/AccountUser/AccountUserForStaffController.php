@@ -9,10 +9,12 @@ use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Actions\Staff\AccountUserDeleteForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserGetForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserListForStaffAction;
+use App\Domains\AccountUser\Actions\Staff\AccountUserStatusUpdateForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserSummaryForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserUpdateForStaffAction;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Modules\Staff\Http\Requests\AccountUser\AccountUserListForStaffRequest;
+use App\Modules\Staff\Http\Requests\AccountUser\AccountUserStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\AccountUser\AccountUserUpdateForStaffRequest;
 
 /**
@@ -64,6 +66,20 @@ final class AccountUserForStaffController extends Controller
         AccountUser $user,
         AccountUserUpdateForStaffRequest $request,
         AccountUserUpdateForStaffAction $action,
+    ) {
+        $result = $action->execute($user, $request->validated());
+
+        return ApiResponse::success($result['user'] ?? $result);
+    }
+
+    /**
+     * PATCH /api/v1/staff/users/{user}/status
+     * (Beaulab) Staff 전용 일반회원 상태 변경
+     */
+    public function updateAccountUserStatusForStaff(
+        AccountUser $user,
+        AccountUserStatusUpdateForStaffRequest $request,
+        AccountUserStatusUpdateForStaffAction $action,
     ) {
         $result = $action->execute($user, $request->validated());
 

@@ -19,7 +19,6 @@ final class AccountUserUpdateForStaffQuery
             'name',
             'nickname',
             'phone',
-            'status',
             'comment_notification_enabled',
             'note_notification_enabled',
             'marketing_sms_agreed',
@@ -30,12 +29,6 @@ final class AccountUserUpdateForStaffQuery
             if (array_key_exists($field, $payload)) {
                 $filter[$field] = $payload[$field];
             }
-        }
-
-        if (($filter['status'] ?? null) === AccountUser::STATUS_BLOCKED) {
-            $filter['blocked_at'] = $user->blocked_at ?? now();
-        } elseif (array_key_exists('status', $filter)) {
-            $filter['blocked_at'] = null;
         }
 
         if ($filter !== []) {

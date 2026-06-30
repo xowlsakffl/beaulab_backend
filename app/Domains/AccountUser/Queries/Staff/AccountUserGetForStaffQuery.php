@@ -36,8 +36,17 @@ final class AccountUserGetForStaffQuery
     public function activityCounts(AccountUser $user): array
     {
         $userId = (int) $user->id;
-        $hospitalReviewCount = HospitalReview::query()->where('author_id', $userId)->count();
-        $hospitalReviewCommentCount = HospitalReviewComment::query()->where('author_id', $userId)->count();
+        $hospitalReviewCount = HospitalReview::query()
+            ->where('author_id', $userId)
+            ->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+            ->count();
+        $hospitalReviewCommentCount = HospitalReviewComment::query()
+            ->where('author_id', $userId)
+            ->whereHas(
+                'review',
+                fn ($query) => $query->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+            )
+            ->count();
         $talkCount = Talk::query()->where('author_id', $userId)->count();
         $talkCommentCount = TalkComment::query()->where('author_id', $userId)->count();
         $hospitalEvaluationCount = HospitalEvaluation::query()->where('author_id', $userId)->count();
@@ -69,11 +78,20 @@ final class AccountUserGetForStaffQuery
         $userId = (int) $user->id;
         $hospitalReviewCount = $this->lockedReportCount(
             HospitalReview::class,
-            HospitalReview::query()->select('id')->where('author_id', $userId),
+            HospitalReview::query()
+                ->select('id')
+                ->where('author_id', $userId)
+                ->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY),
         );
         $hospitalReviewCommentCount = $this->lockedReportCount(
             HospitalReviewComment::class,
-            HospitalReviewComment::query()->select('id')->where('author_id', $userId),
+            HospitalReviewComment::query()
+                ->select('id')
+                ->where('author_id', $userId)
+                ->whereHas(
+                    'review',
+                    fn ($query) => $query->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
+                ),
         );
         $talkCount = $this->lockedReportCount(
             Talk::class,

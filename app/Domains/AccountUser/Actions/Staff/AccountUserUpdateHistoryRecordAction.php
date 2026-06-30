@@ -56,6 +56,37 @@ final class AccountUserUpdateHistoryRecordAction
         );
     }
 
+    public function recordStatusUpdated(
+        AccountUser $user,
+        string $beforeStatus,
+        string $afterStatus,
+        ?string $reason = null,
+    ): void {
+        $changes = OperationHistoryChangeSetBuilder::single(
+            key: 'status',
+            label: '회원상태',
+            before: $beforeStatus,
+            after: $afterStatus,
+            beforeDisplay: AccountUser::statusLabels()[$beforeStatus] ?? $beforeStatus,
+            afterDisplay: AccountUser::statusLabels()[$afterStatus] ?? $afterStatus,
+        );
+
+        if ($changes === []) {
+            return;
+        }
+
+        $actor = auth()->user();
+
+        $this->historyCreateAction->execute(
+            target: $user,
+            action: OperationHistory::ACTION_STATUS_UPDATED,
+            actor: $actor instanceof Model ? $actor : null,
+            reason: $reason,
+            metadata: ['source' => 'staff.account_user.status'],
+            changes: $changes,
+        );
+    }
+
     /**
      * @return array{label:string,value:mixed,display:?string}
      */

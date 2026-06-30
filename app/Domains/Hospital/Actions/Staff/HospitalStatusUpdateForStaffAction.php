@@ -18,7 +18,7 @@ final class HospitalStatusUpdateForStaffAction
     ) {}
 
     /**
-     * @param array{status:string} $payload
+     * @param array{status:string, reason?:string|null} $payload
      * @return array{hospital: array}
      */
     public function execute(Hospital $hospital, array $payload): array
@@ -33,6 +33,7 @@ final class HospitalStatusUpdateForStaffAction
                 $updatedHospital,
                 $beforeStatus,
                 (string) $updatedHospital->status,
+                $payload['reason'] ?? null,
             );
 
             return $updatedHospital->fresh();

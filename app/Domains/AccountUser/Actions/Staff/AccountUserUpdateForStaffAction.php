@@ -37,7 +37,9 @@ final class AccountUserUpdateForStaffAction
         });
 
         return [
-            'user' => AccountUserForStaffDetailDto::fromModel($updated)->toArray(),
+            'user' => AccountUserForStaffDetailDto::fromModel(
+                $updated->load('operationHistories.actor')
+            )->toArray(),
         ];
     }
 }

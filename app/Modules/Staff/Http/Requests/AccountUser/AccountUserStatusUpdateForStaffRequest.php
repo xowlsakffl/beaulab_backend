@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Modules\Staff\Http\Requests\Hospital;
+declare(strict_types=1);
 
-use App\Domains\Hospital\Models\Hospital;
+namespace App\Modules\Staff\Http\Requests\AccountUser;
+
+use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-final class HospitalStatusUpdateForStaffRequest extends FormRequest
+final class AccountUserStatusUpdateForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -32,17 +34,18 @@ final class HospitalStatusUpdateForStaffRequest extends FormRequest
     {
         return [
             'status' => ['required', Rule::in([
-                Hospital::STATUS_ACTIVE,
-                Hospital::STATUS_SUSPENDED,
+                AccountUser::STATUS_ACTIVE,
+                AccountUser::STATUS_SUSPENDED,
+                AccountUser::STATUS_BLOCKED,
             ])],
-            'reason' => ['nullable', 'string', 'max:500'],
+            'reason' => ['nullable', 'string', 'max:500', 'required_if:status,'.AccountUser::STATUS_BLOCKED],
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'status' => '병의원 상태',
+            'status' => '회원 상태',
             'reason' => '사유',
         ];
     }

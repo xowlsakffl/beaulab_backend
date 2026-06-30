@@ -23,6 +23,8 @@ final class AccountUserGetForStaffAction
     {
         Gate::authorize('view', $user);
 
+        $user->load('operationHistories.actor');
+
         return [
             'user' => AccountUserForStaffDetailDto::fromModel(
                 $user,

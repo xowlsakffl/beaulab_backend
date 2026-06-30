@@ -172,11 +172,16 @@ final class ContentReportForStaffController extends Controller
     }
 
     public function getReportedContentDetailForStaff(
+        Request $request,
         string $targetType,
         int $targetId,
         ReportedContentDetailForStaffAction $action,
     ) {
-        return ApiResponse::success($action->execute($targetType, $targetId));
+        return ApiResponse::success($action->execute(
+            $targetType,
+            $targetId,
+            $request->boolean('include_target', true),
+        ));
     }
 
     public function getReportedContentReportsForStaff(

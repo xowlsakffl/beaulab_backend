@@ -30,7 +30,7 @@ final class ReportedContentDetailForStaffAction
         private readonly ReportedContentDetailForStaffQuery $query,
     ) {}
 
-    public function execute(string $targetAlias, int $targetId): array
+    public function execute(string $targetAlias, int $targetId, bool $includeTarget = true): array
     {
         $targetClass = ContentReportTargetRegistry::classForAlias($targetAlias);
 
@@ -41,7 +41,9 @@ final class ReportedContentDetailForStaffAction
         Gate::authorize('viewAny', [ContentReportState::class, $targetAlias]);
 
         $target = ContentReportTargetRegistry::resolveTarget($targetAlias, $targetId);
-        $target->loadMissing($this->targetLoadRelations($target));
+        $target->loadMissing($includeTarget
+            ? $this->targetLoadRelations($target)
+            : $this->targetAuthorLoadRelations($target));
 
         $state = $this->query->state($targetClass, $targetId);
         $latestReport = $this->query->latestReport($targetClass, $targetId);
@@ -51,7 +53,9 @@ final class ReportedContentDetailForStaffAction
         return [
             'target_type' => $targetAlias,
             'target_id' => $targetId,
-            'target' => $this->targetToArray($target),
+            ...($includeTarget ? [
+                'target' => $this->targetToArray($target),
+            ] : []),
             'author' => $this->targetAuthor($target),
             ...($target instanceof ChatMessage ? [
                 'operation_histories' => $this->operationHistories($target),
@@ -114,6 +118,16 @@ final class ReportedContentDetailForStaffAction
         }
 
         return $relations;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function targetAuthorLoadRelations(Model $target): array
+    {
+        return $target instanceof ChatMessage
+            ? ['sender:id,name,nickname,email,phone,warning_count,created_at']
+            : ['author:id,name,nickname,email,phone,warning_count,created_at'];
     }
 
     private function targetToArray(Model $target): ?array

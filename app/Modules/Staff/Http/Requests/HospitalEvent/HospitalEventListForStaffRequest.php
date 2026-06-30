@@ -29,6 +29,20 @@ final class HospitalEventListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
+            'summary_filter' => [
+                'nullable',
+                'string',
+                Rule::in([
+                    'active',
+                    'recent_created',
+                    'ending_soon',
+                    'recent_stopped',
+                    'pending',
+                    'reviewing',
+                    'approved',
+                    'rejected',
+                ]),
+            ],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->whereNull('deleted_at')],
             'event_type' => ['nullable', 'array'],
             'event_type.*' => [Rule::in(HospitalEvent::types())],
@@ -68,6 +82,7 @@ final class HospitalEventListForStaffRequest extends FormRequest
 
         return [
             'q' => $validated['q'] ?? null,
+            'summary_filter' => $validated['summary_filter'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'event_type' => $validated['event_type'] ?? null,
             'status' => $validated['status'] ?? null,
@@ -94,6 +109,7 @@ final class HospitalEventListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
+            'summary_filter' => '요약 필터',
             'hospital_id' => '병의원',
             'event_type' => '이벤트 유형',
             'event_type.*' => '이벤트 유형',

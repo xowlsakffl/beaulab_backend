@@ -4,6 +4,7 @@ namespace App\Domains\HospitalEvent\Queries\Staff;
 
 use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -76,6 +77,8 @@ final class HospitalEventListForStaffQuery
 
     private function applyFilters(Builder $builder, array $filters): void
     {
+        $this->applySummaryFilter($builder, (string) ($filters['summary_filter'] ?? ''));
+
         if (! empty($filters['q'])) {
             $q = (string) $filters['q'];
             $builder->where(function ($query) use ($q): void {
@@ -160,6 +163,85 @@ final class HospitalEventListForStaffQuery
         if (($filters['event_price_max'] ?? null) !== null) {
             $builder->where('event_price', '<=', (int) $filters['event_price_max']);
         }
+    }
+
+    private function applySummaryFilter(Builder $builder, string $summaryFilter): void
+    {
+        if ($summaryFilter === '') {
+            return;
+        }
+
+        $now = now();
+        $recentStart = $now->copy()->subDays(30)->startOfDay();
+
+        if ($summaryFilter === 'active') {
+            $builder->where('status', HospitalEvent::STATUS_ACTIVE);
+
+            return;
+        }
+
+        if ($summaryFilter === 'recent_created') {
+            $builder->where('created_at', '>=', $recentStart);
+
+            return;
+        }
+
+        if ($summaryFilter === 'ending_soon') {
+            $builder
+                ->where('is_event_period_unlimited', false)
+                ->whereNotNull('event_end_at')
+                ->whereBetween('event_end_at', [
+                    $now->copy()->startOfDay(),
+                    $now->copy()->addDays(30)->endOfDay(),
+                ]);
+
+            return;
+        }
+
+        if ($summaryFilter === 'recent_stopped') {
+            $eventIds = $this->recentStoppedEventIds($recentStart);
+
+            if ($eventIds === []) {
+                $builder->whereRaw('1 = 0');
+
+                return;
+            }
+
+            $builder->whereIn('id', $eventIds);
+
+            return;
+        }
+
+        $allowStatus = match ($summaryFilter) {
+            'pending' => HospitalEvent::ALLOW_PENDING,
+            'reviewing' => HospitalEvent::ALLOW_REVIEWING,
+            'approved' => HospitalEvent::ALLOW_APPROVED,
+            'rejected' => HospitalEvent::ALLOW_REJECTED,
+            default => null,
+        };
+
+        if ($allowStatus !== null) {
+            $builder->where('allow_status', $allowStatus);
+        }
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function recentStoppedEventIds(mixed $recentStart): array
+    {
+        return OperationHistory::query()
+            ->where('target_type', HospitalEvent::class)
+            ->whereHas('changes', static fn ($query) => $query
+                ->where('field_key', 'status')
+                ->whereIn('after_display', [HospitalEvent::STATUS_INACTIVE, '미노출']))
+            ->where('created_at', '>=', $recentStart)
+            ->distinct()
+            ->pluck('target_id')
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->values()
+            ->all();
     }
 
     /**

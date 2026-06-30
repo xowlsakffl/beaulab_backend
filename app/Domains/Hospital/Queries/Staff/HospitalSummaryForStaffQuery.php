@@ -20,15 +20,13 @@ final class HospitalSummaryForStaffQuery
             ->withTrashed()
             ->selectRaw(
                 <<<'SQL'
-                SUM(CASE WHEN deleted_at IS NULL AND status != ? AND allow_status = ? THEN 1 ELSE 0 END) AS pending_review_hospitals,
-                SUM(CASE WHEN deleted_at IS NULL AND status != ? AND allow_status = ? THEN 1 ELSE 0 END) AS rejected_review_hospitals,
+                SUM(CASE WHEN allow_status = ? THEN 1 ELSE 0 END) AS pending_review_hospitals,
+                SUM(CASE WHEN allow_status = ? THEN 1 ELSE 0 END) AS rejected_review_hospitals,
                 SUM(CASE WHEN deleted_at IS NULL AND status = ? THEN 1 ELSE 0 END) AS suspended_hospitals,
                 SUM(CASE WHEN status = ? OR deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS withdrawn_hospitals
                 SQL,
                 [
-                    Hospital::STATUS_WITHDRAWN,
                     Hospital::ALLOW_PENDING,
-                    Hospital::STATUS_WITHDRAWN,
                     Hospital::ALLOW_REJECTED,
                     Hospital::STATUS_SUSPENDED,
                     Hospital::STATUS_WITHDRAWN,

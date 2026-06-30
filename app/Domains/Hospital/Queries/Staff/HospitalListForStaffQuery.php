@@ -3,12 +3,13 @@
 namespace App\Domains\Hospital\Queries\Staff;
 
 use App\Common\Support\DateRangeFilter;
-use App\Domains\Common\Category\Models\Category;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\Common\Category\Models\Category;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 /**
  * HospitalListForStaffQuery 역할 정의.
@@ -21,20 +22,21 @@ final class HospitalListForStaffQuery
      */
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $q         = is_string($filters['q'] ?? null) ? trim($filters['q']) : null;
+        $q = is_string($filters['q'] ?? null) ? trim($filters['q']) : null;
         $startDate = $filters['start_date'] ?? null;
-        $endDate   = $filters['end_date'] ?? null;
+        $endDate = $filters['end_date'] ?? null;
         $updatedStartDate = $filters['updated_start_date'] ?? null;
-        $updatedEndDate   = $filters['updated_end_date'] ?? null;
-        $status    = $filters['status'] ?? null;
+        $updatedEndDate = $filters['updated_end_date'] ?? null;
+        $status = $filters['status'] ?? null;
         $accountStatus = $filters['account_status'] ?? null;
-        $allow     = $filters['allow_status'] ?? null;
+        $allow = $filters['allow_status'] ?? null;
+        $dormant = (bool) ($filters['dormant'] ?? false);
         $departments = $filters['department'] ?? null;
         $categoryIds = $filters['category_ids'] ?? null;
         $include = $filters['include'] ?? [];
-        $sort      = $filters['sort'] ?? 'id';
+        $sort = $filters['sort'] ?? 'id';
         $direction = $filters['direction'] ?? 'desc';
-        $perPage   = $filters['per_page'] ?? 15;
+        $perPage = $filters['per_page'] ?? 15;
 
         // 필요한 컬러만 정의
         $builder = Hospital::query()->select([
@@ -122,6 +124,18 @@ final class HospitalListForStaffQuery
             $builder->whereIn('allow_status', $allow);
         }
 
+        if ($dormant) {
+            $last30DaysStart = Carbon::now()->subDays(30);
+
+            $builder
+                ->where('status', '!=', Hospital::STATUS_WITHDRAWN)
+                ->whereHas('accountHospital', static fn (Builder $query) => $query
+                    ->where('status', '!=', AccountHospital::STATUS_WITHDRAWN)
+                    ->where(static fn (Builder $lastLoginQuery) => $lastLoginQuery
+                        ->whereNull('last_login_at')
+                        ->orWhere('last_login_at', '<', $last30DaysStart)));
+        }
+
         if (is_array($departments) && $departments !== []) {
             $builder->whereIn('department', $departments);
         }
@@ -152,7 +166,7 @@ final class HospitalListForStaffQuery
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @param  array<int, int|string>  $categoryIds
      * @return array<int, int>
      */
     private function expandWithDescendants(array $categoryIds): array
@@ -190,7 +204,7 @@ final class HospitalListForStaffQuery
                                 $pathQuery->where('id', (int) $selectedCategory->id);
 
                                 if ($pathPrefix !== '') {
-                                    $pathQuery->orWhere('full_path', 'like', $pathPrefix . ' > %');
+                                    $pathQuery->orWhere('full_path', 'like', $pathPrefix.' > %');
                                 }
                             });
                     });

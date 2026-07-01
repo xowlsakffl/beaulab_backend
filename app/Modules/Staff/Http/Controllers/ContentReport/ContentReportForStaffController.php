@@ -4,6 +4,7 @@ namespace App\Modules\Staff\Http\Controllers\ContentReport;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\Common\ContentReport\Actions\Staff\ContentReportProcessForStaffAction;
 use App\Domains\Common\ContentReport\Actions\Staff\ContentReportStateStatusUpdateForStaffAction;
 use App\Domains\Common\ContentReport\Actions\Staff\ContentReportWarningStatusUpdateForStaffAction;
 use App\Domains\Common\ContentReport\Actions\Staff\ReportedContentDetailForStaffAction;
@@ -12,6 +13,7 @@ use App\Domains\Common\ContentReport\Actions\Staff\ReportedContentReportsForStaf
 use App\Domains\Common\ContentReport\Actions\Staff\ReportedContentSummaryForStaffAction;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\HospitalReview\Models\HospitalReview;
+use App\Modules\Staff\Http\Requests\ContentReport\ContentReportProcessForStaffRequest;
 use App\Modules\Staff\Http\Requests\ContentReport\ContentReportStateStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\ContentReport\ContentReportWarningStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\ContentReport\ReportedContentListForStaffRequest;
@@ -198,6 +200,13 @@ final class ContentReportForStaffController extends Controller
     public function updateReportedContentStatusForStaff(
         ContentReportStateStatusUpdateForStaffRequest $request,
         ContentReportStateStatusUpdateForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($request->validated()));
+    }
+
+    public function processReportedContentForStaff(
+        ContentReportProcessForStaffRequest $request,
+        ContentReportProcessForStaffAction $action,
     ) {
         return ApiResponse::success($action->execute($request->validated()));
     }

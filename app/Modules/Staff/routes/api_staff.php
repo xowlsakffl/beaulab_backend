@@ -110,6 +110,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('reported-contents.getReportedContentReportsForStaff');
     Route::patch('reported-contents/status', [ContentReportForStaffController::class, 'updateReportedContentStatusForStaff'])
         ->name('reported-contents.updateReportedContentStatusForStaff');
+    Route::patch('reported-contents/process', [ContentReportForStaffController::class, 'processReportedContentForStaff'])
+        ->name('reported-contents.processReportedContentForStaff');
     Route::patch('reported-contents/warning-status', [ContentReportForStaffController::class, 'updateReportedContentWarningStatusForStaff'])
         ->name('reported-contents.updateReportedContentWarningStatusForStaff');
 

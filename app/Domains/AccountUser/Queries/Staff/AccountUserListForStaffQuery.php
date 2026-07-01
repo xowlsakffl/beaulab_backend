@@ -7,6 +7,7 @@ namespace App\Domains\AccountUser\Queries\Staff;
 use App\Common\Support\DateRangeFilter;
 use App\Domains\AccountUser\Models\AccountUser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * AccountUserListForStaffQuery 역할 정의.
@@ -17,6 +18,7 @@ final class AccountUserListForStaffQuery
     public function paginate(array $filters): LengthAwarePaginator
     {
         $q = $filters['q'] ?? null;
+        $summaryFilter = $filters['summary_filter'] ?? null;
         $dateType = $filters['date_type'] ?? 'created_at';
         $startDate = $filters['start_date'] ?? null;
         $endDate = $filters['end_date'] ?? null;
@@ -58,6 +60,10 @@ final class AccountUserListForStaffQuery
             });
         }
 
+        if ($summaryFilter) {
+            $this->applySummaryFilter($builder, (string) $summaryFilter);
+        }
+
         DateRangeFilter::apply($builder, (string) $dateType, $startDate, $endDate);
 
         if ($signupChannel) {
@@ -87,5 +93,32 @@ final class AccountUserListForStaffQuery
         }
 
         return $builder->paginate($perPage)->withQueryString();
+    }
+
+    private function applySummaryFilter(Builder $builder, string $summaryFilter): void
+    {
+        if ($summaryFilter === 'withdrawn') {
+            $builder->where(function ($w) {
+                $w->where('status', AccountUser::STATUS_WITHDRAWN)
+                    ->orWhereNotNull('deleted_at');
+            });
+
+            return;
+        }
+
+        if ($summaryFilter === 'blocked') {
+            $builder
+                ->whereNull('deleted_at')
+                ->where('status', AccountUser::STATUS_BLOCKED);
+
+            return;
+        }
+
+        if ($summaryFilter === 'warned') {
+            $builder
+                ->whereNull('deleted_at')
+                ->where('status', '!=', AccountUser::STATUS_WITHDRAWN)
+                ->where('warning_count', '>', 0);
+        }
     }
 }

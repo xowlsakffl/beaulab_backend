@@ -25,6 +25,7 @@ final class AccountUserListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
+            'summary_filter' => ['nullable', Rule::in(['withdrawn', 'blocked', 'warned'])],
             'date_type' => ['nullable', 'in:created_at,last_accessed_at'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
@@ -64,6 +65,7 @@ final class AccountUserListForStaffRequest extends FormRequest
 
         return [
             'q' => $validate['q'] ?? null,
+            'summary_filter' => $validate['summary_filter'] ?? null,
             'date_type' => $validate['date_type'] ?? 'created_at',
             'start_date' => $validate['start_date'] ?? null,
             'end_date' => $validate['end_date'] ?? null,
@@ -83,6 +85,7 @@ final class AccountUserListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
+            'summary_filter' => '요약 필터',
             'date_type' => '기간 기준',
             'start_date' => '시작일',
             'end_date' => '종료일',

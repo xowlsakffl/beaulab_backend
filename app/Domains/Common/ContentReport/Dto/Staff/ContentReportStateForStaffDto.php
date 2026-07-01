@@ -6,7 +6,9 @@ use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReportItem;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
+use App\Domains\Common\Media\Models\Media;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 
 final readonly class ContentReportStateForStaffDto
 {
@@ -193,12 +195,42 @@ final readonly class ContentReportStateForStaffDto
                 'body' => $target->body,
                 'body_preview' => self::contentPreview($target->body),
                 'message_type' => (string) $target->message_type,
+                'attachments' => self::attachments($target),
             ];
         }
 
         return [
             'id' => (int) $target->getKey(),
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function attachments(ChatMessage $message): array
+    {
+        if (! $message->relationLoaded('attachments')) {
+            return [];
+        }
+
+        return $message->attachments
+            ->map(static fn (Media $media): array => [
+                'id' => (int) $media->id,
+                'collection' => (string) $media->collection,
+                'disk' => (string) $media->disk,
+                'path' => (string) $media->path,
+                'url' => Storage::disk((string) $media->disk)->url((string) $media->path),
+                'mime_type' => $media->mime_type,
+                'size' => $media->size !== null ? (int) $media->size : null,
+                'width' => $media->width !== null ? (int) $media->width : null,
+                'height' => $media->height !== null ? (int) $media->height : null,
+                'sort_order' => (int) $media->sort_order,
+                'metadata' => $media->metadata,
+                'created_at' => $media->created_at?->toISOString(),
+                'updated_at' => $media->updated_at?->toISOString(),
+            ])
+            ->values()
+            ->all();
     }
 
     private static function chatMessageSender(ChatMessage $message): ?array

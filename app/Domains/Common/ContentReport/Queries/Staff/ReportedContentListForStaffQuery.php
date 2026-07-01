@@ -122,6 +122,10 @@ final class ReportedContentListForStaffQuery
      */
     private function applyFilters(Builder $builder, string $targetClass, array $filters): void
     {
+        if (! empty($filters['summary_filter'])) {
+            $this->applySummaryFilter($builder, $targetClass, (string) $filters['summary_filter']);
+        }
+
         $statuses = $filters['report_status'] ?? null;
         if (is_array($statuses) && $statuses !== []) {
             $builder->whereIn('report_status', $statuses);
@@ -169,6 +173,56 @@ final class ReportedContentListForStaffQuery
                 $filters['search_type'] ?? null,
                 (string) $filters['q'],
             );
+        }
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $targetClass
+     */
+    private function applySummaryFilter(Builder $builder, string $targetClass, string $summaryFilter): void
+    {
+        if ($summaryFilter === 'reported_or_auto_blocked') {
+            $builder->whereIn('report_status', [
+                ContentReportState::STATUS_REPORTED,
+                ContentReportState::STATUS_AUTO_BLOCKED,
+            ]);
+
+            return;
+        }
+
+        if ($summaryFilter === 'today_report') {
+            $todayStart = today();
+            $tomorrowStart = $todayStart->copy()->addDay();
+
+            $builder->whereExists(function ($query) use ($targetClass, $todayStart, $tomorrowStart): void {
+                $query
+                    ->selectRaw('1')
+                    ->from('content_reports')
+                    ->whereColumn('content_reports.target_type', 'content_report_states.target_type')
+                    ->whereColumn('content_reports.target_id', 'content_report_states.target_id')
+                    ->where('content_reports.target_type', $targetClass)
+                    ->where('content_reports.created_at', '>=', $todayStart)
+                    ->where('content_reports.created_at', '<', $tomorrowStart);
+            });
+
+            return;
+        }
+
+        if ($summaryFilter === 'recent_30_days_admin_hidden') {
+            $builder
+                ->where('report_status', ContentReportState::STATUS_ADMIN_HIDDEN)
+                ->where('admin_hidden_at', '>=', now()->subDays(30));
+
+            return;
+        }
+
+        if ($summaryFilter === 'recent_30_days_normal_visible') {
+            $builder
+                ->whereIn('report_status', [
+                    ContentReportState::STATUS_NORMAL_VISIBLE,
+                    ContentReportState::STATUS_REEXPOSED,
+                ])
+                ->where('normal_visible_at', '>=', now()->subDays(30));
         }
     }
 

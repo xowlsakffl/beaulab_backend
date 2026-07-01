@@ -9,6 +9,7 @@ use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Queries\Staff\ReportedContentDetailForStaffQuery;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalEvaluation\Dto\Staff\HospitalEvaluationForStaffDto;
@@ -23,6 +24,7 @@ use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 final class ReportedContentDetailForStaffAction
 {
@@ -102,6 +104,7 @@ final class ReportedContentDetailForStaffAction
             ChatMessage::class => [
                 'chat:id,last_message_at',
                 'sender:id,name,nickname,email,phone,warning_count,created_at',
+                'attachments',
             ],
         ];
     }
@@ -158,6 +161,7 @@ final class ReportedContentDetailForStaffAction
         $latestReport->items->loadMorph('target', [
             ChatMessage::class => [
                 'sender:id,name,nickname,email',
+                'attachments',
             ],
         ]);
     }
@@ -176,7 +180,37 @@ final class ReportedContentDetailForStaffAction
             'body' => $message->body,
             'body_preview' => $this->contentPreview($message->body),
             'message_type' => (string) $message->message_type,
+            'attachments' => $this->attachments($message),
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function attachments(ChatMessage $message): array
+    {
+        if (! $message->relationLoaded('attachments')) {
+            return [];
+        }
+
+        return $message->attachments
+            ->map(static fn (Media $media): array => [
+                'id' => (int) $media->id,
+                'collection' => (string) $media->collection,
+                'disk' => (string) $media->disk,
+                'path' => (string) $media->path,
+                'url' => Storage::disk((string) $media->disk)->url((string) $media->path),
+                'mime_type' => $media->mime_type,
+                'size' => $media->size !== null ? (int) $media->size : null,
+                'width' => $media->width !== null ? (int) $media->width : null,
+                'height' => $media->height !== null ? (int) $media->height : null,
+                'sort_order' => (int) $media->sort_order,
+                'metadata' => $media->metadata,
+                'created_at' => $media->created_at?->toISOString(),
+                'updated_at' => $media->updated_at?->toISOString(),
+            ])
+            ->values()
+            ->all();
     }
 
     private function sender(ChatMessage $message, bool $includeDetail = false): ?array

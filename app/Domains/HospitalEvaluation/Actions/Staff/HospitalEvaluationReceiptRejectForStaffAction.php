@@ -38,13 +38,17 @@ final class HospitalEvaluationReceiptRejectForStaffAction
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '영수증 이미지가 없는 평가는 부적합 처리할 수 없습니다.');
             }
 
+            if ($beforeStatus === HospitalEvaluation::RECEIPT_STATUS_REJECTED) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 인증 부적합 처리된 영수증입니다.');
+            }
+
             $this->query->markRejected($lockedEvaluation, $reason, $reasonText);
 
             $reasonLabel = HospitalEvaluation::receiptRejectionReasonLabels()[$reason] ?? $reason;
 
             $this->historyCreateAction->execute(
                 target: $lockedEvaluation,
-                action: OperationHistory::ACTION_STATUS_UPDATED,
+                action: OperationHistory::ACTION_STATE_UPDATED,
                 actor: $actor instanceof Model ? $actor : null,
                 reason: $reasonText ?? $reasonLabel,
                 metadata: [
@@ -54,7 +58,7 @@ final class HospitalEvaluationReceiptRejectForStaffAction
                 ],
                 changes: OperationHistoryChangeSetBuilder::single(
                     key: 'receipt_status',
-                    label: '영수증 인증',
+                    label: '영수증 상태',
                     before: $beforeStatus,
                     after: HospitalEvaluation::RECEIPT_STATUS_REJECTED,
                     beforeDisplay: HospitalEvaluation::receiptStatusLabels()[$beforeStatus] ?? $beforeStatus,

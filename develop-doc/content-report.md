@@ -120,8 +120,8 @@ Staff 신고게시물 관리는 일반 토크/후기/평가 관리 권한과 분
 
 | 부모 action | change field | before/after 의미 |
 |---|---|---|
-| `REPORT_STATUS_UPDATED` | `report_status` | 신고 상태 변경 |
-| `WARNING_STATUS_UPDATED` | `warning_status` | 경고/무시 상태 변경 |
+| `STATE_UPDATED` | `report_status` | 신고 상태 변경 |
+| `STATE_UPDATED` | `warning_status` | 경고/무시 상태 변경 |
 
 운영 히스토리 공통 구조는 `./operation-history.md`를 따른다.
 

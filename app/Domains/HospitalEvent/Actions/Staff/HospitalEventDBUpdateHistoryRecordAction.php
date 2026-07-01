@@ -61,7 +61,7 @@ final class HospitalEventDBUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      */
     private function record(
         HospitalEventDB $eventDB,
@@ -78,7 +78,7 @@ final class HospitalEventDBUpdateHistoryRecordAction
 
         $this->historyCreateAction->execute(
             target: $eventDB,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
+            action: OperationHistory::ACTION_STATE_UPDATED,
             actor: $actor instanceof Model ? $actor : null,
             reason: $reason,
             metadata: [

@@ -50,7 +50,7 @@ final class HospitalReviewDeleteForUserAction
 
             $this->historyCreateAction->execute(
                 target: $updatedReview,
-                action: OperationHistory::ACTION_STATUS_UPDATED,
+                action: OperationHistory::ACTION_STATE_UPDATED,
                 actor: $user,
                 reason: '본인삭제',
                 metadata: [

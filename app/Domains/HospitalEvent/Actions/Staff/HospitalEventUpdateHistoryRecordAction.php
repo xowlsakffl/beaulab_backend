@@ -42,7 +42,7 @@ final class HospitalEventUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(HospitalEvent $event, array $before): void
     {
@@ -73,7 +73,7 @@ final class HospitalEventUpdateHistoryRecordAction
     ): void {
         $this->record(
             event: $event,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
+            action: OperationHistory::ACTION_STATE_UPDATED,
             source: 'staff.hospital_event.status',
             changes: OperationHistoryChangeSetBuilder::single(
                 key: 'status',
@@ -97,7 +97,7 @@ final class HospitalEventUpdateHistoryRecordAction
     ): void {
         $this->record(
             event: $event,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
+            action: OperationHistory::ACTION_STATE_UPDATED,
             source: 'staff.hospital_event.allow_status',
             changes: OperationHistoryChangeSetBuilder::single(
                 key: 'allow_status',
@@ -153,8 +153,8 @@ final class HospitalEventUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
-     * @param array<string, array{label:string,value:mixed,display:?string}> $after
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $after
      * @return array<int, array<string, mixed>>
      */
     private function changes(array $before, array $after): array
@@ -289,7 +289,7 @@ final class HospitalEventUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, mixed> $items
+     * @param  array<int, mixed>  $items
      */
     private function lineList(array $items): ?string
     {
@@ -303,7 +303,7 @@ final class HospitalEventUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      */
     private function record(
         HospitalEvent $event,
@@ -312,8 +312,7 @@ final class HospitalEventUpdateHistoryRecordAction
         array $changes,
         ?string $reason = null,
         array $metadata = [],
-    ): void
-    {
+    ): void {
         if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }

@@ -62,7 +62,7 @@ $this->historyCreateAction->execute(
     reason: $reason,
     changes: OperationHistoryChangeSetBuilder::single(
         key: 'status',
-        label: '노출상태',
+        label: '노출여부',
         before: $before,
         after: $after,
         beforeDisplay: '노출',
@@ -146,7 +146,7 @@ operation_history_changes
   "changes": [
     {
       "field_key": "status",
-      "field_label": "노출상태",
+      "field_label": "노출여부",
       "before_value": "ACTIVE",
       "after_value": "INACTIVE",
       "before_display": "노출",
@@ -162,9 +162,17 @@ operation_history_changes
 
 - 새 운영 이력은 반드시 `changes`를 사용한다.
 - `operation_histories`에 변경 필드 컬럼을 다시 추가하지 않는다.
+- `operation_histories.action`은 큰 행위 분류만 담당한다.
+  - `CREATED`: 생성
+  - `UPDATED`: 일반 정보 수정
+  - `STATE_UPDATED`: 상태성 값 변경
+  - `DELETED`: 삭제
+- `operation_history_changes.field_label`은 순수 필드명만 저장한다. `변경`, `수정`, `처리` 같은 동사를 붙이지 않는다.
+  - 올바른 예: `노출여부`, `검수상태`, `조치유형`, `경고여부`, `영수증 상태`
+  - 잘못된 예: `노출여부 변경`, `검수상태 변경`, `조치유형 변경`
 - 화면 표시 문구가 필요한 값은 `before_display`, `after_display`를 함께 저장한다.
 - 단순 상태 변경도 `changes` 배열 1건으로 저장한다.
-- 생성 이력은 `CREATED`, 수정 이력은 `UPDATED`, 상태 전용 처리 이력은 `STATUS_UPDATED`를 사용한다.
+- 생성 이력은 `CREATED`, 수정 이력은 `UPDATED`, 상태 전용 처리 이력은 `STATE_UPDATED`를 사용한다.
 - `status` 변경과 `allow_status` 변경은 모두 상태 전용 처리이지만, change의 `field_key`로 의미를 구분한다.
 - `allow_status` 변경의 `field_label`은 도메인 화면 용어에 맞춘다.
   - 병원/의료진/이벤트: `검수상태`
@@ -181,5 +189,14 @@ operation_history_changes
 - 신규 상세 이력 UI는 `changes` 배열을 기준으로 렌더링한다.
 - `field`, `before_value`, `after_value`는 기존 호환 필드로만 취급한다.
 - JSON 원본 값을 그대로 노출하지 않고, 도메인 history action에서 사람이 읽을 수 있는 표시값을 저장한다.
-- 운영자가 상태만 바꾼 경우 사유 문구를 무조건 `수정`으로 만들지 않는다. `ACTION_STATUS_UPDATED`와 `field_label`을 조합해 `상태 변경`, `검수상태 변경`처럼 구분한다.
+- 작업 컬럼은 `action_label`만 표시한다.
+  - `CREATED`: `생성`
+  - `UPDATED`: `수정`
+  - `STATE_UPDATED`: `상태 변경`
+  - `DELETED`: `삭제`
+- 변경내용 컬럼은 `changes`를 공통 규칙으로 요약한다.
+  - `UPDATED` 단일 필드: `병의원명 변경`
+  - `UPDATED` 다중 필드: `병의원명 외 3개 변경`
+  - `STATE_UPDATED`: `검수상태: 신청 → 승인`
+- 상태 변경에서 `검수상태 변경`, `조치유형 변경` 같은 문구를 action label로 만들지 않는다. action은 `상태 변경`, 필드는 `field_label`로 분리한다.
 - 프론트는 히스토리 페이지네이션 중 기존 목록 영역을 불필요하게 비우지 않는다. 일반 목록과 같은 loading state를 사용해 스크롤 튐을 막는다.

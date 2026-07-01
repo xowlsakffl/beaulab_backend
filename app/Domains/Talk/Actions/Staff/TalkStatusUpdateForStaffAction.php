@@ -59,7 +59,7 @@ final class TalkStatusUpdateForStaffAction
 
                 $this->historyCreateAction->execute(
                     target: $talk,
-                    action: OperationHistory::ACTION_STATUS_UPDATED,
+                    action: OperationHistory::ACTION_STATE_UPDATED,
                     actor: $actor instanceof Model ? $actor : null,
                     reason: $historyReason,
                     metadata: [

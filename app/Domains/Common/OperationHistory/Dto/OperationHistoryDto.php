@@ -54,7 +54,7 @@ final readonly class OperationHistoryDto
             actor: self::actor($history),
             actorLabel: self::actorLabel($history),
             action: (string) $history->action,
-            actionLabel: self::actionLabel((string) $history->action),
+            actionLabel: self::actionLabel($history),
             batchUuid: $history->batch_uuid,
             field: $firstChange?->field_key,
             beforeValue: $firstChange?->before_value,
@@ -65,7 +65,7 @@ final readonly class OperationHistoryDto
                 ->map(static fn ($change): array => [
                     'id' => (int) $change->id,
                     'field_key' => (string) $change->field_key,
-                    'field_label' => (string) $change->field_label,
+                    'field_label' => self::normalizeFieldLabel((string) $change->field_label),
                     'before_value' => $change->before_value,
                     'after_value' => $change->after_value,
                     'before_display' => $change->before_display,
@@ -136,14 +136,25 @@ final readonly class OperationHistoryDto
         return (string) $history->actor_kind;
     }
 
-    private static function actionLabel(string $action): string
+    private static function actionLabel(OperationHistory $history): string
     {
+        $action = (string) $history->action;
+
         return match ($action) {
             OperationHistory::ACTION_CREATED => '생성',
             OperationHistory::ACTION_UPDATED => '수정',
-            OperationHistory::ACTION_STATUS_UPDATED => '상태 변경',
+            OperationHistory::ACTION_STATE_UPDATED => '상태 변경',
             OperationHistory::ACTION_DELETED => '삭제',
             default => $action,
         };
+    }
+
+    private static function normalizeFieldLabel(string $fieldLabel): string
+    {
+        $fieldLabel = trim($fieldLabel);
+
+        return str_ends_with($fieldLabel, ' 변경')
+            ? trim(substr($fieldLabel, 0, -strlen(' 변경')))
+            : $fieldLabel;
     }
 }

@@ -16,15 +16,20 @@ final class OperationHistory extends Model
 
     public const string ACTION_UPDATED = 'UPDATED';
 
-    public const string ACTION_STATUS_UPDATED = 'STATUS_UPDATED';
+    public const string ACTION_STATE_UPDATED = 'STATE_UPDATED';
 
     public const string ACTION_DELETED = 'DELETED';
 
     public const string ACTOR_KIND_STAFF = 'STAFF';
+
     public const string ACTOR_KIND_HOSPITAL = 'HOSPITAL';
+
     public const string ACTOR_KIND_BEAUTY = 'BEAUTY';
+
     public const string ACTOR_KIND_USER = 'USER';
+
     public const string ACTOR_KIND_SYSTEM = 'SYSTEM';
+
     public const string ACTOR_KIND_UNKNOWN = 'UNKNOWN';
 
     protected $table = 'operation_histories';

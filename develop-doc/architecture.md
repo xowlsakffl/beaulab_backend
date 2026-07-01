@@ -168,7 +168,7 @@ DTO 응답 원칙:
 - `allow_status`는 검수/승인 흐름이다.
 - 병원/의료진/이벤트 `allow_status` 화면 표기는 모델 라벨 기준으로 `신청`/`검수`/`승인`/`반려`를 사용한다.
 - 입점신청 `allow_status` 화면 표기는 `입점신청`/`입점승인`/`입점반려`를 사용한다.
-- 상태 전용 변경 이력은 `OperationHistory::ACTION_STATUS_UPDATED`를 사용하고, 변경 필드는 `status` 또는 `allow_status`로 구분한다.
+- 상태 전용 변경 이력은 `OperationHistory::ACTION_STATE_UPDATED`를 사용하고, 변경 필드는 `status` 또는 `allow_status`로 구분한다.
 
 ## 8) API 응답 / 페이지네이션 원칙
 

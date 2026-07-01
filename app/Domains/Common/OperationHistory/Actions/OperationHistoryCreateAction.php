@@ -54,7 +54,7 @@ final class OperationHistoryCreateAction
     }
 
     /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      * @return array<int, array<string, mixed>>
      */
     private function normalizeChanges(array $changes): array
@@ -73,7 +73,7 @@ final class OperationHistoryCreateAction
 
             $out[] = [
                 'field_key' => $fieldKey,
-                'field_label' => trim((string) ($change['field_label'] ?? $change['label'] ?? $fieldKey)),
+                'field_label' => $this->normalizeFieldLabel((string) ($change['field_label'] ?? $change['label'] ?? $fieldKey)),
                 'before_value' => $this->normalizeJsonValue($before),
                 'after_value' => $this->normalizeJsonValue($after),
                 'before_display' => $beforeDisplay,
@@ -83,6 +83,15 @@ final class OperationHistoryCreateAction
         }
 
         return $out;
+    }
+
+    private function normalizeFieldLabel(string $fieldLabel): string
+    {
+        $fieldLabel = trim($fieldLabel);
+
+        return str_ends_with($fieldLabel, ' 변경')
+            ? trim(substr($fieldLabel, 0, -strlen(' 변경')))
+            : $fieldLabel;
     }
 
     private function normalizeJsonValue(mixed $value): mixed

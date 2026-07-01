@@ -180,7 +180,7 @@ final class ContentReportStateStatusUpdateForStaffAction
         $changesBuilder = OperationHistoryChangeSetBuilder::make()
             ->compare(
                 key: 'report_status',
-                label: '신고상태',
+                label: '조치유형',
                 before: $reportStatusBefore,
                 after: $reportStatusAfter,
                 beforeDisplay: ContentReportState::statusLabels()[$reportStatusBefore] ?? $reportStatusBefore,
@@ -200,7 +200,7 @@ final class ContentReportStateStatusUpdateForStaffAction
 
         $this->historyCreateAction->execute(
             target: $target,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
+            action: OperationHistory::ACTION_STATE_UPDATED,
             actor: $actor,
             reason: $reason,
             metadata: [

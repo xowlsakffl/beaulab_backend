@@ -46,7 +46,7 @@ final class HospitalUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(Hospital $hospital, array $before): void
     {
@@ -100,7 +100,7 @@ final class HospitalUpdateHistoryRecordAction
 
         $this->historyCreateAction->execute(
             target: $hospital,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
+            action: OperationHistory::ACTION_STATE_UPDATED,
             actor: $actor instanceof Model ? $actor : null,
             reason: $reason,
             metadata: [
@@ -134,7 +134,7 @@ final class HospitalUpdateHistoryRecordAction
 
         $this->historyCreateAction->execute(
             target: $hospital,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
+            action: OperationHistory::ACTION_STATE_UPDATED,
             actor: $actor instanceof Model ? $actor : null,
             reason: $reason,
             metadata: [
@@ -209,8 +209,8 @@ final class HospitalUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
-     * @param array<string, array{label:string,value:mixed,display:?string}> $after
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $after
      * @return array<int, array<string, mixed>>
      */
     private function changes(array $before, array $after): array
@@ -275,6 +275,7 @@ final class HospitalUpdateHistoryRecordAction
 
             if ($this->isOperationDayClosed($item['is_closed'] ?? false)) {
                 $lines[] = "{$label} 진료안함";
+
                 continue;
             }
 
@@ -369,7 +370,7 @@ final class HospitalUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, mixed> $items
+     * @param  array<int, mixed>  $items
      */
     private function lineList(array $items): ?string
     {

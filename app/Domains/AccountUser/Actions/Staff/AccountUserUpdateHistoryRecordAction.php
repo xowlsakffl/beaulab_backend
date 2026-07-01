@@ -35,7 +35,7 @@ final class AccountUserUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(AccountUser $user, array $before): void
     {
@@ -79,7 +79,7 @@ final class AccountUserUpdateHistoryRecordAction
 
         $this->historyCreateAction->execute(
             target: $user,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
+            action: OperationHistory::ACTION_STATE_UPDATED,
             actor: $actor instanceof Model ? $actor : null,
             reason: $reason,
             metadata: ['source' => 'staff.account_user.status'],

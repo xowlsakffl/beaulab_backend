@@ -248,7 +248,7 @@ final class ContentReportCreateForUserAction
 
         $this->historyCreateAction->execute(
             target: $target,
-            action: OperationHistory::ACTION_STATUS_UPDATED,
+            action: OperationHistory::ACTION_STATE_UPDATED,
             reason: $reason,
             metadata: [
                 'report_status_before' => $reportStatusBefore,

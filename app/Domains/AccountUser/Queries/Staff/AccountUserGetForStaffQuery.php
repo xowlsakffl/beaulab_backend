@@ -47,6 +47,17 @@ final class AccountUserGetForStaffQuery
                 fn ($query) => $query->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
             )
             ->count();
+        $treatmentReviewCount = HospitalReview::query()
+            ->where('author_id', $userId)
+            ->where('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+            ->count();
+        $treatmentReviewCommentCount = HospitalReviewComment::query()
+            ->where('author_id', $userId)
+            ->whereHas(
+                'review',
+                fn ($query) => $query->where('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+            )
+            ->count();
         $talkCount = Talk::query()->where('author_id', $userId)->count();
         $talkCommentCount = TalkComment::query()->where('author_id', $userId)->count();
         $hospitalEvaluationCount = HospitalEvaluation::query()->where('author_id', $userId)->count();
@@ -56,6 +67,11 @@ final class AccountUserGetForStaffQuery
                 'posts' => $hospitalReviewCount,
                 'comments' => $hospitalReviewCommentCount,
                 'total' => $hospitalReviewCount + $hospitalReviewCommentCount,
+            ],
+            'treatment_reviews' => [
+                'posts' => $treatmentReviewCount,
+                'comments' => $treatmentReviewCommentCount,
+                'total' => $treatmentReviewCount + $treatmentReviewCommentCount,
             ],
             'talks' => [
                 'posts' => $talkCount,
@@ -93,6 +109,23 @@ final class AccountUserGetForStaffQuery
                     fn ($query) => $query->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
                 ),
         );
+        $treatmentReviewCount = $this->lockedReportCount(
+            HospitalReview::class,
+            HospitalReview::query()
+                ->select('id')
+                ->where('author_id', $userId)
+                ->where('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT),
+        );
+        $treatmentReviewCommentCount = $this->lockedReportCount(
+            HospitalReviewComment::class,
+            HospitalReviewComment::query()
+                ->select('id')
+                ->where('author_id', $userId)
+                ->whereHas(
+                    'review',
+                    fn ($query) => $query->where('category_domain', HospitalReview::CATEGORY_DOMAIN_TREATMENT)
+                ),
+        );
         $talkCount = $this->lockedReportCount(
             Talk::class,
             Talk::query()->select('id')->where('author_id', $userId),
@@ -118,6 +151,11 @@ final class AccountUserGetForStaffQuery
                 'posts' => $hospitalReviewCount,
                 'comments' => $hospitalReviewCommentCount,
                 'total' => $hospitalReviewCount + $hospitalReviewCommentCount,
+            ],
+            'treatment_reviews' => [
+                'posts' => $treatmentReviewCount,
+                'comments' => $treatmentReviewCommentCount,
+                'total' => $treatmentReviewCount + $treatmentReviewCommentCount,
             ],
             'talks' => [
                 'posts' => $talkCount,

@@ -63,19 +63,7 @@ final class HospitalEventDBCreateForUserAction
 
     private function assertEventCanBeApplied(HospitalEvent $event): void
     {
-        $now = now();
-
-        if (
-            $event->status !== HospitalEvent::STATUS_ACTIVE
-            || $event->allow_status !== HospitalEvent::ALLOW_APPROVED
-            || $event->deleted_at !== null
-            || ($event->event_start_at !== null && $event->event_start_at->greaterThan($now))
-            || (
-                ! $event->is_event_period_unlimited
-                && $event->event_end_at !== null
-                && $event->event_end_at->copy()->endOfDay()->lessThan($now)
-            )
-        ) {
+        if (! $event->isApplicationOpen()) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '신청 가능한 이벤트가 아닙니다.');
         }
     }

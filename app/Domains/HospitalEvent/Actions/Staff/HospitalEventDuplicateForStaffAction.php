@@ -34,7 +34,8 @@ final class HospitalEventDuplicateForStaffAction
             $data = $this->payloadResolver->normalizePersistPayload([
                 ...$payload,
                 'allow_status' => HospitalEvent::ALLOW_PENDING,
-                'status' => HospitalEvent::STATUS_INACTIVE,
+                'hospital_status' => HospitalEvent::HOSPITAL_STATUS_PUBLIC,
+                'admin_status' => HospitalEvent::ADMIN_STATUS_NORMAL,
             ]);
             $categorySync = $this->payloadResolver->resolveCategorySyncPayload(
                 $payload['category_ids'] ?? [],

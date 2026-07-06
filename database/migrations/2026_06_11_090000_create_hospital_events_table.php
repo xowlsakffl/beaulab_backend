@@ -45,7 +45,8 @@ return new class extends Migration
             // - event_page_image
 
             $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(신청, 검수, 승인, 반려)');
-            $table->string('status', 20)->default('INACTIVE')->comment('노출 상태(ACTIVE, INACTIVE)');
+            $table->string('hospital_status', 20)->default('PUBLIC')->comment('병원 공개 상태(공개, 비공개)');
+            $table->string('admin_status', 20)->default('NORMAL')->comment('관리자 운영 상태(정상, 강제중지)');
 
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
 
@@ -53,10 +54,10 @@ return new class extends Migration
             $table->softDeletes()->comment('소프트 삭제 시각');
 
             $table->index(['hospital_id', 'created_at'], 'h_events_hospital_created_idx');
-            $table->index(['hospital_id', 'status', 'created_at'], 'h_events_hospital_status_created_idx');
+            $table->index(['hospital_id', 'hospital_status', 'admin_status', 'created_at'], 'h_events_hospital_state_created_idx');
             $table->index(['event_type', 'created_at'], 'h_events_type_created_idx');
             $table->index(['allow_status', 'created_at'], 'h_events_allow_status_created_idx');
-            $table->index(['status', 'event_start_at', 'event_end_at'], 'h_events_status_period_idx');
+            $table->index(['hospital_status', 'admin_status', 'event_start_at', 'event_end_at'], 'h_events_state_period_idx');
             $table->index(['normal_price', 'event_price'], 'h_events_price_idx');
             $table->index('discount_rate');
             $table->index('view_count');
@@ -65,7 +66,8 @@ return new class extends Migration
             $table->index(['deleted_at', 'updated_at', 'id'], 'h_events_deleted_updated_id_idx');
             $table->index(['deleted_at', 'event_start_at', 'id'], 'h_events_deleted_start_id_idx');
             $table->index(['deleted_at', 'event_end_at', 'id'], 'h_events_deleted_end_id_idx');
-            $table->index(['deleted_at', 'status', 'id'], 'h_events_deleted_status_id_idx');
+            $table->index(['deleted_at', 'hospital_status', 'id'], 'h_events_deleted_hospital_status_id_idx');
+            $table->index(['deleted_at', 'admin_status', 'id'], 'h_events_deleted_admin_status_id_idx');
             $table->index(['deleted_at', 'allow_status', 'id'], 'h_events_deleted_allow_status_id_idx');
             $table->index(['deleted_at', 'event_type', 'id'], 'h_events_deleted_type_id_idx');
         });

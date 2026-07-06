@@ -4,6 +4,7 @@ namespace App\Modules\Staff\Http\Controllers\HospitalEvent;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\HospitalEvent\Actions\Staff\HospitalEventAdminStatusUpdateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventAllowStatusUpdateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventCreateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventDeleteForStaffAction;
@@ -12,17 +13,16 @@ use App\Domains\HospitalEvent\Actions\Staff\HospitalEventGetForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventListForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventOperationHistoriesForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventPeriodUpdateForStaffAction;
-use App\Domains\HospitalEvent\Actions\Staff\HospitalEventStatusUpdateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventSummaryForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventUpdateForStaffAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventAdminStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventAllowStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventDuplicateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventPeriodUpdateForStaffRequest;
-use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventUpdateForStaffRequest;
 
 final class HospitalEventForStaffController extends Controller
@@ -92,9 +92,9 @@ final class HospitalEventForStaffController extends Controller
         return ApiResponse::success($action->execute($hospitalEvent));
     }
 
-    public function updateHospitalEventStatusForStaff(
-        HospitalEventStatusUpdateForStaffRequest $request,
-        HospitalEventStatusUpdateForStaffAction $action,
+    public function updateHospitalEventAdminStatusForStaff(
+        HospitalEventAdminStatusUpdateForStaffRequest $request,
+        HospitalEventAdminStatusUpdateForStaffAction $action,
     ) {
         return ApiResponse::success($action->execute($request->validated()));
     }

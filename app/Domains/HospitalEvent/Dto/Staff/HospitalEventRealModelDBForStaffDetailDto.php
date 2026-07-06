@@ -82,7 +82,8 @@ final readonly class HospitalEventRealModelDBForStaffDetailDto
             'name' => (string) $event->name,
             'normal_price' => (int) ($event->normal_price ?? 0),
             'event_price' => (int) ($event->event_price ?? 0),
-            'status' => (string) ($event->status ?? ''),
+            'hospital_status' => (string) ($event->hospital_status ?? ''),
+            'admin_status' => (string) ($event->admin_status ?? ''),
             'allow_status' => (string) ($event->allow_status ?? ''),
             'thumbnail_image' => $event instanceof HospitalEvent && $event->relationLoaded('thumbnailImage')
                 ? self::media($event->thumbnailImage)

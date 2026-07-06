@@ -30,9 +30,13 @@ final class HospitalEvent extends Model
 
     public const TYPE_IMAGE = 'IMAGE';
 
-    public const STATUS_ACTIVE = 'ACTIVE';
+    public const HOSPITAL_STATUS_PUBLIC = 'PUBLIC';
 
-    public const STATUS_INACTIVE = 'INACTIVE';
+    public const HOSPITAL_STATUS_PRIVATE = 'PRIVATE';
+
+    public const ADMIN_STATUS_NORMAL = 'NORMAL';
+
+    public const ADMIN_STATUS_FORCED_STOPPED = 'FORCED_STOPPED';
 
     public const ALLOW_PENDING = 'PENDING';
 
@@ -80,7 +84,8 @@ final class HospitalEvent extends Model
         'procedure_benefits',
         'side_effect_notice',
         'allow_status',
-        'status',
+        'hospital_status',
+        'admin_status',
         'view_count',
     ];
 
@@ -114,7 +119,8 @@ final class HospitalEvent extends Model
         'consultation_price' => 0,
         'has_options' => false,
         'allow_status' => self::ALLOW_PENDING,
-        'status' => self::STATUS_INACTIVE,
+        'hospital_status' => self::HOSPITAL_STATUS_PUBLIC,
+        'admin_status' => self::ADMIN_STATUS_NORMAL,
         'view_count' => 0,
     ];
 
@@ -191,18 +197,51 @@ final class HospitalEvent extends Model
     /**
      * @return array<int, string>
      */
-    public static function statuses(): array
+    public static function hospitalStatuses(): array
     {
-        return [self::STATUS_ACTIVE, self::STATUS_INACTIVE];
+        return [self::HOSPITAL_STATUS_PUBLIC, self::HOSPITAL_STATUS_PRIVATE];
     }
 
-    public static function statusLabel(?string $status): string
+    public static function hospitalStatusLabel(?string $status): string
     {
         return match ($status) {
-            self::STATUS_ACTIVE => '노출',
-            self::STATUS_INACTIVE => '미노출',
+            self::HOSPITAL_STATUS_PUBLIC => '공개',
+            self::HOSPITAL_STATUS_PRIVATE => '비공개',
             default => $status ?: '-',
         };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function adminStatuses(): array
+    {
+        return [self::ADMIN_STATUS_NORMAL, self::ADMIN_STATUS_FORCED_STOPPED];
+    }
+
+    public static function adminStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::ADMIN_STATUS_NORMAL => '정상',
+            self::ADMIN_STATUS_FORCED_STOPPED => '강제중지',
+            default => $status ?: '-',
+        };
+    }
+
+    public function isApplicationOpen(): bool
+    {
+        $now = now();
+
+        return $this->hospital_status === self::HOSPITAL_STATUS_PUBLIC
+            && $this->admin_status === self::ADMIN_STATUS_NORMAL
+            && $this->allow_status === self::ALLOW_APPROVED
+            && $this->deleted_at === null
+            && ($this->event_start_at === null || ! $this->event_start_at->greaterThan($now))
+            && (
+                (bool) $this->is_event_period_unlimited
+                || $this->event_end_at === null
+                || ! $this->event_end_at->copy()->endOfDay()->lessThan($now)
+            );
     }
 
     /**

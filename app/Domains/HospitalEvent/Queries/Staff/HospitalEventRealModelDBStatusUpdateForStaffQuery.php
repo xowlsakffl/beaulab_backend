@@ -22,7 +22,7 @@ final class HospitalEventRealModelDBStatusUpdateForStaffQuery
         }
 
         return HospitalEventRealModelDB::query()
-            ->with('event:id,hospital_id,status,allow_status')
+            ->with('event:id,hospital_id,hospital_status,admin_status,allow_status')
             ->whereIn('id', $ids)
             ->orderBy('id')
             ->lockForUpdate()

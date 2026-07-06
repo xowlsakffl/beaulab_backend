@@ -251,8 +251,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-events.getHospitalEventsForStaff');
     Route::get('hospital-events/summary', [HospitalEventForStaffController::class, 'getHospitalEventSummaryForStaff'])
         ->name('hospital-events.getHospitalEventSummaryForStaff');
-    Route::patch('hospital-events/status', [HospitalEventForStaffController::class, 'updateHospitalEventStatusForStaff'])
-        ->name('hospital-events.updateHospitalEventStatusForStaff');
+    Route::patch('hospital-events/admin-status', [HospitalEventForStaffController::class, 'updateHospitalEventAdminStatusForStaff'])
+        ->name('hospital-events.updateHospitalEventAdminStatusForStaff');
     Route::patch('hospital-events/allow-status', [HospitalEventForStaffController::class, 'updateHospitalEventAllowStatusForStaff'])
         ->name('hospital-events.updateHospitalEventAllowStatusForStaff');
     Route::get('hospital-events/{hospitalEvent}/operation-histories', [HospitalEventForStaffController::class, 'getHospitalEventOperationHistoriesForStaff'])

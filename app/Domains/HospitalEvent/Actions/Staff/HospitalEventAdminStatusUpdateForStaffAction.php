@@ -3,14 +3,14 @@
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use App\Domains\HospitalEvent\Queries\Staff\HospitalEventStatusUpdateForStaffQuery;
+use App\Domains\HospitalEvent\Queries\Staff\HospitalEventStateUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-final class HospitalEventStatusUpdateForStaffAction
+final class HospitalEventAdminStatusUpdateForStaffAction
 {
     public function __construct(
-        private readonly HospitalEventStatusUpdateForStaffQuery $query,
+        private readonly HospitalEventStateUpdateForStaffQuery $query,
         private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
@@ -22,25 +22,25 @@ final class HospitalEventStatusUpdateForStaffAction
             ->unique()
             ->values()
             ->all();
-        $status = (string) $payload['status'];
+        $adminStatus = (string) $payload['admin_status'];
 
-        return DB::transaction(function () use ($ids, $status, $payload): array {
+        return DB::transaction(function () use ($ids, $adminStatus, $payload): array {
             $events = $this->query->getForUpdate($ids);
             $events->each(static fn (HospitalEvent $event): mixed => Gate::authorize('update', $event));
 
             $existingIds = $events->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
-            $updatedCount = $this->query->updateStatus($existingIds, $status);
+            $updatedCount = $this->query->updateAdminStatus($existingIds, $adminStatus);
 
             foreach ($events as $event) {
-                $beforeStatus = (string) $event->status;
-                if ($beforeStatus === $status) {
+                $beforeStatus = (string) $event->admin_status;
+                if ($beforeStatus === $adminStatus) {
                     continue;
                 }
 
-                $this->historyRecordAction->recordStatusUpdated(
+                $this->historyRecordAction->recordAdminStatusUpdated(
                     $event,
                     $beforeStatus,
-                    $status,
+                    $adminStatus,
                     $payload['reason'] ?? null,
                     count($existingIds) > 1,
                 );
@@ -48,7 +48,7 @@ final class HospitalEventStatusUpdateForStaffAction
 
             return [
                 'updated_count' => $updatedCount,
-                'status' => $status,
+                'admin_status' => $adminStatus,
                 'ids' => $existingIds,
             ];
         });

@@ -6,7 +6,7 @@ use App\Domains\HospitalEvent\Models\HospitalEvent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-final class HospitalEventStatusUpdateForStaffRequest extends FormRequest
+final class HospitalEventAdminStatusUpdateForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -25,9 +25,9 @@ final class HospitalEventStatusUpdateForStaffRequest extends FormRequest
         return [
             'ids' => ['required', 'array', 'min:1', 'max:100'],
             'ids.*' => ['integer', 'distinct', Rule::exists('hospital_events', 'id')->whereNull('deleted_at')],
-            'status' => ['required', Rule::in(HospitalEvent::statuses())],
+            'admin_status' => ['required', Rule::in(HospitalEvent::adminStatuses())],
             'reason' => [
-                Rule::requiredIf(fn (): bool => $this->input('status') === HospitalEvent::STATUS_INACTIVE),
+                Rule::requiredIf(fn (): bool => $this->input('admin_status') === HospitalEvent::ADMIN_STATUS_FORCED_STOPPED),
                 'string',
                 'max:500',
             ],
@@ -39,7 +39,7 @@ final class HospitalEventStatusUpdateForStaffRequest extends FormRequest
         return [
             'ids' => '이벤트 목록',
             'ids.*' => '이벤트',
-            'status' => '노출 상태',
+            'admin_status' => '강제중지 상태',
             'reason' => '사유',
         ];
     }

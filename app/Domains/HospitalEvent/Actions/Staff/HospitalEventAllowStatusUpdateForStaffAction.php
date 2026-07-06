@@ -3,14 +3,14 @@
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use App\Domains\HospitalEvent\Queries\Staff\HospitalEventStatusUpdateForStaffQuery;
+use App\Domains\HospitalEvent\Queries\Staff\HospitalEventStateUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 final class HospitalEventAllowStatusUpdateForStaffAction
 {
     public function __construct(
-        private readonly HospitalEventStatusUpdateForStaffQuery $query,
+        private readonly HospitalEventStateUpdateForStaffQuery $query,
         private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 

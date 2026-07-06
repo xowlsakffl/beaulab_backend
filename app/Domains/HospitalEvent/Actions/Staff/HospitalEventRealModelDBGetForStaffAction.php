@@ -16,7 +16,7 @@ final class HospitalEventRealModelDBGetForStaffAction
         $application->loadMissing([
             'accountUser:id,name,nickname,email,phone,status',
             'hospital:id,name',
-            'event:id,hospital_id,name,normal_price,event_price,status,allow_status',
+            'event:id,hospital_id,name,normal_price,event_price,hospital_status,admin_status,allow_status',
             'event.thumbnailImage',
             'images',
         ]);

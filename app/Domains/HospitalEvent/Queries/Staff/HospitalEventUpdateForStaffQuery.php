@@ -39,7 +39,8 @@ final class HospitalEventUpdateForStaffQuery
             'procedure_benefits',
             'side_effect_notice',
             'allow_status',
-            'status',
+            'hospital_status',
+            'admin_status',
         ];
 
         $out = [];

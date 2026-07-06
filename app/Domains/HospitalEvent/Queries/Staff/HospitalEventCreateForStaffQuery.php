@@ -36,7 +36,8 @@ final class HospitalEventCreateForStaffQuery
             'procedure_benefits' => $data['procedure_benefits'] ?? null,
             'side_effect_notice' => $data['side_effect_notice'] ?? null,
             'allow_status' => $data['allow_status'] ?? HospitalEvent::ALLOW_PENDING,
-            'status' => $data['status'] ?? HospitalEvent::STATUS_INACTIVE,
+            'hospital_status' => $data['hospital_status'] ?? HospitalEvent::HOSPITAL_STATUS_PUBLIC,
+            'admin_status' => $data['admin_status'] ?? HospitalEvent::ADMIN_STATUS_NORMAL,
         ];
     }
 }

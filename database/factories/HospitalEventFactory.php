@@ -57,7 +57,8 @@ final class HospitalEventFactory extends Factory
             'procedure_benefits' => null,
             'side_effect_notice' => '수술/시술 후 염증, 출혈, 감염 등 부작용이 발생할 수 있어 주의가 필요합니다.',
             'allow_status' => $this->faker->randomElement(HospitalEvent::allowStatuses()),
-            'status' => $this->faker->randomElement(HospitalEvent::statuses()),
+            'hospital_status' => $this->faker->randomElement(HospitalEvent::hospitalStatuses()),
+            'admin_status' => $this->faker->randomElement(HospitalEvent::adminStatuses()),
             'view_count' => $this->faker->numberBetween(0, 20000),
         ];
     }
@@ -90,14 +91,29 @@ final class HospitalEventFactory extends Factory
     public function active(): self
     {
         return $this->state(fn (): array => [
-            'status' => HospitalEvent::STATUS_ACTIVE,
+            'hospital_status' => HospitalEvent::HOSPITAL_STATUS_PUBLIC,
+            'admin_status' => HospitalEvent::ADMIN_STATUS_NORMAL,
         ]);
     }
 
     public function inactive(): self
     {
         return $this->state(fn (): array => [
-            'status' => HospitalEvent::STATUS_INACTIVE,
+            'hospital_status' => HospitalEvent::HOSPITAL_STATUS_PRIVATE,
+        ]);
+    }
+
+    public function forcedStopped(): self
+    {
+        return $this->state(fn (): array => [
+            'admin_status' => HospitalEvent::ADMIN_STATUS_FORCED_STOPPED,
+        ]);
+    }
+
+    public function normalAdminStatus(): self
+    {
+        return $this->state(fn (): array => [
+            'admin_status' => HospitalEvent::ADMIN_STATUS_NORMAL,
         ]);
     }
 

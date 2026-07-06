@@ -5,7 +5,7 @@ namespace App\Domains\HospitalEvent\Queries\Staff;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use Illuminate\Support\Collection;
 
-final class HospitalEventStatusUpdateForStaffQuery
+final class HospitalEventStateUpdateForStaffQuery
 {
     /**
      * @param  array<int, int|string>  $eventIds
@@ -23,13 +23,13 @@ final class HospitalEventStatusUpdateForStaffQuery
             ->whereIn('id', $ids)
             ->orderBy('id')
             ->lockForUpdate()
-            ->get(['id', 'status', 'allow_status']);
+            ->get(['id', 'admin_status', 'allow_status']);
     }
 
     /**
      * @param  array<int, int|string>  $eventIds
      */
-    public function updateStatus(array $eventIds, string $status): int
+    public function updateAdminStatus(array $eventIds, string $adminStatus): int
     {
         $ids = $this->normalizeIds($eventIds);
 
@@ -39,7 +39,7 @@ final class HospitalEventStatusUpdateForStaffQuery
 
         return HospitalEvent::query()
             ->whereIn('id', $ids)
-            ->update(['status' => $status]);
+            ->update(['admin_status' => $adminStatus]);
     }
 
     /**

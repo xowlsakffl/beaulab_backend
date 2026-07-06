@@ -88,7 +88,7 @@ final class HospitalEventSeeder extends Seeder
             $index % 3 === 0 => $factory->reviewing(),
             default => $factory->approved(),
         };
-        $factory = $index % 4 === 0 ? $factory->inactive() : $factory->active();
+        $factory = $index % 4 === 0 ? $factory->forcedStopped() : $factory->active();
 
         if (! $isTextType && $usage === CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT && $index % 2 === 1) {
             $factory = $factory->withOptions(random_int(2, 4));

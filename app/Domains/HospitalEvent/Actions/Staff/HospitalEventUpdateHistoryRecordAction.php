@@ -64,7 +64,7 @@ final class HospitalEventUpdateHistoryRecordAction
         );
     }
 
-    public function recordStatusUpdated(
+    public function recordAdminStatusUpdated(
         HospitalEvent $event,
         string $beforeStatus,
         string $afterStatus,
@@ -74,14 +74,14 @@ final class HospitalEventUpdateHistoryRecordAction
         $this->record(
             event: $event,
             action: OperationHistory::ACTION_STATE_UPDATED,
-            source: 'staff.hospital_event.status',
+            source: 'staff.hospital_event.admin_status',
             changes: OperationHistoryChangeSetBuilder::single(
-                key: 'status',
-                label: '노출여부',
+                key: 'admin_status',
+                label: '강제중지',
                 before: $beforeStatus,
                 after: $afterStatus,
-                beforeDisplay: HospitalEvent::statusLabel($beforeStatus),
-                afterDisplay: HospitalEvent::statusLabel($afterStatus),
+                beforeDisplay: HospitalEvent::adminStatusLabel($beforeStatus),
+                afterDisplay: HospitalEvent::adminStatusLabel($afterStatus),
             ),
             reason: $reason,
             metadata: ['bulk' => $bulk],

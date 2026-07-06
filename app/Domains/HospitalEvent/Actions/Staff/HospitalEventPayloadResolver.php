@@ -62,7 +62,8 @@ final class HospitalEventPayloadResolver
                 : null,
             'side_effect_notice' => $payload['side_effect_notice'] ?? $event?->side_effect_notice,
             'allow_status' => $payload['allow_status'] ?? $event?->allow_status ?? HospitalEvent::ALLOW_PENDING,
-            'status' => $payload['status'] ?? $event?->status ?? HospitalEvent::STATUS_INACTIVE,
+            'hospital_status' => $payload['hospital_status'] ?? $event?->hospital_status ?? HospitalEvent::HOSPITAL_STATUS_PUBLIC,
+            'admin_status' => $payload['admin_status'] ?? $event?->admin_status ?? HospitalEvent::ADMIN_STATUS_NORMAL,
         ];
 
         if ($eventType === HospitalEvent::TYPE_TEXT) {

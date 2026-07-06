@@ -73,7 +73,8 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
             'has_options' => ['nullable', 'boolean'],
             'side_effect_notice' => ['nullable', 'string', 'max:90'],
             'allow_status' => ['nullable', Rule::in(HospitalEvent::allowStatuses())],
-            'status' => ['nullable', Rule::in(HospitalEvent::statuses())],
+            'hospital_status' => ['nullable', Rule::in(HospitalEvent::hospitalStatuses())],
+            'admin_status' => ['nullable', Rule::in(HospitalEvent::adminStatuses())],
 
             'category_ids' => ['sometimes', 'array', 'min:1', 'max:3'],
             'category_ids.*' => [
@@ -149,7 +150,8 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
             'has_options' => '이벤트 옵션 사용 여부',
             'side_effect_notice' => '부작용 안내',
             'allow_status' => '검수 상태',
-            'status' => '노출 상태',
+            'hospital_status' => '공개여부',
+            'admin_status' => '강제중지 상태',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'primary_category_id' => '대표 카테고리',

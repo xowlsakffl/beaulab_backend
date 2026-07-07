@@ -48,7 +48,7 @@ final class HospitalEventRealModelDBStatusUpdateForStaffRequest extends FormRequ
         return [
             'ids' => '리얼모델 신청 목록',
             'ids.*' => '리얼모델 신청',
-            'status' => '승인여부',
+            'status' => '승인상태',
             'reason' => '사유',
         ];
     }

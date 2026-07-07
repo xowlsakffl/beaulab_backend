@@ -231,7 +231,7 @@ return new class extends Migration
             $table->json('special_notes')->nullable()->comment('회원 특이사항 코드 목록');
             $table->text('application_reason')->comment('리얼모델 지원이유');
             $table->text('inquiry')->nullable()->comment('문의사항');
-            $table->string('status', 20)->default('RECEIVED')->comment('승인여부(RECEIVED, APPROVED, REJECTED)');
+            $table->string('status', 20)->default('RECEIVED')->comment('승인상태(RECEIVED, APPROVED, REJECTED)');
             $table->string('author_ip', 45)->nullable()->comment('신청 IP(v4/v6)');
             $table->string('user_agent', 500)->nullable()->comment('신청 User-Agent');
 

@@ -92,7 +92,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'patch staff/hospital-event-dbs/allow-status' => '이벤트 DB 검증상태 일괄 수정',
         'get staff/hospital-event-dbs/{hospitalEventDB}/operation-histories' => '이벤트 DB 히스토리 조회',
         'get staff/hospital-event-real-model-dbs' => '리얼모델 DB 목록 조회',
-        'patch staff/hospital-event-real-model-dbs/status' => '리얼모델 DB 승인여부 일괄 수정',
+        'patch staff/hospital-event-real-model-dbs/status' => '리얼모델 DB 승인상태 일괄 수정',
         'get staff/hospital-event-real-model-dbs/{hospitalEventRealModelDB}/operation-histories' => '리얼모델 DB 히스토리 조회',
         'post staff/notices/editor-images' => '공지사항 에디터 이미지 업로드',
         'delete staff/notices/editor-images' => '공지사항 에디터 임시 이미지 정리',

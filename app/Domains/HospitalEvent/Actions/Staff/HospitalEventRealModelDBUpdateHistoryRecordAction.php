@@ -23,7 +23,7 @@ final class HospitalEventRealModelDBUpdateHistoryRecordAction
     ): void {
         $changes = OperationHistoryChangeSetBuilder::single(
             key: 'status',
-            label: '승인여부',
+            label: '승인상태',
             before: $beforeStatus,
             after: $afterStatus,
             beforeDisplay: HospitalEventRealModelDB::statusLabel($beforeStatus),

@@ -76,9 +76,9 @@ final class HospitalEventRealModelDB extends Model
     ];
 
     public const array STATUS_LABELS = [
-        self::STATUS_RECEIVED => '접수',
+        self::STATUS_RECEIVED => '신청',
         self::STATUS_APPROVED => '승인',
-        self::STATUS_REJECTED => '미승인',
+        self::STATUS_REJECTED => '불가',
     ];
 
     protected $table = 'hospital_event_real_model_dbs';
@@ -128,7 +128,7 @@ final class HospitalEventRealModelDB extends Model
 
     protected static function booted(): void
     {
-        static::saving(static function (self $application): void {
+        self::saving(static function (self $application): void {
             $application->phone_normalized = self::normalizePhone($application->phone);
         });
     }

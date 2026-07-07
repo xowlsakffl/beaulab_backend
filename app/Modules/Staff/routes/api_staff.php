@@ -126,6 +126,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-entries.updateHospitalEntryAllowStatusForStaff');
     Route::get('hospital-entries/{hospitalEntry}', [HospitalEntryForStaffController::class, 'getHospitalEntryForStaff'])
         ->name('hospital-entries.getHospitalEntryForStaff');
+    Route::match(['post', 'put', 'patch'], 'hospital-entries/{hospitalEntry}', [HospitalEntryForStaffController::class, 'updateHospitalEntryForStaff'])
+        ->name('hospital-entries.updateHospitalEntryForStaff');
     Route::get('hospital-features', [HospitalFeatureForStaffController::class, 'getHospitalFeaturesForStaff'])
         ->name('hospital-features.getHospitalFeaturesForStaff');
     Route::get('hospitals', [HospitalForStaffController::class, 'getHospitalsForStaff'])

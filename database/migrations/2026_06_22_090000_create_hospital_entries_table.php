@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('applicant_phone', 30)->nullable()->comment('신청자 전화번호');
             $table->string('applicant_email', 255)->nullable()->comment('신청자 이메일주소');
 
-            $table->string('allow_status', 20)->default('PENDING')->comment('승인상태(PENDING=입점신청, APPROVED=입점승인, REJECTED=입점반려)');
+            $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(신청, 검수, 승인, 반려)');
 
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');

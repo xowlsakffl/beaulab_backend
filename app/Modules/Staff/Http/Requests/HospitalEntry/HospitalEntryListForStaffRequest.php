@@ -56,8 +56,8 @@ final class HospitalEntryListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
-            'allow_status' => '승인상태',
-            'allow_status.*' => '승인상태',
+            'allow_status' => '검수상태',
+            'allow_status.*' => '검수상태',
             'start_date' => '신청 시작일',
             'end_date' => '신청 종료일',
             'sort' => '정렬 기준',

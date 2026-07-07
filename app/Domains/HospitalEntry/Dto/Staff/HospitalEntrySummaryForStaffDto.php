@@ -8,6 +8,7 @@ final readonly class HospitalEntrySummaryForStaffDto
 {
     public function __construct(
         private int $pendingEntries,
+        private int $reviewingEntries,
         private int $rejectedEntries,
         private int $approvedEntries,
     ) {}
@@ -19,6 +20,7 @@ final readonly class HospitalEntrySummaryForStaffDto
     {
         return new self(
             pendingEntries: (int) ($data['pending_entries'] ?? 0),
+            reviewingEntries: (int) ($data['reviewing_entries'] ?? 0),
             rejectedEntries: (int) ($data['rejected_entries'] ?? 0),
             approvedEntries: (int) ($data['approved_entries'] ?? 0),
         );
@@ -31,6 +33,7 @@ final readonly class HospitalEntrySummaryForStaffDto
     {
         return [
             'pending_entries' => $this->pendingEntries,
+            'reviewing_entries' => $this->reviewingEntries,
             'rejected_entries' => $this->rejectedEntries,
             'approved_entries' => $this->approvedEntries,
         ];

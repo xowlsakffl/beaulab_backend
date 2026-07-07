@@ -19,15 +19,11 @@ final class HospitalEntry extends Model
 
     public const ALLOW_PENDING = 'PENDING';
 
+    public const ALLOW_REVIEWING = 'REVIEWING';
+
     public const ALLOW_APPROVED = 'APPROVED';
 
     public const ALLOW_REJECTED = 'REJECTED';
-
-    public const ALLOW_STATUS_LABELS = [
-        self::ALLOW_PENDING => '입점신청',
-        self::ALLOW_APPROVED => '입점승인',
-        self::ALLOW_REJECTED => '입점반려',
-    ];
 
     protected $table = 'hospital_entries';
 
@@ -56,12 +52,23 @@ final class HospitalEntry extends Model
      */
     public static function allowStatuses(): array
     {
-        return array_keys(self::ALLOW_STATUS_LABELS);
+        return [
+            self::ALLOW_PENDING,
+            self::ALLOW_REVIEWING,
+            self::ALLOW_APPROVED,
+            self::ALLOW_REJECTED,
+        ];
     }
 
     public static function allowStatusLabel(?string $value): string
     {
-        return self::ALLOW_STATUS_LABELS[$value ?? ''] ?? '-';
+        return match ($value) {
+            self::ALLOW_PENDING => '신청',
+            self::ALLOW_REVIEWING => '검수',
+            self::ALLOW_APPROVED => '승인',
+            self::ALLOW_REJECTED => '반려',
+            default => '-',
+        };
     }
 
     public function businessRegistrationFile(): MorphOne

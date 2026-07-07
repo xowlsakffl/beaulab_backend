@@ -51,6 +51,13 @@ final class HospitalEntryFactory extends Factory
         ]);
     }
 
+    public function reviewing(): self
+    {
+        return $this->state(fn (): array => [
+            'allow_status' => HospitalEntry::ALLOW_REVIEWING,
+        ]);
+    }
+
     public function rejected(): self
     {
         return $this->state(fn (): array => [

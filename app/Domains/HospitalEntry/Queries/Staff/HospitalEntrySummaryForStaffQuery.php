@@ -20,6 +20,7 @@ final class HospitalEntrySummaryForStaffQuery
 
         return [
             'pending_entries' => (int) ($counts[HospitalEntry::ALLOW_PENDING] ?? 0),
+            'reviewing_entries' => (int) ($counts[HospitalEntry::ALLOW_REVIEWING] ?? 0),
             'rejected_entries' => (int) ($counts[HospitalEntry::ALLOW_REJECTED] ?? 0),
             'approved_entries' => (int) ($counts[HospitalEntry::ALLOW_APPROVED] ?? 0),
         ];

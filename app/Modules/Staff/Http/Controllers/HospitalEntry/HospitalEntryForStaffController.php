@@ -10,9 +10,11 @@ use App\Domains\HospitalEntry\Actions\Staff\HospitalEntryAllowStatusUpdateForSta
 use App\Domains\HospitalEntry\Actions\Staff\HospitalEntryGetForStaffAction;
 use App\Domains\HospitalEntry\Actions\Staff\HospitalEntryListForStaffAction;
 use App\Domains\HospitalEntry\Actions\Staff\HospitalEntrySummaryForStaffAction;
+use App\Domains\HospitalEntry\Actions\Staff\HospitalEntryUpdateForStaffAction;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
 use App\Modules\Staff\Http\Requests\HospitalEntry\HospitalEntryAllowStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEntry\HospitalEntryListForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalEntry\HospitalEntryUpdateForStaffRequest;
 
 final class HospitalEntryForStaffController extends Controller
 {
@@ -42,6 +44,16 @@ final class HospitalEntryForStaffController extends Controller
         HospitalEntryGetForStaffAction $action,
     ) {
         $result = $action->execute($hospitalEntry);
+
+        return ApiResponse::success($result['hospital_entry'] ?? $result);
+    }
+
+    public function updateHospitalEntryForStaff(
+        HospitalEntry $hospitalEntry,
+        HospitalEntryUpdateForStaffRequest $request,
+        HospitalEntryUpdateForStaffAction $action,
+    ) {
+        $result = $action->execute($hospitalEntry, $request->validated());
 
         return ApiResponse::success($result['hospital_entry'] ?? $result);
     }

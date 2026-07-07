@@ -41,7 +41,7 @@ final class HospitalEntryAllowStatusUpdateForStaffRequest extends FormRequest
         return [
             'ids' => '입점신청 목록',
             'ids.*' => '입점신청',
-            'allow_status' => '승인상태',
+            'allow_status' => '검수상태',
             'reason' => '사유',
         ];
     }

@@ -171,7 +171,6 @@ final class HospitalUpdateHistoryRecordAction
                 $hospital->ad_reception_phone_2 ? '[선택] '.$hospital->ad_reception_phone_2 : null,
                 $hospital->ad_reception_phone_3 ? '[선택] '.$hospital->ad_reception_phone_3 : null,
             ])),
-            'email' => $this->item('이메일', $hospital->email, $hospital->email),
             'consulting_hours' => $this->item('상담시간', $hospital->consulting_hours, $hospital->consulting_hours),
             'operation_hours' => $this->item('진료시간', $hospital->operation_hours, $this->operationHoursLabel($hospital->operation_hours)),
             'direction' => $this->item('오시는 길', $hospital->direction, $hospital->direction),

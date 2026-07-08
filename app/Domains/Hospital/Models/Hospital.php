@@ -83,7 +83,6 @@ final class Hospital extends Model
         'ad_reception_phone_1',
         'ad_reception_phone_2',
         'ad_reception_phone_3',
-        'email',
         'consulting_hours',
         'operation_hours',
         'direction',

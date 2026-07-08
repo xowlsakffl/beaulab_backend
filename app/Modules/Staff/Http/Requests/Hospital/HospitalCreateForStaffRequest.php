@@ -2,7 +2,6 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
-use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
@@ -68,7 +67,6 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'ad_reception_phone_1' => ['required', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'ad_reception_phone_2' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'ad_reception_phone_3' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
-            'email' => ['nullable', 'email:rfc,dns', 'max:255'],
             'operation_hours' => ['required', 'array'],
             'operation_hours.*.is_closed' => ['required', 'boolean'],
             'operation_hours.*.start' => ['nullable', 'date_format:H:i'],
@@ -137,7 +135,6 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'ad_reception_phone_1' => '광고 수신 접수 전화번호 1',
             'ad_reception_phone_2' => '광고 수신 접수 전화번호 2',
             'ad_reception_phone_3' => '광고 수신 접수 전화번호 3',
-            'email' => '대표 이메일',
             'operation_hours' => '진료시간',
             'operation_hours.*.is_closed' => '진료 여부',
             'operation_hours.*.start' => '진료 시작 시간',
@@ -277,6 +274,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
 
             if (! is_array($hours)) {
                 $validator->errors()->add("operation_hours.{$day}", '요일별 진료시간을 모두 입력해주세요.');
+
                 continue;
             }
 

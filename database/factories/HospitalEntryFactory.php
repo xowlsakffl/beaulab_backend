@@ -16,7 +16,7 @@ final class HospitalEntryFactory extends Factory
 
     public function definition(): array
     {
-        $hospitalName = $this->faker->unique()->randomElement($this->hospitalNames());
+        $hospitalName = $this->hospitalName();
         $hasLicense = $this->faker->boolean(70);
 
         return [
@@ -92,6 +92,21 @@ final class HospitalEntryFactory extends Factory
                 true,
             );
         });
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function hospitalName(): string
+    {
+        static $sequence = 0;
+
+        $names = $this->hospitalNames();
+        $name = $names[$sequence % count($names)];
+        $round = intdiv($sequence, count($names));
+        $sequence++;
+
+        return $round === 0 ? $name : $name.' '.$round;
     }
 
     /**

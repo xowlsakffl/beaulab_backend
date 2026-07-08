@@ -19,42 +19,42 @@ final class HospitalFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->unique()->company() . ' 병원';
+        $name = $this->faker->unique()->company().' 병원';
+
         return [
-            'name'            => $name,
-            'department'      => $this->faker->randomElement(Hospital::departments()),
-            'description'     => $this->faker->optional(0.7)->paragraph(),
-            'youtube_link'    => $this->faker->optional(0.5)->randomElement([
+            'name' => $name,
+            'department' => $this->faker->randomElement(Hospital::departments()),
+            'description' => $this->faker->optional(0.7)->paragraph(),
+            'youtube_link' => $this->faker->optional(0.5)->randomElement([
                 'https://www.youtube.com/@beaulabclinic',
                 'https://www.youtube.com/@skinclinic',
                 'https://www.youtube.com/@plasticclinic',
             ]),
-            'address'         => $this->faker->address(),
-            'address_detail'  => $this->faker->secondaryAddress(),
+            'address' => $this->faker->address(),
+            'address_detail' => $this->faker->secondaryAddress(),
 
-            'latitude'        => $this->faker->latitude(33.0, 38.6),
-            'longitude'       => $this->faker->longitude(124.5, 132.0),
+            'latitude' => $this->faker->latitude(33.0, 38.6),
+            'longitude' => $this->faker->longitude(124.5, 132.0),
 
-            'tel'             => $this->faker->phoneNumber(),
+            'tel' => $this->faker->phoneNumber(),
             'ad_reception_phone_1' => $this->faker->phoneNumber(),
             'ad_reception_phone_2' => $this->faker->optional(0.5)->phoneNumber(),
             'ad_reception_phone_3' => $this->faker->optional(0.3)->phoneNumber(),
-            'email'           => $this->faker->optional(0.7)->companyEmail(),
 
-            'consulting_hours'=> $this->faker->optional(0.6)->sentence(10),
-            'operation_hours'  => $this->defaultOperationHours(),
-            'direction'       => $this->faker->optional(0.6)->sentence(12),
+            'consulting_hours' => $this->faker->optional(0.6)->sentence(10),
+            'operation_hours' => $this->defaultOperationHours(),
+            'direction' => $this->faker->optional(0.6)->sentence(12),
 
-            'view_count'      => $this->faker->numberBetween(0, 50000),
+            'view_count' => $this->faker->numberBetween(0, 50000),
 
-            'allow_status'    => $this->faker->randomElement([
+            'allow_status' => $this->faker->randomElement([
                 Hospital::ALLOW_PENDING,
                 Hospital::ALLOW_REVIEWING,
                 Hospital::ALLOW_APPROVED,
                 Hospital::ALLOW_REJECTED,
             ]),
 
-            'status'          => $this->faker->randomElement([
+            'status' => $this->faker->randomElement([
                 Hospital::STATUS_ACTIVE,
                 Hospital::STATUS_SUSPENDED,
                 Hospital::STATUS_WITHDRAWN,
@@ -117,20 +117,20 @@ final class HospitalFactory extends Factory
     {
         return $this->afterCreating(function (Hospital $hospital): void {
             HospitalBusinessRegistration::query()->create([
-                'hospital_id'                => $hospital->id,
-                'business_number'         => $this->faker->unique()->numerify('###-##-#####'),
-                'company_name'            => $hospital->name,
-                'ceo_name'                => $this->faker->name(),
-                'business_type'           => $this->faker->randomElement(['의료업', '보건업']),
-                'business_item'           => $this->faker->randomElement(['성형외과', '피부과', '치과']),
-                'business_address'        => $hospital->address,
+                'hospital_id' => $hospital->id,
+                'business_number' => $this->faker->unique()->numerify('###-##-#####'),
+                'company_name' => $hospital->name,
+                'ceo_name' => $this->faker->name(),
+                'business_type' => $this->faker->randomElement(['의료업', '보건업']),
+                'business_item' => $this->faker->randomElement(['성형외과', '피부과', '치과']),
+                'business_address' => $hospital->address,
                 'business_address_detail' => $hospital->address_detail,
                 'settlement_bank_name' => $this->faker->randomElement(['국민은행', '신한은행', '우리은행', '하나은행']),
                 'settlement_account_number' => $this->faker->numerify('###-######-#####'),
                 'settlement_account_holder' => $this->faker->name(),
                 'tax_invoice_email' => $this->faker->companyEmail(),
-                'issued_at'               => $this->faker->date(),
-                'status'                  => HospitalBusinessRegistration::STATUS_ACTIVE,
+                'issued_at' => $this->faker->date(),
+                'status' => HospitalBusinessRegistration::STATUS_ACTIVE,
             ]);
         });
     }

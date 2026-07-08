@@ -43,7 +43,6 @@ final class HospitalListForStaffQuery
             'id',
             'name',
             'department',
-            'email',
             'tel',
             'view_count',
             'evaluation_count',

@@ -28,8 +28,6 @@ return new class extends Migration
             $table->string('ad_reception_phone_1', 50)->nullable()->comment('광고 수신 접수 전화번호 1');
             $table->string('ad_reception_phone_2', 50)->nullable()->comment('광고 수신 접수 전화번호 2');
             $table->string('ad_reception_phone_3', 50)->nullable()->comment('광고 수신 접수 전화번호 3');
-            $table->string('email')->nullable()->comment('대표 이메일');
-
             $table->text('consulting_hours')->nullable()->comment('진료 시간');
             $table->json('operation_hours')->nullable()->comment('요일별 진료 시간');
             $table->text('direction')->nullable()->comment('오시는 길');
@@ -39,7 +37,7 @@ return new class extends Migration
             $table->decimal('evaluation_average_rating', 2, 1)->default(0)->comment('노출 병의원 평가 평균 평점');
 
             $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(신청, 검수, 승인, 반려)');
-            $table->string('status', 20)->default('SUSPENDED')->comment('운영 상태(정상, 운영중지, 탈퇴)');
+            $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(정상, 운영중지, 탈퇴)');
 
             $table->timestamps();
             $table->softDeletes()->comment('병원 비활성/삭제 시각');

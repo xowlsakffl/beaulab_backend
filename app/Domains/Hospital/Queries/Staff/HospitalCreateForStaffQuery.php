@@ -3,7 +3,6 @@
 namespace App\Domains\Hospital\Queries\Staff;
 
 use App\Domains\Hospital\Models\Hospital;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
  * HospitalCreateForStaffQuery 역할 정의.
@@ -17,32 +16,31 @@ final class HospitalCreateForStaffQuery
     public function create(array $data): Hospital
     {
         return Hospital::create([
-            'name'             => $data['name'],
-            'department'       => $data['department'] ?? Hospital::DEPARTMENT_OTHER,
+            'name' => $data['name'],
+            'department' => $data['department'] ?? Hospital::DEPARTMENT_OTHER,
 
-            'description'      => $data['description'] ?? null,
-            'youtube_link'     => $data['youtube_link'] ?? null,
+            'description' => $data['description'] ?? null,
+            'youtube_link' => $data['youtube_link'] ?? null,
 
-            'address'          => $data['address'] ?? null,
-            'address_detail'   => $data['address_detail'] ?? null,
+            'address' => $data['address'] ?? null,
+            'address_detail' => $data['address_detail'] ?? null,
 
-            'latitude'         => $data['latitude'] ?? null,
-            'longitude'        => $data['longitude'] ?? null,
+            'latitude' => $data['latitude'] ?? null,
+            'longitude' => $data['longitude'] ?? null,
 
-            'tel'              => $data['tel'] ?? null,
+            'tel' => $data['tel'] ?? null,
             'ad_reception_phone_1' => $data['ad_reception_phone_1'] ?? null,
             'ad_reception_phone_2' => $data['ad_reception_phone_2'] ?? null,
             'ad_reception_phone_3' => $data['ad_reception_phone_3'] ?? null,
-            'email'            => $data['email'] ?? null,
 
             'consulting_hours' => $data['consulting_hours'] ?? null,
-            'operation_hours'  => $data['operation_hours'] ?? null,
-            'direction'        => $data['direction'] ?? null,
+            'operation_hours' => $data['operation_hours'] ?? null,
+            'direction' => $data['direction'] ?? null,
 
             // 생성 시 정책 기본값
-            'view_count'       => 0,
-            'allow_status'     => $data['allow_status'] ?? Hospital::ALLOW_PENDING,
-            'status'           => $data['status'] ?? Hospital::STATUS_SUSPENDED,
+            'view_count' => 0,
+            'allow_status' => $data['allow_status'] ?? Hospital::ALLOW_PENDING,
+            'status' => $data['status'] ?? Hospital::STATUS_ACTIVE,
         ]);
     }
 }

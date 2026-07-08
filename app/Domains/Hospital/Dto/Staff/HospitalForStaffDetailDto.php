@@ -17,13 +17,13 @@ use App\Domains\HospitalFeature\Models\HospitalFeature;
 final readonly class HospitalForStaffDetailDto
 {
     /**
-     * @param array<int, array<string, mixed>> $gallery
-     * @param array<int, array<string, mixed>> $categories
-     * @param array<int, array<string, mixed>> $features
-     * @param array<string, mixed>|null $latestStatusHistory
-     * @param array<string, mixed>|null $accountHospital
-     * @param array<int, array<string, mixed>>|null $doctors
-     * @param array<string, mixed>|null $businessRegistration
+     * @param  array<int, array<string, mixed>>  $gallery
+     * @param  array<int, array<string, mixed>>  $categories
+     * @param  array<int, array<string, mixed>>  $features
+     * @param  array<string, mixed>|null  $latestStatusHistory
+     * @param  array<string, mixed>|null  $accountHospital
+     * @param  array<int, array<string, mixed>>|null  $doctors
+     * @param  array<string, mixed>|null  $businessRegistration
      */
     public function __construct(
         public int $id,
@@ -38,7 +38,6 @@ final readonly class HospitalForStaffDetailDto
         public ?string $longitude,
         public ?string $tel,
         public array $adReceptionPhones,
-        public ?string $email,
         public ?string $consultingHours,
         public ?array $operationHours,
         public ?string $direction,
@@ -73,7 +72,6 @@ final readonly class HospitalForStaffDetailDto
             longitude: $hospital->longitude,
             tel: $hospital->tel,
             adReceptionPhones: self::adReceptionPhones($hospital),
-            email: $hospital->email,
             consultingHours: $hospital->consulting_hours,
             operationHours: self::operationHours($hospital),
             direction: $hospital->direction,
@@ -109,7 +107,6 @@ final readonly class HospitalForStaffDetailDto
             'longitude' => $this->longitude,
             'tel' => $this->tel,
             'ad_reception_phones' => $this->adReceptionPhones,
-            'email' => $this->email,
             'consulting_hours' => $this->consultingHours,
             'operation_hours' => $this->operationHours,
             'direction' => $this->direction,

@@ -2,7 +2,6 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
-use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
@@ -35,7 +34,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'ad_reception_phone_1',
             'ad_reception_phone_2',
             'ad_reception_phone_3',
-            'email',
             'operation_hours',
             'allow_status',
             'status',
@@ -57,10 +55,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             if (array_key_exists($key, $data) && $data[$key] === '') {
                 $data[$key] = null;
             }
-        }
-
-        if (isset($data['email']) && is_string($data['email'])) {
-            $data['email'] = mb_strtolower($data['email']);
         }
 
         if (isset($data['business_number']) && is_string($data['business_number'])) {
@@ -118,7 +112,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'ad_reception_phone_1' => ['sometimes', 'required', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'ad_reception_phone_2' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
             'ad_reception_phone_3' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
-            'email' => ['nullable', 'email:rfc,dns', 'max:255'],
             'operation_hours' => ['sometimes', 'array'],
             'operation_hours.*.is_closed' => ['required_with:operation_hours', 'boolean'],
             'operation_hours.*.start' => ['nullable', 'date_format:H:i'],
@@ -171,6 +164,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
                     if (! $hospital instanceof Hospital) {
                         $fail('병의원 정보를 확인할 수 없습니다.');
+
                         return;
                     }
 
@@ -195,6 +189,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
                     if (! $hospital instanceof Hospital) {
                         $fail('병의원 정보를 확인할 수 없습니다.');
+
                         return;
                     }
 
@@ -217,6 +212,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     if (! is_string($value) || ! preg_match('/^(existing|new):(\d+)$/', $value, $matches)) {
                         $fail('대표/내부 이미지 순서 정보가 올바르지 않습니다.');
+
                         return;
                     }
 
@@ -228,6 +224,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
                     if (! $hospital instanceof Hospital) {
                         $fail('병의원 정보를 확인할 수 없습니다.');
+
                         return;
                     }
 
@@ -256,6 +253,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
                     if (! $hospital instanceof Hospital) {
                         $fail('병의원 정보를 확인할 수 없습니다.');
+
                         return;
                     }
 
@@ -263,6 +261,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
                     if (! $businessRegistrationId) {
                         $fail('사업자등록 정보를 확인할 수 없습니다.');
+
                         return;
                     }
 
@@ -308,12 +307,14 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                 foreach ($newIndexes as $newIndex) {
                     if (! array_key_exists($newIndex, $uploadedGalleryFiles)) {
                         $validator->errors()->add('gallery', '새로 업로드한 이미지 순서 정보가 올바르지 않습니다.');
+
                         return;
                     }
                 }
 
                 if (count($newIndexes) !== count($uploadedGalleryFiles)) {
                     $validator->errors()->add('gallery', '새로 업로드한 대표/내부 이미지 순서 정보가 누락되었습니다.');
+
                     return;
                 }
 
@@ -350,7 +351,6 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'ad_reception_phone_1' => '광고 수신 접수 전화번호 1',
             'ad_reception_phone_2' => '광고 수신 접수 전화번호 2',
             'ad_reception_phone_3' => '광고 수신 접수 전화번호 3',
-            'email' => '대표 이메일',
             'operation_hours' => '진료시간',
             'operation_hours.*.is_closed' => '진료 여부',
             'operation_hours.*.start' => '진료 시작 시간',
@@ -446,6 +446,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
 
             if (! is_array($hours)) {
                 $validator->errors()->add("operation_hours.{$day}", '요일별 진료시간을 모두 입력해주세요.');
+
                 continue;
             }
 
@@ -569,7 +570,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
     }
 
     /**
-     * @param array<int, string> $galleryOrder
+     * @param  array<int, string>  $galleryOrder
      * @return array{existing_ids: array<int, int>, new_indexes: array<int, int>}
      */
     private function parseGalleryOrder(array $galleryOrder): array
@@ -585,6 +586,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             $parsedValue = (int) $matches[2];
             if ($matches[1] === 'existing') {
                 $existingIds[] = $parsedValue;
+
                 continue;
             }
 

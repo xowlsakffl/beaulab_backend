@@ -35,10 +35,7 @@ final class HospitalCreateForStaffAction
         ]);
 
         $hospital = DB::transaction(function () use ($filters) {
-            $hospital = $this->query->create([
-                ...$filters,
-                'email' => mb_strtolower((string) ($filters['email'] ?? '')) ?: null,
-            ]);
+            $hospital = $this->query->create($filters);
 
             $this->mediaAttachAction->attachOne($hospital, $filters['logo'], 'logo', 'hospital', 'logo');
             $this->mediaAttachAction->attachMany($hospital, $filters['gallery'], 'gallery', 'hospital', 'gallery', true);
@@ -61,7 +58,7 @@ final class HospitalCreateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @param  array<int, int|string>  $categoryIds
      */
     private function syncCategories(Hospital $hospital, array $categoryIds): void
     {
@@ -86,7 +83,7 @@ final class HospitalCreateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $featureIds
+     * @param  array<int, int|string>  $featureIds
      */
     private function syncFeatures(Hospital $hospital, array $featureIds): void
     {

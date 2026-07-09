@@ -2,16 +2,13 @@
 
 namespace App\Domains\HospitalVideo\Actions\Staff;
 
+use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\HospitalVideo\Queries\Staff\HospitalVideoDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * HospitalVideoDeleteForStaffAction 역할 정의.
- * 병원 동영상 도메인의 Action 계층으로, 컨트롤러에서 넘어온 검증된 입력을 받아 권한 확인, 도메인 흐름 조합, Query 호출을 담당한다.
- */
 final class HospitalVideoDeleteForStaffAction
 {
     public function __construct(
@@ -24,9 +21,15 @@ final class HospitalVideoDeleteForStaffAction
         Gate::authorize('delete', $video);
 
         return DB::transaction(function () use ($video) {
+            $hashtagIds = $video->hashtags()
+                ->pluck('hashtags.id')
+                ->map(static fn (int|string $id): int => (int) $id)
+                ->all();
+
             $this->mediaAttachAction->deleteCollectionMedia($video, 'thumbnail_file');
-            $this->mediaAttachAction->deleteCollectionMedia($video, 'video_file');
             $video->categories()->sync([]);
+            $video->hashtags()->sync([]);
+            Hashtag::syncUsageCounts($hashtagIds);
 
             $this->query->softDelete($video);
             $video->refresh();

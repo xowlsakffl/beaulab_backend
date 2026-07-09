@@ -10,77 +10,49 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('hospital_videos', function (Blueprint $table) {
-            $table->id()->comment('동영상 고유 ID');
+            $table->id()->comment('동영상 ID');
 
             $table->foreignId('hospital_id')
                 ->nullable()
-                ->comment('병원 ID')
+                ->comment('병의원 ID')
                 ->constrained('hospitals')
                 ->nullOnDelete();
 
             $table->foreignId('doctor_id')
                 ->nullable()
-                ->comment('의사 ID')
+                ->comment('의료진 ID')
                 ->constrained('hospital_doctors')
                 ->nullOnDelete();
 
-            $table->foreignId('submitted_by_account_id')
+            $table->foreignId('manager_staff_id')
                 ->nullable()
-                ->comment('요청 병원 계정 ID')
-                ->constrained('account_hospitals')
+                ->comment('담당 직원 ID')
+                ->constrained('account_staffs')
                 ->nullOnDelete();
 
             $table->string('title')->comment('동영상 제목');
             $table->text('description')->nullable()->comment('동영상 설명');
-            $table->boolean('is_usage_consented')->default(false)->comment('영상 사용 동의 여부');
-
-            $table->string('distribution_channel', 20)->default('YOUTUBE_APP')->comment('배포 채널');
-            $table->string('external_video_id', 191)->nullable()->comment('외부 채널 영상 ID');
-            $table->string('external_video_url', 1024)->nullable()->comment('외부 채널 영상 URL');
-
-            $table->unsignedInteger('duration_seconds')->default(0)->comment('재생 시간(초)');
-
-            $table->string('status', 20)->default('INACTIVE')->comment('동영상 상태');
+            $table->string('external_video_url', 1024)->nullable()->comment('유튜브 영상 URL');
+            $table->string('hospital_status', 20)->default('PUBLIC')->comment('병의원 공개 상태');
+            $table->string('admin_status', 20)->default('NORMAL')->comment('관리자 강제중지 상태');
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
-            $table->unsignedBigInteger('like_count')->default(0)->comment('좋아요 수');
-
-            $table->timestamp('publish_start_at')->nullable()->comment('게시 시작 시각');
-            $table->timestamp('publish_end_at')->nullable()->comment('게시 종료 시각');
-            $table->boolean('is_publish_period_unlimited')->default(false)->comment('무기한 게시 여부');
-
-            $table->string('allow_status', 20)->default('SUBMITTED')->comment('검수 상태');
-            $table->foreignId('allowed_by_staff_id')
-                ->nullable()
-                ->comment('검수 처리 스태프 계정 ID')
-                ->constrained('account_staffs')
-                ->nullOnDelete();
-
-            $table->timestamp('allowed_at')->nullable()->comment('검수 처리 시각');
-            $table->string('reject_reason', 100)->nullable()->comment('반려 사유');
-            $table->text('reject_reason_detail')->nullable()->comment('반려 사유 상세');
+            $table->unsignedBigInteger('like_count')->default(0)->comment('좋아요수');
 
             $table->timestamps();
-            $table->softDeletes()->comment('소프트 삭제 시각');
+            $table->softDeletes()->comment('삭제 시각');
 
             $table->index(['deleted_at', 'id'], 'videos_deleted_id_idx');
             $table->index(['deleted_at', 'created_at', 'id'], 'videos_deleted_created_id_idx');
             $table->index(['deleted_at', 'updated_at', 'id'], 'videos_deleted_updated_id_idx');
-            $table->index(['deleted_at', 'allowed_at', 'id'], 'videos_deleted_allowed_id_idx');
-            $table->index(['deleted_at', 'status', 'publish_start_at', 'publish_end_at', 'id'], 'videos_deleted_status_publish_idx');
-            $table->index(['distribution_channel', 'external_video_id'], 'videos_channel_external_idx');
-            $table->index(['deleted_at', 'hospital_id', 'status', 'id'], 'videos_deleted_hospital_status_idx');
-            $table->index('is_publish_period_unlimited');
-
-            $table->index(['deleted_at', 'allow_status', 'created_at', 'id'], 'videos_deleted_allow_created_idx');
-            $table->index(['deleted_at', 'hospital_id', 'allow_status', 'id'], 'videos_deleted_hospital_allow_idx');
-            $table->index(['deleted_at', 'distribution_channel', 'id'], 'videos_deleted_channel_id_idx');
+            $table->index(['deleted_at', 'hospital_status', 'id'], 'videos_deleted_hospital_status_id_idx');
+            $table->index(['deleted_at', 'admin_status', 'id'], 'videos_deleted_admin_status_id_idx');
+            $table->index(['deleted_at', 'hospital_id', 'created_at', 'id'], 'videos_deleted_hospital_created_idx');
             $table->index(['deleted_at', 'view_count', 'id'], 'videos_deleted_view_count_id_idx');
             $table->index(['deleted_at', 'like_count', 'id'], 'videos_deleted_like_count_id_idx');
-            $table->index('allowed_by_staff_id');
-            $table->index('submitted_by_account_id');
+            $table->index('manager_staff_id');
         });
 
-        DB::statement("ALTER TABLE hospital_videos COMMENT = '병원 동영상 통합 테이블(요청/게시)'");
+        DB::statement("ALTER TABLE hospital_videos COMMENT = '병의원 동영상 테이블'");
     }
 
     public function down(): void

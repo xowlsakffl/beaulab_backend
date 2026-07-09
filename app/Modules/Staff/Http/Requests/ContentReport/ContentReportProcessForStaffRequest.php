@@ -20,10 +20,7 @@ final class ContentReportProcessForStaffRequest extends FormRequest
         return [
             'target_type' => ['required', Rule::in(ContentReportTargetRegistry::aliases())],
             'target_id' => ['required', 'integer', 'min:1'],
-            'report_status' => ['required', Rule::in([
-                ContentReportState::STATUS_ADMIN_HIDDEN,
-                ContentReportState::STATUS_NORMAL_VISIBLE,
-            ])],
+            'report_status' => ['required', Rule::in(ContentReportState::processableStatuses())],
             'process_reason' => ['nullable', 'string', 'max:500'],
             'warning_status' => ['nullable', Rule::in(ContentReportState::warningProcessableStatuses())],
         ];
@@ -33,9 +30,11 @@ final class ContentReportProcessForStaffRequest extends FormRequest
     {
         $validator->after(function (Validator $validator): void {
             $reportStatus = (string) $this->input('report_status');
+            $targetType = (string) $this->input('target_type');
+            $warningStatus = trim((string) $this->input('warning_status'));
 
             if ($reportStatus !== ContentReportState::STATUS_ADMIN_HIDDEN) {
-                if (trim((string) $this->input('warning_status')) !== '') {
+                if ($warningStatus !== '') {
                     $validator->errors()->add('warning_status', '정상노출 처리에는 경고여부를 선택할 수 없습니다.');
                 }
 
@@ -43,11 +42,19 @@ final class ContentReportProcessForStaffRequest extends FormRequest
             }
 
             if (trim((string) $this->input('process_reason')) === '') {
-                $validator->errors()->add('process_reason', '노출중지 사유를 입력해주세요.');
+                $validator->errors()->add('process_reason', '노출중지 사유를 입력해 주세요.');
             }
 
-            if (trim((string) $this->input('warning_status')) === '') {
-                $validator->errors()->add('warning_status', '경고여부를 선택해주세요.');
+            if ($targetType === ContentReportTargetRegistry::ALIAS_HOSPITAL_VIDEO) {
+                if ($warningStatus !== '') {
+                    $validator->errors()->add('warning_status', '동영상 신고 처리에는 경고여부를 선택할 수 없습니다.');
+                }
+
+                return;
+            }
+
+            if ($warningStatus === '') {
+                $validator->errors()->add('warning_status', '경고여부를 선택해 주세요.');
             }
         });
     }

@@ -7,6 +7,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReport;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\ContentReport\Queries\Staff\ReportedContentDetailForStaffQuery;
 use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\Media\Models\Media;
@@ -18,6 +19,8 @@ use App\Domains\HospitalReview\Dto\Staff\HospitalReviewCommentForStaffDto;
 use App\Domains\HospitalReview\Dto\Staff\HospitalReviewForStaffDetailDto;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
+use App\Domains\HospitalVideo\Dto\Staff\HospitalVideoForStaffDetailDto;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\Talk\Dto\Staff\TalkCommentForStaffDto;
 use App\Domains\Talk\Dto\Staff\TalkForStaffDto;
 use App\Domains\Talk\Models\Talk;
@@ -106,6 +109,16 @@ final class ReportedContentDetailForStaffAction
                 'sender:id,name,nickname,email,phone,warning_count,created_at',
                 'attachments',
             ],
+            HospitalVideo::class => [
+                'hospital.businessRegistration',
+                'doctor',
+                'managerStaff',
+                'thumbnailMedia',
+                'contentReportState',
+                'categories',
+                'hashtags',
+                'operationHistories.actor',
+            ],
         ];
     }
 
@@ -116,7 +129,7 @@ final class ReportedContentDetailForStaffAction
     {
         $relations = $this->targetRelations()[$target::class] ?? [];
 
-        if (! $target instanceof ChatMessage) {
+        if (! $target instanceof ChatMessage && ! $target instanceof HospitalVideo) {
             array_unshift($relations, 'author:id,name,nickname,email,phone,warning_count,created_at');
         }
 
@@ -128,9 +141,15 @@ final class ReportedContentDetailForStaffAction
      */
     private function targetAuthorLoadRelations(Model $target): array
     {
-        return $target instanceof ChatMessage
-            ? ['sender:id,name,nickname,email,phone,warning_count,created_at']
-            : ['author:id,name,nickname,email,phone,warning_count,created_at'];
+        if ($target instanceof ChatMessage) {
+            return ['sender:id,name,nickname,email,phone,warning_count,created_at'];
+        }
+
+        if ($target instanceof HospitalVideo) {
+            return [];
+        }
+
+        return ['author:id,name,nickname,email,phone,warning_count,created_at'];
     }
 
     private function targetToArray(Model $target): ?array
@@ -148,6 +167,7 @@ final class ReportedContentDetailForStaffAction
             ],
             $target instanceof HospitalEvaluation => HospitalEvaluationForStaffDto::fromModel($target)->toArray(),
             $target instanceof ChatMessage => $this->chatMessageToArray($target),
+            $target instanceof HospitalVideo => HospitalVideoForStaffDetailDto::fromModel($target)->toArray(),
             default => null,
         };
     }
@@ -226,6 +246,10 @@ final class ReportedContentDetailForStaffAction
     {
         if ($target instanceof ChatMessage) {
             return $this->sender($target, true);
+        }
+
+        if ($target instanceof HospitalVideo) {
+            return null;
         }
 
         if (! $target->relationLoaded('author') || ! $target->getRelation('author')) {

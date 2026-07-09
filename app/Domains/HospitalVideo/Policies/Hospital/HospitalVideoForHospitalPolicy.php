@@ -24,7 +24,7 @@ final class HospitalVideoForHospitalPolicy
 
     public function create(AccountHospital $actor): bool
     {
-        return $actor->can(AccessPermissions::HOSPITAL_VIDEO_CREATE);
+        return false;
     }
 
     public function update(AccountHospital $actor, HospitalVideo $video): bool
@@ -39,7 +39,7 @@ final class HospitalVideoForHospitalPolicy
 
     public function cancel(AccountHospital $actor, HospitalVideo $video): bool
     {
-        return $actor->can(AccessPermissions::HOSPITAL_VIDEO_CANCEL) && $this->ownsVideo($actor, $video);
+        return false;
     }
 
     private function ownsVideo(AccountHospital $actor, HospitalVideo $video): bool

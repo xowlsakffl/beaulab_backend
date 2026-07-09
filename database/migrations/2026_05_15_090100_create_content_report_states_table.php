@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id()->comment('신고 대상 상태 ID');
             $table->string('target_type', 160)->comment('신고 대상 모델 클래스');
             $table->unsignedBigInteger('target_id')->comment('신고 대상 ID');
-            $table->string('report_status', 30)->default('NONE')->comment('신고 처리 상태(NONE, REPORTED, AUTO_BLOCKED, ADMIN_HIDDEN, NORMAL_VISIBLE, REEXPOSED, VALID, INVALID)');
+            $table->string('report_status', 30)->default('NONE')->comment('신고 처리 상태(NONE, REPORTED, AUTO_BLOCKED, ADMIN_HIDDEN, NORMAL_VISIBLE, REEXPOSED)');
             $table->unsignedInteger('report_count')->default(0)->comment('누적 신고 수');
             $table->unsignedInteger('recent_hour_report_count')->default(0)->comment('정상노출 처리 이후 최근 1시간 신고 수');
             $table->unsignedInteger('normal_visible_count')->default(0)->comment('관리자 정상노출 처리 횟수');

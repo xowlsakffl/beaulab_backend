@@ -3,9 +3,11 @@
 namespace App\Domains\HospitalVideo\Models;
 
 use App\Common\Concerns\HasAuditLogs;
-use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
+use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
@@ -19,74 +21,44 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * HospitalVideo 역할 정의.
- * 병원 동영상 도메인의 Eloquent 모델
- */
 final class HospitalVideo extends Model
 {
-    use HasFactory, SoftDeletes, HasAuditLogs, HasAdminNotes, HasOperationHistories;
+    use HasAdminNotes, HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
-    public const DISTRIBUTION_CHANNEL_YOUTUBE_APP = 'YOUTUBE_APP';
-    public const DISTRIBUTION_CHANNEL_APP = 'APP';
+    public const HOSPITAL_STATUS_PUBLIC = 'PUBLIC';
 
-    public const STATUS_ACTIVE = 'ACTIVE';
-    public const STATUS_INACTIVE = 'INACTIVE';
+    public const HOSPITAL_STATUS_PRIVATE = 'PRIVATE';
 
-    public const ALLOW_SUBMITTED = 'SUBMITTED';
-    public const ALLOW_IN_REVIEW = 'IN_REVIEW';
-    public const ALLOW_APPROVED = 'APPROVED';
-    public const ALLOW_REJECTED = 'REJECTED';
-    public const ALLOW_EXCLUDED = 'EXCLUDED';
-    public const ALLOW_PARTNER_CANCELED = 'PARTNER_CANCELED';
+    public const ADMIN_STATUS_NORMAL = 'NORMAL';
+
+    public const ADMIN_STATUS_FORCED_STOPPED = 'FORCED_STOPPED';
 
     protected $table = 'hospital_videos';
 
     protected $fillable = [
         'hospital_id',
         'doctor_id',
-        'submitted_by_account_id',
+        'manager_staff_id',
         'title',
         'description',
-        'is_usage_consented',
-        'distribution_channel',
-        'external_video_id',
         'external_video_url',
-        'duration_seconds',
-        'status',
+        'hospital_status',
+        'admin_status',
         'view_count',
         'like_count',
-        'publish_start_at',
-        'publish_end_at',
-        'is_publish_period_unlimited',
-        'allow_status',
-        'allowed_by_staff_id',
-        'allowed_at',
-        'reject_reason',
-        'reject_reason_detail',
     ];
 
     protected $casts = [
-        'duration_seconds' => 'integer',
         'view_count' => 'integer',
         'like_count' => 'integer',
-        'is_usage_consented' => 'boolean',
-        'is_publish_period_unlimited' => 'boolean',
-        'publish_start_at' => 'datetime',
-        'publish_end_at' => 'datetime',
-        'allowed_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
 
     protected $attributes = [
-        'distribution_channel' => self::DISTRIBUTION_CHANNEL_YOUTUBE_APP,
-        'duration_seconds' => 0,
-        'status' => self::STATUS_INACTIVE,
+        'hospital_status' => self::HOSPITAL_STATUS_PUBLIC,
+        'admin_status' => self::ADMIN_STATUS_NORMAL,
         'view_count' => 0,
         'like_count' => 0,
-        'is_usage_consented' => false,
-        'is_publish_period_unlimited' => false,
-        'allow_status' => self::ALLOW_SUBMITTED,
     ];
 
     protected static function newFactory(): Factory
@@ -104,9 +76,9 @@ final class HospitalVideo extends Model
         return $this->belongsTo(HospitalDoctor::class, 'doctor_id');
     }
 
-    public function submittedByAccount(): BelongsTo
+    public function managerStaff(): BelongsTo
     {
-        return $this->belongsTo(AccountHospital::class, 'submitted_by_account_id');
+        return $this->belongsTo(AccountStaff::class, 'manager_staff_id');
     }
 
     public function thumbnailMedia(): MorphOne
@@ -115,10 +87,9 @@ final class HospitalVideo extends Model
             ->where('collection', 'thumbnail_file');
     }
 
-    public function videoFileMedia(): MorphOne
+    public function contentReportState(): MorphOne
     {
-        return $this->morphOne(Media::class, 'model')
-            ->where('collection', 'video_file');
+        return $this->morphOne(ContentReportState::class, 'target', 'target_type', 'target_id');
     }
 
     public function categories(): MorphToMany
@@ -126,5 +97,55 @@ final class HospitalVideo extends Model
         return $this->morphToMany(Category::class, 'categorizable', 'category_assignments', 'categorizable_id', 'category_id')
             ->withPivot('is_primary')
             ->withTimestamps();
+    }
+
+    public function hashtags(): MorphToMany
+    {
+        return $this->morphToMany(Hashtag::class, 'hashtaggable', 'hashtaggables', 'hashtaggable_id', 'hashtag_id')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderBy('hashtaggables.sort_order')
+            ->orderBy('hashtags.id');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function hospitalStatuses(): array
+    {
+        return [self::HOSPITAL_STATUS_PUBLIC, self::HOSPITAL_STATUS_PRIVATE];
+    }
+
+    public static function hospitalStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::HOSPITAL_STATUS_PUBLIC => '공개',
+            self::HOSPITAL_STATUS_PRIVATE => '미공개',
+            default => $status ?: '-',
+        };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function adminStatuses(): array
+    {
+        return [self::ADMIN_STATUS_NORMAL, self::ADMIN_STATUS_FORCED_STOPPED];
+    }
+
+    public static function adminStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            self::ADMIN_STATUS_NORMAL => '정상',
+            self::ADMIN_STATUS_FORCED_STOPPED => '강제중지',
+            default => $status ?: '-',
+        };
+    }
+
+    public function isVisible(): bool
+    {
+        return $this->hospital_status === self::HOSPITAL_STATUS_PUBLIC
+            && $this->admin_status === self::ADMIN_STATUS_NORMAL
+            && $this->deleted_at === null;
     }
 }

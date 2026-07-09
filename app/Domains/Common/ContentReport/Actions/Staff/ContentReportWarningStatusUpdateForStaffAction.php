@@ -5,7 +5,6 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
-use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\ContentReport\Queries\Staff\ContentReportStateStatusUpdateForStaffQuery;
@@ -14,10 +13,10 @@ use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Schema;
 
 final class ContentReportWarningStatusUpdateForStaffAction
 {
@@ -82,7 +81,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
                 metadata: $metadata,
                 changes: OperationHistoryChangeSetBuilder::single(
                     key: 'warning_status',
-                    label: '경고여부',
+                    label: '경고여부 변경',
                     before: $beforeWarningStatus,
                     after: $warningStatus,
                     beforeDisplay: $metadata['before_label'],
@@ -109,18 +108,11 @@ final class ContentReportWarningStatusUpdateForStaffAction
 
     private function canProcessWarning(Model $target, string $reportStatus): bool
     {
-        if ($target instanceof ChatMessage) {
-            return $reportStatus === ContentReportState::STATUS_VALID;
+        if ($target instanceof HospitalVideo) {
+            return false;
         }
 
-        if (Schema::hasColumn($target->getTable(), 'status')) {
-            return $reportStatus === ContentReportState::STATUS_ADMIN_HIDDEN;
-        }
-
-        return in_array($reportStatus, [
-            ContentReportState::STATUS_INVALID,
-            ContentReportState::STATUS_NORMAL_VISIBLE,
-        ], true);
+        return $reportStatus === ContentReportState::STATUS_ADMIN_HIDDEN;
     }
 
     private function assertTransitionAllowed(string $beforeWarningStatus, string $warningStatus): void
@@ -133,7 +125,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
             $beforeWarningStatus === ContentReportState::WARNING_STATUS_WARNED
             && $warningStatus !== ContentReportState::WARNING_STATUS_IGNORED
         ) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '경고 처리된 신고는 무시로만 변경할 수 있습니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '경고 처리는 신고 무시로만 변경할 수 있습니다.');
         }
     }
 
@@ -151,8 +143,6 @@ final class ContentReportWarningStatusUpdateForStaffAction
 
         if ($beforeWarningStatus === ContentReportState::WARNING_STATUS_WARNED) {
             $this->removeUserWarning($authorId, $metadata);
-
-            return;
         }
     }
 

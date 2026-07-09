@@ -8,6 +8,7 @@ use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,8 @@ final class ContentReportTargetRegistry
 
     public const string ALIAS_CHAT_MESSAGE = 'chat_message';
 
+    public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
+
     /**
      * @var array<string, class-string<Model>>
      */
@@ -36,6 +39,7 @@ final class ContentReportTargetRegistry
         self::ALIAS_HOSPITAL_REVIEW_COMMENT => HospitalReviewComment::class,
         self::ALIAS_HOSPITAL_EVALUATION => HospitalEvaluation::class,
         self::ALIAS_CHAT_MESSAGE => ChatMessage::class,
+        self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
     ];
 
     /**

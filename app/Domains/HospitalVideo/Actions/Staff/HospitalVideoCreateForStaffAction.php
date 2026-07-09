@@ -4,6 +4,7 @@ namespace App\Domains\HospitalVideo\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalVideo\Dto\Staff\HospitalVideoForStaffDetailDto;
@@ -12,10 +13,6 @@ use App\Domains\HospitalVideo\Queries\Staff\HospitalVideoCreateForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * HospitalVideoCreateForStaffAction 역할 정의.
- * 병원 동영상 도메인의 Action 계층으로, 컨트롤러에서 넘어온 검증된 입력을 받아 권한 확인, 도메인 흐름 조합, Query 호출을 담당한다.
- */
 final class HospitalVideoCreateForStaffAction
 {
     public function __construct(
@@ -44,15 +41,9 @@ final class HospitalVideoCreateForStaffAction
             }
 
             $this->syncCategories($video, $normalized['category_ids'] ?? []);
+            $this->syncHashtags($video, $normalized['hashtag_ids'] ?? []);
 
-            $video = $video->fresh([
-                'hospital',
-                'hospital.businessRegistration',
-                'doctor',
-                'thumbnailMedia',
-                'videoFileMedia',
-                'categories',
-            ]);
+            $video = $video->fresh($this->detailRelations());
 
             $this->historyRecordAction->recordCreated($video);
 
@@ -70,27 +61,36 @@ final class HospitalVideoCreateForStaffAction
             $doctor = HospitalDoctor::query()->find($payload['doctor_id']);
 
             if (! $doctor || (int) $doctor->hospital_id !== (int) $payload['hospital_id']) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병원에 소속된 의사가 아닙니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병의원에 소속된 의료진이 아닙니다.');
             }
-        }
-
-        if (($payload['is_publish_period_unlimited'] ?? false) === true) {
-            $payload['publish_start_at'] = null;
-            $payload['publish_end_at'] = null;
         }
 
         return $payload;
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @return array<int, string>
+     */
+    private function detailRelations(): array
+    {
+        return [
+            'hospital',
+            'hospital.businessRegistration',
+            'doctor',
+            'managerStaff',
+            'thumbnailMedia',
+            'contentReportState',
+            'categories',
+            'hashtags',
+            'operationHistories.actor',
+        ];
+    }
+
+    /**
+     * @param  array<int, int|string>  $categoryIds
      */
     private function syncCategories(HospitalVideo $video, array $categoryIds): void
     {
-        if ($categoryIds === []) {
-            return;
-        }
-
         $syncPayload = collect($categoryIds)
             ->map(static fn (int|string $categoryId): int => (int) $categoryId)
             ->filter(static fn (int $categoryId): bool => $categoryId > 0)
@@ -101,10 +101,25 @@ final class HospitalVideoCreateForStaffAction
             ])
             ->all();
 
-        if ($syncPayload === []) {
-            return;
-        }
-
         $video->categories()->sync($syncPayload);
+    }
+
+    /**
+     * @param  array<int, int|string>  $hashtagIds
+     */
+    private function syncHashtags(HospitalVideo $video, array $hashtagIds): void
+    {
+        $syncPayload = collect($hashtagIds)
+            ->map(static fn (int|string $hashtagId): int => (int) $hashtagId)
+            ->filter(static fn (int $hashtagId): bool => $hashtagId > 0)
+            ->unique()
+            ->values()
+            ->mapWithKeys(static fn (int $hashtagId, int $index): array => [
+                $hashtagId => ['sort_order' => $index],
+            ])
+            ->all();
+
+        $video->hashtags()->sync($syncPayload);
+        Hashtag::syncUsageCounts(array_keys($syncPayload));
     }
 }

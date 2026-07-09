@@ -102,6 +102,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('reported-contents.getReportedChatMessagesSummaryForStaff');
     Route::get('reported-contents/chats', [ContentReportForStaffController::class, 'getReportedChatMessagesForStaff'])
         ->name('reported-contents.getReportedChatMessagesForStaff');
+    Route::get('reported-contents/videos/summary', [ContentReportForStaffController::class, 'getReportedHospitalVideosSummaryForStaff'])
+        ->name('reported-contents.getReportedHospitalVideosSummaryForStaff');
+    Route::get('reported-contents/videos', [ContentReportForStaffController::class, 'getReportedHospitalVideosForStaff'])
+        ->name('reported-contents.getReportedHospitalVideosForStaff');
     Route::get('reported-contents/detail/{targetType}/{targetId}', [ContentReportForStaffController::class, 'getReportedContentDetailForStaff'])
         ->whereNumber('targetId')
         ->name('reported-contents.getReportedContentDetailForStaff');
@@ -295,8 +299,6 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('videos.getVideoDoctorOptionsForStaff');
     Route::get('videos', [HospitalVideoForStaffController::class, 'getVideosForStaff'])
         ->name('videos.getVideosForStaff');
-    Route::get('videos/{video}/download-video-file', [HospitalVideoForStaffController::class, 'downloadVideoFileForStaff'])
-        ->name('videos.downloadVideoFileForStaff');
     Route::get('videos/{video}', [HospitalVideoForStaffController::class, 'getVideoForStaff'])
         ->name('videos.getVideoForStaff');
     Route::post('videos', [HospitalVideoForStaffController::class, 'createVideoForStaff'])

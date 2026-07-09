@@ -35,12 +35,6 @@ final class ContentReportCreateForUserAction
         $reportItems = $this->reportItems($target, $payload);
 
         DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload, $reportItems): void {
-            // 테스트 중복 신고 확인을 위해 1인 1신고 정책을 임시 비활성화한다.
-            // 운영 기준 복구 시 아래 검사를 다시 활성화하고 content_report_items unique 제약도 함께 복구해야 한다.
-            // if ($this->query->hasExistingReportItem($reporterUserId, $reportItems)) {
-            //     throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 신고한 콘텐츠입니다.');
-            // }
-
             try {
                 $report = $this->query->createReport([
                     'reporter_user_id' => $reporterUserId,
@@ -202,7 +196,7 @@ final class ContentReportCreateForUserAction
 
         $parts = [];
 
-        foreach (['title', 'content', 'body'] as $attribute) {
+        foreach (['title', 'content', 'body', 'description'] as $attribute) {
             $value = $target->getAttribute($attribute);
             if (is_string($value) && trim($value) !== '') {
                 $parts[] = trim($value);
@@ -258,12 +252,17 @@ final class ContentReportCreateForUserAction
             actorKind: OperationHistory::ACTOR_KIND_SYSTEM,
             changes: OperationHistoryChangeSetBuilder::single(
                 key: 'status',
-                label: '노출여부',
+                label: '노출여부 변경',
                 before: $beforeStatus,
                 after: $status,
-                beforeDisplay: $beforeStatus === 'ACTIVE' ? '노출' : '미노출',
-                afterDisplay: $status === 'ACTIVE' ? '노출' : '미노출',
+                beforeDisplay: $this->visibilityLabel($beforeStatus),
+                afterDisplay: $this->visibilityLabel($status),
             ),
         );
+    }
+
+    private function visibilityLabel(string $status): string
+    {
+        return $status === 'ACTIVE' ? '노출' : '미노출';
     }
 }

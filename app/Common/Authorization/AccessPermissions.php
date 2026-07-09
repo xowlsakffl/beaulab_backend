@@ -122,6 +122,10 @@ final class AccessPermissions
 
     public const BEAULAB_REPORTED_CHAT_MESSAGE_UPDATE = 'beaulab.reported_chat_message.update';
 
+    public const BEAULAB_REPORTED_VIDEO_SHOW = 'beaulab.reported_video.show';
+
+    public const BEAULAB_REPORTED_VIDEO_UPDATE = 'beaulab.reported_video.update';
+
     public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
 
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
@@ -151,11 +155,7 @@ final class AccessPermissions
 
     public const HOSPITAL_VIDEO_SHOW = 'hospital.video.show';
 
-    public const HOSPITAL_VIDEO_CREATE = 'hospital.video.create';
-
     public const HOSPITAL_VIDEO_UPDATE = 'hospital.video.update';
-
-    public const HOSPITAL_VIDEO_CANCEL = 'hospital.video.cancel';
 
     // Beauty
     public const BEAUTY_PROFILE_SHOW = 'beauty.profile.show';
@@ -295,6 +295,8 @@ final class AccessPermissions
             self::BEAULAB_REPORTED_HOSPITAL_EVALUATION_UPDATE,
             self::BEAULAB_REPORTED_CHAT_MESSAGE_SHOW,
             self::BEAULAB_REPORTED_CHAT_MESSAGE_UPDATE,
+            self::BEAULAB_REPORTED_VIDEO_SHOW,
+            self::BEAULAB_REPORTED_VIDEO_UPDATE,
             self::BEAULAB_NOTICE_SHOW,
             self::BEAULAB_NOTICE_CREATE,
             self::BEAULAB_NOTICE_UPDATE,
@@ -331,9 +333,7 @@ final class AccessPermissions
             self::HOSPITAL_PROFILE_UPDATE,
             self::HOSPITAL_PROFILE_DELETE,
             self::HOSPITAL_VIDEO_SHOW,
-            self::HOSPITAL_VIDEO_CREATE,
             self::HOSPITAL_VIDEO_UPDATE,
-            self::HOSPITAL_VIDEO_CANCEL,
         ];
     }
 

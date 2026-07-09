@@ -173,6 +173,22 @@ final class ContentReportForStaffController extends Controller
         return ApiResponse::success($action->execute(ContentReportTargetRegistry::ALIAS_CHAT_MESSAGE, $request->filters()));
     }
 
+    public function getReportedHospitalVideosForStaff(
+        ReportedContentListForStaffRequest $request,
+        ReportedContentListForStaffAction $action,
+    ) {
+        $result = $action->execute(ContentReportTargetRegistry::ALIAS_HOSPITAL_VIDEO, $request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getReportedHospitalVideosSummaryForStaff(
+        ReportedContentListForStaffRequest $request,
+        ReportedContentSummaryForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute(ContentReportTargetRegistry::ALIAS_HOSPITAL_VIDEO, $request->filters()));
+    }
+
     public function getReportedContentDetailForStaff(
         Request $request,
         string $targetType,

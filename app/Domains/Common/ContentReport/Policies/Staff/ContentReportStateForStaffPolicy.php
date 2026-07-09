@@ -43,6 +43,10 @@ final class ContentReportStateForStaffPolicy
                 ? AccessPermissions::BEAULAB_REPORTED_CHAT_MESSAGE_SHOW
                 : AccessPermissions::BEAULAB_REPORTED_CHAT_MESSAGE_UPDATE,
 
+            ContentReportTargetRegistry::ALIAS_HOSPITAL_VIDEO => $ability === 'show'
+                ? AccessPermissions::BEAULAB_REPORTED_VIDEO_SHOW
+                : AccessPermissions::BEAULAB_REPORTED_VIDEO_UPDATE,
+
             default => null,
         };
     }

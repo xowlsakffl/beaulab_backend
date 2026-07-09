@@ -2,21 +2,19 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-/**
- * HospitalVideoListForStaffRequest 역할 정의.
- * 병원 동영상 도메인의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
- */
 final class HospitalVideoListForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'status' => $this->normalizeToArray($this->input('status')),
-            'allow_status' => $this->normalizeToArray($this->input('allow_status')),
-            'distribution_channel' => $this->normalizeToArray($this->input('distribution_channel')),
+            'hospital_status' => $this->normalizeToArray($this->input('hospital_status')),
+            'admin_status' => $this->normalizeToArray($this->input('admin_status')),
+            'report_status' => $this->normalizeToArray($this->input('report_status')),
         ]);
     }
 
@@ -29,28 +27,23 @@ final class HospitalVideoListForStaffRequest extends FormRequest
     {
         return [
             'hospital_id' => ['nullable', 'integer', 'exists:hospitals,id'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'q' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', 'array'],
-            'status.*' => ['in:'.implode(',', [HospitalVideo::STATUS_ACTIVE, HospitalVideo::STATUS_INACTIVE])],
-            'allow_status' => ['nullable', 'array'],
-            'allow_status.*' => ['in:'.implode(',', [
-                HospitalVideo::ALLOW_SUBMITTED,
-                HospitalVideo::ALLOW_IN_REVIEW,
-                HospitalVideo::ALLOW_APPROVED,
-                HospitalVideo::ALLOW_REJECTED,
-                HospitalVideo::ALLOW_EXCLUDED,
-                HospitalVideo::ALLOW_PARTNER_CANCELED,
-            ])],
-            'distribution_channel' => ['nullable', 'array'],
-            'distribution_channel.*' => ['in:'.implode(',', [
-                HospitalVideo::DISTRIBUTION_CHANNEL_YOUTUBE_APP,
-                HospitalVideo::DISTRIBUTION_CHANNEL_APP,
-            ])],
+            'hospital_status' => ['nullable', 'array'],
+            'hospital_status.*' => [Rule::in(HospitalVideo::hospitalStatuses())],
+            'admin_status' => ['nullable', 'array'],
+            'admin_status.*' => [Rule::in(HospitalVideo::adminStatuses())],
+            'report_status' => ['nullable', 'array'],
+            'report_status.*' => [Rule::in(ContentReportState::statuses())],
+            'report_count_min' => ['nullable', 'integer', 'min:0'],
+            'report_count_max' => ['nullable', 'integer', 'min:0'],
+            'view_count_min' => ['nullable', 'integer', 'min:0'],
+            'view_count_max' => ['nullable', 'integer', 'min:0'],
+            'like_count_min' => ['nullable', 'integer', 'min:0'],
+            'like_count_max' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'allowed_start_date' => ['nullable', 'date'],
-            'allowed_end_date' => ['nullable', 'date', 'after_or_equal:allowed_start_date'],
-            'sort' => ['nullable', 'in:id,title,status,allow_status,distribution_channel,view_count,like_count,created_at,allowed_at,updated_at'],
+            'sort' => ['nullable', 'in:id,title,hospital_status,admin_status,view_count,like_count,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -62,35 +55,45 @@ final class HospitalVideoListForStaffRequest extends FormRequest
 
         return [
             'hospital_id' => $validated['hospital_id'] ?? null,
+            'category_id' => $validated['category_id'] ?? null,
             'q' => $validated['q'] ?? null,
-            'status' => $validated['status'] ?? null,
-            'allow_status' => $validated['allow_status'] ?? null,
-            'distribution_channel' => $validated['distribution_channel'] ?? null,
+            'hospital_status' => $validated['hospital_status'] ?? null,
+            'admin_status' => $validated['admin_status'] ?? null,
+            'report_status' => $validated['report_status'] ?? null,
+            'report_count_min' => $validated['report_count_min'] ?? null,
+            'report_count_max' => $validated['report_count_max'] ?? null,
+            'view_count_min' => $validated['view_count_min'] ?? null,
+            'view_count_max' => $validated['view_count_max'] ?? null,
+            'like_count_min' => $validated['like_count_min'] ?? null,
+            'like_count_max' => $validated['like_count_max'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
-            'allowed_start_date' => $validated['allowed_start_date'] ?? null,
-            'allowed_end_date' => $validated['allowed_end_date'] ?? null,
             'sort' => $validated['sort'] ?? 'id',
             'direction' => $validated['direction'] ?? 'desc',
             'per_page' => (int) ($validated['per_page'] ?? 15),
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병원',
+            'hospital_id' => '병의원',
+            'category_id' => '카테고리',
             'q' => '검색어',
-            'status' => '운영 상태',
-            'status.*' => '운영 상태',
-            'allow_status' => '검수 상태 목록',
-            'allow_status.*' => '검수 상태',
-            'distribution_channel' => '배포 채널 목록',
-            'distribution_channel.*' => '배포 채널',
+            'hospital_status' => '공개여부',
+            'admin_status' => '강제중지',
+            'report_status' => '신고상태',
+            'report_count_min' => '신고횟수 최소값',
+            'report_count_max' => '신고횟수 최대값',
+            'view_count_min' => '조회수 최소값',
+            'view_count_max' => '조회수 최대값',
+            'like_count_min' => '좋아요수 최소값',
+            'like_count_max' => '좋아요수 최대값',
             'start_date' => '등록일 시작',
             'end_date' => '등록일 종료',
-            'allowed_start_date' => '검수 처리 시각 시작',
-            'allowed_end_date' => '검수 처리 시각 종료',
             'sort' => '정렬 기준',
             'direction' => '정렬 방향',
             'per_page' => '페이지당 개수',
@@ -110,8 +113,8 @@ final class HospitalVideoListForStaffRequest extends FormRequest
                 && json_last_error() === JSON_ERROR_NONE
                 && is_array($decoded)
                 && array_is_list($decoded)
-                ? $decoded
-                : explode(',', $trimmed);
+                    ? $decoded
+                    : explode(',', $trimmed);
         }
 
         if (! is_array($value)) {

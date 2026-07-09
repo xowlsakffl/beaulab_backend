@@ -9,6 +9,7 @@ use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -238,6 +239,12 @@ final class ReportedContentListForStaffQuery
                 return;
             }
 
+            if ($targetClass === HospitalVideo::class) {
+                $query->whereRaw('1 = 0');
+
+                return;
+            }
+
             $query->where('author_id', $authorId);
         });
     }
@@ -268,8 +275,15 @@ final class ReportedContentListForStaffQuery
      */
     private function applyTargetStatusFilter(Builder $builder, string $targetClass, string $targetStatus): void
     {
-        $builder->whereHasMorph('target', [$targetClass], fn (Builder $query) => $query
-            ->where('status', $targetStatus));
+        $builder->whereHasMorph('target', [$targetClass], function (Builder $query) use ($targetClass, $targetStatus): void {
+            if ($targetClass === HospitalVideo::class) {
+                $query->where('admin_status', $targetStatus);
+
+                return;
+            }
+
+            $query->where('status', $targetStatus);
+        });
     }
 
     /**
@@ -426,6 +440,16 @@ final class ReportedContentListForStaffQuery
                 return;
             }
 
+            if ($targetClass === HospitalVideo::class) {
+                $textQuery
+                    ->where('title', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+                    ->orWhereHas('hospital', fn (Builder $hospitalQuery) => $hospitalQuery
+                        ->where('name', 'like', "%{$q}%"));
+
+                return;
+            }
+
             $textQuery->whereRaw('1 = 0');
         });
     }
@@ -476,6 +500,8 @@ final class ReportedContentListForStaffQuery
 
                 return;
             }
+
+            $targetQuery->whereRaw('1 = 0');
         });
     }
 
@@ -485,7 +511,7 @@ final class ReportedContentListForStaffQuery
     private function applyHospitalNameSearchFilter(Builder $builder, string $targetClass, string $q): void
     {
         $builder->whereHasMorph('target', [$targetClass], function (Builder $targetQuery) use ($targetClass, $q): void {
-            if (in_array($targetClass, [HospitalReview::class, HospitalEvaluation::class], true)) {
+            if (in_array($targetClass, [HospitalReview::class, HospitalEvaluation::class, HospitalVideo::class], true)) {
                 $targetQuery->whereHas('hospital', fn (Builder $hospitalQuery) => $hospitalQuery
                     ->where('name', 'like', "%{$q}%"));
 
@@ -534,6 +560,18 @@ final class ReportedContentListForStaffQuery
 
                 return;
             }
+
+            if ($targetClass === HospitalVideo::class) {
+                $targetQuery->where(function (Builder $textQuery) use ($q): void {
+                    $textQuery
+                        ->where('title', 'like', "%{$q}%")
+                        ->orWhere('description', 'like', "%{$q}%");
+                });
+
+                return;
+            }
+
+            $targetQuery->whereRaw('1 = 0');
         });
     }
 

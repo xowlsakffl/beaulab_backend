@@ -15,6 +15,7 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Model;
@@ -88,6 +89,12 @@ final class ReportedContentListForStaffAction
                 'chat:id,last_message_at',
                 'sender:id,name,nickname,email',
             ],
+            HospitalVideo::class => [
+                'hospital:id,name',
+                'doctor:id,name,position',
+                'thumbnailMedia',
+                'categories',
+            ],
         ];
     }
 
@@ -100,6 +107,7 @@ final class ReportedContentListForStaffAction
             $target instanceof HospitalReviewComment => $this->hospitalReviewCommentToListArray($target),
             $target instanceof HospitalEvaluation => $this->hospitalEvaluationToListArray($target),
             $target instanceof ChatMessage => $this->chatMessageToListArray($target),
+            $target instanceof HospitalVideo => $this->hospitalVideoToListArray($target),
             default => null,
         };
     }
@@ -200,6 +208,27 @@ final class ReportedContentListForStaffAction
         ];
     }
 
+    private function hospitalVideoToListArray(HospitalVideo $video): array
+    {
+        return [
+            'id' => (int) $video->id,
+            'created_at' => $video->created_at?->toISOString() ?? '',
+            'hospital' => $this->hospitalToArray($video),
+            'doctor' => $this->videoDoctorToArray($video),
+            'categories' => $this->categoriesToArray($video),
+            'title' => (string) $video->title,
+            'thumbnail_file' => $video->relationLoaded('thumbnailMedia') && $video->thumbnailMedia instanceof Media
+                ? $this->mediaToArray($video->thumbnailMedia)
+                : null,
+            'hospital_status' => (string) $video->hospital_status,
+            'hospital_status_label' => HospitalVideo::hospitalStatusLabel((string) $video->hospital_status),
+            'admin_status' => (string) $video->admin_status,
+            'admin_status_label' => HospitalVideo::adminStatusLabel((string) $video->admin_status),
+            'view_count' => (int) $video->view_count,
+            'like_count' => (int) $video->like_count,
+        ];
+    }
+
     private function authorToArray(Model $model): ?array
     {
         if (! $model->relationLoaded('author') || ! $model->getRelation('author')) {
@@ -253,6 +282,21 @@ final class ReportedContentListForStaffAction
         return [
             'id' => (int) $hospital->getKey(),
             'name' => (string) $hospital->name,
+        ];
+    }
+
+    private function videoDoctorToArray(HospitalVideo $video): ?array
+    {
+        if (! $video->relationLoaded('doctor') || ! $video->doctor) {
+            return null;
+        }
+
+        $attributes = $video->doctor->getAttributes();
+
+        return [
+            'id' => (int) $video->doctor->getKey(),
+            'name' => (string) ($attributes['name'] ?? ''),
+            'position' => $attributes['position'] ?? null,
         ];
     }
 

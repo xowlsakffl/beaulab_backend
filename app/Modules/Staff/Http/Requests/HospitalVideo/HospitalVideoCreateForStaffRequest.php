@@ -3,14 +3,11 @@
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * HospitalVideoCreateForStaffRequest 역할 정의.
- * 병원 동영상 도메인의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
- */
 final class HospitalVideoCreateForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
@@ -19,30 +16,21 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
 
         foreach ([
             'doctor_id',
+            'manager_staff_id',
             'description',
-            'distribution_channel',
-            'external_video_id',
             'external_video_url',
-            'duration_seconds',
-            'status',
-            'publish_start_at',
-            'publish_end_at',
-            'is_publish_period_unlimited',
+            'hospital_status',
+            'admin_status',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
                 $data[$nullableKey] = null;
             }
         }
 
-        if (empty($data['external_video_id']) && is_string($data['external_video_url'] ?? null)) {
-            $extractedVideoId = $this->extractYoutubeVideoId($data['external_video_url']);
-            if ($extractedVideoId !== null) {
-                $data['external_video_id'] = $extractedVideoId;
+        foreach (['category_ids', 'hashtag_ids'] as $listKey) {
+            if (array_key_exists($listKey, $data)) {
+                $data[$listKey] = $this->normalizeIdList($data[$listKey]);
             }
-        }
-
-        if (array_key_exists('category_ids', $data)) {
-            $data['category_ids'] = $this->normalizeIdList($data['category_ids']);
         }
 
         $this->replace($data);
@@ -58,18 +46,13 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
         return [
             'hospital_id' => ['required', 'integer', 'exists:hospitals,id'],
             'doctor_id' => ['nullable', 'integer', 'exists:hospital_doctors,id'],
+            'manager_staff_id' => ['nullable', 'integer', 'exists:account_staffs,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'distribution_channel' => ['nullable', 'in:'.implode(',', [
-                HospitalVideo::DISTRIBUTION_CHANNEL_YOUTUBE_APP,
-                HospitalVideo::DISTRIBUTION_CHANNEL_APP,
-            ])],
-            'external_video_id' => ['nullable', 'string', 'max:191', 'required_without:external_video_url'],
-            'external_video_url' => ['nullable', 'url', 'max:1024', 'required_without:external_video_id'],
-            'duration_seconds' => ['nullable', 'integer', 'min:0'],
-            'status' => ['nullable', 'in:ACTIVE,INACTIVE'],
-            'allow_status' => ['sometimes', 'in:SUBMITTED,IN_REVIEW,APPROVED,REJECTED,EXCLUDED'],
-            'category_ids' => ['nullable', 'array', 'min:1', 'max:100'],
+            'external_video_url' => ['required', 'url', 'max:1024'],
+            'hospital_status' => ['nullable', Rule::in(HospitalVideo::hospitalStatuses())],
+            'admin_status' => ['nullable', Rule::in(HospitalVideo::adminStatuses())],
+            'category_ids' => ['nullable', 'array', 'max:100'],
             'category_ids.*' => [
                 'integer',
                 'distinct',
@@ -77,41 +60,36 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
                     ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
-            'publish_start_at' => [
-                Rule::requiredIf(! $this->boolean('is_publish_period_unlimited')),
-                'nullable',
-                'date',
+            'hashtag_ids' => ['nullable', 'array', 'max:30'],
+            'hashtag_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('hashtags', 'id')->where(static fn ($query) => $query
+                    ->where('status', Hashtag::STATUS_ACTIVE)),
             ],
-            'publish_end_at' => [
-                Rule::requiredIf(! $this->boolean('is_publish_period_unlimited')),
-                'nullable',
-                'date',
-                'after_or_equal:publish_start_at',
-            ],
-            'is_publish_period_unlimited' => ['nullable', 'boolean'],
             'thumbnail_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병원',
-            'doctor_id' => '의사',
-            'title' => '제목',
-            'description' => '설명',
-            'distribution_channel' => '배포 채널',
-            'external_video_id' => '외부 영상 ID',
-            'external_video_url' => '외부 영상 URL',
-            'duration_seconds' => '재생 시간(초)',
-            'status' => '운영 상태',
-            'allow_status' => '검수 상태',
+            'hospital_id' => '병의원',
+            'doctor_id' => '의료진',
+            'manager_staff_id' => '담당자',
+            'title' => '동영상 제목',
+            'description' => '영상 설명',
+            'external_video_url' => '유튜브 링크',
+            'hospital_status' => '공개여부',
+            'admin_status' => '강제중지',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
-            'publish_start_at' => '게시 시작 시각',
-            'publish_end_at' => '게시 종료 시각',
-            'is_publish_period_unlimited' => '무기한 게시 여부',
-            'thumbnail_file' => '썸네일 파일',
+            'hashtag_ids' => '해시태그 목록',
+            'hashtag_ids.*' => '해시태그',
+            'thumbnail_file' => '썸네일',
         ];
     }
 
@@ -131,8 +109,8 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
                 && json_last_error() === JSON_ERROR_NONE
                 && is_array($decoded)
                 && array_is_list($decoded)
-                ? $decoded
-                : explode(',', $trimmed);
+                    ? $decoded
+                    : explode(',', $trimmed);
         }
 
         if (! is_array($value)) {
@@ -145,34 +123,5 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             ->filter(static fn (int $item): bool => $item > 0)
             ->values()
             ->all();
-    }
-
-    private function extractYoutubeVideoId(string $url): ?string
-    {
-        $parts = parse_url($url);
-        if (! is_array($parts)) {
-            return null;
-        }
-
-        $host = strtolower((string) ($parts['host'] ?? ''));
-        $path = trim((string) ($parts['path'] ?? ''), '/');
-
-        if ($host === 'youtu.be' && $path !== '') {
-            return $path;
-        }
-
-        if (str_contains($host, 'youtube.com')) {
-            parse_str((string) ($parts['query'] ?? ''), $query);
-            if (is_string($query['v'] ?? null) && $query['v'] !== '') {
-                return $query['v'];
-            }
-
-            if (str_starts_with($path, 'shorts/')) {
-                $shortId = trim(substr($path, strlen('shorts/')));
-                return $shortId !== '' ? $shortId : null;
-            }
-        }
-
-        return null;
     }
 }

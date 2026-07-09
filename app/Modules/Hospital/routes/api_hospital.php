@@ -27,9 +27,9 @@ Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function 
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForHospitalController::class, 'updateAdminNoteForHospital'])->name('notes.updateAdminNoteForHospital');
 
     /**
-     * 동영상 게시 요청
+     * 동영상 공개여부 변경
      **/
-    Route::post('/videos', [HospitalVideoForHospitalController::class, 'createVideoForHospital'])->name('videos.createVideoForHospital');
-    Route::post('/videos/{video}/cancel', [HospitalVideoForHospitalController::class, 'cancelVideoForHospital'])->name('videos.cancelVideoForHospital');
+    Route::patch('/videos/{video}/hospital-status', [HospitalVideoForHospitalController::class, 'updateVideoStatusForHospital'])
+        ->name('videos.updateVideoStatusForHospital');
 
 });

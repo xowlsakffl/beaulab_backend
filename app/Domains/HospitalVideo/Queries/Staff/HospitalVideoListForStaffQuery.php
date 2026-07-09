@@ -3,13 +3,11 @@
 namespace App\Domains\HospitalVideo\Queries\Staff;
 
 use App\Common\Support\DateRangeFilter;
+use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
-/**
- * HospitalVideoListForStaffQuery 역할 정의.
- * 병원 동영상 도메인의 Query 계층으로, Eloquent 조회/저장 조건을 캡슐화해 Action 계층에 DB 쿼리가 흩어지지 않게 한다.
- */
 final class HospitalVideoListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator
@@ -19,19 +17,13 @@ final class HospitalVideoListForStaffQuery
                 'id',
                 'hospital_id',
                 'doctor_id',
+                'manager_staff_id',
                 'title',
-                'distribution_channel',
-                'external_video_id',
                 'external_video_url',
-                'duration_seconds',
-                'status',
-                'allow_status',
+                'hospital_status',
+                'admin_status',
                 'view_count',
                 'like_count',
-                'allowed_at',
-                'publish_start_at',
-                'publish_end_at',
-                'is_publish_period_unlimited',
                 'created_at',
                 'updated_at',
             ])
@@ -39,7 +31,9 @@ final class HospitalVideoListForStaffQuery
                 'hospital:id,name',
                 'hospital.businessRegistration:id,hospital_id,business_number',
                 'doctor:id,name,position',
+                'managerStaff:id,name,email',
                 'thumbnailMedia',
+                'contentReportState',
                 'categories' => fn ($query) => $query
                     ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')
@@ -51,39 +45,130 @@ final class HospitalVideoListForStaffQuery
             $builder->where('hospital_id', (int) $filters['hospital_id']);
         }
 
+        if (! empty($filters['category_id'])) {
+            $builder->whereHas('categories', fn (Builder $query) => $query
+                ->where('categories.id', (int) $filters['category_id']));
+        }
+
         if (! empty($filters['q'])) {
-            $q = (string) $filters['q'];
-            $builder->where(function ($query) use ($q): void {
-                $query->where('title', 'like', "%{$q}%")
-                    ->orWhere('description', 'like', "%{$q}%")
-                    ->orWhere('external_video_id', 'like', "%{$q}%")
-                    ->orWhere('external_video_url', 'like', "%{$q}%")
-                    ->orWhereHas('hospital', fn ($hospitalQuery) => $hospitalQuery->where('name', 'like', "%{$q}%"))
-                    ->orWhereHas('doctor', fn ($doctorQuery) => $doctorQuery->where('name', 'like', "%{$q}%"));
-            });
+            $this->applySearch($builder, (string) $filters['q']);
         }
 
-        if (is_array($filters['status'] ?? null) && $filters['status'] !== []) {
-            $builder->whereIn('status', $filters['status']);
+        if (is_array($filters['hospital_status'] ?? null) && $filters['hospital_status'] !== []) {
+            $builder->whereIn('hospital_status', $filters['hospital_status']);
         }
 
-        if (is_array($filters['allow_status'] ?? null) && $filters['allow_status'] !== []) {
-            $builder->whereIn('allow_status', $filters['allow_status']);
+        if (is_array($filters['admin_status'] ?? null) && $filters['admin_status'] !== []) {
+            $builder->whereIn('admin_status', $filters['admin_status']);
         }
 
-        if (is_array($filters['distribution_channel'] ?? null) && $filters['distribution_channel'] !== []) {
-            $builder->whereIn('distribution_channel', $filters['distribution_channel']);
+        if (is_array($filters['report_status'] ?? null) && $filters['report_status'] !== []) {
+            $this->applyReportStatusFilter($builder, $filters['report_status']);
         }
+
+        $this->applyNumberRange($builder, 'view_count', $filters['view_count_min'] ?? null, $filters['view_count_max'] ?? null);
+        $this->applyNumberRange($builder, 'like_count', $filters['like_count_min'] ?? null, $filters['like_count_max'] ?? null);
+        $this->applyReportCountRange($builder, $filters['report_count_min'] ?? null, $filters['report_count_max'] ?? null);
 
         DateRangeFilter::apply($builder, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
-        DateRangeFilter::apply($builder, 'allowed_at', $filters['allowed_start_date'] ?? null, $filters['allowed_end_date'] ?? null);
 
-        $sort = (string) ($filters['sort'] ?? 'id');
-        $builder->orderBy($sort, $filters['direction'] ?? 'desc');
+        $sort = in_array($filters['sort'] ?? null, [
+            'id',
+            'title',
+            'hospital_status',
+            'admin_status',
+            'view_count',
+            'like_count',
+            'created_at',
+            'updated_at',
+        ], true) ? (string) $filters['sort'] : 'id';
+
+        $builder->orderBy($sort, ($filters['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc');
         if ($sort !== 'id') {
             $builder->orderByDesc('id');
         }
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+    }
+
+    private function applySearch(Builder $builder, string $q): void
+    {
+        $q = trim($q);
+
+        if ($q === '') {
+            return;
+        }
+
+        $builder->where(function (Builder $query) use ($q): void {
+            if (ctype_digit($q)) {
+                $query->orWhereKey((int) $q);
+            }
+
+            $query
+                ->orWhere('title', 'like', "%{$q}%")
+                ->orWhereHas('hospital', fn (Builder $hospitalQuery) => $hospitalQuery
+                    ->where('name', 'like', "%{$q}%"));
+        });
+    }
+
+    /**
+     * @param  array<int, string>  $statuses
+     */
+    private function applyReportStatusFilter(Builder $builder, array $statuses): void
+    {
+        $statuses = array_values(array_unique(array_filter($statuses)));
+        if ($statuses === []) {
+            return;
+        }
+
+        $includeNone = in_array(ContentReportState::STATUS_NONE, $statuses, true);
+        $nonNoneStatuses = array_values(array_filter(
+            $statuses,
+            static fn (string $status): bool => $status !== ContentReportState::STATUS_NONE,
+        ));
+
+        $builder->where(function (Builder $query) use ($includeNone, $nonNoneStatuses): void {
+            if ($includeNone) {
+                $query
+                    ->whereDoesntHave('contentReportState')
+                    ->orWhereHas('contentReportState', fn (Builder $stateQuery) => $stateQuery
+                        ->where('report_status', ContentReportState::STATUS_NONE));
+            }
+
+            if ($nonNoneStatuses !== []) {
+                $query->orWhereHas('contentReportState', fn (Builder $stateQuery) => $stateQuery
+                    ->whereIn('report_status', $nonNoneStatuses));
+            }
+        });
+    }
+
+    private function applyNumberRange(Builder $builder, string $column, mixed $min, mixed $max): void
+    {
+        if ($min !== null && $min !== '') {
+            $builder->where($column, '>=', (int) $min);
+        }
+
+        if ($max !== null && $max !== '') {
+            $builder->where($column, '<=', (int) $max);
+        }
+    }
+
+    private function applyReportCountRange(Builder $builder, mixed $min, mixed $max): void
+    {
+        if ($min !== null && $min !== '' && (int) $min > 0) {
+            $builder->whereHas('contentReportState', fn (Builder $query) => $query
+                ->where('report_count', '>=', (int) $min));
+        }
+
+        if ($max !== null && $max !== '') {
+            $maxValue = (int) $max;
+
+            $builder->where(function (Builder $query) use ($maxValue): void {
+                $query
+                    ->whereDoesntHave('contentReportState')
+                    ->orWhereHas('contentReportState', fn (Builder $stateQuery) => $stateQuery
+                        ->where('report_count', '<=', $maxValue));
+            });
+        }
     }
 }

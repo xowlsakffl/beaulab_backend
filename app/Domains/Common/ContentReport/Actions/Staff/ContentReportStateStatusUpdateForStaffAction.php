@@ -12,6 +12,7 @@ use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -37,7 +38,7 @@ final class ContentReportStateStatusUpdateForStaffAction
 
         $target = ContentReportTargetRegistry::resolveTarget($targetAlias, (int) $payload['target_id']);
         $nextReportStatus = (string) $payload['report_status'];
-        $this->assertProcessableStatus($target, $nextReportStatus);
+        $this->assertProcessableStatus($nextReportStatus);
         $processReason = $this->normalizeReason($payload['process_reason'] ?? null);
         $actor = auth()->user();
 
@@ -49,82 +50,21 @@ final class ContentReportStateStatusUpdateForStaffAction
             }
 
             $previousReportStatus = (string) $state->report_status;
-            $now = now();
-
-            if ($nextReportStatus === ContentReportState::STATUS_ADMIN_HIDDEN) {
-                $state->report_status = ContentReportState::STATUS_ADMIN_HIDDEN;
-                $state->admin_hidden_at = $now;
-                $state->process_reason = $processReason;
-                $this->applyTargetStatus(
-                    target: $target,
-                    status: 'INACTIVE',
-                    reason: $processReason,
-                    reportStatusBefore: $previousReportStatus,
-                    reportStatusAfter: ContentReportState::STATUS_ADMIN_HIDDEN,
-                    actor: $actor instanceof Model ? $actor : null,
-                    source: 'staff.content_report.admin_hidden',
-                );
-            }
-
-            if ($nextReportStatus === ContentReportState::STATUS_NORMAL_VISIBLE) {
-                if (! in_array($previousReportStatus, [
-                    ContentReportState::STATUS_NORMAL_VISIBLE,
-                    ContentReportState::STATUS_REEXPOSED,
-                ], true)) {
-                    $state->normal_visible_count = (int) $state->normal_visible_count + 1;
-                }
-
-                $reportStatusAfter = (int) $state->normal_visible_count >= ContentReportState::AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD
-                    ? ContentReportState::STATUS_REEXPOSED
-                    : ContentReportState::STATUS_NORMAL_VISIBLE;
-
-                $state->report_status = $reportStatusAfter;
-                $state->normal_visible_at = $now;
-                $state->recent_hour_report_count = 0;
-                $state->process_reason = $processReason;
-                $this->applyTargetStatus(
-                    target: $target,
-                    status: 'ACTIVE',
-                    reason: $processReason,
-                    reportStatusBefore: $previousReportStatus,
-                    reportStatusAfter: $reportStatusAfter,
-                    actor: $actor instanceof Model ? $actor : null,
-                    source: $reportStatusAfter === ContentReportState::STATUS_REEXPOSED
-                        ? 'staff.content_report.reexposed'
-                        : 'staff.content_report.normal_visible',
-                );
-            }
-
-            if ($nextReportStatus === ContentReportState::STATUS_VALID) {
-                $state->report_status = ContentReportState::STATUS_VALID;
-                $state->process_reason = $processReason;
-                $this->applyTargetStatus(
-                    target: $target,
-                    status: 'INACTIVE',
-                    reason: $processReason,
-                    reportStatusBefore: $previousReportStatus,
-                    reportStatusAfter: ContentReportState::STATUS_VALID,
-                    actor: $actor instanceof Model ? $actor : null,
-                    source: 'staff.content_report.valid',
-                );
-            }
-
-            if ($nextReportStatus === ContentReportState::STATUS_INVALID) {
-                $state->report_status = ContentReportState::STATUS_INVALID;
-                $state->process_reason = $processReason;
-                $this->applyTargetStatus(
-                    target: $target,
-                    status: 'ACTIVE',
-                    reason: $processReason,
-                    reportStatusBefore: $previousReportStatus,
-                    reportStatusAfter: ContentReportState::STATUS_INVALID,
-                    actor: $actor instanceof Model ? $actor : null,
-                    source: 'staff.content_report.invalid',
-                );
-            }
+            $reportStatusAfter = $this->applyReportState($state, $nextReportStatus, $processReason);
+            $targetChange = $this->applyTargetState($target, $nextReportStatus);
 
             $state->processed_by = $actor instanceof Model ? (int) $actor->getKey() : null;
             $state->save();
+
+            $this->recordHistory(
+                target: $target,
+                actor: $actor instanceof Model ? $actor : null,
+                reason: $processReason,
+                reportStatusBefore: $previousReportStatus,
+                reportStatusAfter: $reportStatusAfter,
+                targetChange: $targetChange,
+            );
+
             $state->load('processedBy:id,name,email');
 
             return ContentReportStateForStaffDto::fromModel($state)->toArray();
@@ -135,66 +75,122 @@ final class ContentReportStateStatusUpdateForStaffAction
         return $result;
     }
 
-    private function assertProcessableStatus(Model $target, string $nextReportStatus): void
+    private function assertProcessableStatus(string $nextReportStatus): void
     {
-        $allowedStatuses = $this->hasStatusColumn($target)
-            ? [
-                ContentReportState::STATUS_ADMIN_HIDDEN,
-                ContentReportState::STATUS_NORMAL_VISIBLE,
-            ]
-            : [
-                ContentReportState::STATUS_VALID,
-                ContentReportState::STATUS_INVALID,
-            ];
-
-        if (in_array($nextReportStatus, $allowedStatuses, true)) {
+        if (in_array($nextReportStatus, ContentReportState::processableStatuses(), true)) {
             return;
         }
 
         throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 대상에 사용할 수 없는 처리 상태입니다.');
     }
 
-    private function normalizeReason(mixed $reason): ?string
+    private function applyReportState(ContentReportState $state, string $nextReportStatus, ?string $processReason): string
     {
-        $reason = trim((string) $reason);
+        $previousReportStatus = (string) $state->report_status;
+        $now = now();
 
-        return $reason === '' ? null : $reason;
+        if ($nextReportStatus === ContentReportState::STATUS_ADMIN_HIDDEN) {
+            $state->report_status = ContentReportState::STATUS_ADMIN_HIDDEN;
+            $state->admin_hidden_at = $now;
+            $state->process_reason = $processReason;
+
+            return ContentReportState::STATUS_ADMIN_HIDDEN;
+        }
+
+        if (! in_array($previousReportStatus, [
+            ContentReportState::STATUS_NORMAL_VISIBLE,
+            ContentReportState::STATUS_REEXPOSED,
+        ], true)) {
+            $state->normal_visible_count = (int) $state->normal_visible_count + 1;
+        }
+
+        $reportStatusAfter = (int) $state->normal_visible_count >= ContentReportState::AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD
+            ? ContentReportState::STATUS_REEXPOSED
+            : ContentReportState::STATUS_NORMAL_VISIBLE;
+
+        $state->report_status = $reportStatusAfter;
+        $state->normal_visible_at = $now;
+        $state->recent_hour_report_count = 0;
+        $state->process_reason = $processReason;
+
+        return $reportStatusAfter;
     }
 
-    private function applyTargetStatus(
+    /**
+     * @return array{key:string,label:string,before:string,after:string,before_display:string,after_display:string}|null
+     */
+    private function applyTargetState(Model $target, string $nextReportStatus): ?array
+    {
+        if ($target instanceof HospitalVideo) {
+            $before = (string) $target->admin_status;
+            $after = $nextReportStatus === ContentReportState::STATUS_ADMIN_HIDDEN
+                ? HospitalVideo::ADMIN_STATUS_FORCED_STOPPED
+                : HospitalVideo::ADMIN_STATUS_NORMAL;
+
+            if ($before !== $after) {
+                $target->forceFill(['admin_status' => $after])->save();
+            }
+
+            return [
+                'key' => 'admin_status',
+                'label' => '강제중지 상태 변경',
+                'before' => $before,
+                'after' => $after,
+                'before_display' => HospitalVideo::adminStatusLabel($before),
+                'after_display' => HospitalVideo::adminStatusLabel($after),
+            ];
+        }
+
+        if (! Schema::hasColumn($target->getTable(), 'status')) {
+            return null;
+        }
+
+        $before = (string) $target->getAttribute('status');
+        $after = $nextReportStatus === ContentReportState::STATUS_ADMIN_HIDDEN ? 'INACTIVE' : 'ACTIVE';
+
+        if ($before !== $after) {
+            $target->forceFill(['status' => $after])->save();
+        }
+
+        return [
+            'key' => 'status',
+            'label' => '노출여부 변경',
+            'before' => $before,
+            'after' => $after,
+            'before_display' => $this->visibilityLabel($before),
+            'after_display' => $this->visibilityLabel($after),
+        ];
+    }
+
+    /**
+     * @param  array{key:string,label:string,before:string,after:string,before_display:string,after_display:string}|null  $targetChange
+     */
+    private function recordHistory(
         Model $target,
-        string $status,
+        ?Model $actor,
         ?string $reason,
         string $reportStatusBefore,
         string $reportStatusAfter,
-        ?Model $actor,
-        string $source,
+        ?array $targetChange,
     ): void {
-        $hasStatusColumn = $this->hasStatusColumn($target);
-        $beforeStatus = $hasStatusColumn ? (string) $target->getAttribute('status') : $reportStatusBefore;
-
-        if ($hasStatusColumn && $beforeStatus !== $status) {
-            $target->forceFill(['status' => $status])->save();
-        }
-
         $changesBuilder = OperationHistoryChangeSetBuilder::make()
             ->compare(
                 key: 'report_status',
-                label: '조치유형',
+                label: '조치유형 변경',
                 before: $reportStatusBefore,
                 after: $reportStatusAfter,
                 beforeDisplay: ContentReportState::statusLabels()[$reportStatusBefore] ?? $reportStatusBefore,
                 afterDisplay: ContentReportState::statusLabels()[$reportStatusAfter] ?? $reportStatusAfter,
             );
 
-        if ($hasStatusColumn) {
+        if ($targetChange !== null) {
             $changesBuilder->compare(
-                key: 'status',
-                label: '노출여부',
-                before: $beforeStatus,
-                after: $status,
-                beforeDisplay: $beforeStatus === 'ACTIVE' ? '노출' : '미노출',
-                afterDisplay: $status === 'ACTIVE' ? '노출' : '미노출',
+                key: $targetChange['key'],
+                label: $targetChange['label'],
+                before: $targetChange['before'],
+                after: $targetChange['after'],
+                beforeDisplay: $targetChange['before_display'],
+                afterDisplay: $targetChange['after_display'],
             );
         }
 
@@ -206,14 +202,23 @@ final class ContentReportStateStatusUpdateForStaffAction
             metadata: [
                 'report_status_before' => $reportStatusBefore,
                 'report_status_after' => $reportStatusAfter,
-                'source' => $source,
+                'source' => $reportStatusAfter === ContentReportState::STATUS_REEXPOSED
+                    ? 'staff.content_report.reexposed'
+                    : 'staff.content_report.status',
             ],
             changes: $changesBuilder->toArray(),
         );
     }
 
-    private function hasStatusColumn(Model $target): bool
+    private function visibilityLabel(string $status): string
     {
-        return Schema::hasColumn($target->getTable(), 'status');
+        return $status === 'ACTIVE' ? '노출' : '미노출';
+    }
+
+    private function normalizeReason(mixed $reason): ?string
+    {
+        $reason = trim((string) $reason);
+
+        return $reason === '' ? null : $reason;
     }
 }

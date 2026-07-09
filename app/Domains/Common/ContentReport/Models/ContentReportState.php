@@ -21,10 +21,6 @@ final class ContentReportState extends Model
 
     public const string STATUS_REEXPOSED = 'REEXPOSED';
 
-    public const string STATUS_VALID = 'VALID';
-
-    public const string STATUS_INVALID = 'INVALID';
-
     public const string WARNING_STATUS_NONE = 'NONE';
 
     public const string WARNING_STATUS_WARNED = 'WARNED';
@@ -96,8 +92,6 @@ final class ContentReportState extends Model
             self::STATUS_ADMIN_HIDDEN,
             self::STATUS_NORMAL_VISIBLE,
             self::STATUS_REEXPOSED,
-            self::STATUS_VALID,
-            self::STATUS_INVALID,
         ];
     }
 
@@ -109,8 +103,6 @@ final class ContentReportState extends Model
         return [
             self::STATUS_ADMIN_HIDDEN,
             self::STATUS_NORMAL_VISIBLE,
-            self::STATUS_VALID,
-            self::STATUS_INVALID,
         ];
     }
 
@@ -161,8 +153,6 @@ final class ContentReportState extends Model
             self::STATUS_ADMIN_HIDDEN => '노출중지',
             self::STATUS_NORMAL_VISIBLE => '정상노출',
             self::STATUS_REEXPOSED => '재노출',
-            self::STATUS_VALID => '신고',
-            self::STATUS_INVALID => '무시',
         ];
     }
 
@@ -171,14 +161,14 @@ final class ContentReportState extends Model
         return self::statusLabels()[(string) $this->report_status] ?? (string) $this->report_status;
     }
 
-    public function isAutoActionLocked(): bool
-    {
-        return (int) $this->normal_visible_count >= self::AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD;
-    }
-
     public function warningStatusLabel(): string
     {
         return self::warningStatusLabels()[(string) $this->warning_status] ?? (string) $this->warning_status;
+    }
+
+    public function isAutoActionLocked(): bool
+    {
+        return (int) $this->normal_visible_count >= self::AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD;
     }
 
     public function target(): MorphTo

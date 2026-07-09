@@ -77,7 +77,6 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'get staff/doctors/hospital-options' => '의사 등록용 병의원 옵션 조회',
         'get staff/videos/hospital-options' => '동영상 등록용 병의원 옵션 조회',
         'get staff/videos/doctor-options' => '동영상 등록용 의사 옵션 조회',
-        'get staff/videos/{video}/download-video-file' => '동영상 파일 다운로드',
         'patch staff/talks/status' => '토크 상태 일괄 수정',
         'patch staff/talk-comments/status' => '토크 댓글 상태 일괄 수정',
         'get staff/hospital-evaluations' => '병의원 평가 목록 조회',
@@ -141,8 +140,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'patch hospital/profile' => '병의원 계정 프로필 수정',
         'put hospital/password' => '병의원 계정 비밀번호 변경',
         'patch hospital/password' => '병의원 계정 비밀번호 변경',
-        'post hospital/videos' => '병의원 동영상 게시 요청',
-        'post hospital/videos/{video}/cancel' => '병의원 동영상 게시 요청 취소',
+        'patch hospital/videos/{video}/hospital-status' => '병의원 동영상 공개여부 변경',
 
         'post beauty/auth/login' => '뷰티 계정 로그인',
         'post beauty/auth/logout' => '뷰티 계정 로그아웃',

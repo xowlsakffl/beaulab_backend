@@ -64,6 +64,52 @@ final class HospitalVideoUpdateHistoryRecordAction
         );
     }
 
+    public function recordHospitalStatusUpdated(
+        HospitalVideo $video,
+        string $beforeStatus,
+        string $afterStatus,
+        ?string $reason = null,
+    ): void {
+        $this->record(
+            video: $video,
+            action: OperationHistory::ACTION_STATE_UPDATED,
+            source: 'hospital.hospital_video.hospital_status',
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: 'hospital_status',
+                label: '공개여부',
+                before: $beforeStatus,
+                after: $afterStatus,
+                beforeDisplay: HospitalVideo::hospitalStatusLabel($beforeStatus),
+                afterDisplay: HospitalVideo::hospitalStatusLabel($afterStatus),
+            ),
+            reason: $reason,
+        );
+    }
+
+    public function recordAdminStatusUpdated(
+        HospitalVideo $video,
+        string $beforeStatus,
+        string $afterStatus,
+        ?string $reason = null,
+        bool $bulk = false,
+    ): void {
+        $this->record(
+            video: $video,
+            action: OperationHistory::ACTION_STATE_UPDATED,
+            source: 'staff.hospital_video.admin_status',
+            changes: OperationHistoryChangeSetBuilder::single(
+                key: 'admin_status',
+                label: '강제중지',
+                before: $beforeStatus,
+                after: $afterStatus,
+                beforeDisplay: HospitalVideo::adminStatusLabel($beforeStatus),
+                afterDisplay: HospitalVideo::adminStatusLabel($afterStatus),
+            ),
+            reason: $reason,
+            metadata: ['bulk' => $bulk],
+        );
+    }
+
     /**
      * @return array{label:string,value:mixed,display:?string}
      */
@@ -140,8 +186,14 @@ final class HospitalVideoUpdateHistoryRecordAction
     /**
      * @param  array<int, array<string, mixed>>  $changes
      */
-    private function record(HospitalVideo $video, string $action, string $source, array $changes): void
-    {
+    private function record(
+        HospitalVideo $video,
+        string $action,
+        string $source,
+        array $changes,
+        ?string $reason = null,
+        array $metadata = [],
+    ): void {
         if ($changes === [] && $action !== OperationHistory::ACTION_CREATED) {
             return;
         }
@@ -152,8 +204,8 @@ final class HospitalVideoUpdateHistoryRecordAction
             target: $video,
             action: $action,
             actor: $actor instanceof Model ? $actor : null,
-            reason: null,
-            metadata: ['source' => $source],
+            reason: $reason,
+            metadata: ['source' => $source, ...$metadata],
             changes: $changes,
         );
     }

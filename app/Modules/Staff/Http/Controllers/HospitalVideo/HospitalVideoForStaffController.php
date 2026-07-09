@@ -4,16 +4,20 @@ namespace App\Modules\Staff\Http\Controllers\HospitalVideo;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoAdminStatusUpdateForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoCreateForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoDeleteForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoDoctorOptionListForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoGetForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoHospitalOptionListForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoListForStaffAction;
+use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoOperationHistoriesForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoUpdateForStaffAction;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
+use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoAdminStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoDoctorOptionListForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoHospitalOptionListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoUpdateForStaffRequest;
@@ -49,11 +53,24 @@ final class HospitalVideoForStaffController extends Controller
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
-    public function getVideoForStaff(HospitalVideo $video, HospitalVideoGetForStaffAction $action)
-    {
+    public function getVideoForStaff(
+        HospitalVideo $video,
+        HospitalVideoGetForStaffRequest $request,
+        HospitalVideoGetForStaffAction $action,
+    ) {
         $result = $action->execute($video);
 
         return ApiResponse::success($result['video'] ?? $result);
+    }
+
+    public function getVideoOperationHistoriesForStaff(
+        HospitalVideo $video,
+        HospitalVideoGetForStaffRequest $request,
+        HospitalVideoOperationHistoriesForStaffAction $action,
+    ) {
+        $result = $action->execute($video, $request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
     }
 
     public function createVideoForStaff(HospitalVideoCreateForStaffRequest $request, HospitalVideoCreateForStaffAction $action)
@@ -75,5 +92,12 @@ final class HospitalVideoForStaffController extends Controller
         $result = $action->execute($video);
 
         return ApiResponse::success($result);
+    }
+
+    public function updateVideoAdminStatusForStaff(
+        HospitalVideoAdminStatusUpdateForStaffRequest $request,
+        HospitalVideoAdminStatusUpdateForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($request->validated()));
     }
 }

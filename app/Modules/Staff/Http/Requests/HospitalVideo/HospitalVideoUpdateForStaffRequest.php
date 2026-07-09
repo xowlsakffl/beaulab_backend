@@ -22,8 +22,6 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'title',
             'description',
             'external_video_url',
-            'hospital_status',
-            'admin_status',
             'existing_thumbnail_file_id',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
@@ -54,8 +52,6 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'external_video_url' => ['sometimes', 'nullable', 'url', 'max:1024'],
-            'hospital_status' => ['sometimes', 'nullable', Rule::in(HospitalVideo::hospitalStatuses())],
-            'admin_status' => ['sometimes', 'nullable', Rule::in(HospitalVideo::adminStatuses())],
             'category_ids' => ['sometimes', 'array', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -88,8 +84,6 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'title' => '동영상 제목',
             'description' => '영상 설명',
             'external_video_url' => '유튜브 링크',
-            'hospital_status' => '공개여부',
-            'admin_status' => '강제중지',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'hashtag_ids' => '해시태그 목록',

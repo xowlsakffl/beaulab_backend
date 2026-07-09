@@ -15,8 +15,6 @@ final class HospitalVideoUpdateForStaffQuery
             'title',
             'description',
             'external_video_url',
-            'hospital_status',
-            'admin_status',
             'view_count',
             'like_count',
         ];

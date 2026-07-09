@@ -299,6 +299,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('videos.getVideoDoctorOptionsForStaff');
     Route::get('videos', [HospitalVideoForStaffController::class, 'getVideosForStaff'])
         ->name('videos.getVideosForStaff');
+    Route::patch('videos/admin-status', [HospitalVideoForStaffController::class, 'updateVideoAdminStatusForStaff'])
+        ->name('videos.updateVideoAdminStatusForStaff');
+    Route::get('videos/{video}/operation-histories', [HospitalVideoForStaffController::class, 'getVideoOperationHistoriesForStaff'])
+        ->name('videos.getVideoOperationHistoriesForStaff');
     Route::get('videos/{video}', [HospitalVideoForStaffController::class, 'getVideoForStaff'])
         ->name('videos.getVideoForStaff');
     Route::post('videos', [HospitalVideoForStaffController::class, 'createVideoForStaff'])

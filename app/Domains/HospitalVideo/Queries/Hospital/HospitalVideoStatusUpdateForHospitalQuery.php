@@ -6,13 +6,11 @@ use App\Domains\HospitalVideo\Models\HospitalVideo;
 
 final class HospitalVideoStatusUpdateForHospitalQuery
 {
-    public function update(HospitalVideo $video, string $hospitalStatus): HospitalVideo
+    public function updateHospitalStatus(HospitalVideo $video, string $hospitalStatus): HospitalVideo
     {
-        $video->fill([
-            'hospital_status' => $hospitalStatus,
-        ]);
+        $video->hospital_status = $hospitalStatus;
 
-        if ($video->isDirty()) {
+        if ($video->isDirty('hospital_status')) {
             $video->save();
         }
 

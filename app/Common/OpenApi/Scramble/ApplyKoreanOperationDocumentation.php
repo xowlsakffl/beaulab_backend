@@ -77,6 +77,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'get staff/doctors/hospital-options' => '의사 등록용 병의원 옵션 조회',
         'get staff/videos/hospital-options' => '동영상 등록용 병의원 옵션 조회',
         'get staff/videos/doctor-options' => '동영상 등록용 의사 옵션 조회',
+        'patch staff/videos/admin-status' => '동영상 강제중지 상태 일괄 수정',
+        'get staff/videos/{video}/operation-histories' => '동영상 히스토리 조회',
         'patch staff/talks/status' => '토크 상태 일괄 수정',
         'patch staff/talk-comments/status' => '토크 댓글 상태 일괄 수정',
         'get staff/hospital-evaluations' => '병의원 평가 목록 조회',

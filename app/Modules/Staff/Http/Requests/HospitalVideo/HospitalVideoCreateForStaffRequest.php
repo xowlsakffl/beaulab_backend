@@ -4,7 +4,6 @@ namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Hashtag\Models\Hashtag;
-use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,8 +18,6 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             'manager_staff_id',
             'description',
             'external_video_url',
-            'hospital_status',
-            'admin_status',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
                 $data[$nullableKey] = null;
@@ -50,8 +47,6 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'external_video_url' => ['required', 'url', 'max:1024'],
-            'hospital_status' => ['nullable', Rule::in(HospitalVideo::hospitalStatuses())],
-            'admin_status' => ['nullable', Rule::in(HospitalVideo::adminStatuses())],
             'category_ids' => ['nullable', 'array', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -83,8 +78,6 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             'title' => '동영상 제목',
             'description' => '영상 설명',
             'external_video_url' => '유튜브 링크',
-            'hospital_status' => '공개여부',
-            'admin_status' => '강제중지',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'hashtag_ids' => '해시태그 목록',

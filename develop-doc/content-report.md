@@ -73,13 +73,15 @@ Staff 신고게시물 관리는 일반 토크/후기/평가 관리 권한과 분
 3. 실제 신고 대상 항목을 `content_report_items`에 생성한다.
 4. 대상별 `content_report_states`를 생성하거나 잠금 조회한다.
 5. 전체 신고 수(`report_count`)와 최근 1시간 신고 수(`recent_hour_report_count`)를 갱신한다.
-6. 최근 1시간 신고 수가 10건 이상이면 `AUTO_BLOCKED`로 바꾸고 대상 콘텐츠 `status`를 `INACTIVE`로 바꾼다.
-7. 기존 상태가 `NONE` 또는 `NORMAL_VISIBLE`이고 자동차단 기준 미만이면 `REPORTED`로 바꾼다.
-8. `normal_visible_count`가 3회 이상인 상태에서 추가 신고가 들어오면 `NORMAL_VISIBLE`은 `REEXPOSED`로 보정하고, 이후 자동 신고접수/자동차단으로 바꾸지 않는다.
+6. 동영상(`HospitalVideo`) 신고만, 기존 상태가 `NORMAL_VISIBLE` 또는 `REEXPOSED`이고 `normal_visible_at` 이후 72시간이 지나지 않았으면 상태를 유지하고 신고 수만 갱신한다.
+7. 동영상 신고만, 기존 상태가 `NORMAL_VISIBLE` 또는 `REEXPOSED`이고 `normal_visible_at` 이후 72시간이 지났으면 `REPORTED`로 바꾼다. 이 전환은 자동차단 판단보다 먼저 처리한다.
+8. 비동영상 신고는 기존 공통 정책대로 `normal_visible_count`가 3회 이상이면 자동 신고접수/자동차단 상태 전환 대상에서 제외한다.
+9. 그 외 상태에서 최근 1시간 신고 수가 10건 이상이면 `AUTO_BLOCKED`로 바꾸고 대상 콘텐츠 `status`를 `INACTIVE`로 바꾼다.
+10. 기존 상태가 `NONE` 또는 `NORMAL_VISIBLE`이고 자동차단 기준 미만이면 `REPORTED`로 바꾼다.
 
 관리자가 `NORMAL_VISIBLE`로 처리하면 `recent_hour_report_count`를 0으로 초기화한다. 따라서 정상노출 직후 신고 1건만 추가되어도 바로 자동차단되지 않고, 정상노출 이후 다시 10건이 쌓여야 자동차단된다.
 
-관리자가 정상노출을 3회차 처리하는 순간 상태는 `REEXPOSED`로 저장된다. `normal_visible_count`가 3 이상이면 `is_auto_action_locked()`가 true가 되어 이후 신고로 자동 신고접수/자동차단 상태가 되지 않는다.
+관리자가 정상노출을 3회차 처리하는 순간 상태는 `REEXPOSED`로 저장된다. 동영상 신고에서만 `NORMAL_VISIBLE`, `REEXPOSED`를 프론트 표시 정책상 신고오류로 보고, 처리 후 72시간 동안 추가 신고가 들어와도 상태 전환 없이 신고 수만 갱신한다. 72시간이 지난 뒤 새 신고가 들어오면 다시 `REPORTED`가 된다.
 
 채팅 메시지는 콘텐츠 `status` 컬럼이 없으므로 신고 상태 집계만 처리하고 콘텐츠 `status` 변경은 하지 않는다.
 

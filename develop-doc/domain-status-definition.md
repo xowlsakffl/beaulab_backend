@@ -533,7 +533,9 @@
 - 1시간 내 신고 10건 이상이면 `AUTO_BLOCKED`로 변경하고 대상 콘텐츠 `status`를 `INACTIVE`로 변경한다.
 - 관리자가 `NORMAL_VISIBLE`로 처리하면 대상 콘텐츠 `status`는 `ACTIVE`가 되고 `recent_hour_report_count`는 0으로 초기화된다.
 - `NORMAL_VISIBLE` 처리 횟수(`normal_visible_count`)가 3회차가 되면 상태는 `REEXPOSED`로 저장된다.
-- `REEXPOSED` 이후 신고는 자동 신고접수/자동차단 상태 변경 대상에서 제외한다.
+- 동영상 신고만 `NORMAL_VISIBLE`, `REEXPOSED` 상태에서 `normal_visible_at` 이후 72시간 이내 추가 신고가 들어오면 상태는 유지하고 신고 수만 갱신한다.
+- 동영상 신고만 `NORMAL_VISIBLE`, `REEXPOSED` 상태에서 `normal_visible_at` 이후 72시간이 지난 뒤 추가 신고가 들어오면 `REPORTED`로 전환한다. 이 전환은 자동차단 판단보다 먼저 처리한다.
+- 비동영상 신고는 기존 공통 정책대로 `REEXPOSED` 이후 자동 신고접수/자동차단 상태 변경 대상에서 제외한다.
 - 경고/무시는 일반 게시물/댓글/후기/평가는 `ADMIN_HIDDEN` 상태에서만 처리할 수 있고, 채팅 메시지는 `INVALID` 상태에서만 처리할 수 있다.
 - 신고 상태 변경과 경고/무시 변경은 대상 콘텐츠의 operation history에 기록한다.
 - operation history는 `operation_histories` 부모 이력과 `operation_history_changes` 변경 상세로 분리해 저장한다.

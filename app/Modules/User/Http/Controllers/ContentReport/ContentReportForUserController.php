@@ -7,12 +7,15 @@ use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\Common\ContentReport\Actions\User\ContentReportCreateForUserAction;
+use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use App\Modules\User\Http\Requests\ContentReport\ContentReportCreateForUserRequest;
+use Illuminate\Http\Request;
 
 final class ContentReportForUserController extends Controller
 {
@@ -93,6 +96,25 @@ final class ContentReportForUserController extends Controller
     ) {
         $action->execute($request->user(), $hospitalEvaluation, [
             ...$request->validated(),
+            'reporter_ip' => $request->ip(),
+        ]);
+
+        return ApiResponse::success([
+            'message' => '신고가 완료되었습니다.',
+        ]);
+    }
+
+    public function reportHospitalVideoForUser(
+        HospitalVideo $video,
+        Request $request,
+        ContentReportCreateForUserAction $action,
+    ) {
+        if (! $video->isVisible()) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '신고할 수 없는 동영상입니다.');
+        }
+
+        $action->execute($request->user(), $video, [
+            'reason' => ContentReport::REASON_REPORT,
             'reporter_ip' => $request->ip(),
         ]);
 

@@ -91,6 +91,9 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
     Route::post('hospital-evaluations/{hospitalEvaluation}/reports', [ContentReportForUserController::class, 'reportHospitalEvaluationForUser'])
         ->name('hospital-evaluations.reportHospitalEvaluationForUser');
 
+    Route::post('videos/{video}/reports', [ContentReportForUserController::class, 'reportHospitalVideoForUser'])
+        ->name('videos.reportHospitalVideoForUser');
+
     Route::post('hospital-events/{hospitalEvent}/dbs', [HospitalEventForUserController::class, 'createHospitalEventDBForUser'])
         ->name('hospital-events.createHospitalEventDBForUser');
     Route::post('hospital-events/{hospitalEvent}/real-model-dbs', [HospitalEventForUserController::class, 'createHospitalEventRealModelDBForUser'])

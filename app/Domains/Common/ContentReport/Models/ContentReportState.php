@@ -3,6 +3,7 @@
 namespace App\Domains\Common\ContentReport\Models;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -30,6 +31,8 @@ final class ContentReportState extends Model
     public const int AUTO_BLOCK_RECENT_HOUR_THRESHOLD = 10;
 
     public const int AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD = 3;
+
+    public const int VIDEO_NORMAL_VISIBLE_REOPEN_LOCK_HOURS = 72;
 
     protected $table = 'content_report_states';
 
@@ -169,6 +172,26 @@ final class ContentReportState extends Model
     public function isAutoActionLocked(): bool
     {
         return (int) $this->normal_visible_count >= self::AUTO_ACTION_LOCK_NORMAL_VISIBLE_THRESHOLD;
+    }
+
+    public function isNormalVisibleStatus(): bool
+    {
+        return in_array((string) $this->report_status, [
+            self::STATUS_NORMAL_VISIBLE,
+            self::STATUS_REEXPOSED,
+        ], true);
+    }
+
+    public function isVideoNormalVisibleReopenLocked(CarbonInterface $now): bool
+    {
+        if (! $this->isNormalVisibleStatus() || $this->normal_visible_at === null) {
+            return false;
+        }
+
+        return $this->normal_visible_at
+            ->copy()
+            ->addHours(self::VIDEO_NORMAL_VISIBLE_REOPEN_LOCK_HOURS)
+            ->greaterThan($now);
     }
 
     public function target(): MorphTo

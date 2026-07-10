@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 final class ContentReport extends Model
 {
+    public const string REASON_REPORT = 'REPORT';
+
     public const string REASON_ABUSE = 'ABUSE';
 
     public const string REASON_SPAM = 'SPAM';
@@ -50,6 +52,7 @@ final class ContentReport extends Model
     public static function reasons(): array
     {
         return [
+            self::REASON_REPORT,
             self::REASON_ABUSE,
             self::REASON_SPAM,
             self::REASON_ILLEGAL_AD,
@@ -64,6 +67,7 @@ final class ContentReport extends Model
     public static function reasonLabels(): array
     {
         return [
+            self::REASON_REPORT => '신고',
             self::REASON_ABUSE => '비방/욕설',
             self::REASON_SPAM => '게시물/댓글 도배',
             self::REASON_ILLEGAL_AD => '불법광고/홍보',

@@ -12,6 +12,7 @@ use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
@@ -91,7 +92,11 @@ final class ContentReportCreateForUserAction
             $state->first_reported_at ??= $now;
             $state->last_reported_at = $now;
 
-            if ($state->isAutoActionLocked()) {
+            if ($target instanceof HospitalVideo && $state->isVideoNormalVisibleReopenLocked($now)) {
+                $state->report_status = $previousReportStatus;
+            } elseif ($target instanceof HospitalVideo && $state->isNormalVisibleStatus()) {
+                $state->report_status = ContentReportState::STATUS_REPORTED;
+            } elseif ($state->isAutoActionLocked()) {
                 if ($previousReportStatus === ContentReportState::STATUS_NORMAL_VISIBLE) {
                     $state->report_status = ContentReportState::STATUS_REEXPOSED;
                 }

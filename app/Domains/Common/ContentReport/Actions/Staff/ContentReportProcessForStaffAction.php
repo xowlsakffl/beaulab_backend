@@ -183,11 +183,11 @@ final class ContentReportProcessForStaffAction
         $changesBuilder = OperationHistoryChangeSetBuilder::make()
             ->compare(
                 key: 'report_status',
-                label: '조치유형 변경',
+                label: $target instanceof HospitalVideo ? '신고상태 변경' : '조치유형 변경',
                 before: $reportStatusBefore,
                 after: $reportStatusAfter,
-                beforeDisplay: ContentReportState::statusLabels()[$reportStatusBefore] ?? $reportStatusBefore,
-                afterDisplay: ContentReportState::statusLabels()[$reportStatusAfter] ?? $reportStatusAfter,
+                beforeDisplay: $this->reportStatusDisplayLabel($target, $reportStatusBefore),
+                afterDisplay: $this->reportStatusDisplayLabel($target, $reportStatusAfter),
             );
 
         if ($targetStateBefore !== null) {
@@ -389,9 +389,9 @@ final class ContentReportProcessForStaffAction
 
             return [
                 'key' => 'admin_status',
-                'label' => '강제중지 상태 변경',
+                'label' => '강제중지 변경',
                 'value' => $value,
-                'display' => HospitalVideo::adminStatusLabel($value),
+                'display' => $this->videoReportTargetStatusDisplayLabel($value),
             ];
         }
 
@@ -407,5 +407,31 @@ final class ContentReportProcessForStaffAction
             'value' => $value,
             'display' => $value === 'ACTIVE' ? '노출' : '미노출',
         ];
+    }
+
+    private function reportStatusDisplayLabel(Model $target, string $status): string
+    {
+        if ($target instanceof HospitalVideo) {
+            return match ($status) {
+                ContentReportState::STATUS_NONE => '-',
+                ContentReportState::STATUS_REPORTED,
+                ContentReportState::STATUS_AUTO_BLOCKED => '신고접수',
+                ContentReportState::STATUS_ADMIN_HIDDEN => '삭제처리',
+                ContentReportState::STATUS_NORMAL_VISIBLE,
+                ContentReportState::STATUS_REEXPOSED => '신고오류',
+                default => $status,
+            };
+        }
+
+        return ContentReportState::statusLabels()[$status] ?? $status;
+    }
+
+    private function videoReportTargetStatusDisplayLabel(string $status): string
+    {
+        return match ($status) {
+            HospitalVideo::ADMIN_STATUS_NORMAL => '정상',
+            HospitalVideo::ADMIN_STATUS_FORCED_STOPPED => '강제중지',
+            default => $status,
+        };
     }
 }

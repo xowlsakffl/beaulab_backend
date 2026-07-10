@@ -105,17 +105,14 @@ final class HospitalVideoUpdateForStaffAction
      */
     private function syncCategories(HospitalVideo $video, array $categoryIds): void
     {
-        $syncPayload = collect($categoryIds)
+        $syncIds = collect($categoryIds)
             ->map(static fn (int|string $categoryId): int => (int) $categoryId)
             ->filter(static fn (int $categoryId): bool => $categoryId > 0)
             ->unique()
             ->values()
-            ->mapWithKeys(static fn (int $categoryId, int $index): array => [
-                $categoryId => ['is_primary' => $index === 0],
-            ])
             ->all();
 
-        $video->categories()->sync($syncPayload);
+        $video->categories()->sync($syncIds);
     }
 
     /**

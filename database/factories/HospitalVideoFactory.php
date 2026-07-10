@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
@@ -100,7 +101,9 @@ final class HospitalVideoFactory extends Factory
             $categoryIds = Category::query()
                 ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
                 ->where('status', Category::STATUS_ACTIVE)
-                ->whereDoesntHave('children')
+                ->whereHas('usages', static fn ($query) => $query
+                    ->where('usage', CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY)
+                    ->where('status', CategoryUsage::STATUS_ACTIVE))
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)
                 ->all();
@@ -115,13 +118,7 @@ final class HospitalVideoFactory extends Factory
                 ->values()
                 ->all();
 
-            $video->categories()->sync(
-                collect($selectedCategoryIds)
-                    ->mapWithKeys(static fn (int $categoryId, int $index): array => [
-                        $categoryId => ['is_primary' => $index === 0],
-                    ])
-                    ->all()
-            );
+            $video->categories()->sync($selectedCategoryIds);
         });
     }
 

@@ -118,7 +118,6 @@ final readonly class HospitalVideoForHospitalDetailDto
                 'domain' => (string) ($category->domain ?? ''),
                 'name' => (string) $category->name,
                 'full_path' => (string) ($category->full_path ?? ''),
-                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
             ])
             ->values()
             ->all();

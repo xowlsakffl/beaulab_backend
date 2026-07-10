@@ -119,7 +119,7 @@ final class HospitalVideoUpdateHistoryRecordAction
     }
 
     /**
-     * @return array<int, array{id:int,path:string,is_primary:bool}>
+     * @return array<int, array{id:int,path:string}>
      */
     private function categoryValue(HospitalVideo $video): array
     {
@@ -127,7 +127,6 @@ final class HospitalVideoUpdateHistoryRecordAction
             ->map(static fn ($category): array => [
                 'id' => (int) $category->id,
                 'path' => (string) ($category->full_path ?: $category->name),
-                'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
             ])
             ->sortBy('path')
             ->values()
@@ -137,7 +136,7 @@ final class HospitalVideoUpdateHistoryRecordAction
     private function categoryDisplay(HospitalVideo $video): ?string
     {
         return $this->lineList(collect($this->categoryValue($video))
-            ->map(static fn (array $category): string => ($category['is_primary'] ? '[대표] ' : '').$category['path'])
+            ->map(static fn (array $category): string => $category['path'])
             ->all());
     }
 

@@ -15,8 +15,7 @@ final class HospitalVideoCreateForStaffQuery
             'title' => $payload['title'],
             'description' => $payload['description'] ?? null,
             'external_video_url' => $payload['external_video_url'],
-            'view_count' => (int) ($payload['view_count'] ?? 0),
-            'like_count' => (int) ($payload['like_count'] ?? 0),
+            'duration_seconds' => (int) ($payload['duration_seconds'] ?? 0),
         ]);
     }
 }

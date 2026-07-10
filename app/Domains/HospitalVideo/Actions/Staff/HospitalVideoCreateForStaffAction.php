@@ -4,7 +4,6 @@ namespace App\Domains\HospitalVideo\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalVideo\Dto\Staff\HospitalVideoForStaffDetailDto;
@@ -19,6 +18,7 @@ final class HospitalVideoCreateForStaffAction
         private readonly HospitalVideoCreateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalVideoUpdateHistoryRecordAction $historyRecordAction,
+        private readonly HospitalVideoSyncHashtagsForStaffAction $syncHashtagsAction,
     ) {}
 
     public function execute(array $payload): array
@@ -41,7 +41,7 @@ final class HospitalVideoCreateForStaffAction
             }
 
             $this->syncCategories($video, $normalized['category_ids'] ?? []);
-            $this->syncHashtags($video, $normalized['hashtag_ids'] ?? []);
+            $this->syncHashtagsAction->execute($video, $normalized['hashtag_ids'] ?? [], $normalized['hashtag_names'] ?? []);
 
             $video = $video->fresh($this->detailRelations());
 
@@ -99,24 +99,5 @@ final class HospitalVideoCreateForStaffAction
             ->all();
 
         $video->categories()->sync($syncIds);
-    }
-
-    /**
-     * @param  array<int, int|string>  $hashtagIds
-     */
-    private function syncHashtags(HospitalVideo $video, array $hashtagIds): void
-    {
-        $syncPayload = collect($hashtagIds)
-            ->map(static fn (int|string $hashtagId): int => (int) $hashtagId)
-            ->filter(static fn (int $hashtagId): bool => $hashtagId > 0)
-            ->unique()
-            ->values()
-            ->mapWithKeys(static fn (int $hashtagId, int $index): array => [
-                $hashtagId => ['sort_order' => $index],
-            ])
-            ->all();
-
-        $video->hashtags()->sync($syncPayload);
-        Hashtag::syncUsageCounts(array_keys($syncPayload));
     }
 }

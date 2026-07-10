@@ -4,7 +4,6 @@ namespace App\Domains\HospitalVideo\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalVideo\Dto\Staff\HospitalVideoForStaffDetailDto;
@@ -20,6 +19,7 @@ final class HospitalVideoUpdateForStaffAction
         private readonly HospitalVideoUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalVideoUpdateHistoryRecordAction $historyRecordAction,
+        private readonly HospitalVideoSyncHashtagsForStaffAction $syncHashtagsAction,
     ) {}
 
     public function execute(HospitalVideo $video, array $payload): array
@@ -49,8 +49,11 @@ final class HospitalVideoUpdateForStaffAction
                 $this->syncCategories($updated, $normalized['category_ids']);
             }
 
-            if (array_key_exists('hashtag_ids', $normalized) && is_array($normalized['hashtag_ids'])) {
-                $this->syncHashtags($updated, $normalized['hashtag_ids']);
+            if (
+                (array_key_exists('hashtag_ids', $normalized) && is_array($normalized['hashtag_ids']))
+                || (array_key_exists('hashtag_names', $normalized) && is_array($normalized['hashtag_names']))
+            ) {
+                $this->syncHashtagsAction->execute($updated, $normalized['hashtag_ids'] ?? [], $normalized['hashtag_names'] ?? []);
             }
 
             $updated = $updated->fresh($this->detailRelations());
@@ -113,29 +116,5 @@ final class HospitalVideoUpdateForStaffAction
             ->all();
 
         $video->categories()->sync($syncIds);
-    }
-
-    /**
-     * @param  array<int, int|string>  $hashtagIds
-     */
-    private function syncHashtags(HospitalVideo $video, array $hashtagIds): void
-    {
-        $beforeIds = $video->hashtags()
-            ->pluck('hashtags.id')
-            ->map(static fn (int|string $id): int => (int) $id)
-            ->all();
-
-        $syncPayload = collect($hashtagIds)
-            ->map(static fn (int|string $hashtagId): int => (int) $hashtagId)
-            ->filter(static fn (int $hashtagId): bool => $hashtagId > 0)
-            ->unique()
-            ->values()
-            ->mapWithKeys(static fn (int $hashtagId, int $index): array => [
-                $hashtagId => ['sort_order' => $index],
-            ])
-            ->all();
-
-        $video->hashtags()->sync($syncPayload);
-        Hashtag::syncUsageCounts([...$beforeIds, ...array_keys($syncPayload)]);
     }
 }

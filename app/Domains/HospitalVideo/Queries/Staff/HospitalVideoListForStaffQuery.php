@@ -20,6 +20,7 @@ final class HospitalVideoListForStaffQuery
                 'manager_staff_id',
                 'title',
                 'external_video_url',
+                'duration_seconds',
                 'hospital_status',
                 'admin_status',
                 'view_count',

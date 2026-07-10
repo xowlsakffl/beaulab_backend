@@ -37,6 +37,7 @@ final class HospitalVideoFactory extends Factory
             ]),
             'description' => $this->faker->realText(120),
             'external_video_url' => "https://www.youtube.com/watch?v={$externalVideoId}",
+            'duration_seconds' => $this->faker->numberBetween(30, 1800),
             'hospital_status' => $this->faker->randomElement(HospitalVideo::hospitalStatuses()),
             'admin_status' => $this->faker->randomElement(HospitalVideo::adminStatuses()),
             'view_count' => $this->faker->numberBetween(0, 50000),

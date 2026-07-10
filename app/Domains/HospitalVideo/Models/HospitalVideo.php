@@ -42,6 +42,7 @@ final class HospitalVideo extends Model
         'title',
         'description',
         'external_video_url',
+        'duration_seconds',
         'hospital_status',
         'admin_status',
         'view_count',
@@ -49,6 +50,7 @@ final class HospitalVideo extends Model
     ];
 
     protected $casts = [
+        'duration_seconds' => 'integer',
         'view_count' => 'integer',
         'like_count' => 'integer',
         'deleted_at' => 'datetime',
@@ -57,6 +59,7 @@ final class HospitalVideo extends Model
     protected $attributes = [
         'hospital_status' => self::HOSPITAL_STATUS_PUBLIC,
         'admin_status' => self::ADMIN_STATUS_NORMAL,
+        'duration_seconds' => 0,
         'view_count' => 0,
         'like_count' => 0,
     ];

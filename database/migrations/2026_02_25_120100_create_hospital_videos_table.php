@@ -33,6 +33,7 @@ return new class extends Migration
             $table->string('title')->comment('동영상 제목');
             $table->text('description')->nullable()->comment('동영상 설명');
             $table->string('external_video_url', 1024)->nullable()->comment('유튜브 영상 URL');
+            $table->unsignedInteger('duration_seconds')->default(0)->comment('재생 시간(초)');
             $table->string('hospital_status', 20)->default('PUBLIC')->comment('병의원 공개 상태');
             $table->string('admin_status', 20)->default('NORMAL')->comment('관리자 강제중지 상태');
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');

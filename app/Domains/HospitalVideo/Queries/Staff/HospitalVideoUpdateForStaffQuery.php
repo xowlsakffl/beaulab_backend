@@ -15,6 +15,7 @@ final class HospitalVideoUpdateForStaffQuery
             'title',
             'description',
             'external_video_url',
+            'duration_seconds',
             'view_count',
             'like_count',
         ];
@@ -22,7 +23,7 @@ final class HospitalVideoUpdateForStaffQuery
         $data = [];
         foreach ($fields as $field) {
             if (array_key_exists($field, $payload)) {
-                $data[$field] = in_array($field, ['view_count', 'like_count'], true)
+                $data[$field] = in_array($field, ['duration_seconds', 'view_count', 'like_count'], true)
                     ? (int) ($payload[$field] ?? 0)
                     : $payload[$field];
             }

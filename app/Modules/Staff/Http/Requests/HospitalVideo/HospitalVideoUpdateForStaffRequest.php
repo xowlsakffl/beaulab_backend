@@ -35,6 +35,10 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             }
         }
 
+        if (array_key_exists('hashtag_names', $data)) {
+            $data['hashtag_names'] = $this->normalizeNameList($data['hashtag_names']);
+        }
+
         $this->replace($data);
     }
 
@@ -52,6 +56,9 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'external_video_url' => ['sometimes', 'nullable', 'url', 'max:1024'],
+            'duration_seconds' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:86400'],
+            'view_count' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'like_count' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'category_ids' => ['sometimes', 'array', 'max:100'],
             'category_ids.*' => [
                 'integer',
@@ -67,6 +74,8 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
                 Rule::exists('hashtags', 'id')->where(static fn ($query) => $query
                     ->where('status', Hashtag::STATUS_ACTIVE)),
             ],
+            'hashtag_names' => ['sometimes', 'array', 'max:30'],
+            'hashtag_names.*' => ['string', 'distinct', 'max:'.Hashtag::NAME_MAX_LENGTH, 'regex:'.Hashtag::VALID_NAME_REGEX],
             'existing_thumbnail_file_id' => ['sometimes', 'nullable', 'integer', $this->mediaBelongsToVideoRule('thumbnail_file')],
             'thumbnail_file' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ];
@@ -84,10 +93,15 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'title' => '동영상 제목',
             'description' => '영상 설명',
             'external_video_url' => '유튜브 링크',
+            'duration_seconds' => '재생시간',
+            'view_count' => '조회수',
+            'like_count' => '좋아요수',
             'category_ids' => '카테고리 목록',
             'category_ids.*' => '카테고리',
             'hashtag_ids' => '해시태그 목록',
             'hashtag_ids.*' => '해시태그',
+            'hashtag_names' => '신규 해시태그 목록',
+            'hashtag_names.*' => '신규 해시태그',
             'existing_thumbnail_file_id' => '기존 썸네일',
             'thumbnail_file' => '썸네일',
         ];
@@ -149,6 +163,39 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             ->filter(static fn ($item): bool => is_int($item) || (is_string($item) && ctype_digit(trim($item))))
             ->map(static fn ($item): int => (int) $item)
             ->filter(static fn (int $item): bool => $item > 0)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function normalizeNameList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $trimmed = trim($value);
+            $decoded = json_decode($trimmed, true);
+            $value = str_starts_with($trimmed, '[')
+                && json_last_error() === JSON_ERROR_NONE
+                && is_array($decoded)
+                && array_is_list($decoded)
+                    ? $decoded
+                    : explode(',', $trimmed);
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->filter(static fn ($item): bool => is_string($item) || is_numeric($item))
+            ->map(static fn ($item): string => Hashtag::sanitizeName((string) $item))
+            ->filter(static fn (string $item): bool => $item !== '')
+            ->unique(static fn (string $item): string => Hashtag::normalizeName($item))
             ->values()
             ->all();
     }

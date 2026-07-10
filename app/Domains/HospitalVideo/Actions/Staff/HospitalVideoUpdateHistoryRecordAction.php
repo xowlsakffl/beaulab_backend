@@ -28,6 +28,7 @@ final class HospitalVideoUpdateHistoryRecordAction
             'title' => $this->item('동영상 제목', $video->title, $video->title),
             'description' => $this->item('영상 설명', $video->description, $video->description),
             'external_video_url' => $this->item('유튜브 링크', $video->external_video_url, $video->external_video_url),
+            'duration_seconds' => $this->item('재생시간', (int) $video->duration_seconds, $this->durationLabel((int) $video->duration_seconds)),
             'hospital_status' => $this->item('공개여부', $video->hospital_status, HospitalVideo::hospitalStatusLabel((string) $video->hospital_status)),
             'admin_status' => $this->item('강제중지', $video->admin_status, HospitalVideo::adminStatusLabel((string) $video->admin_status)),
             'categories' => $this->item('카테고리', $this->categoryValue($video), $this->categoryDisplay($video)),
@@ -166,6 +167,20 @@ final class HospitalVideoUpdateHistoryRecordAction
     private function mediaLabel(?string $path): ?string
     {
         return $path ? basename($path) : null;
+    }
+
+    private function durationLabel(int $seconds): string
+    {
+        $seconds = max(0, $seconds);
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $remainingSeconds = $seconds % 60;
+
+        if ($hours > 0) {
+            return sprintf('%02d:%02d:%02d', $hours, $minutes, $remainingSeconds);
+        }
+
+        return sprintf('%02d:%02d', $minutes, $remainingSeconds);
     }
 
     /**

@@ -33,6 +33,12 @@ final class HospitalVideo extends Model
 
     public const ADMIN_STATUS_FORCED_STOPPED = 'FORCED_STOPPED';
 
+    public const SUMMARY_FILTER_NORMAL = 'normal';
+
+    public const SUMMARY_FILTER_LIMITED = 'limited';
+
+    public const SUMMARY_FILTER_REPORTED = 'reported';
+
     protected $table = 'hospital_videos';
 
     protected $fillable = [
@@ -143,6 +149,18 @@ final class HospitalVideo extends Model
             self::ADMIN_STATUS_FORCED_STOPPED => '강제중지',
             default => $status ?: '-',
         };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function summaryFilters(): array
+    {
+        return [
+            self::SUMMARY_FILTER_NORMAL,
+            self::SUMMARY_FILTER_LIMITED,
+            self::SUMMARY_FILTER_REPORTED,
+        ];
     }
 
     public function isVisible(): bool

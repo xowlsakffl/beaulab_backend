@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class HospitalVideoListForStaffQuery
 {
+    public function __construct(
+        private readonly HospitalVideoSummaryForStaffQuery $summaryQuery,
+    ) {}
+
     public function paginate(array $filters): LengthAwarePaginator
     {
         $builder = HospitalVideo::query()
@@ -41,6 +45,8 @@ final class HospitalVideoListForStaffQuery
                     ->orderBy('sort_order')
                     ->orderBy('id'),
             ]);
+
+        $this->summaryQuery->applySummaryFilter($builder, (string) ($filters['summary_filter'] ?? ''));
 
         if (! empty($filters['hospital_id'])) {
             $builder->where('hospital_id', (int) $filters['hospital_id']);

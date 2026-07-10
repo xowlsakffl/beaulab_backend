@@ -12,6 +12,7 @@ use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoGetForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoHospitalOptionListForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoListForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoOperationHistoriesForStaffAction;
+use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoSummaryForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoUpdateForStaffAction;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoAdminStatusUpdateForStaffRequest;
@@ -51,6 +52,11 @@ final class HospitalVideoForStaffController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
+    public function getVideoSummaryForStaff(HospitalVideoSummaryForStaffAction $action)
+    {
+        return ApiResponse::success($action->execute());
     }
 
     public function getVideoForStaff(

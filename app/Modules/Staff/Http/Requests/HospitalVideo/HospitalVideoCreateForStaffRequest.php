@@ -2,7 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
-use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -51,9 +51,9 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             'category_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-                    ->where('status', Category::STATUS_ACTIVE)),
+                Rule::exists('categories', 'id')->where(static function ($query): void {
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY);
+                }),
             ],
             'hashtag_ids' => ['nullable', 'array', 'max:30'],
             'hashtag_ids.*' => [

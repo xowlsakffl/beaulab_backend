@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalVideo;
 
+use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,7 +28,13 @@ final class HospitalVideoListForStaffRequest extends FormRequest
     {
         return [
             'hospital_id' => ['nullable', 'integer', 'exists:hospitals,id'],
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'category_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('categories', 'id')->where(static function ($query): void {
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY);
+                }),
+            ],
             'q' => ['nullable', 'string', 'max:100'],
             'hospital_status' => ['nullable', 'array'],
             'hospital_status.*' => [Rule::in(HospitalVideo::hospitalStatuses())],

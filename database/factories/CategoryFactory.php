@@ -64,6 +64,10 @@ final class CategoryFactory extends Factory
                 CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT,
                 self::categoryUsage('hospital_event_treatment'),
             );
+            self::seedCategoryUsage(
+                CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY,
+                self::categoryUsage('hospital_video_category'),
+            );
             self::pruneStaleDomainCategories(Category::DOMAIN_HOSPITAL_MEDICAL, self::categoryCodes($tree));
         });
     }

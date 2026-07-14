@@ -73,8 +73,8 @@ final class CategoryFactory extends Factory
                 self::categoryUsage('hospital_event_ad_surgery'),
             );
             self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_EVENT_AD_PETIT,
-                self::categoryUsage('hospital_event_ad_petit'),
+                CategoryUsage::USAGE_HOSPITAL_EVENT_AD_TREATMENT,
+                self::categoryUsage('hospital_event_ad_treatment'),
             );
 
             self::pruneStaleDomainCategories(Category::DOMAIN_HOSPITAL_MEDICAL, self::categoryCodes($tree));

@@ -130,6 +130,14 @@ return [
         ],
     ],
     [
+        'name' => '거상',
+        'code' => 'HS_LIFT',
+    ],
+    [
+        'name' => '모발이식',
+        'code' => 'HS_HAIR_TRANSPLANT',
+    ],
+    [
         'name' => '남자성형',
         'code' => 'HM_PLASTIC_MALE',
     ],
@@ -249,12 +257,20 @@ return [
         'code' => 'HM_PETIT_SKIN_DENTAL',
     ],
     [
+        'name' => '헤어',
+        'code' => 'HM_PETIT_SKIN_HAIR',
+    ],
+    [
         'name' => '두피',
         'code' => 'HM_PETIT_SKIN_SCALP',
     ],
     [
         'name' => '탈모',
         'code' => 'HM_PETIT_SKIN_HAIR_LOSS',
+    ],
+    [
+        'name' => '부인과',
+        'code' => 'HM_PETIT_SKIN_GYNECOLOGY',
     ],
     [
         'name' => '안과',

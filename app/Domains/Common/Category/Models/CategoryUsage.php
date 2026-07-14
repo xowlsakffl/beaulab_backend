@@ -21,7 +21,7 @@ final class CategoryUsage extends Model
 
     public const USAGE_HOSPITAL_EVENT_AD_SURGERY = 'HOSPITAL_EVENT_AD_SURGERY';
 
-    public const USAGE_HOSPITAL_EVENT_AD_PETIT = 'HOSPITAL_EVENT_AD_PETIT';
+    public const USAGE_HOSPITAL_EVENT_AD_TREATMENT = 'HOSPITAL_EVENT_AD_TREATMENT';
 
     public const STATUS_ACTIVE = 'ACTIVE';
 
@@ -64,7 +64,7 @@ final class CategoryUsage extends Model
             self::USAGE_HOSPITAL_EVENT_TREATMENT,
             self::USAGE_HOSPITAL_VIDEO_CATEGORY,
             self::USAGE_HOSPITAL_EVENT_AD_SURGERY,
-            self::USAGE_HOSPITAL_EVENT_AD_PETIT,
+            self::USAGE_HOSPITAL_EVENT_AD_TREATMENT,
         ];
     }
 

@@ -162,7 +162,7 @@ final class HospitalEventAd extends Model
     {
         return match ($placement) {
             self::PLACEMENT_SURGERY_CATEGORY_BANNER => CategoryUsage::USAGE_HOSPITAL_EVENT_AD_SURGERY,
-            self::PLACEMENT_PETIT_CATEGORY_BANNER => CategoryUsage::USAGE_HOSPITAL_EVENT_AD_PETIT,
+            self::PLACEMENT_PETIT_CATEGORY_BANNER => CategoryUsage::USAGE_HOSPITAL_EVENT_AD_TREATMENT,
             default => null,
         };
     }

@@ -36,7 +36,7 @@ final class HospitalEventAdAvailabilityForStaffRequest extends FormRequest
                 Rule::exists('categories', 'id')->where(static function ($query): void {
                     CategoryUsage::constrainActiveCategoryExistsAny($query, [
                         CategoryUsage::USAGE_HOSPITAL_EVENT_AD_SURGERY,
-                        CategoryUsage::USAGE_HOSPITAL_EVENT_AD_PETIT,
+                        CategoryUsage::USAGE_HOSPITAL_EVENT_AD_TREATMENT,
                     ]);
                 }),
             ],

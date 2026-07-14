@@ -93,7 +93,7 @@ final class HospitalEventAdUpdateHistoryRecordAction
             'category' => $this->item('부위 카테고리', $this->categoryValue($ad), $this->categoryDisplay($ad)),
             'manager_staff' => $this->item('담당자', $ad->manager_staff_id ? (int) $ad->manager_staff_id : null, $ad->managerStaff?->name),
             'placement' => $this->item('광고위치', $ad->placement, HospitalEventAd::placementLabel((string) $ad->placement)),
-            'cost' => $this->item('비용', (int) $ad->cost, $this->moneyLabel((int) $ad->cost)),
+            'cost' => $this->item('비용', (int) $ad->cost, $this->pointLabel((int) $ad->cost)),
             'period' => $this->item('광고기간', [
                 'start_at' => $ad->start_at?->toISOString(),
                 'end_at' => $ad->end_at?->toISOString(),
@@ -110,9 +110,9 @@ final class HospitalEventAdUpdateHistoryRecordAction
         return compact('label', 'value', 'display');
     }
 
-    private function moneyLabel(int $value): string
+    private function pointLabel(int $value): string
     {
-        return number_format($value).'원';
+        return number_format($value).'P';
     }
 
     private function periodLabel(HospitalEventAd $ad): string

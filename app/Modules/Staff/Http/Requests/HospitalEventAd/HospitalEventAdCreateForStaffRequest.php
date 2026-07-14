@@ -50,7 +50,7 @@ final class HospitalEventAdCreateForStaffRequest extends FormRequest
             'cost' => ['required', 'integer', 'min:0'],
             'is_free_event' => ['sometimes', 'boolean'],
             'start_date' => ['required', 'date_format:Y-m-d'],
-            'ad_image_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'ad_image_file' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
         ];
     }
 

@@ -29,7 +29,7 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->string('placement', 50)->comment('광고 위치');
-            $table->unsignedBigInteger('cost')->default(0)->comment('광고 비용(원)');
+            $table->unsignedBigInteger('cost')->default(0)->comment('광고 비용(P)');
             $table->timestamp('start_at')->comment('광고 시작 일시');
             $table->timestamp('end_at')->comment('광고 종료 일시');
             $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(신청, 검수, 승인, 반려)');

@@ -12,6 +12,7 @@ use App\Domains\HospitalEventAd\Dto\Staff\HospitalEventAdForStaffDetailDto;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdCreateForStaffQuery;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdSlotAvailabilityForStaffQuery;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -67,6 +68,10 @@ final class HospitalEventAdCreateForStaffAction
         $categoryId = $payload['category_id'] ?? null;
 
         $this->assertEventBelongsToHospital($eventId, $hospitalId);
+
+        if (! ($payload['ad_image_file'] ?? null) instanceof UploadedFile) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '광고 이미지를 등록해 주세요.');
+        }
 
         if (HospitalEventAd::requiresCategory($placement)) {
             if (empty($categoryId)) {

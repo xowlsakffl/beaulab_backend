@@ -62,11 +62,11 @@ final class HospitalEventAdUpdateForStaffRequest extends FormRequest
             $categoryId = $this->input('category_id');
 
             if ($placement && HospitalEventAd::requiresCategory($placement) && $this->has('category_id') && empty($categoryId)) {
-                $validator->errors()->add('category_id', '부위별 광고는 카테고리를 선택해 주세요.');
+                $validator->errors()->add('category_id', '카테고리별 광고는 카테고리를 선택해 주세요.');
             }
 
             if ($placement && ! HospitalEventAd::requiresCategory($placement) && ! empty($categoryId)) {
-                $validator->errors()->add('category_id', '부위별 광고가 아닌 위치는 카테고리를 선택할 수 없습니다.');
+                $validator->errors()->add('category_id', '카테고리별 광고가 아닌 위치는 카테고리를 선택할 수 없습니다.');
             }
 
             if ($placement && ! empty($categoryId) && ! $this->categoryMatchesPlacement((int) $categoryId, (string) $placement)) {
@@ -81,7 +81,7 @@ final class HospitalEventAdUpdateForStaffRequest extends FormRequest
                     return;
                 }
 
-                if ($date->startOfDay()->lessThan(now()->startOfDay())) {
+                if ($date->startOfDay()->lessThanOrEqualTo(now()->startOfDay())) {
                     $validator->errors()->add('start_date', '광고 노출 시작일은 오늘 이후 날짜만 선택할 수 있습니다.');
                 }
 

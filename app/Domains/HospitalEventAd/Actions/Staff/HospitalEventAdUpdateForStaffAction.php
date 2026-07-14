@@ -83,7 +83,7 @@ final class HospitalEventAdUpdateForStaffAction
 
         if (HospitalEventAd::requiresCategory($placement)) {
             if (empty($categoryId)) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '부위별 광고는 카테고리를 선택해야 합니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '카테고리별 광고는 카테고리를 선택해야 합니다.');
             }
 
             $this->assertCategoryMatchesPlacement((int) $categoryId, $placement);

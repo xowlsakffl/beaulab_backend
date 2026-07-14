@@ -5,7 +5,7 @@ namespace App\Modules\Staff\Http\Requests\HospitalEventAd;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
-use Carbon\CarbonInterface;
+use App\Domains\HospitalEventAd\Support\HospitalEventAdSalesDeadline;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -48,6 +48,7 @@ final class HospitalEventAdCreateForStaffRequest extends FormRequest
             'manager_staff_id' => ['nullable', 'integer', Rule::exists('account_staffs', 'id')],
             'placement' => ['required', Rule::in(HospitalEventAd::placements())],
             'cost' => ['required', 'integer', 'min:0'],
+            'is_free_event' => ['sometimes', 'boolean'],
             'start_date' => ['required', 'date_format:Y-m-d'],
             'ad_image_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
         ];
@@ -79,12 +80,19 @@ final class HospitalEventAdCreateForStaffRequest extends FormRequest
                     return;
                 }
 
-                if ($date->startOfDay()->lessThanOrEqualTo(now()->startOfDay())) {
+                $startDayOfWeek = HospitalEventAd::startDayOfWeek((string) $placement);
+
+                if ($date->copy()->startOfDay()->lessThanOrEqualTo(now()->startOfDay())) {
                     $validator->errors()->add('start_date', '광고 노출 시작일은 오늘 이후 날짜만 선택할 수 있습니다.');
+                } elseif (app(HospitalEventAdSalesDeadline::class)->isClosed($date->copy()->setTime(11, 0, 0))) {
+                    $validator->errors()->add('start_date', '광고 게시일 2영업일 전까지만 신청할 수 있습니다.');
                 }
 
-                if ($date->dayOfWeek !== CarbonInterface::TUESDAY) {
-                    $validator->errors()->add('start_date', '광고 노출 시작일은 화요일만 선택할 수 있습니다.');
+                if ($date->dayOfWeek !== $startDayOfWeek) {
+                    $validator->errors()->add(
+                        'start_date',
+                        sprintf('광고 노출 시작일은 %s만 선택할 수 있습니다.', HospitalEventAd::startDayLabel((string) $placement)),
+                    );
                 }
             }
         });
@@ -99,6 +107,7 @@ final class HospitalEventAdCreateForStaffRequest extends FormRequest
             'manager_staff_id' => '담당자',
             'placement' => '광고위치',
             'cost' => '비용',
+            'is_free_event' => '무료이벤트',
             'start_date' => '희망 노출 시작일',
             'ad_image_file' => '광고 이미지',
         ];

@@ -3,13 +3,14 @@
 namespace App\Domains\HospitalEventAd\Queries\Staff;
 
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
-use Carbon\CarbonInterface;
+use App\Domains\HospitalEventAd\Support\HospitalEventAdSalesDeadline;
 use Illuminate\Support\Carbon;
 
 final class HospitalEventAdAvailabilityForStaffQuery
 {
     public function __construct(
         private readonly HospitalEventAdSlotAvailabilityForStaffQuery $slotQuery,
+        private readonly HospitalEventAdSalesDeadline $salesDeadline,
     ) {}
 
     public function get(string $placement, ?int $categoryId, Carbon $month): array
@@ -17,9 +18,10 @@ final class HospitalEventAdAvailabilityForStaffQuery
         $weeks = [];
         $cursor = $month->copy()->startOfMonth();
         $endOfMonth = $month->copy()->endOfMonth();
+        $startDayOfWeek = HospitalEventAd::startDayOfWeek($placement);
 
         while ($cursor->lte($endOfMonth)) {
-            if ($cursor->dayOfWeek === CarbonInterface::TUESDAY) {
+            if ($cursor->dayOfWeek === $startDayOfWeek) {
                 $weeks[] = $this->weekAvailability($placement, $categoryId, $cursor);
             }
 
@@ -30,6 +32,8 @@ final class HospitalEventAdAvailabilityForStaffQuery
             'placement' => $placement,
             'category_id' => $categoryId,
             'month' => $month->format('Y-m'),
+            'start_day_of_week' => $startDayOfWeek,
+            'start_day_label' => HospitalEventAd::startDayLabel($placement),
             'weeks' => $weeks,
         ];
     }
@@ -41,6 +45,7 @@ final class HospitalEventAdAvailabilityForStaffQuery
         $reservedCount = $this->slotQuery->reservedCount($placement, $categoryId, $startAt);
         $remainingCount = max(0, HospitalEventAd::WEEKLY_SLOT_LIMIT - $reservedCount);
         $isPast = $date->copy()->startOfDay()->lessThanOrEqualTo(now()->startOfDay());
+        $isDeadlineClosed = $this->salesDeadline->isClosed($startAt);
 
         return [
             'date' => $date->toDateString(),
@@ -49,8 +54,9 @@ final class HospitalEventAdAvailabilityForStaffQuery
             'reserved_count' => $reservedCount,
             'remaining_count' => $remainingCount,
             'slot_limit' => HospitalEventAd::WEEKLY_SLOT_LIMIT,
-            'is_sold_out' => $isPast || $remainingCount <= 0,
+            'is_sold_out' => $isPast || $isDeadlineClosed || $remainingCount <= 0,
             'is_past' => $isPast,
+            'is_deadline_closed' => $isDeadlineClosed,
         ];
     }
 }

@@ -78,14 +78,22 @@ final class HospitalEventAdCreateForStaffAction
             $categoryId = null;
         }
 
-        $period = $this->periodResolver->resolve((string) $payload['start_date']);
+        $period = $this->periodResolver->resolve((string) $payload['start_date'], $placement);
 
         return [
             ...$payload,
             'category_id' => $categoryId !== null ? (int) $categoryId : null,
+            'cost' => $this->resolveCost($placement, $payload),
             'start_at' => $period['start_at'],
             'end_at' => $period['end_at'],
         ];
+    }
+
+    private function resolveCost(string $placement, array $payload): int
+    {
+        return filter_var($payload['is_free_event'] ?? false, FILTER_VALIDATE_BOOL)
+            ? 0
+            : HospitalEventAd::placementCost($placement);
     }
 
     private function assertEventBelongsToHospital(int $eventId, int $hospitalId): void

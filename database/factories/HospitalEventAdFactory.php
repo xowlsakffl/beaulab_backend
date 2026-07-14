@@ -8,7 +8,6 @@ use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
-use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -56,7 +55,7 @@ final class HospitalEventAdFactory extends Factory
         }
 
         $startAt = now()
-            ->next(CarbonInterface::TUESDAY)
+            ->next(HospitalEventAd::startDayOfWeek($placement))
             ->setTime(11, 0);
 
         return [

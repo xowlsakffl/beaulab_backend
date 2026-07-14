@@ -11,6 +11,7 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
+use Carbon\CarbonInterface;
 use Database\Factories\HospitalEventAdFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -199,6 +200,53 @@ final class HospitalEventAd extends Model
             self::PLACEMENT_PETIT_CATEGORY_BANNER => '쁘띠이벤트',
             self::PLACEMENT_CONSULT_MEMO,
             self::PLACEMENT_SEARCH => '기타',
+            default => '-',
+        };
+    }
+
+    public static function placementCost(?string $placement): int
+    {
+        return match ($placement) {
+            self::PLACEMENT_MAIN_POPUP,
+            self::PLACEMENT_MAIN_VERTICAL_BANNER,
+            self::PLACEMENT_MAIN_HORIZONTAL_BANNER,
+            self::PLACEMENT_SURGERY_TOP_BANNER,
+            self::PLACEMENT_SURGERY_HOT_EVENT,
+            self::PLACEMENT_SURGERY_CATEGORY_BANNER,
+            self::PLACEMENT_PETIT_TOP_BANNER,
+            self::PLACEMENT_PETIT_HOT_EVENT,
+            self::PLACEMENT_PETIT_CATEGORY_BANNER,
+            self::PLACEMENT_CONSULT_MEMO,
+            self::PLACEMENT_SEARCH => 0,
+            default => 0,
+        };
+    }
+
+    public static function startDayOfWeek(?string $placement): int
+    {
+        return match ($placement) {
+            self::PLACEMENT_PETIT_TOP_BANNER,
+            self::PLACEMENT_PETIT_HOT_EVENT,
+            self::PLACEMENT_PETIT_CATEGORY_BANNER => CarbonInterface::THURSDAY,
+            default => CarbonInterface::TUESDAY,
+        };
+    }
+
+    public static function startDayLabel(?string $placement): string
+    {
+        return self::weekdayLabel(self::startDayOfWeek($placement));
+    }
+
+    private static function weekdayLabel(int $dayOfWeek): string
+    {
+        return match ($dayOfWeek) {
+            CarbonInterface::SUNDAY => '일요일',
+            CarbonInterface::MONDAY => '월요일',
+            CarbonInterface::TUESDAY => '화요일',
+            CarbonInterface::WEDNESDAY => '수요일',
+            CarbonInterface::THURSDAY => '목요일',
+            CarbonInterface::FRIDAY => '금요일',
+            CarbonInterface::SATURDAY => '토요일',
             default => '-',
         };
     }

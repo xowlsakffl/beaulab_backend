@@ -20,6 +20,9 @@ final class HospitalEventAdPlacementOptionListForStaffAction
                     'category_required' => HospitalEventAd::requiresCategory($placement),
                     'category_usage' => HospitalEventAd::categoryUsageForPlacement($placement),
                     'slot_limit' => HospitalEventAd::WEEKLY_SLOT_LIMIT,
+                    'cost' => HospitalEventAd::placementCost($placement),
+                    'start_day_of_week' => HospitalEventAd::startDayOfWeek($placement),
+                    'start_day_label' => HospitalEventAd::startDayLabel($placement),
                 ])
                 ->values()
                 ->all(),

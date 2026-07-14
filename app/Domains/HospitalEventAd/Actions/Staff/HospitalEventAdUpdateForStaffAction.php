@@ -97,10 +97,11 @@ final class HospitalEventAdUpdateForStaffAction
             'hospital_event_id' => $eventId,
             'placement' => $placement,
             'category_id' => $categoryId !== null ? (int) $categoryId : null,
+            'cost' => $this->resolveCost($ad, $placement, $payload),
         ];
 
         if (array_key_exists('start_date', $payload)) {
-            $period = $this->periodResolver->resolve((string) $payload['start_date']);
+            $period = $this->periodResolver->resolve((string) $payload['start_date'], $placement);
             $normalized['start_at'] = $period['start_at'];
             $normalized['end_at'] = $period['end_at'];
         } else {
@@ -109,6 +110,21 @@ final class HospitalEventAdUpdateForStaffAction
         }
 
         return $normalized;
+    }
+
+    private function resolveCost(HospitalEventAd $ad, string $placement, array $payload): int
+    {
+        if (array_key_exists('is_free_event', $payload)) {
+            return filter_var($payload['is_free_event'], FILTER_VALIDATE_BOOL)
+                ? 0
+                : HospitalEventAd::placementCost($placement);
+        }
+
+        if ((string) $ad->placement !== $placement) {
+            return HospitalEventAd::placementCost($placement);
+        }
+
+        return (int) $ad->cost;
     }
 
     private function assertEventBelongsToHospital(int $eventId, int $hospitalId): void

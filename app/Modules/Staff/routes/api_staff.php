@@ -23,6 +23,7 @@ use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForS
 use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventDBForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventRealModelDBForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalEventAd\HospitalEventAdForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReviewComment\HospitalReviewCommentForStaffController;
@@ -253,6 +254,18 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-event-real-model-dbs.getHospitalEventRealModelDBOperationHistoriesForStaff');
     Route::get('hospital-event-real-model-dbs/{hospitalEventRealModelDB}', [HospitalEventRealModelDBForStaffController::class, 'getHospitalEventRealModelDBForStaff'])
         ->name('hospital-event-real-model-dbs.getHospitalEventRealModelDBForStaff');
+    Route::get('hospital-event-ads', [HospitalEventAdForStaffController::class, 'getHospitalEventAdsForStaff'])
+        ->name('hospital-event-ads.getHospitalEventAdsForStaff');
+    Route::patch('hospital-event-ads/allow-status', [HospitalEventAdForStaffController::class, 'updateHospitalEventAdAllowStatusForStaff'])
+        ->name('hospital-event-ads.updateHospitalEventAdAllowStatusForStaff');
+    Route::get('hospital-event-ads/{hospitalEventAd}/operation-histories', [HospitalEventAdForStaffController::class, 'getHospitalEventAdOperationHistoriesForStaff'])
+        ->name('hospital-event-ads.getHospitalEventAdOperationHistoriesForStaff');
+    Route::get('hospital-event-ads/{hospitalEventAd}', [HospitalEventAdForStaffController::class, 'getHospitalEventAdForStaff'])
+        ->name('hospital-event-ads.getHospitalEventAdForStaff');
+    Route::post('hospital-event-ads', [HospitalEventAdForStaffController::class, 'createHospitalEventAdForStaff'])
+        ->name('hospital-event-ads.createHospitalEventAdForStaff');
+    Route::match(['post', 'put', 'patch'], 'hospital-event-ads/{hospitalEventAd}', [HospitalEventAdForStaffController::class, 'updateHospitalEventAdForStaff'])
+        ->name('hospital-event-ads.updateHospitalEventAdForStaff');
     Route::get('hospital-events', [HospitalEventForStaffController::class, 'getHospitalEventsForStaff'])
         ->name('hospital-events.getHospitalEventsForStaff');
     Route::get('hospital-events/summary', [HospitalEventForStaffController::class, 'getHospitalEventSummaryForStaff'])

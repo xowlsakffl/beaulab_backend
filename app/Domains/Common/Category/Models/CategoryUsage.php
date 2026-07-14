@@ -19,6 +19,10 @@ final class CategoryUsage extends Model
 
     public const USAGE_HOSPITAL_VIDEO_CATEGORY = 'HOSPITAL_VIDEO_CATEGORY';
 
+    public const USAGE_HOSPITAL_EVENT_AD_SURGERY = 'HOSPITAL_EVENT_AD_SURGERY';
+
+    public const USAGE_HOSPITAL_EVENT_AD_PETIT = 'HOSPITAL_EVENT_AD_PETIT';
+
     public const STATUS_ACTIVE = 'ACTIVE';
 
     public const STATUS_INACTIVE = 'INACTIVE';
@@ -59,6 +63,8 @@ final class CategoryUsage extends Model
             self::USAGE_HOSPITAL_EVENT_SURGERY,
             self::USAGE_HOSPITAL_EVENT_TREATMENT,
             self::USAGE_HOSPITAL_VIDEO_CATEGORY,
+            self::USAGE_HOSPITAL_EVENT_AD_SURGERY,
+            self::USAGE_HOSPITAL_EVENT_AD_PETIT,
         ];
     }
 
@@ -73,6 +79,24 @@ final class CategoryUsage extends Model
                     ->from('category_usages')
                     ->whereColumn('category_usages.category_id', 'categories.id')
                     ->where('category_usages.usage', $usage)
+                    ->where('category_usages.status', self::STATUS_ACTIVE);
+            });
+    }
+
+    /**
+     * @param  array<int, string>  $usages
+     */
+    public static function constrainActiveCategoryExistsAny($query, array $usages): void
+    {
+        $query
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->where('status', Category::STATUS_ACTIVE)
+            ->whereExists(static function ($usageQuery) use ($usages): void {
+                $usageQuery
+                    ->selectRaw('1')
+                    ->from('category_usages')
+                    ->whereColumn('category_usages.category_id', 'categories.id')
+                    ->whereIn('category_usages.usage', array_values($usages))
                     ->where('category_usages.status', self::STATUS_ACTIVE);
             });
     }

@@ -86,6 +86,14 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_EVENT_DELETE = 'beaulab.hospital_event.delete';
 
+    public const BEAULAB_HOSPITAL_EVENT_AD_SHOW = 'beaulab.hospital_event_ad.show';
+
+    public const BEAULAB_HOSPITAL_EVENT_AD_CREATE = 'beaulab.hospital_event_ad.create';
+
+    public const BEAULAB_HOSPITAL_EVENT_AD_UPDATE = 'beaulab.hospital_event_ad.update';
+
+    public const BEAULAB_HOSPITAL_EVENT_AD_DELETE = 'beaulab.hospital_event_ad.delete';
+
     public const BEAULAB_HOSPITAL_EVENT_DB_SHOW = 'beaulab.hospital_event_db.show';
 
     public const BEAULAB_HOSPITAL_EVENT_DB_UPDATE = 'beaulab.hospital_event_db.update';
@@ -277,6 +285,10 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_EVENT_CREATE,
             self::BEAULAB_HOSPITAL_EVENT_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_DELETE,
+            self::BEAULAB_HOSPITAL_EVENT_AD_SHOW,
+            self::BEAULAB_HOSPITAL_EVENT_AD_CREATE,
+            self::BEAULAB_HOSPITAL_EVENT_AD_UPDATE,
+            self::BEAULAB_HOSPITAL_EVENT_AD_DELETE,
             self::BEAULAB_HOSPITAL_EVENT_DB_SHOW,
             self::BEAULAB_HOSPITAL_EVENT_DB_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_SHOW,

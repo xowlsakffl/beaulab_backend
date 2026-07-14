@@ -8,6 +8,7 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,9 +20,15 @@ use Illuminate\Database\Eloquent\Model;
 final class AdminNoteTargetRegistry
 {
     public const string ALIAS_HOSPITAL = 'hospital';
+
     public const string ALIAS_BEAUTY = 'beauty';
+
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
+
     public const string ALIAS_HOSPITAL_EVENT = 'hospital_event';
+
+    public const string ALIAS_HOSPITAL_EVENT_AD = 'hospital_event_ad';
+
     public const string ALIAS_ACCOUNT_USER = 'account_user';
 
     /**
@@ -32,6 +39,7 @@ final class AdminNoteTargetRegistry
         self::ALIAS_BEAUTY => Beauty::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
         self::ALIAS_HOSPITAL_EVENT => HospitalEvent::class,
+        self::ALIAS_HOSPITAL_EVENT_AD => HospitalEventAd::class,
         self::ALIAS_ACCOUNT_USER => AccountUser::class,
     ];
 

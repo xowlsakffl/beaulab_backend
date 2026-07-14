@@ -68,6 +68,15 @@ final class CategoryFactory extends Factory
                 CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY,
                 self::categoryUsage('hospital_video_category'),
             );
+            self::seedCategoryUsage(
+                CategoryUsage::USAGE_HOSPITAL_EVENT_AD_SURGERY,
+                self::categoryUsage('hospital_event_ad_surgery'),
+            );
+            self::seedCategoryUsage(
+                CategoryUsage::USAGE_HOSPITAL_EVENT_AD_PETIT,
+                self::categoryUsage('hospital_event_ad_petit'),
+            );
+
             self::pruneStaleDomainCategories(Category::DOMAIN_HOSPITAL_MEDICAL, self::categoryCodes($tree));
         });
     }

@@ -74,6 +74,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'post staff/hospitals/check-name' => '병의원명 중복 확인',
         'post staff/hospitals/check-business-number' => '사업자등록번호 중복 확인',
         'get staff/categories/selector' => '카테고리 선택 목록 조회',
+        'get staff/hospital-events/category-filter-options' => '이벤트 필터 카테고리 옵션 조회',
         'get staff/doctors/hospital-options' => '의사 등록용 병의원 옵션 조회',
         'get staff/videos/hospital-options' => '동영상 등록용 병의원 옵션 조회',
         'get staff/videos/doctor-options' => '동영상 등록용 의사 옵션 조회',

@@ -6,6 +6,7 @@ use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventAdminStatusUpdateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventAllowStatusUpdateForStaffAction;
+use App\Domains\HospitalEvent\Actions\Staff\HospitalEventCategoryFilterOptionsForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventCreateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventDeleteForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventDuplicateForStaffAction;
@@ -37,6 +38,11 @@ final class HospitalEventForStaffController extends Controller
     }
 
     public function getHospitalEventSummaryForStaff(HospitalEventSummaryForStaffAction $action)
+    {
+        return ApiResponse::success($action->execute());
+    }
+
+    public function getHospitalEventCategoryFilterOptionsForStaff(HospitalEventCategoryFilterOptionsForStaffAction $action)
     {
         return ApiResponse::success($action->execute());
     }

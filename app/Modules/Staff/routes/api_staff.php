@@ -274,6 +274,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-events.getHospitalEventsForStaff');
     Route::get('hospital-events/summary', [HospitalEventForStaffController::class, 'getHospitalEventSummaryForStaff'])
         ->name('hospital-events.getHospitalEventSummaryForStaff');
+    Route::get('hospital-events/category-filter-options', [HospitalEventForStaffController::class, 'getHospitalEventCategoryFilterOptionsForStaff'])
+        ->name('hospital-events.getHospitalEventCategoryFilterOptionsForStaff');
     Route::patch('hospital-events/admin-status', [HospitalEventForStaffController::class, 'updateHospitalEventAdminStatusForStaff'])
         ->name('hospital-events.updateHospitalEventAdminStatusForStaff');
     Route::patch('hospital-events/allow-status', [HospitalEventForStaffController::class, 'updateHospitalEventAllowStatusForStaff'])

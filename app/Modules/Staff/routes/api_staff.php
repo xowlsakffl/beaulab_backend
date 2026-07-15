@@ -260,6 +260,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
         ->name('hospital-event-ads.getHospitalEventAdPlacementOptionsForStaff');
     Route::get('hospital-event-ads/availability', [HospitalEventAdForStaffController::class, 'getHospitalEventAdAvailabilityForStaff'])
         ->name('hospital-event-ads.getHospitalEventAdAvailabilityForStaff');
+    Route::get('hospital-event-ads/calendar', [HospitalEventAdForStaffController::class, 'getHospitalEventAdCalendarForStaff'])
+        ->name('hospital-event-ads.getHospitalEventAdCalendarForStaff');
     Route::patch('hospital-event-ads/allow-status', [HospitalEventAdForStaffController::class, 'updateHospitalEventAdAllowStatusForStaff'])
         ->name('hospital-event-ads.updateHospitalEventAdAllowStatusForStaff');
     Route::get('hospital-event-ads/{hospitalEventAd}/operation-histories', [HospitalEventAdForStaffController::class, 'getHospitalEventAdOperationHistoriesForStaff'])

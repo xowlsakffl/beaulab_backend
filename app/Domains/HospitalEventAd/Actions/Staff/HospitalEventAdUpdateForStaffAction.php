@@ -32,13 +32,14 @@ final class HospitalEventAdUpdateForStaffAction
 
         $ad = DB::transaction(function () use ($ad, $payload) {
             $locked = HospitalEventAd::query()
-                ->with(['categories:id,code,name,full_path,depth'])
+                ->with(['categories:id,code,name,full_path,depth', 'adImage'])
                 ->whereKey($ad->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             $before = $this->historyRecordAction->capture($locked);
             $normalized = $this->normalizePayload($locked, $payload);
+            $this->assertAdImageWillExist($locked, $normalized);
 
             if ($this->isSlotChanged($locked, $normalized)) {
                 $this->assertSlotAvailable($locked, $normalized);
@@ -74,12 +75,12 @@ final class HospitalEventAdUpdateForStaffAction
 
     private function normalizePayload(HospitalEventAd $ad, array $payload): array
     {
-        $hospitalId = array_key_exists('hospital_id', $payload) ? (int) $payload['hospital_id'] : (int) $ad->hospital_id;
+        $hospitalId = (int) $ad->hospital_id;
         $eventId = array_key_exists('hospital_event_id', $payload) ? (int) $payload['hospital_event_id'] : (int) $ad->hospital_event_id;
         $placement = array_key_exists('placement', $payload) ? (string) $payload['placement'] : (string) $ad->placement;
         $categoryId = array_key_exists('category_id', $payload) ? $payload['category_id'] : $this->categoryId($ad);
 
-        $this->assertEventBelongsToHospital($eventId, $hospitalId);
+        $this->assertEventAdvertisable($eventId, $hospitalId);
 
         if (HospitalEventAd::requiresCategory($placement)) {
             if (empty($categoryId)) {
@@ -93,7 +94,6 @@ final class HospitalEventAdUpdateForStaffAction
 
         $normalized = [
             ...$payload,
-            'hospital_id' => $hospitalId,
             'hospital_event_id' => $eventId,
             'placement' => $placement,
             'category_id' => $categoryId !== null ? (int) $categoryId : null,
@@ -127,16 +127,43 @@ final class HospitalEventAdUpdateForStaffAction
         return (int) $ad->cost;
     }
 
-    private function assertEventBelongsToHospital(int $eventId, int $hospitalId): void
+    private function assertEventAdvertisable(int $eventId, int $hospitalId): void
     {
         $exists = HospitalEvent::query()
             ->whereKey($eventId)
             ->where('hospital_id', $hospitalId)
+            ->where('allow_status', HospitalEvent::ALLOW_APPROVED)
+            ->where('admin_status', HospitalEvent::ADMIN_STATUS_NORMAL)
             ->exists();
 
         if (! $exists) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병의원에 소속된 이벤트가 아닙니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '광고에 연결할 수 있는 이벤트가 아닙니다.');
         }
+    }
+
+    private function assertAdImageWillExist(HospitalEventAd $ad, array $payload): void
+    {
+        if (($payload['ad_image_file'] ?? null) instanceof UploadedFile) {
+            return;
+        }
+
+        if (array_key_exists('existing_ad_image_id', $payload)) {
+            if (! empty($payload['existing_ad_image_id'])) {
+                return;
+            }
+
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '광고 이미지를 등록해 주세요.');
+        }
+
+        if ($ad->relationLoaded('adImage') && $ad->adImage !== null) {
+            return;
+        }
+
+        if (! $ad->relationLoaded('adImage') && $ad->adImage()->exists()) {
+            return;
+        }
+
+        throw new CustomException(ErrorCode::INVALID_REQUEST, '광고 이미지를 등록해 주세요.');
     }
 
     private function assertCategoryMatchesPlacement(int $categoryId, string $placement): void
@@ -204,6 +231,7 @@ final class HospitalEventAdUpdateForStaffAction
         return [
             'hospital',
             'hospitalEvent',
+            'hospitalEvent.thumbnailImage',
             'categories',
             'managerStaff',
             'adImage',

@@ -67,7 +67,7 @@ final class HospitalEventAdCreateForStaffAction
         $placement = (string) $payload['placement'];
         $categoryId = $payload['category_id'] ?? null;
 
-        $this->assertEventBelongsToHospital($eventId, $hospitalId);
+        $this->assertEventAdvertisable($eventId, $hospitalId);
 
         if (! ($payload['ad_image_file'] ?? null) instanceof UploadedFile) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '광고 이미지를 등록해 주세요.');
@@ -101,15 +101,17 @@ final class HospitalEventAdCreateForStaffAction
             : HospitalEventAd::placementCost($placement);
     }
 
-    private function assertEventBelongsToHospital(int $eventId, int $hospitalId): void
+    private function assertEventAdvertisable(int $eventId, int $hospitalId): void
     {
         $exists = HospitalEvent::query()
             ->whereKey($eventId)
             ->where('hospital_id', $hospitalId)
+            ->where('allow_status', HospitalEvent::ALLOW_APPROVED)
+            ->where('admin_status', HospitalEvent::ADMIN_STATUS_NORMAL)
             ->exists();
 
         if (! $exists) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병의원에 소속된 이벤트가 아닙니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '광고에 연결할 수 있는 이벤트가 아닙니다.');
         }
     }
 
@@ -155,6 +157,7 @@ final class HospitalEventAdCreateForStaffAction
         return [
             'hospital',
             'hospitalEvent',
+            'hospitalEvent.thumbnailImage',
             'categories',
             'managerStaff',
             'adImage',

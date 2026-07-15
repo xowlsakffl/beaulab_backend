@@ -40,9 +40,15 @@ final class HospitalEventAdFactory extends Factory
 
         $event = HospitalEvent::query()
             ->where('hospital_id', $hospital->id)
+            ->where('allow_status', HospitalEvent::ALLOW_APPROVED)
+            ->where('admin_status', HospitalEvent::ADMIN_STATUS_NORMAL)
             ->inRandomOrder()
             ->first()
-            ?? HospitalEvent::factory()->create(['hospital_id' => $hospital->id]);
+            ?? HospitalEvent::factory()->create([
+                'hospital_id' => $hospital->id,
+                'allow_status' => HospitalEvent::ALLOW_APPROVED,
+                'admin_status' => HospitalEvent::ADMIN_STATUS_NORMAL,
+            ]);
 
         $placement = $this->faker->randomElement(HospitalEventAd::placements());
         if (HospitalEventAd::requiresCategory($placement)) {
@@ -63,7 +69,7 @@ final class HospitalEventAdFactory extends Factory
             'hospital_event_id' => (int) $event->id,
             'manager_staff_id' => AccountStaff::query()->inRandomOrder()->value('id'),
             'placement' => $placement,
-            'cost' => $this->faker->numberBetween(300000, 3000000),
+            'cost' => HospitalEventAd::placementCost($placement),
             'start_at' => $startAt,
             'end_at' => $startAt->copy()->addWeek()->subSecond(),
             'allow_status' => $this->faker->randomElement(HospitalEventAd::allowStatuses()),

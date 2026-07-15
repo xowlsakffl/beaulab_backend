@@ -20,11 +20,16 @@ final class HospitalEventAdStateUpdateForStaffQuery
         }
 
         return HospitalEventAd::query()
-            ->with(['categories:id,code,name,full_path,depth'])
+            ->with([
+                'hospital:id,name,allow_status,status',
+                'hospitalEvent:id,hospital_id,name,allow_status,admin_status',
+                'categories:id,code,name,full_path,depth',
+                'adImage',
+            ])
             ->whereIn('id', $ids)
             ->orderBy('id')
             ->lockForUpdate()
-            ->get(['id', 'placement', 'start_at', 'allow_status']);
+            ->get(['id', 'hospital_id', 'hospital_event_id', 'placement', 'start_at', 'allow_status']);
     }
 
     /**

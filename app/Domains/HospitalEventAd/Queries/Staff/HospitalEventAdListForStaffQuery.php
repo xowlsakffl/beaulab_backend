@@ -29,6 +29,7 @@ final class HospitalEventAdListForStaffQuery
             ->with([
                 'hospital:id,name',
                 'hospitalEvent:id,hospital_id,name,description,allow_status,hospital_status,admin_status,event_start_at,event_end_at',
+                'hospitalEvent.thumbnailImage',
                 'categories:id,code,name,full_path,depth',
                 'managerStaff:id,name,email',
             ]);

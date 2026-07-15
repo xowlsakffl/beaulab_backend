@@ -6,6 +6,7 @@ use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalEventAd\Actions\Staff\HospitalEventAdAllowStatusUpdateForStaffAction;
 use App\Domains\HospitalEventAd\Actions\Staff\HospitalEventAdAvailabilityForStaffAction;
+use App\Domains\HospitalEventAd\Actions\Staff\HospitalEventAdCalendarForStaffAction;
 use App\Domains\HospitalEventAd\Actions\Staff\HospitalEventAdCreateForStaffAction;
 use App\Domains\HospitalEventAd\Actions\Staff\HospitalEventAdGetForStaffAction;
 use App\Domains\HospitalEventAd\Actions\Staff\HospitalEventAdListForStaffAction;
@@ -15,6 +16,7 @@ use App\Domains\HospitalEventAd\Actions\Staff\HospitalEventAdUpdateForStaffActio
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Modules\Staff\Http\Requests\HospitalEventAd\HospitalEventAdAllowStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEventAd\HospitalEventAdAvailabilityForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalEventAd\HospitalEventAdCalendarForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEventAd\HospitalEventAdCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEventAd\HospitalEventAdGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEventAd\HospitalEventAdListForStaffRequest;
@@ -33,6 +35,13 @@ final class HospitalEventAdForStaffController extends Controller
     public function getHospitalEventAdAvailabilityForStaff(
         HospitalEventAdAvailabilityForStaffRequest $request,
         HospitalEventAdAvailabilityForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($request->filters()));
+    }
+
+    public function getHospitalEventAdCalendarForStaff(
+        HospitalEventAdCalendarForStaffRequest $request,
+        HospitalEventAdCalendarForStaffAction $action,
     ) {
         return ApiResponse::success($action->execute($request->filters()));
     }

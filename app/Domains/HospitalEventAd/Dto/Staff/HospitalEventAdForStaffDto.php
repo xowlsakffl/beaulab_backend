@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalEventAd\Dto\Staff;
 
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 
@@ -65,7 +66,17 @@ final readonly class HospitalEventAdForStaffDto
             'allow_status' => (string) $this->ad->hospitalEvent->allow_status,
             'hospital_status' => (string) $this->ad->hospitalEvent->hospital_status,
             'admin_status' => (string) $this->ad->hospitalEvent->admin_status,
+            'thumbnail_image' => $this->hospitalEventThumbnailImage(),
         ];
+    }
+
+    private function hospitalEventThumbnailImage(): ?array
+    {
+        if (! $this->ad->hospitalEvent->relationLoaded('thumbnailImage')) {
+            return null;
+        }
+
+        return $this->media($this->ad->hospitalEvent->thumbnailImage);
     }
 
     private function category(): ?array
@@ -124,6 +135,29 @@ final readonly class HospitalEventAdForStaffDto
             'id' => (int) $this->ad->managerStaff->id,
             'name' => (string) $this->ad->managerStaff->name,
             'email' => $this->ad->managerStaff->email,
+        ];
+    }
+
+    private function media(?Media $media): ?array
+    {
+        if (! $media) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $media->id,
+            'collection' => (string) $media->collection,
+            'disk' => (string) $media->disk,
+            'path' => (string) $media->path,
+            'mime_type' => $media->mime_type,
+            'size' => $media->size !== null ? (int) $media->size : null,
+            'width' => $media->width !== null ? (int) $media->width : null,
+            'height' => $media->height !== null ? (int) $media->height : null,
+            'sort_order' => (int) $media->sort_order,
+            'is_primary' => (bool) $media->is_primary,
+            'metadata' => $media->metadata,
+            'created_at' => $media->created_at?->toISOString(),
+            'updated_at' => $media->updated_at?->toISOString(),
         ];
     }
 }

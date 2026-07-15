@@ -10,7 +10,6 @@ final class HospitalEventAdUpdateForStaffQuery
     {
         $ad->fill(collect($payload)
             ->only([
-                'hospital_id',
                 'hospital_event_id',
                 'manager_staff_id',
                 'placement',

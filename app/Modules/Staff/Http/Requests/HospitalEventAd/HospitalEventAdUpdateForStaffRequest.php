@@ -34,7 +34,6 @@ final class HospitalEventAdUpdateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'hospital_id' => ['sometimes', 'required', 'integer', Rule::exists('hospitals', 'id')->whereNull('deleted_at')],
             'hospital_event_id' => ['sometimes', 'required', 'integer', Rule::exists('hospital_events', 'id')->whereNull('deleted_at')],
             'category_id' => [
                 'nullable',
@@ -48,7 +47,6 @@ final class HospitalEventAdUpdateForStaffRequest extends FormRequest
             ],
             'manager_staff_id' => ['nullable', 'integer', Rule::exists('account_staffs', 'id')],
             'placement' => ['sometimes', 'required', Rule::in(HospitalEventAd::placements())],
-            'cost' => ['sometimes', 'required', 'integer', 'min:0'],
             'is_free_event' => ['sometimes', 'boolean'],
             'start_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
             'ad_image_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
@@ -104,12 +102,10 @@ final class HospitalEventAdUpdateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병의원',
             'hospital_event_id' => '이벤트',
             'category_id' => '카테고리',
             'manager_staff_id' => '담당자',
             'placement' => '광고위치',
-            'cost' => '비용',
             'is_free_event' => '무료이벤트',
             'start_date' => '희망 노출 시작일',
             'ad_image_file' => '광고 이미지',

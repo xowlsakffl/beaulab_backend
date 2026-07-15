@@ -47,6 +47,14 @@ final class HospitalEventAd extends Model
 
     public const PLACEMENT_SEARCH = 'SEARCH';
 
+    public const GROUP_MAIN = 'main';
+
+    public const GROUP_SURGERY = 'surgery';
+
+    public const GROUP_PETIT = 'petit';
+
+    public const GROUP_ETC = 'etc';
+
     public const ALLOW_PENDING = 'PENDING';
 
     public const ALLOW_REVIEWING = 'REVIEWING';
@@ -152,6 +160,59 @@ final class HospitalEventAd extends Model
             self::PLACEMENT_SURGERY_CATEGORY_BANNER,
             self::PLACEMENT_PETIT_CATEGORY_BANNER,
         ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function placementGroupKeys(): array
+    {
+        return array_keys(self::placementGroups());
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public static function placementGroups(): array
+    {
+        return [
+            self::GROUP_MAIN => [
+                self::PLACEMENT_MAIN_POPUP,
+                self::PLACEMENT_MAIN_VERTICAL_BANNER,
+                self::PLACEMENT_MAIN_HORIZONTAL_BANNER,
+            ],
+            self::GROUP_SURGERY => [
+                self::PLACEMENT_SURGERY_TOP_BANNER,
+                self::PLACEMENT_SURGERY_HOT_EVENT,
+                self::PLACEMENT_SURGERY_CATEGORY_BANNER,
+            ],
+            self::GROUP_PETIT => [
+                self::PLACEMENT_PETIT_TOP_BANNER,
+                self::PLACEMENT_PETIT_HOT_EVENT,
+                self::PLACEMENT_PETIT_CATEGORY_BANNER,
+            ],
+            self::GROUP_ETC => [
+                self::PLACEMENT_CONSULT_MEMO,
+                self::PLACEMENT_SEARCH,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function placementsForGroup(string $group): array
+    {
+        return self::placementGroups()[$group] ?? [];
+    }
+
+    public static function categoryUsageForGroup(?string $group): ?string
+    {
+        return match ($group) {
+            self::GROUP_SURGERY => CategoryUsage::USAGE_HOSPITAL_EVENT_AD_SURGERY,
+            self::GROUP_PETIT => CategoryUsage::USAGE_HOSPITAL_EVENT_AD_TREATMENT,
+            default => null,
+        };
     }
 
     public static function requiresCategory(?string $placement): bool

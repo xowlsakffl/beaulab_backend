@@ -25,6 +25,7 @@ final class HospitalEventAdGetForStaffAction
         return [
             'hospital',
             'hospitalEvent',
+            'hospitalEvent.thumbnailImage',
             'categories',
             'managerStaff',
             'adImage',

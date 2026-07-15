@@ -71,7 +71,17 @@ final readonly class HospitalEventAdForStaffDetailDto
             'admin_status' => (string) $this->ad->hospitalEvent->admin_status,
             'event_start_at' => $this->ad->hospitalEvent->event_start_at?->toDateString(),
             'event_end_at' => $this->ad->hospitalEvent->event_end_at?->toDateString(),
+            'thumbnail_image' => $this->hospitalEventThumbnailImage(),
         ];
+    }
+
+    private function hospitalEventThumbnailImage(): ?array
+    {
+        if (! $this->ad->hospitalEvent->relationLoaded('thumbnailImage')) {
+            return null;
+        }
+
+        return $this->media($this->ad->hospitalEvent->thumbnailImage);
     }
 
     private function category(): ?array

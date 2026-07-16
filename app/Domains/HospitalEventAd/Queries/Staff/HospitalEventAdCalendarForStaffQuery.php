@@ -15,31 +15,6 @@ final class HospitalEventAdCalendarForStaffQuery
      */
     private array $categoriesByUsage = [];
 
-    private const CATEGORY_DEFINITIONS = [
-        CategoryUsage::USAGE_HOSPITAL_EVENT_AD_SURGERY => [
-            ['label' => '눈', 'codes' => ['HS_EYE']],
-            ['label' => '코', 'codes' => ['HS_NOSE']],
-            ['label' => '지방흡입/이식', 'codes' => ['HS_BODY']],
-            ['label' => '가슴', 'codes' => ['HS_BREAST']],
-            ['label' => '거상', 'codes' => ['HS_LIFT']],
-            ['label' => '안면윤곽/양악', 'codes' => ['HS_FACE_CONTOUR']],
-            ['label' => '모발이식', 'codes' => ['HS_HAIR_TRANSPLANT']],
-            ['label' => '기타', 'codes' => ['HM_PLASTIC_OTHER']],
-        ],
-        CategoryUsage::USAGE_HOSPITAL_EVENT_AD_TREATMENT => [
-            ['label' => '리프팅', 'codes' => ['HT_LIFTING']],
-            ['label' => '필러', 'codes' => ['HT_FILLER']],
-            ['label' => '보톡스', 'codes' => ['HT_BOTOX']],
-            ['label' => '지방분해주사', 'codes' => ['HM_PETIT_SKIN_BODY_CONTOUR_INJECTION']],
-            ['label' => '피부', 'codes' => ['HM_PETIT_SKIN_CARE']],
-            ['label' => '헤어', 'codes' => ['HM_PETIT_SKIN_HAIR']],
-            ['label' => '치과', 'codes' => ['HM_PETIT_SKIN_DENTAL']],
-            ['label' => '부인과', 'codes' => ['HM_PETIT_SKIN_GYNECOLOGY']],
-            ['label' => '안과', 'codes' => ['HM_PETIT_SKIN_OPHTHALMOLOGY']],
-            ['label' => '한방', 'codes' => ['HM_PETIT_SKIN_ORIENTAL']],
-        ],
-    ];
-
     public function __construct(
         private readonly HospitalEventAdSlotAvailabilityForStaffQuery $slotQuery,
         private readonly HospitalEventAdSalesDeadline $salesDeadline,
@@ -211,36 +186,34 @@ final class HospitalEventAdCalendarForStaffQuery
             return $this->categoriesByUsage[$usage];
         }
 
-        $categories = Category::query()
-            ->select(['id', 'code', 'name', 'full_path'])
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->where('status', Category::STATUS_ACTIVE)
-            ->whereHas('usages', static fn ($query) => $query
-                ->where('usage', $usage)
-                ->where('status', CategoryUsage::STATUS_ACTIVE))
+        return $this->categoriesByUsage[$usage] = Category::query()
+            ->select([
+                'categories.id',
+                'categories.code',
+                'categories.name',
+                'categories.full_path',
+            ])
+            ->join('category_usages', 'category_usages.category_id', '=', 'categories.id')
+            ->where('category_usages.usage', $usage)
+            ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
+            ->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->where('categories.status', Category::STATUS_ACTIVE)
+            ->orderBy('category_usages.sort_order')
+            ->orderBy('categories.id')
             ->get()
-            ->keyBy('code');
+            ->map(
+                static function (Category $category): array {
+                    $name = (string) $category->name;
 
-        return $this->categoriesByUsage[$usage] = collect(self::CATEGORY_DEFINITIONS[$usage] ?? [])
-            ->map(function (array $definition) use ($categories): ?array {
-                $category = collect($definition['codes'])
-                    ->map(static fn (string $code) => $categories->get($code))
-                    ->filter()
-                    ->first();
-
-                if (! $category instanceof Category) {
-                    return null;
+                    return [
+                        'id' => (int) $category->id,
+                        'name' => $name,
+                        'display_name' => $name,
+                        'code' => (string) ($category->code ?? ''),
+                        'full_path' => (string) ($category->full_path ?? ''),
+                    ];
                 }
-
-                return [
-                    'id' => (int) $category->id,
-                    'name' => (string) $category->name,
-                    'display_name' => (string) $definition['label'],
-                    'code' => (string) ($category->code ?? ''),
-                    'full_path' => (string) ($category->full_path ?? ''),
-                ];
-            })
-            ->filter()
+            )
             ->values()
             ->all();
     }

@@ -72,6 +72,10 @@ final class HospitalEventAdCalendarForStaffQuery
             'category_id' => $categoryId,
             'month' => $month->format('Y-m'),
             'categories' => $this->categories($group),
+            'category_groups' => [
+                HospitalEventAd::GROUP_SURGERY => $this->categories(HospitalEventAd::GROUP_SURGERY),
+                HospitalEventAd::GROUP_PETIT => $this->categories(HospitalEventAd::GROUP_PETIT),
+            ],
             'days' => array_values(array_map(function (array $day): array {
                 usort(
                     $day['statuses'],
@@ -88,7 +92,15 @@ final class HospitalEventAdCalendarForStaffQuery
      */
     private function placements(string $group, ?int $categoryId): array
     {
-        return HospitalEventAd::placementsForGroup($group);
+        $placements = HospitalEventAd::placementsForGroup($group);
+        if ($categoryId === null) {
+            return $placements;
+        }
+
+        return collect($placements)
+            ->filter(static fn (string $placement): bool => HospitalEventAd::requiresCategory($placement))
+            ->values()
+            ->all();
     }
 
     /**
@@ -115,11 +127,13 @@ final class HospitalEventAdCalendarForStaffQuery
     private function weekStatus(string $placement, ?int $categoryId, Carbon $date): array
     {
         $startAt = $date->copy()->setTime(11, 0, 0);
-        $reservedCount = $this->slotQuery->reservedCount(
+        $ads = $this->slotQuery->reservedAds(
             $placement,
             HospitalEventAd::requiresCategory($placement) ? $categoryId : null,
             $startAt,
+            allowStatuses: [HospitalEventAd::ALLOW_APPROVED],
         );
+        $reservedCount = $ads->count();
         $slotLimit = $this->slotLimit($placement, $categoryId);
         $remainingCount = max(0, $slotLimit - $reservedCount);
         $isPast = $date->copy()->startOfDay()->lessThanOrEqualTo(now()->startOfDay());
@@ -136,6 +150,28 @@ final class HospitalEventAdCalendarForStaffQuery
             'is_past' => $isPast,
             'is_deadline_closed' => $isDeadlineClosed,
             'sort_order' => $this->placementSortOrder($placement),
+            'ads' => $ads
+                ->map(fn (HospitalEventAd $ad): array => $this->adSummary($ad))
+                ->values()
+                ->all(),
+        ];
+    }
+
+    private function adSummary(HospitalEventAd $ad): array
+    {
+        $adStatus = $ad->adStatus();
+        $category = $ad->relationLoaded('categories') ? $ad->categories->first() : null;
+
+        return [
+            'id' => (int) $ad->id,
+            'hospital_name' => (string) ($ad->hospital?->name ?? '-'),
+            'event_name' => (string) ($ad->hospitalEvent?->name ?? '-'),
+            'category_name' => $category ? (string) $category->name : null,
+            'allow_status' => (string) $ad->allow_status,
+            'allow_status_label' => HospitalEventAd::allowStatusLabel((string) $ad->allow_status),
+            'ad_status' => $adStatus,
+            'ad_status_label' => HospitalEventAd::adStatusLabel($adStatus),
+            'manager_name' => (string) ($ad->managerStaff?->name ?? '-'),
         ];
     }
 

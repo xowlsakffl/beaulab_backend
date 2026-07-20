@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 final class ContentReport extends Model
 {
-    public const string REASON_REPORT = 'REPORT';
+    public const string REASON_DELETED_VIDEO = 'DELETED_VIDEO';
 
     public const string REASON_ABUSE = 'ABUSE';
 
@@ -52,7 +52,6 @@ final class ContentReport extends Model
     public static function reasons(): array
     {
         return [
-            self::REASON_REPORT,
             self::REASON_ABUSE,
             self::REASON_SPAM,
             self::REASON_ILLEGAL_AD,
@@ -62,12 +61,24 @@ final class ContentReport extends Model
     }
 
     /**
+     * @return list<string>
+     */
+    public static function hospitalVideoReasons(): array
+    {
+        return [
+            self::REASON_DELETED_VIDEO,
+            self::REASON_ABUSE,
+            self::REASON_ILLEGAL_AD,
+        ];
+    }
+
+    /**
      * @return array<string, string>
      */
     public static function reasonLabels(): array
     {
         return [
-            self::REASON_REPORT => '신고',
+            self::REASON_DELETED_VIDEO => '삭제된 동영상',
             self::REASON_ABUSE => '비방/욕설',
             self::REASON_SPAM => '게시물/댓글 도배',
             self::REASON_ILLEGAL_AD => '불법광고/홍보',

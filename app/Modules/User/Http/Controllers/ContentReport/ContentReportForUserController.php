@@ -7,7 +7,6 @@ use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\Common\ContentReport\Actions\User\ContentReportCreateForUserAction;
-use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
@@ -15,7 +14,7 @@ use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use App\Modules\User\Http\Requests\ContentReport\ContentReportCreateForUserRequest;
-use Illuminate\Http\Request;
+use App\Modules\User\Http\Requests\ContentReport\HospitalVideoReportForUserRequest;
 
 final class ContentReportForUserController extends Controller
 {
@@ -106,7 +105,7 @@ final class ContentReportForUserController extends Controller
 
     public function reportHospitalVideoForUser(
         HospitalVideo $video,
-        Request $request,
+        HospitalVideoReportForUserRequest $request,
         ContentReportCreateForUserAction $action,
     ) {
         if (! $video->isVisible()) {
@@ -114,7 +113,7 @@ final class ContentReportForUserController extends Controller
         }
 
         $action->execute($request->user(), $video, [
-            'reason' => ContentReport::REASON_REPORT,
+            ...$request->validated(),
             'reporter_ip' => $request->ip(),
         ]);
 

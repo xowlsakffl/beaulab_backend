@@ -17,11 +17,13 @@ final class CategoryCreateForStaffRequest extends FormRequest
         $name = $this->input('name');
         $code = $this->input('code');
         $domain = $this->input('domain');
+        $groupCode = $this->input('group_code');
 
         $this->merge([
             'name' => is_string($name) ? trim($name) : $name,
             'code' => is_string($code) ? trim($code) : $code,
             'domain' => is_string($domain) ? trim($domain) : $domain,
+            'group_code' => is_string($groupCode) ? trim($groupCode) : $groupCode,
         ]);
     }
 
@@ -44,6 +46,7 @@ final class CategoryCreateForStaffRequest extends FormRequest
                     ->where(fn ($query) => $query->where('domain', (string) $this->input('domain'))),
             ],
             'icon' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'group_code' => ['nullable', Rule::in(Category::groupCodes())],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'status' => ['nullable', 'in:ACTIVE,INACTIVE'],
             'is_menu_visible' => ['nullable', 'boolean'],
@@ -58,6 +61,7 @@ final class CategoryCreateForStaffRequest extends FormRequest
             'parent_id' => '상위 카테고리 ID',
             'code' => '카테고리 코드',
             'icon' => '카테고리 아이콘',
+            'group_code' => '카테고리 그룹',
             'sort_order' => '정렬 순서',
             'status' => '운영 상태',
             'is_menu_visible' => '메뉴 노출 여부',

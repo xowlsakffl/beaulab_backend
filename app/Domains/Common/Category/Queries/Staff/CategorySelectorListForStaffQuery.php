@@ -35,6 +35,7 @@ final class CategorySelectorListForStaffQuery
         $parentId = $filters['parent_id'] ?? null;
         $parentCode = $filters['parent_code'] ?? null;
         $depth = $filters['depth'] ?? null;
+        $groupCode = $filters['group_code'] ?? null;
         $isMenuVisible = $filters['is_menu_visible'] ?? null;
         $sort = $filters['sort'] ?? 'sort_order';
         $direction = $filters['direction'] ?? 'asc';
@@ -46,6 +47,7 @@ final class CategorySelectorListForStaffQuery
                 'categories.domain',
                 'categories.parent_id',
                 'categories.depth',
+                'categories.group_code',
                 'categories.name',
                 'categories.code',
                 'categories.full_path',
@@ -125,6 +127,10 @@ final class CategorySelectorListForStaffQuery
             $builder->where('categories.depth', (int) $depth);
         } elseif ($parentId === null && ! $parentCode && ! $q && ! $usage) {
             $builder->whereNull('categories.parent_id');
+        }
+
+        if ($groupCode !== null) {
+            $builder->where('categories.group_code', (string) $groupCode);
         }
 
         if (is_array($status) && $status !== []) {

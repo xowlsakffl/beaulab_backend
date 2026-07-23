@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalVideo\Actions\Hospital;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoUpdateHistoryRecordAction;
 use App\Domains\HospitalVideo\Dto\Hospital\HospitalVideoForHospitalDetailDto;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
@@ -39,6 +40,8 @@ final class HospitalVideoStatusUpdateForHospitalAction
                 'hashtags',
             ]);
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_VIDEO);
 
         return [
             'video' => HospitalVideoForHospitalDetailDto::fromModel($video)->toArray(),

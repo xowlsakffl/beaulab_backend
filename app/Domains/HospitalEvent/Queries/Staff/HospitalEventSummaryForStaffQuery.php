@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalEvent\Queries\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,17 @@ final class HospitalEventSummaryForStaffQuery
      * @return array<string, int>
      */
     public function get(): array
+    {
+        return StaffSummaryCache::remember(
+            StaffSummaryCache::DOMAIN_HOSPITAL_EVENT,
+            fn (): array => $this->uncachedSummary(),
+        );
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function uncachedSummary(): array
     {
         $now = now();
         $recentStart = $now->copy()->subDays(30)->startOfDay();

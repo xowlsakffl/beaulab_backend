@@ -19,12 +19,14 @@ final class CategorySelectorListForStaffRequest extends FormRequest
         $domain = $this->input('domain');
         $usage = $this->input('usage');
         $parentCode = $this->input('parent_code');
+        $groupCode = $this->input('group_code');
 
         $this->merge([
             'status' => $status,
             'domain' => is_string($domain) ? trim($domain) : $domain,
             'usage' => is_string($usage) ? trim($usage) : $usage,
             'parent_code' => is_string($parentCode) ? trim($parentCode) : $parentCode,
+            'group_code' => is_string($groupCode) ? trim($groupCode) : $groupCode,
         ]);
     }
 
@@ -42,10 +44,11 @@ final class CategorySelectorListForStaffRequest extends FormRequest
             'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
             'parent_code' => ['nullable', 'string', 'max:80'],
             'depth' => ['nullable', 'integer', 'in:1,2,3,4'],
+            'group_code' => ['nullable', Rule::in(Category::groupCodes())],
             'status' => ['nullable', 'array'],
             'status.*' => ['in:ACTIVE,INACTIVE'],
             'is_menu_visible' => ['nullable', 'boolean'],
-            'sort' => ['nullable', 'in:id,name,sort_order,depth,status'],
+            'sort' => ['nullable', 'in:id,name,sort_order,depth,group_code,status'],
             'direction' => ['nullable', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
@@ -62,6 +65,7 @@ final class CategorySelectorListForStaffRequest extends FormRequest
             'parent_id' => $validated['parent_id'] ?? null,
             'parent_code' => $validated['parent_code'] ?? null,
             'depth' => $validated['depth'] ?? null,
+            'group_code' => $validated['group_code'] ?? null,
             'status' => $validated['status'] ?? null,
             'is_menu_visible' => $validated['is_menu_visible'] ?? null,
             'sort' => $validated['sort'] ?? 'sort_order',
@@ -79,6 +83,7 @@ final class CategorySelectorListForStaffRequest extends FormRequest
             'parent_id' => '상위 카테고리 ID',
             'parent_code' => '상위 카테고리 코드',
             'depth' => '카테고리 단계',
+            'group_code' => '카테고리 그룹',
             'status' => '카테고리 상태',
             'status.*' => '카테고리 상태',
             'is_menu_visible' => '메뉴 노출 여부',

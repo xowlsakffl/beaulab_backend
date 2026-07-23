@@ -24,13 +24,8 @@ final class AccountUserForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_USER_SHOW);
     }
 
-    public function update(AccountStaff $actor, AccountUser $user): bool
+    public function updateStatus(AccountStaff $actor, AccountUser $user): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_USER_UPDATE);
-    }
-
-    public function delete(AccountStaff $actor, AccountUser $user): bool
-    {
-        return $actor->can(AccessPermissions::BEAULAB_USER_DELETE);
+        return $actor->can(AccessPermissions::BEAULAB_USER_STATUS_UPDATE);
     }
 }

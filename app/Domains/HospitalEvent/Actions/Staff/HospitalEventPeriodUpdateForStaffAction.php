@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\HospitalEvent\Dto\Staff\HospitalEventForStaffDto;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventUpdateForStaffQuery;
@@ -34,6 +35,8 @@ final class HospitalEventPeriodUpdateForStaffAction
 
             return $event;
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_EVENT);
 
         return [
             'event' => HospitalEventForStaffDto::fromModel($event->load([

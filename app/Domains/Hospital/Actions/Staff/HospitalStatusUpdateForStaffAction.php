@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Hospital\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalStatusUpdateForStaffQuery;
@@ -18,7 +19,7 @@ final class HospitalStatusUpdateForStaffAction
     ) {}
 
     /**
-     * @param array{status:string, reason?:string|null} $payload
+     * @param  array{status:string, reason?:string|null}  $payload
      * @return array{hospital: array}
      */
     public function execute(Hospital $hospital, array $payload): array
@@ -38,6 +39,8 @@ final class HospitalStatusUpdateForStaffAction
 
             return $updatedHospital->fresh();
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL);
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(

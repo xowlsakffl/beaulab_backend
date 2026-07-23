@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventStateUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ final class HospitalEventAllowStatusUpdateForStaffAction
             ->all();
         $allowStatus = (string) $payload['allow_status'];
 
-        return DB::transaction(function () use ($ids, $allowStatus, $payload): array {
+        $result = DB::transaction(function () use ($ids, $allowStatus, $payload): array {
             $events = $this->query->getForUpdate($ids);
             $events->each(static fn (HospitalEvent $event): mixed => Gate::authorize('update', $event));
 
@@ -52,5 +53,9 @@ final class HospitalEventAllowStatusUpdateForStaffAction
                 'ids' => $existingIds,
             ];
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_EVENT);
+
+        return $result;
     }
 }

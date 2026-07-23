@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalVideo\Queries\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,17 @@ final class HospitalVideoSummaryForStaffQuery
      * @return array<string, int>
      */
     public function get(): array
+    {
+        return StaffSummaryCache::remember(
+            StaffSummaryCache::DOMAIN_HOSPITAL_VIDEO,
+            fn (): array => $this->uncachedSummary(),
+        );
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function uncachedSummary(): array
     {
         $baseQuery = HospitalVideo::query();
 

@@ -5,6 +5,7 @@ namespace App\Domains\AccountHospital\Queries\Hospital;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,16 +16,20 @@ use Illuminate\Support\Facades\Hash;
 final class LoginForAccountHospitalQuery
 {
     /**
-     * @param array{nickname:string,password:string,device_name?:string|null} $data
+     * @param  array{nickname:string,password:string,device_name?:string|null}  $data
      * @return array{token:string, hospital: AccountHospital, roles: list<string>, permissions: list<string>}
      */
     public function login(array $data): array
     {
-        return DB::transaction(fn (): array => $this->loginInTransaction($data));
+        $result = DB::transaction(fn (): array => $this->loginInTransaction($data));
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL);
+
+        return $result;
     }
 
     /**
-     * @param array{nickname:string,password:string,device_name?:string|null} $data
+     * @param  array{nickname:string,password:string,device_name?:string|null}  $data
      * @return array{token:string, hospital: AccountHospital, roles: list<string>, permissions: list<string>}
      */
     private function loginInTransaction(array $data): array

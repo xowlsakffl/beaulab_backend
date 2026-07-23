@@ -10,9 +10,12 @@
 | 구분 | 테이블/파일 | 책임 |
 |---|---|---|
 | 카테고리 트리 | `categories`, `database/seeders/data/categories/trees/*` | 서비스 분류 체계 원본 |
+| 카테고리 그룹 | `categories.group_code` | 같은 도메인 안에서 성형/쁘띠 같은 카테고리 성격 구분 |
 | 사용처 노출 목록 | `category_usages`, `database/seeders/data/categories/usages/*` | 특정 화면/기능에서 보여줄 카테고리 선별 |
 
 `categories`에는 화면별 노출 플래그를 추가하지 않는다. 병원 진료과목, 의료진 진료분야, 앱 필터처럼 같은 카테고리 트리에서 서로 다른 depth의 노드를 골라 써야 하는 기능은 `category_usages`로 관리한다.
+
+`group_code`는 화면별 사용처가 아니라 카테고리 자체의 성격값이다. 병원 의료 카테고리에서는 같은 `HOSPITAL_MEDICAL` 트리 안에서 성형/쁘띠를 구분하기 위해 사용한다.
 
 ## 2. 병원 의료 카테고리
 
@@ -51,7 +54,14 @@ HOSPITAL_MEDICAL
 - 기타쁘띠/피부
 ```
 
-`성형`, `쁘띠/피부`는 카테고리 노드로 저장하지 않는다. 이 둘은 후기/영상 게시판을 나누기 위한 사용처 그룹명이지, 사용자가 선택하는 진료과목이 아니다.
+`성형`, `쁘띠`는 카테고리 노드로 저장하지 않는다. 이 둘은 `categories.group_code`로만 구분한다.
+
+| group_code | 표시명 | 의미 |
+|---|---|---|
+| `SURGERY` | 성형 | 눈, 코, 지방흡입/이식, 가슴, 거상, 안면윤곽/양악, 모발이식, 기타성형 등 |
+| `TREATMENT` | 쁘띠 | 리프팅, 필러, 보톡스, 지방분해주사, 피부, 헤어, 치과, 부인과, 안과, 한방 등 |
+
+시더에서는 최상위 카테고리에 `group_code`를 정의하고, 하위 카테고리는 부모의 `group_code`를 상속한다. 운영 화면에서 하위 카테고리를 생성할 때도 부모와 다른 `group_code`는 허용하지 않는다.
 
 ## 3. 병원/의료진 진료과목
 
@@ -68,12 +78,13 @@ database/seeders/data/categories/usages/hospital_doctor_subject.php
 ```
 
 이 usage에는 성형 쪽 대분류와 쁘띠/피부 쪽 일부 중분류가 섞여 들어갈 수 있다. 이건 depth 기준이 아니라 “병원/의료진이 진료과목으로 표방할 수 있는 노드” 기준이다.
+성형/쁘띠 구분 표시는 `category_usages`가 아니라 각 카테고리의 `group_code`를 기준으로 한다.
 
 주의할 점:
 
 - `성형`, `쁘띠/피부` 자체는 `categories` 트리에도, 진료과목 usage에도 넣지 않는다.
 - 진료과목에 노출할 항목은 `database/seeders/data/categories/usages/hospital_doctor_subject.php`에 명시된 code만 기준으로 한다.
-- 시더 재실행 시 usage 파일에 없는 기존 `category_usages` row는 `INACTIVE`로 변경한다. 기존 DB에 잘못 들어간 root usage가 남아 있으면 시더를 다시 실행해 정리한다.
+- 시더 재실행 시 usage 파일에 없는 기존 `category_usages` row는 삭제한다. 기존 DB에 잘못 들어간 root usage가 남아 있으면 시더를 다시 실행해 정리한다.
 
 ## 4. 후기 게시판 구분
 
@@ -123,6 +134,7 @@ usage 파일은 DB id를 직접 쓰지 않고 `code`로 참조한다. 시더 실
 |---|---|
 | `domain` | 카테고리 원본 도메인 |
 | `usage` | 사용처별 노출 목록 필터 |
+| `group_code` | 성형/쁘띠 그룹 필터(`SURGERY`, `TREATMENT`) |
 | `parent_id` | 특정 부모 id의 자식 조회 |
 | `parent_code` | 특정 부모 code의 자식 조회 |
 
@@ -130,14 +142,18 @@ usage 파일은 DB id를 직접 쓰지 않고 `code`로 참조한다. 시더 실
 
 ```text
 GET /api/v1/staff/categories/selector?domain=HOSPITAL_MEDICAL&usage=HOSPITAL_DOCTOR_SUBJECT
+GET /api/v1/staff/categories/selector?domain=HOSPITAL_MEDICAL&usage=HOSPITAL_DOCTOR_SUBJECT&group_code=SURGERY
 GET /api/v1/staff/categories/selector?domain=HOSPITAL_MEDICAL&usage=HOSPITAL_REVIEW_SURGERY
 GET /api/v1/staff/categories/selector?domain=HOSPITAL_MEDICAL&parent_id=1
 ```
 
+selector/list 응답은 `group_code`, `group_label`을 내려준다. 프론트는 `group_code`로 필터/섹션 구분을 처리하고, `group_label`은 표시용으로만 사용한다.
+
 ## 7. 금지 기준
 
-- 병원/의료진 진료과목을 별도 `HOSPITAL_DOCTER` 도메인으로 복제하지 않는다.
+- 병원/의료진 진료과목을 별도 `HOSPITAL_DOCTOR` 도메인으로 복제하지 않는다.
 - `성형`, `쁘띠/피부`를 진료과목 카테고리 노드로 저장하지 않는다.
+- 성형/쁘띠 판별을 `category_usages`로 역추론하지 않는다. 판별 기준은 `categories.group_code`다.
 - 화면별 노출 여부를 `categories` 컬럼으로 계속 늘리지 않는다.
 - 후기 게시판 구분값과 카테고리 원본 도메인을 같은 의미로 쓰지 않는다.
 - depth 숫자만으로 소분류를 판단하지 않는다. 트리 구조는 바뀔 수 있으므로 leaf 여부를 기준으로 한다.

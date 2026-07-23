@@ -4,6 +4,7 @@ namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Media\Models\Media;
@@ -93,6 +94,8 @@ final class HospitalEventDuplicateForStaffAction
 
             return $event;
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_EVENT);
 
         return [
             'event' => HospitalEventForStaffDetailDto::fromModel($event->load([

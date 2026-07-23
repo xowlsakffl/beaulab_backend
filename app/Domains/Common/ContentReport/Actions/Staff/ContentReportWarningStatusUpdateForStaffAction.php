@@ -5,6 +5,7 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\ContentReport\Queries\Staff\ContentReportStateStatusUpdateForStaffQuery;
@@ -95,6 +96,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
         });
 
         ContentReportSummaryCache::forgetForTarget($target);
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_ACCOUNT_USER);
 
         return $result;
     }

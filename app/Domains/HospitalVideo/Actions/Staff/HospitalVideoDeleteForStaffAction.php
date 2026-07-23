@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalVideo\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
@@ -20,7 +21,7 @@ final class HospitalVideoDeleteForStaffAction
     {
         Gate::authorize('delete', $video);
 
-        return DB::transaction(function () use ($video) {
+        $result = DB::transaction(function () use ($video) {
             $hashtagIds = $video->hashtags()
                 ->pluck('hashtags.id')
                 ->map(static fn (int|string $id): int => (int) $id)
@@ -39,5 +40,9 @@ final class HospitalVideoDeleteForStaffAction
                 'deleted_at' => optional($video->deleted_at)?->toISOString(),
             ];
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_VIDEO);
+
+        return $result;
     }
 }

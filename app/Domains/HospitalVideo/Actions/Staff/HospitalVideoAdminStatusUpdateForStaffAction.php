@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalVideo\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\HospitalVideo\Queries\Staff\HospitalVideoStateUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ final class HospitalVideoAdminStatusUpdateForStaffAction
             ->all();
         $adminStatus = (string) $payload['admin_status'];
 
-        return DB::transaction(function () use ($ids, $adminStatus, $payload): array {
+        $result = DB::transaction(function () use ($ids, $adminStatus, $payload): array {
             $videos = $this->query->getForUpdate($ids);
             $videos->each(static fn (HospitalVideo $video): mixed => Gate::authorize('update', $video));
 
@@ -52,5 +53,9 @@ final class HospitalVideoAdminStatusUpdateForStaffAction
                 'ids' => $existingIds,
             ];
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_VIDEO);
+
+        return $result;
     }
 }

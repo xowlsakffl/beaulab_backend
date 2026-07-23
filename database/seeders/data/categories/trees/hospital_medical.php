@@ -4,6 +4,7 @@ return [
     [
         'name' => '눈',
         'code' => 'HS_EYE',
+        'group_code' => 'SURGERY',
         'children' => [
             [
                 'name' => '쌍꺼풀',
@@ -35,6 +36,7 @@ return [
     [
         'name' => '코',
         'code' => 'HS_NOSE',
+        'group_code' => 'SURGERY',
         'children' => [
             [
                 'name' => '코끝성형',
@@ -66,6 +68,7 @@ return [
     [
         'name' => '지방흡입/이식',
         'code' => 'HS_BODY',
+        'group_code' => 'SURGERY',
         'children' => [
             [
                 'name' => '지방흡입',
@@ -88,6 +91,7 @@ return [
     [
         'name' => '안면윤곽/양악',
         'code' => 'HS_FACE_CONTOUR',
+        'group_code' => 'SURGERY',
         'children' => [
             [
                 'name' => '윤곽수술',
@@ -110,6 +114,7 @@ return [
     [
         'name' => '가슴',
         'code' => 'HS_BREAST',
+        'group_code' => 'SURGERY',
         'children' => [
             [
                 'name' => '가슴확대',
@@ -132,22 +137,27 @@ return [
     [
         'name' => '거상',
         'code' => 'HS_LIFT',
+        'group_code' => 'SURGERY',
     ],
     [
         'name' => '모발이식',
         'code' => 'HS_HAIR_TRANSPLANT',
+        'group_code' => 'SURGERY',
     ],
     [
         'name' => '남자성형',
         'code' => 'HM_PLASTIC_MALE',
+        'group_code' => 'SURGERY',
     ],
     [
         'name' => '기타성형',
         'code' => 'HM_PLASTIC_OTHER',
+        'group_code' => 'SURGERY',
     ],
     [
         'name' => '안티에이징',
         'code' => 'HS_ANTI_AGING',
+        'group_code' => 'SURGERY',
         'children' => [
             [
                 'name' => '이마·눈썹',
@@ -170,6 +180,7 @@ return [
     [
         'name' => '얼굴',
         'code' => 'HM_PETIT_SKIN_FACE',
+        'group_code' => 'TREATMENT',
         'children' => [
             [
                 'name' => '리프팅',
@@ -209,6 +220,7 @@ return [
     [
         'name' => '체형',
         'code' => 'HM_PETIT_SKIN_BODY',
+        'group_code' => 'TREATMENT',
         'children' => [
             [
                 'name' => '지방분해/윤곽주사',
@@ -219,6 +231,7 @@ return [
     [
         'name' => '피부',
         'code' => 'HM_PETIT_SKIN_CARE',
+        'group_code' => 'TREATMENT',
         'children' => [
             [
                 'name' => '스킨부스터',
@@ -255,33 +268,41 @@ return [
     [
         'name' => '치과',
         'code' => 'HM_PETIT_SKIN_DENTAL',
+        'group_code' => 'TREATMENT',
     ],
     [
         'name' => '헤어',
         'code' => 'HM_PETIT_SKIN_HAIR',
+        'group_code' => 'TREATMENT',
     ],
     [
         'name' => '두피',
         'code' => 'HM_PETIT_SKIN_SCALP',
+        'group_code' => 'TREATMENT',
     ],
     [
         'name' => '탈모',
         'code' => 'HM_PETIT_SKIN_HAIR_LOSS',
+        'group_code' => 'TREATMENT',
     ],
     [
         'name' => '부인과',
         'code' => 'HM_PETIT_SKIN_GYNECOLOGY',
+        'group_code' => 'TREATMENT',
     ],
     [
         'name' => '안과',
         'code' => 'HM_PETIT_SKIN_OPHTHALMOLOGY',
+        'group_code' => 'TREATMENT',
     ],
     [
         'name' => '한방',
         'code' => 'HM_PETIT_SKIN_ORIENTAL',
+        'group_code' => 'TREATMENT',
     ],
     [
         'name' => '기타쁘띠/피부',
         'code' => 'HM_PETIT_SKIN_OTHER',
+        'group_code' => 'TREATMENT',
     ],
 ];

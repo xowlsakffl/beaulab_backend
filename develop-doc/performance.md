@@ -37,7 +37,8 @@
 - 이벤트 목록: 상담신청 수, 확정 상담신청 수, 사용 포인트 합계를 목록 Query에서 eager aggregate로 처리한다.
 - 이벤트 DB/리얼모델 DB: 회원/병원/이벤트 relation을 목록 Query에서 eager load한다.
 - 회원 목록/summary: 접속자/가입경로/상태 summary를 Query로 분리하고, 목록 정렬에 id tie-breaker를 둔다.
-- 신고게시물 summary: `ContentReportSummaryCache`로 5분 캐싱하고 상태 변경/신고 생성 시 무효화한다.
+- Staff summary count: `StaffSummaryCache`로 5분 Redis 캐싱하고, Redis 장애 시 DB 조회로 fallback한다.
+- 신고게시물 summary: `ContentReportSummaryCache`가 `StaffSummaryCache`를 사용하며 상태 변경/신고 생성 시 무효화한다.
 - selector/option API: 병원 옵션, 의료진 옵션, 카테고리 selector는 프론트 request cache와 함께 중복 호출을 줄인다.
 - placeholder route/menu는 권한 매핑이 없는 직접 접근을 fail-closed로 처리한다.
 

@@ -12,6 +12,7 @@
 - [내부도구 허브 운영 가이드](./internal-tools.md)
 - [로깅 전략 (감사로그 / 운영로그)](./logging.md)
 - [Queue 운영 가이드](./queue.md)
+- [Cache / Redis 적용 규칙](./cache.md)
 - [Scheduler 운영 가이드](./scheduler.md)
 - [도메인 & 상태 정의서](./domain-status-definition.md)
 - [카테고리 설계](./category.md)
@@ -31,7 +32,7 @@
 - User API는 앱 사용자 인증/프로필, 채팅, 토크/후기 작성, 신고, 병원 이벤트 DB/리얼모델 DB 신청, 사용자 차단, 알림을 담당한다.
 - 공지사항/FAQ 도메인은 현재 Staff API 기준으로 CRUD와 에디터 이미지를 지원한다.
 - FAQ 카테고리는 전용 테이블이 아니라 공통 `Category` 도메인의 `FAQ` 분류를 사용한다.
-- 병원/의료진/후기/영상 의료 카테고리는 `HOSPITAL_MEDICAL` 트리를 공유하고, 화면별 노출 목록은 `category_usages`로 분리한다.
+- 병원/의료진/후기/영상 의료 카테고리는 `HOSPITAL_MEDICAL` 트리를 공유하고, 성형/쁘띠 구분은 `categories.group_code`, 화면별 노출 목록은 `category_usages`로 분리한다.
 - 병원/의료진/이벤트의 `allow_status`는 `PENDING`/`REVIEWING`/`APPROVED`/`REJECTED`를 저장하고, 관리자 화면 표기는 모델의 `allowStatusLabel()` 기준으로 `신청`/`검수`/`승인`/`반려`를 사용한다.
 - 입점신청은 Staff 목록/상세/summary/승인상태 변경 API를 제공하며, 승인상태 변경은 `OperationHistory`에 기록한다.
 - 토크/병의원 후기/병의원 평가는 Staff 운영 API와 User 작성 API를 Actor 기준으로 분리한다.
@@ -42,6 +43,7 @@
 - 권한 단일 소스는 `AccessPermissions` / `AccessRoles`이며 Seeder로 동기화한다.
 - 신고게시물, 이벤트 DB, 리얼모델 DB, 입점신청처럼 같은 메뉴 그룹에 있어도 업무 책임이 다른 리소스는 별도 권한으로 분리한다.
 - Queue 표준 런타임은 Redis + Horizon이며, Scheduler/Monitor는 별도 문서로 분리 관리한다.
+- Staff summary count는 `StaffSummaryCache`를 통해 Redis 캐시를 사용하고, 원본 데이터 변경 후 관련 캐시를 무효화한다.
 - 모든 예외 응답은 공통 예외 핸들러/응답 포맷 규칙을 따른다.
 - 목록/summary/selector 성능 규칙과 인덱스 기준은 `performance.md`를 따른다.
 

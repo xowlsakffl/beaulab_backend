@@ -4,10 +4,10 @@ namespace App\Domains\Common\Category\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Category\Dto\Staff\CategoryForStaffDto;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Queries\Staff\CategoryCreateForStaffQuery;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -46,8 +46,9 @@ final class CategoryCreateForStaffAction
         }
 
         $depth = $parent ? ((int) $parent->depth + 1) : 1;
+        $groupCode = $this->resolveGroupCode($payload, $parent);
         $fullPath = $parent
-            ? trim((string) ($parent->full_path ?: $parent->name)) . ' > ' . $name
+            ? trim((string) ($parent->full_path ?: $parent->name)).' > '.$name
             : $name;
 
         $exists = $this->query->existsSiblingName($domain, $parent?->id, $name);
@@ -65,11 +66,12 @@ final class CategoryCreateForStaffAction
             $icon = null;
         }
 
-        $category = DB::transaction(function () use ($domain, $parent, $depth, $name, $normalizedCode, $fullPath, $payload, $icon) {
+        $category = DB::transaction(function () use ($domain, $parent, $depth, $groupCode, $name, $normalizedCode, $fullPath, $payload, $icon) {
             $created = $this->query->create([
                 'domain' => $domain,
                 'parent_id' => $parent?->id,
                 'depth' => $depth,
+                'group_code' => $groupCode,
                 'name' => $name,
                 'code' => $normalizedCode !== '' ? $normalizedCode : null,
                 'full_path' => $fullPath,
@@ -98,5 +100,23 @@ final class CategoryCreateForStaffAction
         return [
             'category' => CategoryForStaffDto::fromModel($category->load('iconMedia'))->toArray(),
         ];
+    }
+
+    private function resolveGroupCode(array $payload, ?Category $parent): ?string
+    {
+        $requested = array_key_exists('group_code', $payload)
+            ? (trim((string) ($payload['group_code'] ?? '')) ?: null)
+            : null;
+
+        if (! $parent) {
+            return $requested;
+        }
+
+        $parentGroupCode = $parent->group_code !== null ? (string) $parent->group_code : null;
+        if ($requested !== null && $requested !== $parentGroupCode) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '하위 카테고리는 상위 카테고리와 같은 그룹만 사용할 수 있습니다.');
+        }
+
+        return $parentGroupCode;
     }
 }

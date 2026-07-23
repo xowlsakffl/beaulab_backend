@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\AccountUser\Queries\Staff;
 
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 
 /**
  * AccountUserSummaryForStaffQuery 역할 정의.
@@ -16,6 +17,17 @@ final class AccountUserSummaryForStaffQuery
      * @return array<string, mixed>
      */
     public function get(): array
+    {
+        return StaffSummaryCache::remember(
+            StaffSummaryCache::DOMAIN_ACCOUNT_USER,
+            fn (): array => $this->uncachedSummary(),
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function uncachedSummary(): array
     {
         $userCounts = AccountUser::query()
             ->withTrashed()

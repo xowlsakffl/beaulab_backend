@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('parent_id')->nullable()->comment('상위 카테고리 ID(대분류는 null)')->constrained('categories')->restrictOnDelete();
 
             $table->unsignedTinyInteger('depth')->comment('카테고리 깊이(1:대분류, 2:중분류, 3:소분류, 4:상세분류)');
+            $table->string('group_code', 30)->nullable()->comment('카테고리 그룹 코드(SURGERY, TREATMENT 등)');
             $table->string('name', 120)->comment('카테고리명');
             $table->string('code', 80)->nullable()->comment('카테고리 운영 코드');
             $table->string('full_path', 255)->nullable()->comment('카테고리 전체 경로(예: 눈 > 쌍꺼풀 > 자연유착)');
@@ -34,6 +35,7 @@ return new class extends Migration
             $table->index('status');
             $table->index('is_menu_visible');
             $table->index(['domain', 'depth', 'sort_order', 'id'], 'categories_domain_depth_sort_id_idx');
+            $table->index(['domain', 'group_code', 'status', 'sort_order', 'id'], 'categories_domain_group_status_sort_id_idx');
             $table->index(['domain', 'parent_id', 'sort_order', 'id'], 'categories_domain_parent_sort_id_idx');
             $table->index(['domain', 'parent_id', 'status', 'sort_order', 'id'], 'categories_domain_parent_status_sort_id_idx');
             $table->index(['domain', 'is_menu_visible', 'sort_order', 'id'], 'categories_domain_visible_sort_id_idx');

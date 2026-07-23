@@ -50,9 +50,7 @@ final class AccessPermissions
 
     public const BEAULAB_USER_SHOW = 'beaulab.user.show';
 
-    public const BEAULAB_USER_UPDATE = 'beaulab.user.update';
-
-    public const BEAULAB_USER_DELETE = 'beaulab.user.delete';
+    public const BEAULAB_USER_STATUS_UPDATE = 'beaulab.user.status.update';
 
     public const BEAULAB_DOCTOR_SHOW = 'beaulab.doctor.show';
 
@@ -264,8 +262,7 @@ final class AccessPermissions
             self::BEAULAB_AGENCY_DELETE,
 
             self::BEAULAB_USER_SHOW,
-            self::BEAULAB_USER_UPDATE,
-            self::BEAULAB_USER_DELETE,
+            self::BEAULAB_USER_STATUS_UPDATE,
 
             self::BEAULAB_DOCTOR_SHOW,
             self::BEAULAB_DOCTOR_CREATE,

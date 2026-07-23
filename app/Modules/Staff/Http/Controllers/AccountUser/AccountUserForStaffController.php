@@ -6,16 +6,13 @@ namespace App\Modules\Staff\Http\Controllers\AccountUser;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
-use App\Domains\AccountUser\Actions\Staff\AccountUserDeleteForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserGetForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserListForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserStatusUpdateForStaffAction;
 use App\Domains\AccountUser\Actions\Staff\AccountUserSummaryForStaffAction;
-use App\Domains\AccountUser\Actions\Staff\AccountUserUpdateForStaffAction;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Modules\Staff\Http\Requests\AccountUser\AccountUserListForStaffRequest;
 use App\Modules\Staff\Http\Requests\AccountUser\AccountUserStatusUpdateForStaffRequest;
-use App\Modules\Staff\Http\Requests\AccountUser\AccountUserUpdateForStaffRequest;
 
 /**
  * AccountUserForStaffController 역할 정의.
@@ -59,20 +56,6 @@ final class AccountUserForStaffController extends Controller
     }
 
     /**
-     * PATCH /api/v1/staff/users/{user}
-     * (Beaulab) Staff 전용 일반회원 수정
-     */
-    public function updateAccountUserForStaff(
-        AccountUser $user,
-        AccountUserUpdateForStaffRequest $request,
-        AccountUserUpdateForStaffAction $action,
-    ) {
-        $result = $action->execute($user, $request->validated());
-
-        return ApiResponse::success($result['user'] ?? $result);
-    }
-
-    /**
      * PATCH /api/v1/staff/users/{user}/status
      * (Beaulab) Staff 전용 일반회원 상태 변경
      */
@@ -84,18 +67,5 @@ final class AccountUserForStaffController extends Controller
         $result = $action->execute($user, $request->validated());
 
         return ApiResponse::success($result['user'] ?? $result);
-    }
-
-    /**
-     * DELETE /api/v1/staff/users/{user}
-     * (Beaulab) Staff 전용 일반회원 삭제
-     */
-    public function deleteAccountUserForStaff(
-        AccountUser $user,
-        AccountUserDeleteForStaffAction $action,
-    ) {
-        $result = $action->execute($user);
-
-        return ApiResponse::success($result);
     }
 }

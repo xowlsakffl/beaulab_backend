@@ -22,6 +22,7 @@ final class CategoryFactory extends Factory
             'domain' => Category::DOMAIN_HOSPITAL_MEDICAL,
             'parent_id' => null,
             'depth' => 1,
+            'group_code' => null,
             'name' => $name,
             'code' => strtoupper($name),
             'full_path' => $name,
@@ -110,7 +111,7 @@ final class CategoryFactory extends Factory
     }
 
     /**
-     * @param  array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string}>}>}>  $tree
+     * @param  array<int, array{name:string, code:string, group_code?:string|null, children?:array<int, array{name:string, code:string, group_code?:string|null, children?:array<int, array{name:string, code:string, group_code?:string|null}>}>}>  $tree
      */
     private static function seedDomainTree(string $domain, array $tree): void
     {
@@ -131,11 +132,12 @@ final class CategoryFactory extends Factory
     }
 
     /**
-     * @param  array{name:string, code:string, children?:array<int, array{name:string, code:string, children?:array<int, array{name:string, code:string}>}>}  $node
+     * @param  array{name:string, code:string, group_code?:string|null, children?:array<int, array{name:string, code:string, group_code?:string|null, children?:array<int, array{name:string, code:string, group_code?:string|null}>}>}  $node
      */
     private static function upsertNode(string $domain, array $node, ?Category $parent, int $depth, int $sortOrder): Category
     {
         $name = $node['name'];
+        $groupCode = self::resolveGroupCode($node, $parent);
         $parentPath = $parent
             ? trim((string) ($parent->full_path ?: $parent->name))
             : null;
@@ -149,6 +151,7 @@ final class CategoryFactory extends Factory
             [
                 'parent_id' => $parent?->id,
                 'depth' => $depth,
+                'group_code' => $groupCode,
                 'name' => $name,
                 'full_path' => $path,
                 'sort_order' => $sortOrder,
@@ -169,6 +172,23 @@ final class CategoryFactory extends Factory
         }
 
         return $category;
+    }
+
+    /**
+     * @param  array<string, mixed>  $node
+     */
+    private static function resolveGroupCode(array $node, ?Category $parent): ?string
+    {
+        $rawGroupCode = $node['group_code'] ?? null;
+        $groupCode = is_string($rawGroupCode) && trim($rawGroupCode) !== ''
+            ? trim($rawGroupCode)
+            : ($parent?->group_code ? (string) $parent->group_code : null);
+
+        if ($groupCode !== null && ! in_array($groupCode, Category::groupCodes(), true)) {
+            throw new \RuntimeException("Unknown category group code: {$groupCode}");
+        }
+
+        return $groupCode;
     }
 
     /**

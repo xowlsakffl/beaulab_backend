@@ -22,16 +22,24 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  */
 final class Category extends Model
 {
-    use HasFactory, HasAuditLogs, HasOperationHistories;
+    use HasAuditLogs, HasFactory, HasOperationHistories;
 
     public const DOMAIN_HOSPITAL_MEDICAL = 'HOSPITAL_MEDICAL';
+
     public const DOMAIN_HOSPITAL_EVALUATION = 'HOSPITAL_EVALUATION';
+
     public const DOMAIN_TALK = 'TALK';
 
     public const DOMAIN_BEAUTY = 'BEAUTY';
+
     public const DOMAIN_FAQ = 'FAQ';
 
+    public const GROUP_SURGERY = 'SURGERY';
+
+    public const GROUP_TREATMENT = 'TREATMENT';
+
     public const STATUS_ACTIVE = 'ACTIVE';
+
     public const STATUS_INACTIVE = 'INACTIVE';
 
     protected $table = 'categories';
@@ -43,6 +51,7 @@ final class Category extends Model
         'domain',
         'parent_id',
         'depth',
+        'group_code',
         'name',
         'code',
         'full_path',
@@ -54,6 +63,7 @@ final class Category extends Model
     protected $casts = [
         'parent_id' => 'integer',
         'depth' => 'integer',
+        'group_code' => 'string',
         'sort_order' => 'integer',
         'is_menu_visible' => 'boolean',
         'created_at' => 'datetime',
@@ -112,6 +122,26 @@ final class Category extends Model
             self::DOMAIN_BEAUTY,
             self::DOMAIN_FAQ,
         ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function groupCodes(): array
+    {
+        return [
+            self::GROUP_SURGERY,
+            self::GROUP_TREATMENT,
+        ];
+    }
+
+    public static function groupLabel(?string $groupCode): ?string
+    {
+        return match ($groupCode) {
+            self::GROUP_SURGERY => '성형',
+            self::GROUP_TREATMENT => '쁘띠',
+            default => null,
+        };
     }
 
     protected static function newFactory(): Factory

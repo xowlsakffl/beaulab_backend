@@ -16,10 +16,12 @@ final class CategoryUpdateForStaffRequest extends FormRequest
     {
         $name = $this->input('name');
         $code = $this->input('code');
+        $groupCode = $this->input('group_code');
 
         $this->merge([
             'name' => is_string($name) ? trim($name) : $name,
             'code' => is_string($code) ? trim($code) : $code,
+            'group_code' => is_string($groupCode) ? trim($groupCode) : $groupCode,
         ]);
     }
 
@@ -48,6 +50,7 @@ final class CategoryUpdateForStaffRequest extends FormRequest
                     ->ignore($categoryId),
             ],
             'icon' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'group_code' => ['sometimes', 'nullable', Rule::in(Category::groupCodes())],
             'sort_order' => ['sometimes', 'integer', 'min:0'],
             'status' => ['sometimes', 'in:ACTIVE,INACTIVE'],
             'is_menu_visible' => ['sometimes', 'boolean'],
@@ -62,6 +65,7 @@ final class CategoryUpdateForStaffRequest extends FormRequest
             'name' => '카테고리명',
             'code' => '카테고리 코드',
             'icon' => '카테고리 아이콘',
+            'group_code' => '카테고리 그룹',
             'sort_order' => '정렬 순서',
             'status' => '카테고리 상태',
             'is_menu_visible' => '메뉴 노출 여부',

@@ -4,6 +4,7 @@ namespace App\Domains\HospitalVideo\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalVideo\Dto\Staff\HospitalVideoForStaffDetailDto;
@@ -63,6 +64,10 @@ final class HospitalVideoUpdateForStaffAction
             return $updated;
         });
 
+        if ($this->shouldForgetSummary($normalized)) {
+            StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_VIDEO);
+        }
+
         return [
             'video' => HospitalVideoForStaffDetailDto::fromModel($video)->toArray(),
         ];
@@ -116,5 +121,11 @@ final class HospitalVideoUpdateForStaffAction
             ->all();
 
         $video->categories()->sync($syncIds);
+    }
+
+    private function shouldForgetSummary(array $payload): bool
+    {
+        return array_key_exists('hospital_status', $payload)
+            || array_key_exists('admin_status', $payload);
     }
 }

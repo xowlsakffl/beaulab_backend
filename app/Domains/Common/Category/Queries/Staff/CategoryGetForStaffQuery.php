@@ -11,7 +11,7 @@ use App\Domains\Common\Category\Models\Category;
 final class CategoryGetForStaffQuery
 {
     /**
-     * @param array<int, string> $include
+     * @param  array<int, string>  $include
      */
     public function get(Category $category, array $include = []): Category
     {
@@ -20,6 +20,7 @@ final class CategoryGetForStaffQuery
             'domain',
             'parent_id',
             'depth',
+            'group_code',
             'name',
             'code',
             'full_path',
@@ -32,7 +33,7 @@ final class CategoryGetForStaffQuery
 
         if (in_array('parent', $include, true)) {
             $builder->with([
-                'parent:id,domain,parent_id,depth,name,code,full_path,sort_order,status,is_menu_visible,created_at,updated_at',
+                'parent:id,domain,parent_id,depth,group_code,name,code,full_path,sort_order,status,is_menu_visible,created_at,updated_at',
                 'parent.iconMedia',
             ]);
         }
@@ -43,6 +44,7 @@ final class CategoryGetForStaffQuery
                 'domain',
                 'parent_id',
                 'depth',
+                'group_code',
                 'name',
                 'code',
                 'full_path',

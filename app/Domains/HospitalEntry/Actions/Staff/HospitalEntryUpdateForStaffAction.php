@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalEntry\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalEntry\Dto\Staff\HospitalEntryForStaffDetailDto;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
@@ -33,6 +34,10 @@ final class HospitalEntryUpdateForStaffAction
 
             return $updated->fresh();
         });
+
+        if (array_key_exists('allow_status', $payload)) {
+            StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_ENTRY);
+        }
 
         return [
             'hospital_entry' => HospitalEntryForStaffDetailDto::fromModel($updated->load([

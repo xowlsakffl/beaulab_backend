@@ -40,7 +40,7 @@ final class CategoryUpdateForStaffQuery
     {
         $descendants = Category::query()
             ->domain($domain)
-            ->where('full_path', 'like', $oldPrefix . ' > %')
+            ->where('full_path', 'like', $oldPrefix.' > %')
             ->orderBy('depth')
             ->get();
 
@@ -48,7 +48,7 @@ final class CategoryUpdateForStaffQuery
             $currentPath = (string) ($descendant->full_path ?? '');
 
             $nextPath = preg_replace(
-                '/^' . preg_quote($oldPrefix, '/') . '/',
+                '/^'.preg_quote($oldPrefix, '/').'/',
                 $newPrefix,
                 $currentPath,
                 1
@@ -62,5 +62,13 @@ final class CategoryUpdateForStaffQuery
                 'full_path' => $nextPath,
             ])->save();
         }
+    }
+
+    public function syncDescendantGroupCode(string $domain, string $fullPathPrefix, ?string $groupCode): void
+    {
+        Category::query()
+            ->domain($domain)
+            ->where('full_path', 'like', $fullPathPrefix.' > %')
+            ->update(['group_code' => $groupCode]);
     }
 }

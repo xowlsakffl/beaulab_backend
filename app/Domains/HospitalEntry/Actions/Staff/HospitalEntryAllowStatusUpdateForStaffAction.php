@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalEntry\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
 use App\Domains\HospitalEntry\Queries\Staff\HospitalEntryAllowStatusUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ final class HospitalEntryAllowStatusUpdateForStaffAction
             ->all();
         $allowStatus = (string) $payload['allow_status'];
 
-        return DB::transaction(function () use ($ids, $allowStatus, $payload): array {
+        $result = DB::transaction(function () use ($ids, $allowStatus, $payload): array {
             $entries = $this->query->getForUpdate($ids);
             $entries->each(static fn (HospitalEntry $entry): mixed => Gate::authorize('update', $entry));
 
@@ -54,5 +55,9 @@ final class HospitalEntryAllowStatusUpdateForStaffAction
                 'ids' => $existingIds,
             ];
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_ENTRY);
+
+        return $result;
     }
 }

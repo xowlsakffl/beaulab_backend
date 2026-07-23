@@ -544,8 +544,8 @@
 
 아래 도메인은 현재 코드에 모델과 상수가 있으며, 상세 업무 흐름은 각 도메인 Action/Query와 개별 설계 문서를 기준으로 한다.
 
-- `Category`: `domain`은 `HOSPITAL_MEDICAL`, `HOSPITAL_EVALUATION`, `TALK`, `BEAUTY`, `FAQ`를 사용하고, `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
-- `CategoryUsage`: `usage`는 `HOSPITAL_DOCTOR_SUBJECT`, `HOSPITAL_REVIEW_SURGERY`, `HOSPITAL_REVIEW_TREATMENT`, `HOSPITAL_EVENT_SURGERY`, `HOSPITAL_EVENT_TREATMENT`를 사용하고, `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
+- `Category`: `domain`은 `HOSPITAL_MEDICAL`, `HOSPITAL_EVALUATION`, `TALK`, `BEAUTY`, `FAQ`를 사용하고, 병원 의료 카테고리의 `group_code`는 `SURGERY`/`TREATMENT`, `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
+- `CategoryUsage`: `usage`는 `HOSPITAL_DOCTOR_SUBJECT`, `HOSPITAL_REVIEW_SURGERY`, `HOSPITAL_REVIEW_TREATMENT`, `HOSPITAL_EVENT_SURGERY`, `HOSPITAL_EVENT_TREATMENT`, `HOSPITAL_VIDEO_CATEGORY`, `HOSPITAL_EVENT_AD_SURGERY`, `HOSPITAL_EVENT_AD_TREATMENT`를 사용하고, `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
 - `Hashtag`: `status`는 `ACTIVE`/`INACTIVE`를 사용하며, 이름은 최대 20자와 한글/영문/숫자/언더스코어 규칙을 따른다.
 - `HospitalFeature`: `status`는 `ACTIVE`/`INACTIVE`를 사용한다.
 - `HospitalEvent`: `type`은 `TEXT`/`IMAGE`, `status`는 `ACTIVE`/`INACTIVE`, `allow_status`는 `PENDING`/`REVIEWING`/`APPROVED`/`REJECTED`를 사용한다. 화면 표기는 `신청`/`검수`/`승인`/`반려`다.

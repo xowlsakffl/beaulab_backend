@@ -25,6 +25,7 @@ final class CategoryUpdateHistoryRecordAction
             'domain' => $this->item('도메인', $category->domain, $category->domain),
             'parent' => $this->item('상위 카테고리', $category->parent_id ? (int) $category->parent_id : null, $category->parent?->full_path ?: $category->parent?->name),
             'depth' => $this->item('단계', (int) $category->depth, (string) (int) $category->depth),
+            'group_code' => $this->item('카테고리 그룹', $category->group_code, Category::groupLabel($category->group_code !== null ? (string) $category->group_code : null)),
             'name' => $this->item('카테고리명', $category->name, $category->name),
             'code' => $this->item('코드', $category->code, $category->code),
             'full_path' => $this->item('전체 경로', $category->full_path, $category->full_path),
@@ -41,7 +42,7 @@ final class CategoryUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(Category $category, array $before): void
     {
@@ -57,7 +58,7 @@ final class CategoryUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      */
     private function record(Category $category, string $action, string $source, array $changes): void
     {

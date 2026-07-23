@@ -3,6 +3,7 @@
 namespace App\Domains\Hospital\Actions\Staff;
 
 use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ final class HospitalDeleteForStaffAction
 {
     public function __construct(
         private readonly HospitalDeleteForStaffQuery $query,
-        private readonly MediaAttachDeleteAction     $mediaAttachAction,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
     ) {}
 
     public function execute(Hospital $hospital): array
@@ -28,7 +29,7 @@ final class HospitalDeleteForStaffAction
             'hospital_id' => $hospital->id,
         ]);
 
-        return DB::transaction(function () use ($hospital) {
+        $result = DB::transaction(function () use ($hospital) {
             $this->mediaAttachAction->deleteCollectionMediaBulk($hospital, ['logo', 'gallery']);
             $hospital->categories()->sync([]);
 
@@ -54,5 +55,9 @@ final class HospitalDeleteForStaffAction
                 'deleted_at' => optional($hospital->deleted_at)?->toISOString(),
             ];
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL);
+
+        return $result;
     }
 }

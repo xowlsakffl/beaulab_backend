@@ -7,6 +7,7 @@ namespace App\Domains\AccountUser\Actions\Staff;
 use App\Domains\AccountUser\Dto\Staff\AccountUserForStaffDetailDto;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\AccountUser\Queries\Staff\AccountUserStatusUpdateForStaffQuery;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -18,12 +19,12 @@ final class AccountUserStatusUpdateForStaffAction
     ) {}
 
     /**
-     * @param array{status:string, reason?:string|null} $payload
+     * @param  array{status:string, reason?:string|null}  $payload
      * @return array{user: array}
      */
     public function execute(AccountUser $user, array $payload): array
     {
-        Gate::authorize('update', $user);
+        Gate::authorize('updateStatus', $user);
 
         $beforeStatus = (string) $user->status;
 
@@ -38,6 +39,8 @@ final class AccountUserStatusUpdateForStaffAction
 
             return $updatedUser->fresh();
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_ACCOUNT_USER);
 
         return [
             'user' => AccountUserForStaffDetailDto::fromModel(

@@ -2,6 +2,7 @@
 
 namespace App\Domains\Hospital\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
@@ -47,6 +48,8 @@ final class HospitalCreateForStaffAction
 
             return $hospital->fresh();
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL);
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(

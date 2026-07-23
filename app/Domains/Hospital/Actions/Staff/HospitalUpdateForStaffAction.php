@@ -2,6 +2,7 @@
 
 namespace App\Domains\Hospital\Actions\Staff;
 
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
@@ -59,6 +60,10 @@ final class HospitalUpdateForStaffAction
             return $updatedHospital->fresh();
         });
 
+        if ($this->shouldForgetSummary($payload)) {
+            StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL);
+        }
+
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
                 $updated
@@ -93,8 +98,8 @@ final class HospitalUpdateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $existingMediaIds
-     * @param array<int, UploadedFile> $newFiles
+     * @param  array<int, int|string>  $existingMediaIds
+     * @param  array<int, UploadedFile>  $newFiles
      */
     private function syncGallery(Hospital $hospital, array $existingMediaIds, array $newFiles): void
     {
@@ -159,8 +164,8 @@ final class HospitalUpdateForStaffAction
     }
 
     /**
-     * @param array<int, string> $galleryOrder
-     * @param array<int, UploadedFile> $newFiles
+     * @param  array<int, string>  $galleryOrder
+     * @param  array<int, UploadedFile>  $newFiles
      */
     private function syncGalleryByOrder(Hospital $hospital, array $galleryOrder, array $newFiles): void
     {
@@ -193,6 +198,7 @@ final class HospitalUpdateForStaffAction
                     'type' => 'existing',
                     'media' => $media,
                 ];
+
                 continue;
             }
 
@@ -225,6 +231,7 @@ final class HospitalUpdateForStaffAction
                 $media = $entry['media'];
                 $media->setSortOrder($index);
                 $media->setPrimary($index === 0);
+
                 continue;
             }
 
@@ -254,7 +261,6 @@ final class HospitalUpdateForStaffAction
     }
 
     /**
-     * @param mixed $files
      * @return array<int, UploadedFile>
      */
     private function onlyFiles(mixed $files): array
@@ -267,7 +273,7 @@ final class HospitalUpdateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @param  array<int, int|string>  $categoryIds
      */
     private function syncCategories(Hospital $hospital, array $categoryIds): void
     {
@@ -285,7 +291,7 @@ final class HospitalUpdateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $featureIds
+     * @param  array<int, int|string>  $featureIds
      */
     private function syncFeatures(Hospital $hospital, array $featureIds): void
     {
@@ -297,5 +303,11 @@ final class HospitalUpdateForStaffAction
             ->all();
 
         $hospital->features()->sync($payload);
+    }
+
+    private function shouldForgetSummary(array $payload): bool
+    {
+        return array_key_exists('allow_status', $payload)
+            || array_key_exists('status', $payload);
     }
 }

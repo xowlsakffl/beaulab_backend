@@ -17,11 +17,13 @@ final class CategoryListForStaffRequest extends FormRequest
         $status = $this->normalizeToArray($this->input('status'));
         $include = $this->normalizeToArray($this->input('include'));
         $domain = $this->input('domain');
+        $groupCode = $this->input('group_code');
 
         $this->merge([
             'status' => $status,
             'include' => $include,
             'domain' => is_string($domain) ? trim($domain) : $domain,
+            'group_code' => is_string($groupCode) ? trim($groupCode) : $groupCode,
         ]);
     }
 
@@ -37,12 +39,13 @@ final class CategoryListForStaffRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:100'],
             'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
             'depth' => ['nullable', 'integer', 'in:1,2,3,4'],
+            'group_code' => ['nullable', Rule::in(Category::groupCodes())],
             'status' => ['nullable', 'array'],
             'status.*' => ['in:ACTIVE,INACTIVE'],
             'include' => ['nullable', 'array'],
             'include.*' => ['in:parent,children'],
             'is_menu_visible' => ['nullable', 'boolean'],
-            'sort' => ['nullable', 'in:id,name,sort_order,depth,status,created_at,updated_at'],
+            'sort' => ['nullable', 'in:id,name,sort_order,depth,group_code,status,created_at,updated_at'],
             'direction' => ['nullable', 'in:asc,desc'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
@@ -58,6 +61,7 @@ final class CategoryListForStaffRequest extends FormRequest
             'q' => $validated['q'] ?? null,
             'parent_id' => $validated['parent_id'] ?? null,
             'depth' => $validated['depth'] ?? null,
+            'group_code' => $validated['group_code'] ?? null,
             'status' => $validated['status'] ?? null,
             'include' => $validated['include'] ?? [],
             'is_menu_visible' => $validated['is_menu_visible'] ?? null,
@@ -74,6 +78,7 @@ final class CategoryListForStaffRequest extends FormRequest
             'q' => '검색어',
             'parent_id' => '상위 카테고리 ID',
             'depth' => '카테고리 단계',
+            'group_code' => '카테고리 그룹',
             'status' => '운영 상태',
             'status.*' => '운영 상태',
             'include' => '포함 항목',

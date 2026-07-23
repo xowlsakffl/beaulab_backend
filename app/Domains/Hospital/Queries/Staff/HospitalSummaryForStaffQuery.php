@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Hospital\Queries\Staff;
 
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Support\Carbon;
 
@@ -14,6 +15,17 @@ final class HospitalSummaryForStaffQuery
      * @return array<string, int>
      */
     public function get(): array
+    {
+        return StaffSummaryCache::remember(
+            StaffSummaryCache::DOMAIN_HOSPITAL,
+            fn (): array => $this->uncachedSummary(),
+        );
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function uncachedSummary(): array
     {
         $last30DaysStart = Carbon::now()->subDays(30);
         $hospitalCounts = Hospital::query()

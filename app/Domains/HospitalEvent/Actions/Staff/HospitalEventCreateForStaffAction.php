@@ -2,8 +2,9 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
-use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
+use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Category\Models\CategoryUsage;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalEvent\Dto\Staff\HospitalEventForStaffDetailDto;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventCreateForStaffQuery;
@@ -61,6 +62,8 @@ final class HospitalEventCreateForStaffAction
 
             return $event;
         });
+
+        StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_EVENT);
 
         return [
             'event' => HospitalEventForStaffDetailDto::fromModel($event->load([

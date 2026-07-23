@@ -3,8 +3,8 @@
 namespace App\Domains\Common\Category\Queries\Staff;
 
 use App\Domains\Common\Category\Models\Category;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * CategoryListForStaffQuery 역할 정의.
@@ -29,6 +29,7 @@ final class CategoryListForStaffQuery
         $include = $filters['include'] ?? [];
         $parentId = $filters['parent_id'] ?? null;
         $depth = $filters['depth'] ?? null;
+        $groupCode = $filters['group_code'] ?? null;
         $isMenuVisible = $filters['is_menu_visible'] ?? null;
         $sort = $filters['sort'] ?? 'sort_order';
         $direction = $filters['direction'] ?? 'asc';
@@ -40,6 +41,7 @@ final class CategoryListForStaffQuery
                 'domain',
                 'parent_id',
                 'depth',
+                'group_code',
                 'name',
                 'code',
                 'full_path',
@@ -101,6 +103,10 @@ final class CategoryListForStaffQuery
             $builder->whereNull('parent_id');
         }
 
+        if ($groupCode !== null) {
+            $builder->where('group_code', (string) $groupCode);
+        }
+
         if (is_array($status) && $status !== []) {
             $builder->whereIn('status', $status);
         }
@@ -112,7 +118,7 @@ final class CategoryListForStaffQuery
         if (is_array($include) && $include !== []) {
             if (in_array('parent', $include, true)) {
                 $builder->with([
-                    'parent:id,domain,parent_id,depth,name,code,full_path,sort_order,status,is_menu_visible,created_at,updated_at',
+                    'parent:id,domain,parent_id,depth,group_code,name,code,full_path,sort_order,status,is_menu_visible,created_at,updated_at',
                     'parent.iconMedia',
                 ]);
             }
@@ -123,6 +129,7 @@ final class CategoryListForStaffQuery
                     'domain',
                     'parent_id',
                     'depth',
+                    'group_code',
                     'name',
                     'code',
                     'full_path',

@@ -4,10 +4,10 @@ namespace App\Domains\Common\Category\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Category\Dto\Staff\CategoryForStaffDto;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Queries\Staff\CategoryUpdateForStaffQuery;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -43,17 +43,20 @@ final class CategoryUpdateForStaffAction
         $parentPath = $parent ? trim((string) ($parent->full_path ?: $parent->name)) : null;
         $newFullPath = $parentPath ? "{$parentPath} > {$name}" : $name;
         $oldFullPath = (string) ($category->full_path ?: $category->name);
+        $oldGroupCode = $category->group_code !== null ? (string) $category->group_code : null;
+        $groupCode = $this->resolveGroupCode($payload, $parent, $oldGroupCode);
 
         $normalizedCode = array_key_exists('code', $payload)
             ? (trim((string) ($payload['code'] ?? '')) ?: null)
             : $category->code;
 
-        $updated = DB::transaction(function () use ($category, $payload, $name, $newFullPath, $oldFullPath, $normalizedCode) {
+        $updated = DB::transaction(function () use ($category, $payload, $name, $newFullPath, $oldFullPath, $oldGroupCode, $groupCode, $normalizedCode) {
             $before = $this->historyRecordAction->capture($category);
             $updatedCategory = $this->query->update($category, [
                 'name' => $name,
                 'code' => $normalizedCode,
                 'full_path' => $newFullPath,
+                'group_code' => $groupCode,
                 'sort_order' => array_key_exists('sort_order', $payload) ? (int) $payload['sort_order'] : $category->sort_order,
                 'status' => array_key_exists('status', $payload) ? (string) $payload['status'] : $category->status,
                 'is_menu_visible' => array_key_exists('is_menu_visible', $payload) ? (bool) $payload['is_menu_visible'] : $category->is_menu_visible,
@@ -61,6 +64,10 @@ final class CategoryUpdateForStaffAction
 
             if ($oldFullPath !== $newFullPath) {
                 $this->query->syncDescendantPaths((string) $updatedCategory->domain, $oldFullPath, $newFullPath);
+            }
+
+            if ($oldGroupCode !== $groupCode) {
+                $this->query->syncDescendantGroupCode((string) $updatedCategory->domain, $newFullPath, $groupCode);
             }
 
             $this->replaceIcon($updatedCategory, $payload);
@@ -91,5 +98,23 @@ final class CategoryUpdateForStaffAction
 
         $this->mediaAttachAction->deleteCollectionMedia($category, 'icon');
         $this->mediaAttachAction->attachOne($category, $icon, 'icon', 'category', 'icon', true);
+    }
+
+    private function resolveGroupCode(array $payload, ?Category $parent, ?string $currentGroupCode): ?string
+    {
+        $requested = array_key_exists('group_code', $payload)
+            ? (trim((string) ($payload['group_code'] ?? '')) ?: null)
+            : $currentGroupCode;
+
+        if (! $parent) {
+            return $requested;
+        }
+
+        $parentGroupCode = $parent->group_code !== null ? (string) $parent->group_code : null;
+        if ($requested !== null && $requested !== $parentGroupCode) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '하위 카테고리는 상위 카테고리와 같은 그룹만 사용할 수 있습니다.');
+        }
+
+        return $parentGroupCode;
     }
 }

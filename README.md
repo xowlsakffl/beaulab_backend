@@ -426,6 +426,12 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 
 Queue 표준 런타임은 Redis + Horizon입니다. Job은 기술 종류가 아니라 도메인 소유권 기준으로 배치합니다.
 
+비밀번호 재설정은 보안 기준 데이터와 비동기 작업을 분리합니다.
+
+- 재설정 토큰은 `password_reset_tokens` DB 테이블에 `actor + email` 기준으로 해시 저장합니다.
+- 재설정 메일 발송은 Redis Queue의 `mail` 큐로 위임합니다.
+- 로그인, 비밀번호 재설정 요청, 신고 API 같은 요청 제한과 캐시는 Redis Cache를 기준으로 운영합니다.
+
 큐 레인:
 
 | Queue | 용도 |
@@ -620,10 +626,16 @@ php artisan db:seed --class=AuthorizationSeeder
 | `DB_USERNAME` | DB 사용자명 |
 | `DB_PASSWORD` | DB 비밀번호 |
 | `SESSION_DRIVER` | 세션 저장소 (`database` 기본 사용) |
-| `CACHE_STORE` | 캐시 저장소 |
+| `CACHE_STORE` | 캐시 저장소 (`redis` 기본 사용) |
 | `QUEUE_CONNECTION` | 큐 드라이버 (`redis` 기본 사용) |
 | `REDIS_HOST` | Redis 호스트 |
 | `REDIS_PORT` | Redis 포트 |
+| `PASSWORD_RESET_USER_URL` | 사용자 비밀번호 재설정 프론트 URL |
+| `PASSWORD_RESET_HOSPITAL_URL` | 병원 계정 비밀번호 재설정 프론트 URL |
+| `PASSWORD_RESET_BEAUTY_URL` | 뷰티 계정 비밀번호 재설정 프론트 URL |
+| `PASSWORD_RESET_STAFF_URL` | Staff 계정 비밀번호 재설정 프론트 URL |
+| `PASSWORD_RESET_MAIL_QUEUE_CONNECTION` | 비밀번호 재설정 메일 큐 연결 |
+| `PASSWORD_RESET_MAIL_QUEUE` | 비밀번호 재설정 메일 큐 이름 |
 | `BROADCAST_CONNECTION` | 브로드캐스트 드라이버 (`reverb`) |
 | `REVERB_APP_ID` | Reverb App ID |
 | `REVERB_APP_KEY` | Reverb App Key |

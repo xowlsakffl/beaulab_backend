@@ -71,7 +71,7 @@ return new class extends Migration
         DB::statement("ALTER TABLE account_user_access_logs COMMENT = '일반 사용자 foreground 접속 기록'");
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('actor')->comment('user|partner|staff');
+            $table->string('actor')->comment('user|hospital|beauty|staff');
             $table->string('email')->comment('비밀번호 재설정 대상 이메일');
             $table->string('token');
             $table->timestamp('created_at')->nullable();

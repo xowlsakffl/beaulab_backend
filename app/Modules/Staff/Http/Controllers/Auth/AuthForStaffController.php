@@ -2,12 +2,17 @@
 
 namespace App\Modules\Staff\Http\Controllers\Auth;
 
+use App\Common\Http\Requests\Auth\PasswordResetLinkSendRequest;
+use App\Common\Http\Requests\Auth\PasswordResetRequest;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountStaff\Actions\Staff\Auth\GetMyProfileForStaffAction;
 use App\Domains\AccountStaff\Actions\Staff\Auth\LoginForStaffAction;
 use App\Domains\AccountStaff\Actions\Staff\Auth\LogoutForStaffAction;
 use App\Domains\AccountStaff\Actions\Staff\Auth\PasswordUpdateForStaffAction;
 use App\Domains\AccountStaff\Actions\Staff\Auth\ProfileUpdateForStaffAction;
+use App\Domains\Common\PasswordReset\Actions\PasswordResetAction;
+use App\Domains\Common\PasswordReset\Actions\PasswordResetLinkSendAction;
+use App\Domains\Common\PasswordReset\Support\PasswordResetActor;
 use App\Modules\Staff\Http\Requests\Auth\LoginForStaffRequest;
 use App\Modules\Staff\Http\Requests\Auth\UpdatePasswordForStaffRequest;
 use App\Modules\Staff\Http\Requests\Auth\UpdateProfileForStaffRequest;
@@ -28,6 +33,20 @@ final class AuthForStaffController
         $payload = $action->execute($filters);
 
         return ApiResponse::success($payload);
+    }
+
+    public function sendPasswordResetLink(
+        PasswordResetLinkSendRequest $request,
+        PasswordResetLinkSendAction $action
+    ) {
+        return ApiResponse::success($action->execute(PasswordResetActor::STAFF, $request->filters()));
+    }
+
+    public function resetPassword(
+        PasswordResetRequest $request,
+        PasswordResetAction $action
+    ) {
+        return ApiResponse::success($action->execute(PasswordResetActor::STAFF, $request->filters()));
     }
 
     public function logout(

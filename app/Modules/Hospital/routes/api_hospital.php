@@ -5,13 +5,19 @@
  * 인증/권한 미들웨어와 컨트롤러 매핑만 두고 비즈니스 로직은 컨트롤러와 Action 계층으로 위임한다.
  */
 
-use App\Modules\Hospital\Http\Controllers\Auth\AuthForHospitalController;
 use App\Modules\Hospital\Http\Controllers\AdminNote\AdminNoteForHospitalController;
+use App\Modules\Hospital\Http\Controllers\Auth\AuthForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthForHospitalController::class, 'login'])->name('login')->middleware('throttle:6,1');
+    Route::post('password-reset-link', [AuthForHospitalController::class, 'sendPasswordResetLink'])
+        ->name('password-reset-link')
+        ->middleware('throttle:3,1');
+    Route::post('password-reset', [AuthForHospitalController::class, 'resetPassword'])
+        ->name('password-reset')
+        ->middleware('throttle:6,1');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function () {

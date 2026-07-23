@@ -2,12 +2,17 @@
 
 namespace App\Modules\Beauty\Http\Controllers\Auth;
 
+use App\Common\Http\Requests\Auth\PasswordResetLinkSendRequest;
+use App\Common\Http\Requests\Auth\PasswordResetRequest;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountBeauty\Actions\Beauty\GetMyProfileForAccountBeautyAction;
 use App\Domains\AccountBeauty\Actions\Beauty\LoginForAccountBeautyAction;
 use App\Domains\AccountBeauty\Actions\Beauty\LogoutForAccountBeautyAction;
 use App\Domains\AccountBeauty\Actions\Beauty\PasswordUpdateForAccountBeautyAction;
 use App\Domains\AccountBeauty\Actions\Beauty\ProfileUpdateForAccountBeautyAction;
+use App\Domains\Common\PasswordReset\Actions\PasswordResetAction;
+use App\Domains\Common\PasswordReset\Actions\PasswordResetLinkSendAction;
+use App\Domains\Common\PasswordReset\Support\PasswordResetActor;
 use App\Modules\Beauty\Http\Requests\Auth\LoginForAccountBeautyRequest;
 use App\Modules\Beauty\Http\Requests\Auth\UpdatePasswordForAccountBeautyRequest;
 use App\Modules\Beauty\Http\Requests\Auth\UpdateProfileForAccountBeautyRequest;
@@ -24,6 +29,20 @@ final class AuthForBeautyController
         LoginForAccountBeautyAction $action
     ) {
         return ApiResponse::success($action->execute($request->filters()));
+    }
+
+    public function sendPasswordResetLink(
+        PasswordResetLinkSendRequest $request,
+        PasswordResetLinkSendAction $action
+    ) {
+        return ApiResponse::success($action->execute(PasswordResetActor::BEAUTY, $request->filters()));
+    }
+
+    public function resetPassword(
+        PasswordResetRequest $request,
+        PasswordResetAction $action
+    ) {
+        return ApiResponse::success($action->execute(PasswordResetActor::BEAUTY, $request->filters()));
     }
 
     public function logout(

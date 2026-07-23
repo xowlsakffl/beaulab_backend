@@ -2,12 +2,17 @@
 
 namespace App\Modules\User\Http\Controllers\Auth;
 
+use App\Common\Http\Requests\Auth\PasswordResetLinkSendRequest;
+use App\Common\Http\Requests\Auth\PasswordResetRequest;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Actions\User\Auth\GetMyProfileForAccountUserAction;
 use App\Domains\AccountUser\Actions\User\Auth\LoginForAccountUserAction;
 use App\Domains\AccountUser\Actions\User\Auth\LogoutForAccountUserAction;
 use App\Domains\AccountUser\Actions\User\Auth\PasswordUpdateForAccountUserAction;
 use App\Domains\AccountUser\Actions\User\Auth\ProfileUpdateForAccountUserAction;
+use App\Domains\Common\PasswordReset\Actions\PasswordResetAction;
+use App\Domains\Common\PasswordReset\Actions\PasswordResetLinkSendAction;
+use App\Domains\Common\PasswordReset\Support\PasswordResetActor;
 use App\Modules\User\Http\Requests\Auth\LoginForAccountUserRequest;
 use App\Modules\User\Http\Requests\Auth\UpdatePasswordForAccountUserRequest;
 use App\Modules\User\Http\Requests\Auth\UpdateProfileForAccountUserRequest;
@@ -24,6 +29,16 @@ final class AuthForUserController
         return ApiResponse::success($action->execute($request->filters()));
     }
 
+    public function sendPasswordResetLink(PasswordResetLinkSendRequest $request, PasswordResetLinkSendAction $action)
+    {
+        return ApiResponse::success($action->execute(PasswordResetActor::USER, $request->filters()));
+    }
+
+    public function resetPassword(PasswordResetRequest $request, PasswordResetAction $action)
+    {
+        return ApiResponse::success($action->execute(PasswordResetActor::USER, $request->filters()));
+    }
+
     public function logout(Request $request, LogoutForAccountUserAction $action)
     {
         return ApiResponse::success($action->execute($request->user()));
@@ -36,14 +51,14 @@ final class AuthForUserController
 
     public function updateMyProfile(
         UpdateProfileForAccountUserRequest $request,
-        ProfileUpdateForAccountUserAction  $action,
+        ProfileUpdateForAccountUserAction $action,
     ) {
         return ApiResponse::success($action->execute($request->user(), $request->filters()));
     }
 
     public function updateMyPassword(
         UpdatePasswordForAccountUserRequest $request,
-        PasswordUpdateForAccountUserAction  $action,
+        PasswordUpdateForAccountUserAction $action,
     ) {
         return ApiResponse::success($action->execute($request->user(), $request->filters()));
     }

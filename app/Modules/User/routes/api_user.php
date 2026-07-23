@@ -23,6 +23,12 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthForUserController::class, 'login'])
         ->name('login')
         ->middleware('throttle:6,1');
+    Route::post('password-reset-link', [AuthForUserController::class, 'sendPasswordResetLink'])
+        ->name('password-reset-link')
+        ->middleware('throttle:3,1');
+    Route::post('password-reset', [AuthForUserController::class, 'resetPassword'])
+        ->name('password-reset')
+        ->middleware('throttle:6,1');
 });
 
 // 아래 API는 Sanctum actor:user 토큰만 허용한다.

@@ -35,6 +35,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthForStaffController::class, 'login'])->name('login')->middleware('throttle:6,1');
+    Route::post('password-reset-link', [AuthForStaffController::class, 'sendPasswordResetLink'])
+        ->name('password-reset-link')
+        ->middleware('throttle:3,1');
+    Route::post('password-reset', [AuthForStaffController::class, 'resetPassword'])
+        ->name('password-reset')
+        ->middleware('throttle:6,1');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.access'])->group(function () {

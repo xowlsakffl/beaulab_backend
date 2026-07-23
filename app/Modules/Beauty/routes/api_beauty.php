@@ -5,12 +5,18 @@
  * 인증/권한 미들웨어와 컨트롤러 매핑만 두고 비즈니스 로직은 컨트롤러와 Action 계층으로 위임한다.
  */
 
-use App\Modules\Beauty\Http\Controllers\Auth\AuthForBeautyController;
 use App\Modules\Beauty\Http\Controllers\AdminNote\AdminNoteForBeautyController;
+use App\Modules\Beauty\Http\Controllers\Auth\AuthForBeautyController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthForBeautyController::class, 'login'])->name('login')->middleware('throttle:6,1');
+    Route::post('password-reset-link', [AuthForBeautyController::class, 'sendPasswordResetLink'])
+        ->name('password-reset-link')
+        ->middleware('throttle:3,1');
+    Route::post('password-reset', [AuthForBeautyController::class, 'resetPassword'])
+        ->name('password-reset')
+        ->middleware('throttle:6,1');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:beauty'])->group(function () {

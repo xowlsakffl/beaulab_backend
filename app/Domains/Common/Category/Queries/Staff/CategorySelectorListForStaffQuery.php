@@ -96,8 +96,10 @@ final class CategorySelectorListForStaffQuery
                 FROM categories as c_children
                 WHERE c_children.domain = categories.domain
                   AND c_children.parent_id = categories.id
+                  AND c_children.status = ?
                 LIMIT 1
-            ) as has_children'
+            ) as has_children',
+            [Category::STATUS_ACTIVE]
         );
 
         if ($q) {

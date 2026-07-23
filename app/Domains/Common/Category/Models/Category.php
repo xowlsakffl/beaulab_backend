@@ -144,6 +144,21 @@ final class Category extends Model
         };
     }
 
+    public static function constrainActiveLeafHospitalMedicalCategory($query): void
+    {
+        $query
+            ->where('domain', self::DOMAIN_HOSPITAL_MEDICAL)
+            ->where('status', self::STATUS_ACTIVE)
+            ->whereNotExists(static function ($children): void {
+                $children
+                    ->selectRaw('1')
+                    ->from('categories as child_categories')
+                    ->whereColumn('child_categories.parent_id', 'categories.id')
+                    ->where('child_categories.domain', self::DOMAIN_HOSPITAL_MEDICAL)
+                    ->where('child_categories.status', self::STATUS_ACTIVE);
+            });
+    }
+
     protected static function newFactory(): Factory
     {
         return CategoryFactory::new();

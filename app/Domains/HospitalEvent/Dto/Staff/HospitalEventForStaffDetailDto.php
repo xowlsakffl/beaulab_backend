@@ -83,7 +83,6 @@ final readonly class HospitalEventForStaffDetailDto
         }
 
         return $this->event->categories
-            ->filter(static fn (Category $category): bool => (int) ($category->depth ?? 0) === 3)
             ->map(fn (Category $category): array => [
                 'id' => (int) $category->id,
                 'code' => (string) ($category->code ?? ''),

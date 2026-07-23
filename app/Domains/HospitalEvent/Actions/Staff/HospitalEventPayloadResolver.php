@@ -104,8 +104,14 @@ final class HospitalEventPayloadResolver
             throw new CustomException(ErrorCode::INVALID_REQUEST, '선택한 카테고리 값이 올바르지 않습니다.');
         }
 
-        if ($categories->contains(static fn (Category $category): bool => (int) $category->depth !== 3)) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 소분류만 선택할 수 있습니다.');
+        $hasActiveChildren = Category::query()
+            ->whereIn('parent_id', $categoryIds)
+            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->where('status', Category::STATUS_ACTIVE)
+            ->exists();
+
+        if ($hasActiveChildren) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 자식 없는 카테고리만 선택할 수 있습니다.');
         }
 
         $usage = $this->resolveSingleCategoryUsage($categories);
@@ -190,7 +196,7 @@ final class HospitalEventPayloadResolver
         }
 
         if ($categoryUsage !== CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 옵션은 시술 카테고리 이벤트에서만 사용할 수 있습니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 옵션은 쁘띠 카테고리 이벤트에서만 사용할 수 있습니다.');
         }
 
         $options = $payload['options'] ?? [];
@@ -278,7 +284,7 @@ final class HospitalEventPayloadResolver
             }
 
             if (count($matchedForCategory) !== 1) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 성형 또는 시술 카테고리 중 하나에만 속해야 합니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 성형 또는 쁘띠 카테고리 중 하나에만 속해야 합니다.');
             }
 
             $matchedUsages[] = $matchedForCategory[0];
@@ -286,7 +292,7 @@ final class HospitalEventPayloadResolver
 
         $uniqueUsages = array_values(array_unique($matchedUsages));
         if (count($uniqueUsages) !== 1) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '성형 카테고리와 시술 카테고리는 섞어서 선택할 수 없습니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '성형 카테고리와 쁘띠 카테고리는 섞어서 선택할 수 없습니다.');
         }
 
         return $uniqueUsages[0];

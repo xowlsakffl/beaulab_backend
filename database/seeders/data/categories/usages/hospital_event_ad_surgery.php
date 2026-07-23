@@ -8,5 +8,5 @@ return [
     ['code' => 'HS_LIFT', 'sort_order' => 5],
     ['code' => 'HS_FACE_CONTOUR', 'sort_order' => 6],
     ['code' => 'HS_HAIR_TRANSPLANT', 'sort_order' => 7],
-    ['code' => 'HM_PLASTIC_OTHER', 'sort_order' => 8],
+    ['code' => 'HS_SURGERY_OTHER', 'sort_order' => 8],
 ];

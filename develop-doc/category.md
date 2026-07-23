@@ -33,33 +33,30 @@ Category::DOMAIN_HOSPITAL_MEDICAL
 HOSPITAL_MEDICAL
 - 눈
 - 코
-- 지방흡입/이식
-- 안면윤곽/양악
+- 지방흡입 / 이식
 - 가슴
-- 남자성형
-- 기타성형
-- 안티에이징
-- 얼굴
-  - 리프팅
-  - 보톡스
-  - 필러
-- 체형
+- 거상
+- 안면윤곽 / 양악
+- 모발이식
+- 기타
+- 리프팅
+- 필러
+- 보톡스
+- 지방분해주사
 - 피부
+- 제모/탈모
 - 치과
-- 두피
-- 탈모
-- 제모
+- 부인과
 - 안과
 - 한방
-- 기타쁘띠/피부
 ```
 
 `성형`, `쁘띠`는 카테고리 노드로 저장하지 않는다. 이 둘은 `categories.group_code`로만 구분한다.
 
 | group_code | 표시명 | 의미 |
 |---|---|---|
-| `SURGERY` | 성형 | 눈, 코, 지방흡입/이식, 가슴, 거상, 안면윤곽/양악, 모발이식, 기타성형 등 |
-| `TREATMENT` | 쁘띠 | 리프팅, 필러, 보톡스, 지방분해주사, 피부, 헤어, 치과, 부인과, 안과, 한방 등 |
+| `SURGERY` | 성형 | 눈, 코, 지방흡입 / 이식, 가슴, 거상, 안면윤곽 / 양악, 모발이식, 기타 |
+| `TREATMENT` | 쁘띠 | 리프팅, 필러, 보톡스, 지방분해주사, 피부, 제모/탈모, 치과, 부인과, 안과, 한방 |
 
 시더에서는 최상위 카테고리에 `group_code`를 정의하고, 하위 카테고리는 부모의 `group_code`를 상속한다. 운영 화면에서 하위 카테고리를 생성할 때도 부모와 다른 `group_code`는 허용하지 않는다.
 
@@ -77,12 +74,12 @@ CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT
 database/seeders/data/categories/usages/hospital_doctor_subject.php
 ```
 
-이 usage에는 성형 쪽 대분류와 쁘띠/피부 쪽 일부 중분류가 섞여 들어갈 수 있다. 이건 depth 기준이 아니라 “병원/의료진이 진료과목으로 표방할 수 있는 노드” 기준이다.
+이 usage에는 성형 쪽 대분류와 쁘띠 쪽 대분류가 같이 들어간다. 이건 depth 기준이 아니라 “병원/의료진이 진료과목으로 표방할 수 있는 노드” 기준이다.
 성형/쁘띠 구분 표시는 `category_usages`가 아니라 각 카테고리의 `group_code`를 기준으로 한다.
 
 주의할 점:
 
-- `성형`, `쁘띠/피부` 자체는 `categories` 트리에도, 진료과목 usage에도 넣지 않는다.
+- `성형`, `쁘띠` 자체는 `categories` 트리에도, 진료과목 usage에도 넣지 않는다.
 - 진료과목에 노출할 항목은 `database/seeders/data/categories/usages/hospital_doctor_subject.php`에 명시된 code만 기준으로 한다.
 - 시더 재실행 시 usage 파일에 없는 기존 `category_usages` row는 삭제한다. 기존 DB에 잘못 들어간 root usage가 남아 있으면 시더를 다시 실행해 정리한다.
 
@@ -115,7 +112,12 @@ database/seeders/data/categories/
 └── usages/
     ├── hospital_doctor_subject.php
     ├── hospital_review_surgery.php
-    └── hospital_review_treatment.php
+    ├── hospital_review_treatment.php
+    ├── hospital_event_surgery.php
+    ├── hospital_event_treatment.php
+    ├── hospital_video_category.php
+    ├── hospital_event_ad_surgery.php
+    └── hospital_event_ad_treatment.php
 ```
 
 시더 실행 순서:

@@ -158,6 +158,11 @@ return [
         ],
     ],
 
+    'staff_login_tokens' => [
+        'session_expire_minutes' => (int) env('STAFF_LOGIN_SESSION_TOKEN_EXPIRE_MINUTES', 720),
+        'remember_expire_minutes' => (int) env('STAFF_LOGIN_REMEMBER_TOKEN_EXPIRE_MINUTES', 43200),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Password Confirmation Timeout

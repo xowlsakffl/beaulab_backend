@@ -40,7 +40,7 @@ final class NoticeForStaffController extends Controller
     ) {
         $result = $action->execute($notice);
 
-        return ApiResponse::success($result['notice'] ?? $result);
+        return ApiResponse::success($result['notice']);
     }
 
     public function createNoticeForStaff(
@@ -49,7 +49,7 @@ final class NoticeForStaffController extends Controller
     ) {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['notice'] ?? $result);
+        return ApiResponse::success($result['notice']);
     }
 
     public function uploadEditorImageForStaff(
@@ -87,7 +87,7 @@ final class NoticeForStaffController extends Controller
     ) {
         $result = $action->execute($notice, $request->validated());
 
-        return ApiResponse::success($result['notice'] ?? $result);
+        return ApiResponse::success($result['notice']);
     }
 
     public function deleteNoticeForStaff(

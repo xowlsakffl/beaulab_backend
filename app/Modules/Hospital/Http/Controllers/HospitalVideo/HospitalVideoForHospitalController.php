@@ -17,6 +17,6 @@ final class HospitalVideoForHospitalController extends Controller
     ) {
         $result = $action->execute($video, $request->validated());
 
-        return ApiResponse::success($result['video'] ?? $result);
+        return ApiResponse::success($result['video']);
     }
 }

@@ -50,7 +50,7 @@ final class CategoryForStaffController extends Controller
     ) {
         $result = $action->execute($category, $request->filters()['include']);
 
-        return ApiResponse::success($result['category'] ?? $result);
+        return ApiResponse::success($result['category']);
     }
 
     public function createCategoryForStaff(
@@ -59,7 +59,7 @@ final class CategoryForStaffController extends Controller
     ) {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['category'] ?? $result);
+        return ApiResponse::success($result['category']);
     }
 
     public function updateCategoryForStaff(
@@ -69,7 +69,7 @@ final class CategoryForStaffController extends Controller
     ) {
         $result = $action->execute($category, $request->validated());
 
-        return ApiResponse::success($result['category'] ?? $result);
+        return ApiResponse::success($result['category']);
     }
 
     public function deleteCategoryForStaff(

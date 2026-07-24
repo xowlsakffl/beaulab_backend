@@ -24,7 +24,7 @@ final class AdminNoteForBeautyController extends Controller
     ) {
         $result = $action->execute($request->user(), $request->filters());
 
-        return ApiResponse::success($result['items'] ?? $result);
+        return ApiResponse::success($result['items']);
     }
 
     public function createAdminNoteForBeauty(
@@ -33,7 +33,7 @@ final class AdminNoteForBeautyController extends Controller
     ) {
         $result = $action->execute($request->user(), $request->validated());
 
-        return ApiResponse::success($result['note'] ?? $result);
+        return ApiResponse::success($result['note']);
     }
 
     public function updateAdminNoteForBeauty(
@@ -43,6 +43,6 @@ final class AdminNoteForBeautyController extends Controller
     ) {
         $result = $action->execute($request->user(), $note, $request->validated());
 
-        return ApiResponse::success($result['note'] ?? $result);
+        return ApiResponse::success($result['note']);
     }
 }

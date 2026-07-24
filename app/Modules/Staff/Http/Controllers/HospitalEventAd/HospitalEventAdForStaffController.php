@@ -61,7 +61,7 @@ final class HospitalEventAdForStaffController extends Controller
     ) {
         $result = $action->execute($hospitalEventAd);
 
-        return ApiResponse::success($result['hospital_event_ad'] ?? $result);
+        return ApiResponse::success($result['hospital_event_ad']);
     }
 
     public function getHospitalEventAdOperationHistoriesForStaff(
@@ -80,7 +80,7 @@ final class HospitalEventAdForStaffController extends Controller
     ) {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['hospital_event_ad'] ?? $result);
+        return ApiResponse::success($result['hospital_event_ad']);
     }
 
     public function updateHospitalEventAdForStaff(
@@ -90,7 +90,7 @@ final class HospitalEventAdForStaffController extends Controller
     ) {
         $result = $action->execute($hospitalEventAd, $request->validated());
 
-        return ApiResponse::success($result['hospital_event_ad'] ?? $result);
+        return ApiResponse::success($result['hospital_event_ad']);
     }
 
     public function updateHospitalEventAdAllowStatusForStaff(

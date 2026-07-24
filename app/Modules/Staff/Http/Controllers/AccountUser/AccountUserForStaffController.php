@@ -52,7 +52,7 @@ final class AccountUserForStaffController extends Controller
     ) {
         $result = $action->execute($user);
 
-        return ApiResponse::success($result['user'] ?? $result);
+        return ApiResponse::success($result['user']);
     }
 
     /**
@@ -66,6 +66,6 @@ final class AccountUserForStaffController extends Controller
     ) {
         $result = $action->execute($user, $request->validated());
 
-        return ApiResponse::success($result['user'] ?? $result);
+        return ApiResponse::success($result['user']);
     }
 }

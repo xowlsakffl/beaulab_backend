@@ -42,21 +42,21 @@ final class HospitalDoctorForStaffController extends Controller
     {
         $result = $action->execute($doctor);
 
-        return ApiResponse::success($result['doctor'] ?? $result);
+        return ApiResponse::success($result['doctor']);
     }
 
     public function createDoctorForStaff(HospitalDoctorCreateForStaffRequest $request, HospitalDoctorCreateForStaffAction $action)
     {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['doctor'] ?? $result);
+        return ApiResponse::success($result['doctor']);
     }
 
     public function updateDoctorForStaff(HospitalDoctor $doctor, HospitalDoctorUpdateForStaffRequest $request, HospitalDoctorUpdateForStaffAction $action)
     {
         $result = $action->execute($doctor, $request->validated());
 
-        return ApiResponse::success($result['doctor'] ?? $result);
+        return ApiResponse::success($result['doctor']);
     }
 
     public function deleteDoctorForStaff(HospitalDoctor $doctor, HospitalDoctorDeleteForStaffAction $action)

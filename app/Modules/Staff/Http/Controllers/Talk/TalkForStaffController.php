@@ -38,7 +38,7 @@ final class TalkForStaffController extends Controller
     {
         $result = $action->execute($talk, $request->filters());
 
-        return ApiResponse::success($result['talk'] ?? $result);
+        return ApiResponse::success($result['talk']);
     }
 
     public function getTalkCommentsForStaff(

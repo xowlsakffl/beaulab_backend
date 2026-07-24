@@ -41,7 +41,7 @@ final class FaqForStaffController extends Controller
     ) {
         $result = $action->execute($faq);
 
-        return ApiResponse::success($result['faq'] ?? $result);
+        return ApiResponse::success($result['faq']);
     }
 
     public function createFaqForStaff(
@@ -50,7 +50,7 @@ final class FaqForStaffController extends Controller
     ) {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['faq'] ?? $result);
+        return ApiResponse::success($result['faq']);
     }
 
     public function uploadEditorImageForStaff(
@@ -88,7 +88,7 @@ final class FaqForStaffController extends Controller
     ) {
         $result = $action->execute($faq, $request->validated());
 
-        return ApiResponse::success($result['faq'] ?? $result);
+        return ApiResponse::success($result['faq']);
     }
 
     public function deleteFaqForStaff(

@@ -66,7 +66,7 @@ final class HospitalForStaffController extends Controller
     ) {
         $result = $action->execute($hospital, $request->filters()['include']);
 
-        return ApiResponse::success($result['hospital'] ?? $result);
+        return ApiResponse::success($result['hospital']);
     }
 
     public function getHospitalOperationHistoriesForStaff(
@@ -89,7 +89,7 @@ final class HospitalForStaffController extends Controller
     ) {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['hospital'] ?? $result);
+        return ApiResponse::success($result['hospital']);
     }
 
     /**
@@ -129,7 +129,7 @@ final class HospitalForStaffController extends Controller
     ) {
         $result = $action->execute($hospital, $request->validated());
 
-        return ApiResponse::success($result['hospital'] ?? $result);
+        return ApiResponse::success($result['hospital']);
     }
 
     /**
@@ -143,7 +143,7 @@ final class HospitalForStaffController extends Controller
     ) {
         $result = $action->execute($hospital, $request->validated());
 
-        return ApiResponse::success($result['hospital'] ?? $result);
+        return ApiResponse::success($result['hospital']);
     }
 
     /**

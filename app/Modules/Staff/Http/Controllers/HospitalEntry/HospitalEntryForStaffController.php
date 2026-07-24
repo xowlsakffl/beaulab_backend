@@ -45,7 +45,7 @@ final class HospitalEntryForStaffController extends Controller
     ) {
         $result = $action->execute($hospitalEntry);
 
-        return ApiResponse::success($result['hospital_entry'] ?? $result);
+        return ApiResponse::success($result['hospital_entry']);
     }
 
     public function updateHospitalEntryForStaff(
@@ -55,6 +55,6 @@ final class HospitalEntryForStaffController extends Controller
     ) {
         $result = $action->execute($hospitalEntry, $request->validated());
 
-        return ApiResponse::success($result['hospital_entry'] ?? $result);
+        return ApiResponse::success($result['hospital_entry']);
     }
 }

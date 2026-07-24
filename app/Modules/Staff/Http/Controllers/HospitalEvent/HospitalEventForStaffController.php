@@ -51,7 +51,7 @@ final class HospitalEventForStaffController extends Controller
     {
         $result = $action->execute($hospitalEvent);
 
-        return ApiResponse::success($result['event'] ?? $result);
+        return ApiResponse::success($result['event']);
     }
 
     public function createHospitalEventForStaff(
@@ -60,7 +60,7 @@ final class HospitalEventForStaffController extends Controller
     ) {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['event'] ?? $result);
+        return ApiResponse::success($result['event']);
     }
 
     public function duplicateHospitalEventForStaff(
@@ -70,7 +70,7 @@ final class HospitalEventForStaffController extends Controller
     ) {
         $result = $action->execute($hospitalEvent, $request->validated());
 
-        return ApiResponse::success($result['event'] ?? $result);
+        return ApiResponse::success($result['event']);
     }
 
     public function updateHospitalEventForStaff(
@@ -80,7 +80,7 @@ final class HospitalEventForStaffController extends Controller
     ) {
         $result = $action->execute($hospitalEvent, $request->validated());
 
-        return ApiResponse::success($result['event'] ?? $result);
+        return ApiResponse::success($result['event']);
     }
 
     public function updateHospitalEventPeriodForStaff(
@@ -90,7 +90,7 @@ final class HospitalEventForStaffController extends Controller
     ) {
         $result = $action->execute($hospitalEvent, $request->validated());
 
-        return ApiResponse::success($result['event'] ?? $result);
+        return ApiResponse::success($result['event']);
     }
 
     public function deleteHospitalEventForStaff(HospitalEvent $hospitalEvent, HospitalEventDeleteForStaffAction $action)

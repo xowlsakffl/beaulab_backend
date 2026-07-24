@@ -183,6 +183,6 @@ Staff 신고게시물 관리:
 
 - 리스트: `ReportedContentListForStaffAction`
 - 신고내역: `ReportedContentReportsForStaffAction`
-- 신고내역은 페이지가 비었을 때 `paginateWithFallback()`으로 1페이지를 반환한다.
+- 신고내역은 Laravel paginator 결과를 그대로 `PaginatedResponse::fromPaginator()`에 태운다.
 
 공통 응답 구조는 `api-response.md`를 참고한다.

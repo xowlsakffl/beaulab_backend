@@ -33,7 +33,7 @@ final class HospitalReviewForStaffController extends Controller
     {
         $result = $action->execute($hospitalReview, $request->filters());
 
-        return ApiResponse::success($result['review'] ?? $result);
+        return ApiResponse::success($result['review']);
     }
 
     public function getHospitalReviewCommentsForStaff(

@@ -43,7 +43,7 @@ final class NotificationForUserController extends Controller
     {
         $result = $action->execute($notificationInbox, $request->user());
 
-        return ApiResponse::success($result['notification'] ?? $result);
+        return ApiResponse::success($result['notification']);
     }
 
     public function readAllNotificationsForUser(Request $request, NotificationReadAllForUserAction $action)
@@ -57,7 +57,7 @@ final class NotificationForUserController extends Controller
     ) {
         $result = $action->execute($request->user(), $request->validated());
 
-        return ApiResponse::success($result['device'] ?? $result);
+        return ApiResponse::success($result['device']);
     }
 
     public function revokeDeviceForUser(
@@ -80,6 +80,6 @@ final class NotificationForUserController extends Controller
     ) {
         $result = $action->execute($request->user(), $request->validated());
 
-        return ApiResponse::success($result['preference'] ?? $result);
+        return ApiResponse::success($result['preference']);
     }
 }

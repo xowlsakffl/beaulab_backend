@@ -98,6 +98,7 @@
 | `Spatie UnauthorizedException`  |  403 | `FORBIDDEN` | 권한 없음                         |
 | `ModelNotFoundException`        |  404 | `NOT_FOUND` | 리소스 없음                        |
 | `MethodNotAllowedHttpException` |  405 | `METHOD_NOT_ALLOWED` | 허용되지 않은 메서드                   |
+| `PostTooLargeException`        |  413 | `PAYLOAD_TOO_LARGE` | 업로드/요청 용량 초과                   |
 | Rate Limit (429)                |  429 | `RATE_LIMITED` | 요청 과다                         |
 | 토큰 오류                           |  419 | `TOKEN_ERROR` | 토큰 무효                         |
 | `QueryException`                |  500 | `DB_ERROR` | 운영환경 상세 노출 금지                 |
@@ -157,6 +158,11 @@
 - ErrorCode: INTERNAL_ERROR
 - 운영 환경에서는 고정 메시지 사용
 
+### 요청 용량 초과
+- HTTP 413
+- ErrorCode: PAYLOAD_TOO_LARGE
+- 업로드 파일 또는 요청 본문이 서버 허용 용량을 초과한 경우
+
 ---
 
 ## 11. 운영 팁
@@ -180,4 +186,4 @@ Queue Job / Scheduler 오류는 아래 채널에서 별도로 확인한다.
 
 ---
 
-작성 기준: 2026-03-12
+작성 기준: 2026-07-24

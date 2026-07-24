@@ -1,14 +1,40 @@
 # API 응답 / 페이지네이션 규칙
 
-작성 기준: 2026-06-23
+작성 기준: 2026-07-24
 
-이 문서는 현재 코드 기준의 API 응답 포맷과 페이지네이션 헬퍼 사용 규칙을 정리한다.
+이 문서는 현재 코드 기준의 API 응답 포맷과 페이지네이션 사용 규칙을 정리한다.
 
-## 1) 기본 응답
+## 1) 적용 범위
 
-컨트롤러는 `ApiResponse::success($data, $meta)`를 통해 응답한다.
+일반 JSON API는 `App\Common\Http\Responses\ApiResponse`를 통해 응답한다.
 
-목록 응답은 일반적으로 다음 구조를 가진다.
+- `/api/*` 요청과 `expectsJson()` 요청의 예외 응답은 `bootstrap/app.php`에서 `ApiResponse`로 변환한다.
+- 컨트롤러의 일반 성공 응답은 `ApiResponse::success()`를 사용한다.
+- 파일 다운로드, 스트리밍 다운로드처럼 JSON이 아닌 응답은 예외다. 현재 `TalkExcelDownloadForStaffAction`은 `response()->streamDownload()`를 사용한다.
+
+## 2) 성공 응답
+
+`ApiResponse::success()`는 항상 아래 필드를 포함한다.
+
+```json
+{
+  "success": true,
+  "data": {},
+  "meta": null,
+  "traceId": "request-trace-id"
+}
+```
+
+규칙:
+
+- `success`: 항상 `true`
+- `data`: 응답 본문. 값이 없으면 `null`
+- `meta`: 페이지네이션/부가 정보. 값이 없으면 `null`
+- `traceId`: `RequestId` 미들웨어가 확정한 요청 추적 ID
+
+`ApiResponse::success($data, $meta, $traceId, $status)`는 커스텀 HTTP status를 받을 수 있지만, 신규 코드에서는 특별한 이유가 없으면 기본 `200`을 사용한다.
+
+목록 응답은 일반적으로 `data`에 row 배열, `meta`에 페이지 정보를 둔다.
 
 ```json
 {
@@ -19,13 +45,93 @@
     "per_page": 15,
     "total": 0,
     "last_page": 1
-  }
+  },
+  "traceId": "request-trace-id"
 }
 ```
 
-에러 응답은 공통 예외 핸들러가 만든다. 상세 규칙은 `error-handling.md`를 참고한다.
+## 3) 에러 응답
 
-## 2) User API 응답 정책
+에러 응답은 `ApiResponse::errorCode()` 또는 `bootstrap/app.php`의 공통 예외 핸들러가 만든다.
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "요청 값이 올바르지 않습니다."
+  },
+  "traceId": "request-trace-id"
+}
+```
+
+규칙:
+
+- `success`: 항상 `false`
+- `error.code`: `App\Common\Exceptions\ErrorCode` 값
+- `error.message`: 클라이언트에 노출 가능한 메시지
+- `error.details`: 상세 정보가 있을 때만 포함
+- `traceId`: 요청 추적 ID
+
+Validation 실패는 `error.details.errors`에 필드별 오류를 담는다.
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "요청 값이 올바르지 않습니다.",
+    "details": {
+      "errors": {
+        "name": ["이름은 필수 항목입니다."]
+      }
+    }
+  },
+  "traceId": "request-trace-id"
+}
+```
+
+주요 예외 매핑은 `develop-doc/error-handling.md`를 따른다. 현재 코드 기준으로 `PostTooLargeException`은 `PAYLOAD_TOO_LARGE` / HTTP 413으로 응답한다.
+
+## 4) Controller / Action 응답 책임
+
+Controller는 검증된 입력을 Action에 넘기고, Action 결과를 `ApiResponse`에 연결한다.
+
+목록 Action은 보통 아래 구조를 반환한다.
+
+```php
+return [
+    'items' => [...],
+    'meta' => [...],
+];
+```
+
+Controller는 이를 아래처럼 연결한다.
+
+```php
+$result = $action->execute($request->filters());
+
+return ApiResponse::success($result['items'], $result['meta'] ?? null);
+```
+
+단건 조회 Action은 도메인 키를 고정해서 반환한다.
+
+```php
+return [
+    'hospital' => HospitalForStaffDetailDto::fromModel($hospital)->toArray(),
+];
+```
+
+컨트롤러가 다음처럼 방어적으로 응답 키를 고르는 구조는 신규 코드에서 지양한다.
+
+```php
+return ApiResponse::success($result['talk'] ?? $result);
+return ApiResponse::success($result['chat'] ?? $result);
+```
+
+이 패턴은 Action 응답 계약이 불명확하다는 신호다. 기존 코드에 남아 있는 경우는 기능 수정 시 도메인 키를 고정하는 방향으로 정리한다.
+
+## 5) User API 응답 정책
 
 User API는 조회 API와 행위 처리 API의 응답 책임을 분리한다.
 
@@ -87,22 +193,9 @@ return ApiResponse::success([
 ]);
 ```
 
-### 응답 계약 기준
+## 6) LengthAware pagination
 
-컨트롤러가 다음처럼 방어적으로 응답 키를 고르는 구조는 지양한다.
-
-```php
-return ApiResponse::success($result['talk'] ?? $result);
-return ApiResponse::success($result['chat'] ?? $result);
-```
-
-이 패턴은 Action의 응답 계약이 불명확하다는 신호다. 신규 코드에서는 Action 반환 구조를 고정하고 컨트롤러가 그대로 연결하거나, command API라면 컨트롤러에서 완료 메시지를 직접 내려준다.
-
-현재 기존 코드에는 생성/삭제/읽음 처리 계열에 DTO 반환과 메시지 반환이 섞여 있다. 신규 구현은 위 기준을 따르고, 기존 코드는 기능 수정 시 함께 정리한다.
-
-## 3) LengthAware pagination
-
-Laravel `LengthAwarePaginator`를 쓰는 목록 응답은 `App\Common\Support\PaginatedResponse`를 사용한다.
+Laravel `LengthAwarePaginator`를 쓰는 목록 응답은 `App\Common\Support\PaginatedResponse::fromPaginator()`를 사용한다.
 
 ```php
 return PaginatedResponse::fromPaginator(
@@ -111,7 +204,21 @@ return PaginatedResponse::fromPaginator(
 );
 ```
 
-`fromPaginator()`는 `items`와 `meta`를 만든다. 추가 meta가 필요하면 세 번째 인자로 전달한다.
+`fromPaginator()`는 아래 구조를 만든다.
+
+```php
+[
+    'items' => [...],
+    'meta' => [
+        'current_page' => 1,
+        'per_page' => 15,
+        'total' => 0,
+        'last_page' => 1,
+    ],
+]
+```
+
+추가 meta가 필요하면 세 번째 인자로 전달한다.
 
 ```php
 return PaginatedResponse::fromPaginator(
@@ -121,24 +228,9 @@ return PaginatedResponse::fromPaginator(
 );
 ```
 
-현재 신고게시물 목록은 `summary`를 추가 meta로 내려준다.
+상세 보조 목록도 같은 방식으로 paginator를 만든 뒤 `fromPaginator()`에 태운다. 페이지 보정이 필요하면 해당 화면/액션의 정책으로 명시적으로 처리한다.
 
-## 4) 빈 페이지 fallback
-
-상세 화면의 댓글, 히스토리, 신고내역처럼 페이지 삭제/필터 변경으로 현재 페이지가 비어질 수 있는 목록은 `paginateWithFallback()`을 사용한다.
-
-```php
-$paginator = PaginatedResponse::paginateWithFallback(
-    queryFactory: fn () => $query->builder($model),
-    perPage: 10,
-    pageName: 'page',
-    page: $page,
-);
-```
-
-현재 페이지가 1보다 크고 결과가 비어 있으면 1페이지 결과를 반환한다. 프론트가 삭제/상태 변경 후 빈 페이지에 멈추는 현상을 줄이기 위한 규칙이다.
-
-## 5) Cursor pagination 예외
+## 7) Cursor pagination 예외
 
 채팅 메시지 목록은 `ChatMessageListForUserQuery`에서 cursor 방식으로 조회한다.
 
@@ -154,14 +246,14 @@ $paginator = PaginatedResponse::paginateWithFallback(
 
 이 응답은 `current_page`, `total`, `last_page` 개념이 없으므로 `PaginatedResponse`에 태우지 않는다. cursor 방식 목록을 추가할 때는 이 구조를 명시적으로 유지한다.
 
-## 6) 현재 통일된 목록
+## 8) 현재 통일된 목록
 
 다음 계열은 `PaginatedResponse::fromPaginator()`를 사용한다.
 
-- Staff 일반 목록: 회원, 병원, 입점신청, 뷰티, 의사, 전문가, 영상, 공지, FAQ, 카테고리, 해시태그
+- Staff 일반 목록: 회원, 병원, 입점신청, 뷰티, 의사, 전문가, 이벤트, 광고, 영상, 공지, FAQ, 카테고리, 해시태그
 - Staff 게시물 목록: 토크, 토크 댓글, 병의원 후기, 후기 댓글, 병의원 평가
 - Staff 상세 보조 목록: 댓글, 히스토리, 신고내역
 - Staff 신고게시물 목록
 - User 목록: 채팅방, 알림, 차단 회원
 
-직접 `current_page`, `per_page`, `total`, `last_page`를 조립하지 않는다. 예외가 필요하면 먼저 cursor pagination인지, 외부 API 응답인지 명확히 구분한다.
+직접 `current_page`, `per_page`, `total`, `last_page`를 조립하지 않는다. 예외가 필요하면 먼저 cursor pagination인지, 파일/스트림 응답인지, 외부 API 응답인지 명확히 구분한다.

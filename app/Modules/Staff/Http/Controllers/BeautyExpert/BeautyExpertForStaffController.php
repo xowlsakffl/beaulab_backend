@@ -31,21 +31,21 @@ final class BeautyExpertForStaffController extends Controller
     {
         $result = $action->execute($expert);
 
-        return ApiResponse::success($result['expert'] ?? $result);
+        return ApiResponse::success($result['expert']);
     }
 
     public function createExpertForStaff(BeautyExpertCreateForStaffRequest $request, BeautyExpertCreateForStaffAction $action)
     {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['expert'] ?? $result);
+        return ApiResponse::success($result['expert']);
     }
 
     public function updateExpertForStaff(BeautyExpert $expert, BeautyExpertUpdateForStaffRequest $request, BeautyExpertUpdateForStaffAction $action)
     {
         $result = $action->execute($expert, $request->validated());
 
-        return ApiResponse::success($result['expert'] ?? $result);
+        return ApiResponse::success($result['expert']);
     }
 
     public function deleteExpertForStaff(BeautyExpert $expert, BeautyExpertDeleteForStaffAction $action)

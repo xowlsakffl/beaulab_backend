@@ -66,7 +66,7 @@ final class HospitalVideoForStaffController extends Controller
     ) {
         $result = $action->execute($video);
 
-        return ApiResponse::success($result['video'] ?? $result);
+        return ApiResponse::success($result['video']);
     }
 
     public function getVideoOperationHistoriesForStaff(
@@ -83,14 +83,14 @@ final class HospitalVideoForStaffController extends Controller
     {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['video'] ?? $result);
+        return ApiResponse::success($result['video']);
     }
 
     public function updateVideoForStaff(HospitalVideo $video, HospitalVideoUpdateForStaffRequest $request, HospitalVideoUpdateForStaffAction $action)
     {
         $result = $action->execute($video, $request->validated());
 
-        return ApiResponse::success($result['video'] ?? $result);
+        return ApiResponse::success($result['video']);
     }
 
     public function deleteVideoForStaff(HospitalVideo $video, HospitalVideoDeleteForStaffAction $action)

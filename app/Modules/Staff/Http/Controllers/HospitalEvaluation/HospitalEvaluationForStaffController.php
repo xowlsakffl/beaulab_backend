@@ -34,7 +34,7 @@ final class HospitalEvaluationForStaffController extends Controller
     ) {
         $result = $action->execute($hospitalEvaluation, $request->filters());
 
-        return ApiResponse::success($result['evaluation'] ?? $result);
+        return ApiResponse::success($result['evaluation']);
     }
 
     public function getHospitalEvaluationOperationHistoriesForStaff(

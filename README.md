@@ -417,10 +417,13 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 | 허용되지 않은 메서드 | 405 | `METHOD_NOT_ALLOWED` |
 | 토큰 오류 | 419 | `TOKEN_ERROR` |
 | 요청 과다 | 429 | `RATE_LIMITED` |
+| 요청 용량 초과 | 413 | `PAYLOAD_TOO_LARGE` |
 | DB 오류 | 500 | `DB_ERROR` |
 | 기타 서버 오류 | 500 | `INTERNAL_ERROR` |
 
 `RequestId` 미들웨어는 `X-Request-Id`를 읽거나 UUID를 생성해 로그 컨텍스트, 응답 헤더, API 응답의 `traceId`에 반영합니다.
+
+파일 다운로드/스트리밍 다운로드 엔드포인트는 JSON `ApiResponse` 예외이며, 현재 토크 엑셀 다운로드는 `StreamedResponse`를 반환합니다.
 
 ## 비동기 처리와 운영
 

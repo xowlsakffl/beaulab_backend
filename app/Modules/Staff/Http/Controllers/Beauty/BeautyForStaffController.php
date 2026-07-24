@@ -47,7 +47,7 @@ final class BeautyForStaffController extends Controller
     ) {
         $result = $action->execute($beauty, $request->filters()['include']);
 
-        return ApiResponse::success($result['beauty'] ?? $result);
+        return ApiResponse::success($result['beauty']);
     }
 
     /**
@@ -60,7 +60,7 @@ final class BeautyForStaffController extends Controller
     ) {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['beauty'] ?? $result);
+        return ApiResponse::success($result['beauty']);
     }
 
     /**
@@ -74,7 +74,7 @@ final class BeautyForStaffController extends Controller
     ) {
         $result = $action->execute($beauty, $request->validated());
 
-        return ApiResponse::success($result['beauty'] ?? $result);
+        return ApiResponse::success($result['beauty']);
     }
 
     /**

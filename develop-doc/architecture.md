@@ -186,8 +186,7 @@ DTO 응답 원칙:
 
 - `status`는 실제 운영/노출 상태다.
 - `allow_status`는 검수/승인 흐름이다.
-- 병원/의료진/이벤트 `allow_status` 화면 표기는 모델 라벨 기준으로 `신청`/`검수`/`승인`/`반려`를 사용한다.
-- 입점신청 `allow_status` 화면 표기는 `입점신청`/`입점승인`/`입점반려`를 사용한다.
+- 병원/의료진/이벤트/입점신청/광고 `allow_status` 화면 표기는 모델 라벨 기준으로 `신청`/`검수`/`승인`/`반려`를 사용한다.
 - 상태 전용 변경 이력은 `OperationHistory::ACTION_STATE_UPDATED`를 사용하고, 변경 필드는 `status` 또는 `allow_status`로 구분한다.
 
 ## 8) API 응답 / 페이지네이션 원칙
@@ -196,11 +195,12 @@ DTO 응답 원칙:
 
 - `fromPaginator($paginator, $mapper)`: `items`와 `meta.current_page/per_page/total/last_page`를 만든다.
 - `fromPaginator($paginator, $mapper, $extraMeta)`: 신고게시물 요약처럼 추가 meta가 필요할 때 사용한다.
-- `paginateWithFallback()`: 상세 댓글/히스토리/신고내역처럼 빈 페이지가 생기기 쉬운 목록에서 1페이지 fallback을 제공한다.
+- 상세 보조 목록도 paginator를 만든 뒤 `fromPaginator()`에 태운다. 페이지 보정이 필요하면 해당 화면/액션 정책으로 명시적으로 처리한다.
 
 예외:
 
 - `ChatMessageListForUserQuery`는 cursor pagination을 사용하므로 `current_page/total` 기반 `PaginatedResponse`를 사용하지 않는다.
+- 파일 다운로드/스트리밍 다운로드는 JSON `ApiResponse`가 아니라 `StreamedResponse` 같은 HTTP 응답을 직접 반환한다.
 
 ## 9) 비동기 구조 연결
 

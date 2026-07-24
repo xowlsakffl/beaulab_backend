@@ -25,14 +25,14 @@ final class TalkForUserController extends Controller
             'author_ip' => $request->ip(),
         ]);
 
-        return ApiResponse::success($result['talk'] ?? $result);
+        return ApiResponse::success($result['talk']);
     }
 
     public function deleteTalkForUser(Request $request, Talk $talk, TalkDeleteForUserAction $action)
     {
         $result = $action->execute($request->user(), $talk);
 
-        return ApiResponse::success($result['talk'] ?? $result);
+        return ApiResponse::success($result['talk']);
     }
 
     public function createTalkCommentForUser(
@@ -45,7 +45,7 @@ final class TalkForUserController extends Controller
             'author_ip' => $request->ip(),
         ]);
 
-        return ApiResponse::success($result['comment'] ?? $result);
+        return ApiResponse::success($result['comment']);
     }
 
     public function deleteTalkCommentForUser(
@@ -56,7 +56,7 @@ final class TalkForUserController extends Controller
     ) {
         $result = $action->execute($request->user(), $talk, $comment);
 
-        return ApiResponse::success($result['comment'] ?? $result);
+        return ApiResponse::success($result['comment']);
     }
 
     public function voteTalkPollForUser(
@@ -66,6 +66,6 @@ final class TalkForUserController extends Controller
     ) {
         $result = $action->execute($request->user(), $talk, $request->validated());
 
-        return ApiResponse::success($result['poll'] ?? $result);
+        return ApiResponse::success($result['poll']);
     }
 }

@@ -39,7 +39,7 @@ final class HashtagForStaffController extends Controller
     ) {
         $result = $action->execute($hashtag);
 
-        return ApiResponse::success($result['hashtag'] ?? $result);
+        return ApiResponse::success($result['hashtag']);
     }
 
     public function createHashtagForStaff(
@@ -48,7 +48,7 @@ final class HashtagForStaffController extends Controller
     ) {
         $result = $action->execute($request->validated());
 
-        return ApiResponse::success($result['hashtag'] ?? $result);
+        return ApiResponse::success($result['hashtag']);
     }
 
     public function updateHashtagForStaff(
@@ -58,7 +58,7 @@ final class HashtagForStaffController extends Controller
     ) {
         $result = $action->execute($hashtag, $request->validated());
 
-        return ApiResponse::success($result['hashtag'] ?? $result);
+        return ApiResponse::success($result['hashtag']);
     }
 
     public function deleteHashtagForStaff(

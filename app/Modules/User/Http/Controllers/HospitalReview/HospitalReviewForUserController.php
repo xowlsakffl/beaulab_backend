@@ -23,7 +23,7 @@ final class HospitalReviewForUserController extends Controller
             'author_ip' => $request->ip(),
         ]);
 
-        return ApiResponse::success($result['hospital_review'] ?? $result);
+        return ApiResponse::success($result['hospital_review']);
     }
 
     public function deleteHospitalReviewForUser(
@@ -33,7 +33,7 @@ final class HospitalReviewForUserController extends Controller
     ) {
         $result = $action->execute($request->user(), $hospitalReview);
 
-        return ApiResponse::success($result['hospital_review'] ?? $result);
+        return ApiResponse::success($result['hospital_review']);
     }
 
     public function createHospitalReviewCommentForUser(
@@ -46,7 +46,7 @@ final class HospitalReviewForUserController extends Controller
             'author_ip' => $request->ip(),
         ]);
 
-        return ApiResponse::success($result['comment'] ?? $result);
+        return ApiResponse::success($result['comment']);
     }
 
     public function deleteHospitalReviewCommentForUser(
@@ -57,6 +57,6 @@ final class HospitalReviewForUserController extends Controller
     ) {
         $result = $action->execute($request->user(), $hospitalReview, $comment);
 
-        return ApiResponse::success($result['comment'] ?? $result);
+        return ApiResponse::success($result['comment']);
     }
 }

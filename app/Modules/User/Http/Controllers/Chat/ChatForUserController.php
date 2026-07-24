@@ -51,7 +51,7 @@ final class ChatForUserController extends Controller
     ) {
         $result = $action->execute($request->user(), $request->validated(), $chat);
 
-        return ApiResponse::success($result['message'] ?? $result);
+        return ApiResponse::success($result['message']);
     }
 
     public function reportMessagesForUser(
@@ -78,14 +78,14 @@ final class ChatForUserController extends Controller
             $request->validated(),
         );
 
-        return ApiResponse::success($result['message'] ?? $result);
+        return ApiResponse::success($result['message']);
     }
 
     public function readChatForUser(Chat $chat, ChatReadForUserRequest $request, ChatReadForUserAction $action)
     {
         $result = $action->execute($chat, $request->user(), $request->validated());
 
-        return ApiResponse::success($result['chat'] ?? $result);
+        return ApiResponse::success($result['chat']);
     }
 
     public function updateNotificationForUser(
@@ -99,13 +99,13 @@ final class ChatForUserController extends Controller
             (bool) $request->validated('notifications_enabled'),
         );
 
-        return ApiResponse::success($result['chat'] ?? $result);
+        return ApiResponse::success($result['chat']);
     }
 
     public function deleteChatForUser(Request $request, Chat $chat, ChatDeleteForUserAction $action)
     {
         $result = $action->execute($chat, $request->user());
 
-        return ApiResponse::success($result['chat'] ?? $result);
+        return ApiResponse::success($result['chat']);
     }
 }

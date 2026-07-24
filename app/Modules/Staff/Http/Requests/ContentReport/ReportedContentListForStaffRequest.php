@@ -5,6 +5,7 @@ namespace App\Modules\Staff\Http\Requests\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReport;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalReview\Models\HospitalReview;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,10 +30,10 @@ final class ReportedContentListForStaffRequest extends FormRequest
             'target_author_id' => ['nullable', 'integer', 'exists:account_users,id'],
             'search_type' => ['nullable', Rule::in(['all', 'id', 'nickname', 'hospital_name', 'content'])],
             'date_type' => ['nullable', Rule::in(['created_at', 'first_reported_at', 'last_message_at'])],
-            'report_reason' => ['nullable', Rule::in(ContentReport::reasons())],
+            'report_reason' => ['nullable', Rule::in($this->reportReasons())],
             'report_count_min' => ['nullable', 'integer', 'min:0'],
             'report_count_max' => ['nullable', 'integer', 'min:0'],
-            'target_status' => ['nullable', Rule::in(['ACTIVE', 'INACTIVE'])],
+            'target_status' => ['nullable', Rule::in($this->targetStatuses())],
             'warning_status' => ['nullable', Rule::in(ContentReportState::warningStatuses())],
             'summary_filter' => ['nullable', Rule::in([
                 'reported_or_auto_blocked',
@@ -144,5 +145,28 @@ final class ReportedContentListForStaffRequest extends FormRequest
         )));
 
         return $normalized === [] ? null : array_values(array_unique($normalized));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function reportReasons(): array
+    {
+        return array_values(array_unique([
+            ...ContentReport::reasons(),
+            ...ContentReport::hospitalVideoReasons(),
+        ]));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function targetStatuses(): array
+    {
+        return [
+            'ACTIVE',
+            'INACTIVE',
+            ...HospitalVideo::adminStatuses(),
+        ];
     }
 }

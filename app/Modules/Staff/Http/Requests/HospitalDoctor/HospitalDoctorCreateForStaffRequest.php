@@ -2,7 +2,6 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalDoctor;
 
-use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Foundation\Http\FormRequest;

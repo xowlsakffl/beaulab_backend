@@ -22,12 +22,9 @@ final class HashtagUpdateHistoryRecordAction
         $snapshot = [
             'name' => $this->item('해시태그명', $hashtag->name, $hashtag->name),
             'normalized_name' => $this->item('정규화명', $hashtag->normalized_name, $hashtag->normalized_name),
-            'status' => $this->item('상태', $hashtag->resolveStatus(), $hashtag->resolveStatus()),
+            'status' => $this->item('운영상태', $hashtag->resolveStatus(), Hashtag::statusLabel($hashtag->resolveStatus())),
+            'usage_count' => $this->item('사용수', $hashtag->resolveUsageCount(), (string) $hashtag->resolveUsageCount()),
         ];
-
-        if (Hashtag::supportsUsageCount()) {
-            $snapshot['usage_count'] = $this->item('사용수', $hashtag->resolveUsageCount(), (string) $hashtag->resolveUsageCount());
-        }
 
         return $snapshot;
     }
@@ -38,7 +35,7 @@ final class HashtagUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(Hashtag $hashtag, array $before): void
     {
@@ -54,7 +51,7 @@ final class HashtagUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      */
     private function record(Hashtag $hashtag, string $action, string $source, array $changes): void
     {

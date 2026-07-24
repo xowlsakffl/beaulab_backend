@@ -41,7 +41,7 @@ final readonly class TalkCommentForStaffDetailDto
             status: (string) $comment->status,
             authorIp: $comment->author_ip,
             likeCount: (int) $comment->like_count,
-            mentionCount: (int) ($comment->mentions_count ?? $comment->mentions()->count()),
+            mentionCount: (int) ($comment->mentions_count ?? ($comment->relationLoaded('mentions') ? $comment->mentions->count() : 0)),
             createdAt: $comment->created_at?->toISOString(),
             updatedAt: $comment->updated_at?->toISOString(),
             deletedAt: $comment->deleted_at?->toISOString(),

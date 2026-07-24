@@ -6,7 +6,6 @@ use App\Domains\Common\Hashtag\Dto\Staff\HashtagForStaffDto;
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Hashtag\Queries\Staff\HashtagGetForStaffQuery;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * HashtagGetForStaffAction 역할 정의.
@@ -21,10 +20,6 @@ final class HashtagGetForStaffAction
     public function execute(Hashtag $hashtag): array
     {
         Gate::authorize('view', $hashtag);
-
-        Log::info('해시태그 단건 조회', [
-            'hashtag_id' => $hashtag->id,
-        ]);
 
         $detail = $this->query->get($hashtag);
 

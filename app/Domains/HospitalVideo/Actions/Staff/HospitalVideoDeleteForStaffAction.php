@@ -3,7 +3,7 @@
 namespace App\Domains\HospitalVideo\Actions\Staff;
 
 use App\Domains\Common\Cache\Support\StaffSummaryCache;
-use App\Domains\Common\Hashtag\Models\Hashtag;
+use App\Domains\Common\Hashtag\Queries\Staff\HashtagUsageCountSyncForStaffQuery;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\HospitalVideo\Queries\Staff\HospitalVideoDeleteForStaffQuery;
@@ -15,6 +15,7 @@ final class HospitalVideoDeleteForStaffAction
     public function __construct(
         private readonly HospitalVideoDeleteForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly HashtagUsageCountSyncForStaffQuery $hashtagUsageCountSyncQuery,
     ) {}
 
     public function execute(HospitalVideo $video): array
@@ -30,7 +31,7 @@ final class HospitalVideoDeleteForStaffAction
             $this->mediaAttachAction->deleteCollectionMedia($video, 'thumbnail_file');
             $video->categories()->sync([]);
             $video->hashtags()->sync([]);
-            Hashtag::syncUsageCounts($hashtagIds);
+            $this->hashtagUsageCountSyncQuery->sync($hashtagIds);
 
             $this->query->softDelete($video);
             $video->refresh();

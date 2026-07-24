@@ -18,6 +18,8 @@ final class HashtagGetForStaffQuery
                 'id',
                 'name',
                 'normalized_name',
+                'status',
+                'usage_count',
                 'created_at',
                 'updated_at',
             ])
@@ -27,14 +29,6 @@ final class HashtagGetForStaffQuery
                     ->whereColumn('hashtaggables.hashtag_id', 'hashtags.id'),
                 'assignment_count',
             );
-
-        if (Hashtag::supportsUsageCount()) {
-            $query->addSelect('usage_count');
-        }
-
-        if (Hashtag::supportsStatus()) {
-            $query->addSelect('status');
-        }
 
         return $query->findOrFail($hashtag->id);
     }

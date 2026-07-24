@@ -4,6 +4,7 @@ namespace App\Modules\Staff\Http\Requests\Hashtag;
 
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * HashtagListForStaffRequest 역할 정의.
@@ -24,7 +25,7 @@ final class HashtagListForStaffRequest extends FormRequest
             'q' => is_string($q)
                 ? trim((string) (preg_replace('/^[#＃]+/u', '', trim($q)) ?? trim($q)))
                 : $q,
-            'status' => is_string($status) ? trim($status) : $status,
+            'status' => $this->normalizeToArray($status),
             'start_date' => is_string($startDate) ? trim($startDate) : $startDate,
             'end_date' => is_string($endDate) ? trim($endDate) : $endDate,
             'updated_start_date' => is_string($updatedStartDate) ? trim($updatedStartDate) : $updatedStartDate,
@@ -41,7 +42,8 @@ final class HashtagListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'array'],
+            'status.*' => [Rule::in(Hashtag::statuses())],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d'],
             'updated_start_date' => ['nullable', 'date_format:Y-m-d'],
@@ -56,25 +58,10 @@ final class HashtagListForStaffRequest extends FormRequest
     public function filters(): array
     {
         $validated = $this->validated();
-        $statusValue = trim((string) ($validated['status'] ?? ''));
-        $decodedStatuses = json_decode($statusValue, true);
-        $statusValues = str_starts_with($statusValue, '[')
-            && json_last_error() === JSON_ERROR_NONE
-            && is_array($decodedStatuses)
-            && array_is_list($decodedStatuses)
-            ? $decodedStatuses
-            : explode(',', $statusValue);
-
-        $statuses = collect($statusValues)
-            ->map(static fn ($value): string => strtoupper(trim((string) $value)))
-            ->filter(static fn (string $value): bool => Hashtag::isValidStatus($value))
-            ->unique()
-            ->values()
-            ->all();
 
         return [
             'q' => $validated['q'] ?? null,
-            'statuses' => $statuses,
+            'statuses' => $validated['status'] ?? [],
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
             'updated_start_date' => $validated['updated_start_date'] ?? null,
@@ -90,6 +77,7 @@ final class HashtagListForStaffRequest extends FormRequest
         return [
             'q' => '검색어',
             'status' => '운영상태',
+            'status.*' => '운영상태',
             'start_date' => '등록 시작일',
             'end_date' => '등록 종료일',
             'updated_start_date' => '수정 시작일',
@@ -99,5 +87,32 @@ final class HashtagListForStaffRequest extends FormRequest
             'page' => '페이지',
             'per_page' => '페이지당 개수',
         ];
+    }
+
+    private function normalizeToArray(mixed $value): ?array
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $trimmed = trim($value);
+            $decoded = json_decode($trimmed, true);
+            $value = str_starts_with($trimmed, '[')
+                && json_last_error() === JSON_ERROR_NONE
+                && is_array($decoded)
+                && array_is_list($decoded)
+                ? $decoded
+                : explode(',', $trimmed);
+        } elseif (! is_array($value)) {
+            $value = [$value];
+        }
+
+        return collect($value)
+            ->map(static fn (mixed $item): string => strtoupper(trim((string) $item)))
+            ->filter(static fn (string $item): bool => $item !== '')
+            ->unique()
+            ->values()
+            ->all();
     }
 }

@@ -55,15 +55,28 @@ Staff 프론트 메뉴 prefix와 API path는 반드시 같을 필요가 없다. 
 - Beauty 보호 라우트
   - `auth:sanctum`
   - `abilities:actor:beauty`
+- User 보호 라우트
+  - `auth:sanctum`
+  - `abilities:actor:user`
+  - `EnsureActiveUser`
+
+비밀번호 재설정 API는 로그인 전에도 호출되어야 하므로 보호 라우트 밖에 둔다. 대신 `RateLimitServiceProvider`의 throttle key를 사용한다.
+
+- 로그인: `throttle:auth-login`
+- 비밀번호 재설정 링크 발송: `throttle:password-reset-link`
+- 비밀번호 재설정 토큰 검증: `throttle:password-reset-verify`
+- 비밀번호 재설정 제출: `throttle:password-reset-submit`
+- 로그인 후 비밀번호 변경: `throttle:password-update`
+- 사용자 신고 생성: `throttle:content-report-create`
 
 ## 5) 현재 주요 도메인
 
 - 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`, `AccountUserAccessLog`, `AccountUserBlock`
 - 파트너: `Hospital`, `HospitalEntry`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `HospitalFeature`
-- 병원 이벤트/고객 DB: `HospitalEvent`, `HospitalEventDB`, `HospitalEventRealModelDB`, `HospitalEventOption`, `HospitalEventDoctorAssignment`
+- 병원 이벤트/광고/고객 DB: `HospitalEvent`, `HospitalEventAd`, `HospitalEventDB`, `HospitalEventRealModelDB`, `HospitalEventOption`, `HospitalEventDoctorAssignment`
 - 콘텐츠: `Talk`, `TalkComment`, `TalkCommentMention`, `TalkPoll`, `TalkPollOption`, `TalkPollVote`, `TalkSave`, `HospitalReview`, `HospitalReviewComment`, `HospitalReviewCommentMention`, `HospitalEvaluation`, `HospitalVideo`, `Notice`, `Faq`
 - 커뮤니케이션: `Chat`, `ChatMessage`, `ChatParticipant`, `NotificationInbox`, `NotificationDelivery`, `NotificationDevice`, `NotificationPreference`
-- 공통 운영: `Media`, `Category`, `CategoryUsage`, `Hashtag`, `AdminNote`, `ContentReport`, `ContentReportItem`, `ContentReportState`, `OperationHistory`, `OperationHistoryChange`
+- 공통 운영: `Media`, `Category`, `CategoryUsage`, `Hashtag`, `AdminNote`, `ContentReport`, `ContentReportItem`, `ContentReportState`, `OperationHistory`, `OperationHistoryChange`, `PasswordReset`
 
 파트너 계정 관계:
 
@@ -91,6 +104,26 @@ Staff 메뉴의 `N` 표시는 개인별 읽음/미읽음이 아니라 전역 처
 - 신고게시물: `ContentReportState.report_status = REPORTED`
 - 성형후기/시술후기 메뉴는 게시글과 댓글 신고를 합산한다.
 - 토크 메뉴는 토크와 토크 댓글 신고를 합산한다.
+
+## 5.2) 카테고리 구조
+
+카테고리는 공통 `categories` 테이블과 `category_usages` 테이블을 사용한다.
+
+- `Category.domain`은 카테고리의 기본 업무 도메인을 나타낸다.
+- `Category.group_code`는 같은 domain 안에서 성형/쁘띠처럼 화면과 상품 정책상 구분이 필요한 그룹을 나타낸다.
+- `CategoryUsage.usage`는 같은 카테고리를 어떤 기능에서 선택지로 노출할지 결정한다.
+- 병원/의료진/동영상 진료과목은 `HOSPITAL_MEDICAL` domain을 사용하되 `group_code`로 성형/쁘띠를 구분해 보여준다.
+- 이벤트 광고 카테고리별 배너는 `hospital_event_ad_surgery`, `hospital_event_ad_treatment` usage로 성형/쁘띠 선택지를 분리한다.
+- 카테고리 연결은 `category_assignments` polymorphic pivot을 사용한다.
+
+## 5.3) Staff Summary Cache
+
+Staff 목록 상단 summary는 `StaffSummaryCache`를 통해 캐시한다.
+
+- 기본 store는 `cache.staff_summary.store`이며 기본값은 `redis`다.
+- 기본 TTL은 300초다.
+- Redis/cache 장애가 있어도 조회와 쓰기는 막지 않는다. 캐시는 가속 계층이고 기준 데이터는 DB다.
+- summary에 영향을 주는 생성/수정/삭제/상태 변경 Action에서 `StaffSummaryCache::forget()`으로 무효화한다.
 
 ## 6) 공지사항(Notice) / FAQ 구조
 
@@ -131,6 +164,7 @@ Staff 메뉴의 `N` 표시는 개인별 읽음/미읽음이 아니라 전역 처
   - `GET /api/v1/staff/reported-contents/hospital-review-comments/surgery`
   - `GET /api/v1/staff/reported-contents/hospital-review-comments/treatment`
   - `GET /api/v1/staff/reported-contents/hospital-evaluations`
+  - `GET /api/v1/staff/reported-contents/videos`
   - `GET /api/v1/staff/reported-contents/detail/{targetType}/{targetId}`
   - `GET /api/v1/staff/reported-contents/{targetType}/{targetId}/reports`
   - `PATCH /api/v1/staff/hospital-reviews/status`
@@ -150,6 +184,7 @@ Staff 메뉴의 `N` 표시는 개인별 읽음/미읽음이 아니라 전역 처
   - `POST /api/v1/user/hospital-reviews/{hospitalReview}/reports`
   - `POST /api/v1/user/hospital-reviews/{hospitalReview}/comments/{comment}/reports`
   - `POST /api/v1/user/hospital-evaluations/{hospitalEvaluation}/reports`
+  - `POST /api/v1/user/videos/{video}/reports`
 
 도메인 책임:
 
@@ -158,6 +193,7 @@ Staff 메뉴의 `N` 표시는 개인별 읽음/미읽음이 아니라 전역 처
 - `HospitalEvaluation`: 병의원 평가, 병원/의료진/카테고리, 평가 항목, 영수증 이미지/인증/부적합 사유, 처리 이력
 - `Talk`: 토크 게시글, 카테고리, 이미지, 투표, 통계, 처리 이력
 - `TalkComment`: 토크 댓글/대댓글, 멘션, 노출상태, 게시상태, 처리 이력
+- `HospitalVideo`: 병원 동영상, 병원/의료진/카테고리/해시태그/썸네일/유튜브 링크/공개여부/강제중지/신고 상태
 - `ContentReport`: 사용자 신고 건별 로그
 - `ContentReportState`: 신고 대상별 현재 신고 상태, 신고 수, 경고/무시 상태
 
@@ -187,7 +223,30 @@ DTO 응답 원칙:
 - `status`는 실제 운영/노출 상태다.
 - `allow_status`는 검수/승인 흐름이다.
 - 병원/의료진/이벤트/입점신청/광고 `allow_status` 화면 표기는 모델 라벨 기준으로 `신청`/`검수`/`승인`/`반려`를 사용한다.
-- 상태 전용 변경 이력은 `OperationHistory::ACTION_STATE_UPDATED`를 사용하고, 변경 필드는 `status` 또는 `allow_status`로 구분한다.
+- 상태 전용 변경 이력은 `OperationHistory::ACTION_STATE_UPDATED`를 사용하고, 변경 필드는 실제 상태 컬럼명으로 구분한다. 예: `status`, `allow_status`, `admin_status`, `hospital_status`, `receipt_status`, `report_status`, `warning_status`.
+
+## 7.1) 이벤트 광고 구조
+
+이벤트 광고는 `HospitalEventAd` 도메인에서 관리한다.
+
+- Staff API:
+  - `GET /api/v1/staff/hospital-event-ads`
+  - `GET /api/v1/staff/hospital-event-ads/placements`
+  - `GET /api/v1/staff/hospital-event-ads/availability`
+  - `GET /api/v1/staff/hospital-event-ads/calendar`
+  - `GET /api/v1/staff/hospital-event-ads/{hospitalEventAd}`
+  - `POST /api/v1/staff/hospital-event-ads`
+  - `POST|PUT|PATCH /api/v1/staff/hospital-event-ads/{hospitalEventAd}`
+  - `PATCH /api/v1/staff/hospital-event-ads/allow-status`
+  - `GET /api/v1/staff/hospital-event-ads/{hospitalEventAd}/operation-histories`
+- 광고 위치는 `HospitalEventAd::placements()`와 `placementGroups()`가 기준이다.
+- 성형/쁘띠 카테고리별 배너만 카테고리 선택이 필수다.
+- 각 위치/주차/카테고리 조합의 구좌 제한은 `HospitalEventAd::WEEKLY_SLOT_LIMIT = 3`이다.
+- 광고 기간은 `HospitalEventAdPeriodResolver`가 계산한다.
+- 시작 요일은 대부분 화요일이며, 쁘띠 이벤트 광고는 목요일이다.
+- 판매 마감 판단은 `HospitalEventAdSalesDeadline`에 둔다.
+- 광고 상태(`광고예정`/`광고중`/`광고종료`)는 저장 컬럼이 아니라 `allow_status = APPROVED`와 `start_at/end_at` 기준으로 계산한다.
+- 승인 시점에는 이벤트/병원 상태, 이미지, 구좌를 다시 검증한다.
 
 ## 8) API 응답 / 페이지네이션 원칙
 

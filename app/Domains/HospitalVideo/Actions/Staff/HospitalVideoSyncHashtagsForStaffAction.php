@@ -5,10 +5,17 @@ namespace App\Domains\HospitalVideo\Actions\Staff;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Hashtag\Models\Hashtag;
+use App\Domains\Common\Hashtag\Queries\Staff\HashtagResolveForStaffQuery;
+use App\Domains\Common\Hashtag\Queries\Staff\HashtagUsageCountSyncForStaffQuery;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 
 final class HospitalVideoSyncHashtagsForStaffAction
 {
+    public function __construct(
+        private readonly HashtagResolveForStaffQuery $hashtagResolveQuery,
+        private readonly HashtagUsageCountSyncForStaffQuery $hashtagUsageCountSyncQuery,
+    ) {}
+
     /**
      * @param  array<int, int|string>  $hashtagIds
      * @param  array<int, string>  $hashtagNames
@@ -31,7 +38,7 @@ final class HospitalVideoSyncHashtagsForStaffAction
             ->all();
 
         $video->hashtags()->sync($syncPayload);
-        Hashtag::syncUsageCounts([...$beforeIds, ...array_keys($syncPayload)]);
+        $this->hashtagUsageCountSyncQuery->sync([...$beforeIds, ...array_keys($syncPayload)]);
     }
 
     /**
@@ -61,25 +68,15 @@ final class HospitalVideoSyncHashtagsForStaffAction
     private function findOrCreateActiveHashtag(string $name): Hashtag
     {
         $normalizedName = Hashtag::normalizeName($name);
-        $hashtag = Hashtag::query()
-            ->where('normalized_name', $normalizedName)
-            ->first();
+        $hashtag = $this->hashtagResolveQuery->findByNormalizedName($normalizedName);
 
         if (! $hashtag) {
-            $data = [
+            return $this->hashtagResolveQuery->create([
                 'name' => $name,
                 'normalized_name' => $normalizedName,
-            ];
-
-            if (Hashtag::supportsStatus()) {
-                $data['status'] = Hashtag::STATUS_ACTIVE;
-            }
-
-            if (Hashtag::supportsUsageCount()) {
-                $data['usage_count'] = 0;
-            }
-
-            return Hashtag::create($data);
+                'status' => Hashtag::STATUS_ACTIVE,
+                'usage_count' => 0,
+            ]);
         }
 
         if ($hashtag->resolveStatus() !== Hashtag::STATUS_ACTIVE) {

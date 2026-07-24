@@ -3,7 +3,6 @@
 namespace App\Domains\Common\Hashtag\Dto\Staff;
 
 use App\Domains\Common\Hashtag\Models\Hashtag;
-use Illuminate\Support\Facades\DB;
 
 /**
  * HashtagForStaffDto DTO.
@@ -15,6 +14,7 @@ final readonly class HashtagForStaffDto
         public string $name,
         public string $normalizedName,
         public string $status,
+        public string $statusLabel,
         public int $usageCount,
         public int $assignmentCount,
         public ?string $createdAt,
@@ -30,6 +30,7 @@ final readonly class HashtagForStaffDto
             name: (string) $hashtag->name,
             normalizedName: (string) $hashtag->normalized_name,
             status: $hashtag->resolveStatus(),
+            statusLabel: Hashtag::statusLabel($hashtag->resolveStatus()),
             usageCount: $hashtag->resolveUsageCount($assignmentCount),
             assignmentCount: $assignmentCount,
             createdAt: $hashtag->created_at?->toISOString(),
@@ -44,6 +45,7 @@ final readonly class HashtagForStaffDto
             'name' => $this->name,
             'normalized_name' => $this->normalizedName,
             'status' => $this->status,
+            'status_label' => $this->statusLabel,
             'usage_count' => $this->usageCount,
             'assignment_count' => $this->assignmentCount,
             'created_at' => $this->createdAt,
@@ -59,8 +61,6 @@ final readonly class HashtagForStaffDto
             return (int) ($hashtag->getAttribute('assignment_count') ?? 0);
         }
 
-        return (int) DB::table('hashtaggables')
-            ->where('hashtag_id', $hashtag->id)
-            ->count();
+        return 0;
     }
 }

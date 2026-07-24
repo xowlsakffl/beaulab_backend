@@ -9,8 +9,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Hashtag 역할 정의.
@@ -18,20 +16,22 @@ use Illuminate\Support\Facades\Schema;
  */
 final class Hashtag extends Model
 {
-    use HasFactory, HasAuditLogs, HasOperationHistories;
+    use HasAuditLogs, HasFactory, HasOperationHistories;
 
     public const NAME_MAX_LENGTH = 20;
+
     public const VALID_NAME_REGEX = '/^[0-9A-Za-z가-힣_]+$/u';
+
     public const STATUS_ACTIVE = 'ACTIVE';
+
     public const STATUS_INACTIVE = 'INACTIVE';
+
     private const LEGACY_STATUS_BLOCKED = 'BLOCKED';
+
     public const STATUSES = [
         self::STATUS_ACTIVE,
         self::STATUS_INACTIVE,
     ];
-
-    private static ?bool $supportsUsageCountColumn = null;
-    private static ?bool $supportsStatusColumn = null;
 
     protected $table = 'hashtags';
 
@@ -66,17 +66,18 @@ final class Hashtag extends Model
     }
 
     /**
-     * @param array<int, string> $statuses
+     * @param  array<int, string>  $statuses
      */
     public function scopeStatusIn(Builder $query, array $statuses): Builder
     {
         $normalizedStatuses = collect($statuses)
-            ->map(static fn (mixed $value): string => self::normalizeStatus((string) $value))
+            ->map(static fn (mixed $value): string => strtoupper(trim((string) $value)))
             ->filter(static fn (string $value): bool => self::isValidStatus($value))
+            ->map(static fn (string $value): string => self::normalizeStatus($value))
             ->values()
             ->all();
 
-        if ($normalizedStatuses === [] || !self::supportsStatus()) {
+        if ($normalizedStatuses === []) {
             return $query;
         }
 
@@ -150,102 +151,40 @@ final class Hashtag extends Model
         return in_array(strtoupper(trim((string) $value)), self::STATUSES, true);
     }
 
-    public static function supportsUsageCount(): bool
+    /**
+     * @return array<int, string>
+     */
+    public static function statuses(): array
     {
-        if (self::$supportsUsageCountColumn !== null) {
-            return self::$supportsUsageCountColumn;
-        }
-
-        return self::$supportsUsageCountColumn = Schema::hasColumn((new self())->getTable(), 'usage_count');
-    }
-
-    public static function supportsStatus(): bool
-    {
-        if (self::$supportsStatusColumn !== null) {
-            return self::$supportsStatusColumn;
-        }
-
-        return self::$supportsStatusColumn = Schema::hasColumn((new self())->getTable(), 'status');
+        return self::STATUSES;
     }
 
     public function resolveStatus(?string $fallback = null): string
     {
-        if (self::supportsStatus() && array_key_exists('status', $this->getAttributes())) {
-            return self::normalizeStatus((string) ($this->getAttribute('status') ?? self::STATUS_ACTIVE));
-        }
+        $status = $this->getAttribute('status') ?? $fallback ?? self::STATUS_ACTIVE;
 
-        if ($fallback !== null && self::isValidStatus($fallback)) {
-            return self::normalizeStatus($fallback);
-        }
-
-        return self::STATUS_ACTIVE;
+        return self::normalizeStatus((string) $status);
     }
 
     public function resolveUsageCount(?int $fallback = null): int
     {
-        if (self::supportsUsageCount() && array_key_exists('usage_count', $this->getAttributes())) {
+        if (array_key_exists('usage_count', $this->getAttributes())) {
             return (int) ($this->getAttribute('usage_count') ?? 0);
         }
 
-        if ($fallback !== null) {
-            return $fallback;
-        }
-
-        return (int) DB::table('hashtaggables')
-            ->where('hashtag_id', $this->getKey())
-            ->count();
+        return $fallback ?? 0;
     }
 
-    public function syncUsageCount(): int
+    public static function statusLabel(?string $status): string
     {
-        $count = (int) DB::table('hashtaggables')
-            ->where('hashtag_id', $this->getKey())
-            ->count();
+        $normalized = strtoupper(trim((string) $status));
 
-        $this->forceFill(['usage_count' => $count]);
-
-        if (self::supportsUsageCount()) {
-            static::query()
-                ->whereKey($this->getKey())
-                ->update(['usage_count' => $count]);
-        }
-
-        return $count;
-    }
-
-    /**
-     * @param array<int, int|string> $hashtagIds
-     */
-    public static function syncUsageCounts(array $hashtagIds): void
-    {
-        if (!self::supportsUsageCount()) {
-            return;
-        }
-
-        $ids = collect($hashtagIds)
-            ->map(static fn ($id): int => (int) $id)
-            ->filter(static fn (int $id): bool => $id > 0)
-            ->unique()
-            ->values()
-            ->all();
-
-        if ($ids === []) {
-            return;
-        }
-
-        $countsById = DB::table('hashtaggables')
-            ->selectRaw('hashtag_id, COUNT(*) as aggregate_count')
-            ->whereIn('hashtag_id', $ids)
-            ->groupBy('hashtag_id')
-            ->pluck('aggregate_count', 'hashtag_id');
-
-        foreach ($ids as $id) {
-            static::query()
-                ->whereKey($id)
-                ->update([
-                    'usage_count' => (int) ($countsById[$id] ?? 0),
-                ]);
-        }
+        return match ($normalized) {
+            self::STATUS_ACTIVE => '활성',
+            self::LEGACY_STATUS_BLOCKED,
+            self::STATUS_INACTIVE => '비활성',
+            default => $status ?: '-',
+        };
     }
 
     protected static function newFactory(): Factory

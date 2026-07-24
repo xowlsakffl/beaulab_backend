@@ -122,15 +122,6 @@ return [
 ];
 ```
 
-컨트롤러가 다음처럼 방어적으로 응답 키를 고르는 구조는 신규 코드에서 지양한다.
-
-```php
-return ApiResponse::success($result['talk'] ?? $result);
-return ApiResponse::success($result['chat'] ?? $result);
-```
-
-이 패턴은 Action 응답 계약이 불명확하다는 신호다. 기존 코드에 남아 있는 경우는 기능 수정 시 도메인 키를 고정하는 방향으로 정리한다.
-
 ## 5) User API 응답 정책
 
 User API는 조회 API와 행위 처리 API의 응답 책임을 분리한다.

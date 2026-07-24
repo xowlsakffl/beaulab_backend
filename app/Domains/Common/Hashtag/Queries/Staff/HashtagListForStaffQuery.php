@@ -30,6 +30,8 @@ final class HashtagListForStaffQuery
                 'id',
                 'name',
                 'normalized_name',
+                'status',
+                'usage_count',
                 'created_at',
                 'updated_at',
             ])
@@ -42,26 +44,8 @@ final class HashtagListForStaffQuery
             ->search($q)
             ->statusIn(is_array($statuses) ? $statuses : []);
 
-        if (Hashtag::supportsUsageCount()) {
-            $builder->addSelect('usage_count');
-        }
-
-        if (Hashtag::supportsStatus()) {
-            $builder->addSelect('status');
-        }
-
         DateRangeFilter::apply($builder, 'created_at', $startDate, $endDate);
         DateRangeFilter::apply($builder, 'updated_at', $updatedStartDate, $updatedEndDate);
-
-        if ($sort === 'usage_count' && !Hashtag::supportsUsageCount()) {
-            $sort = 'id';
-            $direction = 'desc';
-        }
-
-        if ($sort === 'status' && !Hashtag::supportsStatus()) {
-            $sort = 'id';
-            $direction = 'desc';
-        }
 
         $builder->orderBy($sort, $direction);
 

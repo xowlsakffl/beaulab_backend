@@ -7,9 +7,9 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Hashtag\Dto\Staff\HashtagForStaffDto;
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use App\Domains\Common\Hashtag\Queries\Staff\HashtagCreateForStaffQuery;
+use App\Domains\Common\Hashtag\Queries\Staff\HashtagGetForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * HashtagCreateForStaffAction 역할 정의.
@@ -19,6 +19,7 @@ final class HashtagCreateForStaffAction
 {
     public function __construct(
         private readonly HashtagCreateForStaffQuery $query,
+        private readonly HashtagGetForStaffQuery $detailQuery,
         private readonly HashtagUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
@@ -38,15 +39,9 @@ final class HashtagCreateForStaffAction
         $createData = [
             'name' => $name,
             'normalized_name' => $normalizedName,
+            'status' => $status,
+            'usage_count' => 0,
         ];
-
-        if (Hashtag::supportsStatus()) {
-            $createData['status'] = $status;
-        }
-
-        if (Hashtag::supportsUsageCount()) {
-            $createData['usage_count'] = 0;
-        }
 
         $created = DB::transaction(function () use ($createData) {
             $created = $this->query->create($createData)->fresh();
@@ -55,15 +50,10 @@ final class HashtagCreateForStaffAction
             return $created;
         });
 
-        Log::info('해시태그 생성', [
-            'hashtag_id' => $created->id,
-            'name' => $created->name,
-            'normalized_name' => $created->normalized_name,
-            'status' => $created->resolveStatus($status),
-        ]);
-
         return [
-            'hashtag' => HashtagForStaffDto::fromModel($created)->toArray(),
+            'hashtag' => HashtagForStaffDto::fromModel(
+                $this->detailQuery->get($created)
+            )->toArray(),
         ];
     }
 }

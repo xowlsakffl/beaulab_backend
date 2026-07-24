@@ -6,10 +6,10 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Hashtag\Dto\Staff\HashtagForStaffDto;
 use App\Domains\Common\Hashtag\Models\Hashtag;
+use App\Domains\Common\Hashtag\Queries\Staff\HashtagGetForStaffQuery;
 use App\Domains\Common\Hashtag\Queries\Staff\HashtagUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * HashtagUpdateForStaffAction 역할 정의.
@@ -19,6 +19,7 @@ final class HashtagUpdateForStaffAction
 {
     public function __construct(
         private readonly HashtagUpdateForStaffQuery $query,
+        private readonly HashtagGetForStaffQuery $detailQuery,
         private readonly HashtagUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
@@ -42,11 +43,8 @@ final class HashtagUpdateForStaffAction
         $updateData = [
             'name' => $name,
             'normalized_name' => $normalizedName,
+            'status' => $status,
         ];
-
-        if (Hashtag::supportsStatus()) {
-            $updateData['status'] = $status;
-        }
 
         $updated = DB::transaction(function () use ($hashtag, $updateData) {
             $before = $this->historyRecordAction->capture($hashtag);
@@ -56,15 +54,10 @@ final class HashtagUpdateForStaffAction
             return $updated;
         });
 
-        Log::info('해시태그 수정', [
-            'hashtag_id' => $updated->id,
-            'name' => $updated->name,
-            'normalized_name' => $updated->normalized_name,
-            'status' => $updated->resolveStatus($status),
-        ]);
-
         return [
-            'hashtag' => HashtagForStaffDto::fromModel($updated)->toArray(),
+            'hashtag' => HashtagForStaffDto::fromModel(
+                $this->detailQuery->get($updated)
+            )->toArray(),
         ];
     }
 }

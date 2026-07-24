@@ -4,6 +4,7 @@ namespace App\Modules\Staff\Http\Requests\Hashtag;
 
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * HashtagCreateForStaffRequest 역할 정의.
@@ -18,7 +19,7 @@ final class HashtagCreateForStaffRequest extends FormRequest
 
         $this->merge([
             'name' => is_string($name) ? Hashtag::sanitizeName($name) : $name,
-            'status' => is_string($status) ? Hashtag::normalizeStatus($status) : $status,
+            'status' => is_string($status) ? strtoupper(trim($status)) : $status,
         ]);
     }
 
@@ -30,8 +31,8 @@ final class HashtagCreateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:' . Hashtag::NAME_MAX_LENGTH, 'regex:' . Hashtag::VALID_NAME_REGEX],
-            'status' => ['nullable', 'string', 'in:' . implode(',', Hashtag::STATUSES)],
+            'name' => ['required', 'string', 'max:'.Hashtag::NAME_MAX_LENGTH, 'regex:'.Hashtag::VALID_NAME_REGEX],
+            'status' => ['nullable', 'string', Rule::in(Hashtag::statuses())],
         ];
     }
 
@@ -39,7 +40,7 @@ final class HashtagCreateForStaffRequest extends FormRequest
     {
         return [
             'name.regex' => '해시태그명은 영문, 숫자, 한글, 밑줄(_)만 사용할 수 있습니다.',
-            'name.max' => '해시태그명은 ' . Hashtag::NAME_MAX_LENGTH . '자 이하여야 합니다.',
+            'name.max' => '해시태그명은 '.Hashtag::NAME_MAX_LENGTH.'자 이하여야 합니다.',
             'status.in' => '운영상태가 올바르지 않습니다.',
         ];
     }

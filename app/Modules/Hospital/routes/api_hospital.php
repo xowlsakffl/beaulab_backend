@@ -11,13 +11,16 @@ use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospital
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthForHospitalController::class, 'login'])->name('login')->middleware('throttle:6,1');
+    Route::post('login', [AuthForHospitalController::class, 'login'])->name('login')->middleware('throttle:auth-login');
     Route::post('password-reset-link', [AuthForHospitalController::class, 'sendPasswordResetLink'])
         ->name('password-reset-link')
-        ->middleware('throttle:3,1');
+        ->middleware('throttle:password-reset-link');
+    Route::post('password-reset/verify', [AuthForHospitalController::class, 'verifyPasswordResetToken'])
+        ->name('password-reset.verify')
+        ->middleware('throttle:password-reset-verify');
     Route::post('password-reset', [AuthForHospitalController::class, 'resetPassword'])
         ->name('password-reset')
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:password-reset-submit');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function () {
@@ -27,7 +30,7 @@ Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function 
 
     Route::get('/profile', [AuthForHospitalController::class, 'getMyProfile'])->name('profile');
     Route::match(['put', 'patch'], '/profile', [AuthForHospitalController::class, 'updateMyProfile'])->name('profile.update');
-    Route::match(['put', 'patch'], '/password', [AuthForHospitalController::class, 'updateMyPassword'])->name('password.update')->middleware('throttle:6,1');
+    Route::match(['put', 'patch'], '/password', [AuthForHospitalController::class, 'updateMyPassword'])->name('password.update')->middleware('throttle:password-update');
     Route::get('/notes', [AdminNoteForHospitalController::class, 'getAdminNotesForHospital'])->name('notes.getAdminNotesForHospital');
     Route::post('/notes', [AdminNoteForHospitalController::class, 'createAdminNoteForHospital'])->name('notes.createAdminNoteForHospital');
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForHospitalController::class, 'updateAdminNoteForHospital'])->name('notes.updateAdminNoteForHospital');

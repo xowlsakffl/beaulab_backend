@@ -17,7 +17,7 @@ final class LoginForStaffAction
     ) {}
 
     /**
-     * @param array{nickname:string, password:string} $filters
+     * @param  array{nickname:string, password:string, keep_logged_in?:bool}  $filters
      * @return array{token:string, actor:string, staff: array, roles: list<string>, permissions: list<string>}
      */
     public function execute(array $filters): array

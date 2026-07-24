@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
 final class LoginForStaffQuery
 {
     /**
-     * @param array{nickname:string,password:string} $data
+     * @param  array{nickname:string,password:string,keep_logged_in?:bool}  $data
      * @return array{token:string, staff: AccountStaff, roles: list<string>, permissions: list<string>}
      */
     public function login(array $data): array
@@ -24,7 +24,7 @@ final class LoginForStaffQuery
     }
 
     /**
-     * @param array{nickname:string,password:string} $data
+     * @param  array{nickname:string,password:string,keep_logged_in?:bool}  $data
      * @return array{token:string, staff: AccountStaff, roles: list<string>, permissions: list<string>}
      */
     private function loginInTransaction(array $data): array
@@ -34,14 +34,14 @@ final class LoginForStaffQuery
             ->first();
 
         // 아이디 없음
-        if (!$staff) {
+        if (! $staff) {
             throw new CustomException(
                 errorCode: ErrorCode::USER_NOT_FOUND
             );
         }
 
         // 비밀번호 틀림
-        if (!Hash::check($data['password'], $staff->password)) {
+        if (! Hash::check($data['password'], $staff->password)) {
             throw new CustomException(
                 errorCode: ErrorCode::UNAUTHORIZED,
                 message: '아이디 또는 비밀번호가 일치하지 않습니다.'
@@ -49,7 +49,7 @@ final class LoginForStaffQuery
         }
 
         // 계정 비활성
-        if (!$staff->isActive()) {
+        if (! $staff->isActive()) {
             throw new CustomException(
                 errorCode: ErrorCode::FORBIDDEN,
                 message: '비활성화된 계정입니다.'
@@ -60,8 +60,10 @@ final class LoginForStaffQuery
             'last_login_at' => now(),
         ])->save();
 
+        $tokenExpiresAt = now()->addMinutes($this->tokenExpireMinutes((bool) ($data['keep_logged_in'] ?? false)));
+
         $token = $staff
-            ->createToken('staff-web', ['actor:staff'])
+            ->createToken('staff-web', ['actor:staff'], $tokenExpiresAt)
             ->plainTextToken;
 
         return [
@@ -70,5 +72,14 @@ final class LoginForStaffQuery
             'roles' => $staff->getRoleNames()->values()->all(),
             'permissions' => $staff->getAllPermissions()->pluck('name')->values()->all(),
         ];
+    }
+
+    private function tokenExpireMinutes(bool $keepLoggedIn): int
+    {
+        $configKey = $keepLoggedIn
+            ? 'auth.staff_login_tokens.remember_expire_minutes'
+            : 'auth.staff_login_tokens.session_expire_minutes';
+
+        return max(1, (int) config($configKey));
     }
 }

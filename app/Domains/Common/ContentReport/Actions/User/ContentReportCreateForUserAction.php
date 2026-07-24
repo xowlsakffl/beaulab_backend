@@ -36,6 +36,10 @@ final class ContentReportCreateForUserAction
         $reportItems = $this->reportItems($target, $payload);
 
         DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload, $reportItems): void {
+            if ($this->query->hasExistingReportItem($reporterUserId, $reportItems)) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 신고한 콘텐츠입니다.');
+            }
+
             try {
                 $report = $this->query->createReport([
                     'reporter_user_id' => $reporterUserId,

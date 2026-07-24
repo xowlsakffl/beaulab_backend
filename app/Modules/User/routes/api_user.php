@@ -22,13 +22,16 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthForUserController::class, 'login'])
         ->name('login')
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:auth-login');
     Route::post('password-reset-link', [AuthForUserController::class, 'sendPasswordResetLink'])
         ->name('password-reset-link')
-        ->middleware('throttle:3,1');
+        ->middleware('throttle:password-reset-link');
+    Route::post('password-reset/verify', [AuthForUserController::class, 'verifyPasswordResetToken'])
+        ->name('password-reset.verify')
+        ->middleware('throttle:password-reset-verify');
     Route::post('password-reset', [AuthForUserController::class, 'resetPassword'])
         ->name('password-reset')
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:password-reset-submit');
 });
 
 // 아래 API는 Sanctum actor:user 토큰만 허용한다.
@@ -44,7 +47,7 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
         ->name('profile.update');
     Route::match(['put', 'patch'], '/password', [AuthForUserController::class, 'updateMyPassword'])
         ->name('password.update')
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:password-update');
 
     // 앱 사용자 1:1 채팅 API
     Route::get('chats', [ChatForUserController::class, 'getChatsForUser'])
@@ -56,7 +59,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
     Route::post('chats/{chat}/messages', [ChatForUserController::class, 'sendMessageForUser'])
         ->name('chats.sendMessageForUser');
     Route::post('chats/{chat}/messages/reports', [ChatForUserController::class, 'reportMessagesForUser'])
-        ->name('chats.reportMessagesForUser');
+        ->name('chats.reportMessagesForUser')
+        ->middleware('throttle:content-report-create');
     Route::post('chats/{chat}/read', [ChatForUserController::class, 'readChatForUser'])
         ->name('chats.readChatForUser');
     Route::match(['put', 'patch'], 'chats/{chat}/notifications', [ChatForUserController::class, 'updateNotificationForUser'])
@@ -68,13 +72,15 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
     Route::post('talks', [TalkForUserController::class, 'createTalkForUser'])
         ->name('talks.createTalkForUser');
     Route::post('talks/{talk}/reports', [ContentReportForUserController::class, 'reportTalkForUser'])
-        ->name('talks.reportTalkForUser');
+        ->name('talks.reportTalkForUser')
+        ->middleware('throttle:content-report-create');
     Route::delete('talks/{talk}', [TalkForUserController::class, 'deleteTalkForUser'])
         ->name('talks.deleteTalkForUser');
     Route::post('talks/{talk}/comments', [TalkForUserController::class, 'createTalkCommentForUser'])
         ->name('talks.createTalkCommentForUser');
     Route::post('talks/{talk}/comments/{comment}/reports', [ContentReportForUserController::class, 'reportTalkCommentForUser'])
-        ->name('talks.reportTalkCommentForUser');
+        ->name('talks.reportTalkCommentForUser')
+        ->middleware('throttle:content-report-create');
     Route::delete('talks/{talk}/comments/{comment}', [TalkForUserController::class, 'deleteTalkCommentForUser'])
         ->name('talks.deleteTalkCommentForUser');
     Route::post('talks/{talk}/poll-votes', [TalkForUserController::class, 'voteTalkPollForUser'])
@@ -84,21 +90,25 @@ Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::cla
     Route::post('hospital-reviews', [HospitalReviewForUserController::class, 'createHospitalReviewForUser'])
         ->name('hospital-reviews.createHospitalReviewForUser');
     Route::post('hospital-reviews/{hospitalReview}/reports', [ContentReportForUserController::class, 'reportHospitalReviewForUser'])
-        ->name('hospital-reviews.reportHospitalReviewForUser');
+        ->name('hospital-reviews.reportHospitalReviewForUser')
+        ->middleware('throttle:content-report-create');
     Route::delete('hospital-reviews/{hospitalReview}', [HospitalReviewForUserController::class, 'deleteHospitalReviewForUser'])
         ->name('hospital-reviews.deleteHospitalReviewForUser');
     Route::post('hospital-reviews/{hospitalReview}/comments', [HospitalReviewForUserController::class, 'createHospitalReviewCommentForUser'])
         ->name('hospital-reviews.createHospitalReviewCommentForUser');
     Route::post('hospital-reviews/{hospitalReview}/comments/{comment}/reports', [ContentReportForUserController::class, 'reportHospitalReviewCommentForUser'])
-        ->name('hospital-reviews.reportHospitalReviewCommentForUser');
+        ->name('hospital-reviews.reportHospitalReviewCommentForUser')
+        ->middleware('throttle:content-report-create');
     Route::delete('hospital-reviews/{hospitalReview}/comments/{comment}', [HospitalReviewForUserController::class, 'deleteHospitalReviewCommentForUser'])
         ->name('hospital-reviews.deleteHospitalReviewCommentForUser');
 
     Route::post('hospital-evaluations/{hospitalEvaluation}/reports', [ContentReportForUserController::class, 'reportHospitalEvaluationForUser'])
-        ->name('hospital-evaluations.reportHospitalEvaluationForUser');
+        ->name('hospital-evaluations.reportHospitalEvaluationForUser')
+        ->middleware('throttle:content-report-create');
 
     Route::post('videos/{video}/reports', [ContentReportForUserController::class, 'reportHospitalVideoForUser'])
-        ->name('videos.reportHospitalVideoForUser');
+        ->name('videos.reportHospitalVideoForUser')
+        ->middleware('throttle:content-report-create');
 
     Route::post('hospital-events/{hospitalEvent}/dbs', [HospitalEventForUserController::class, 'createHospitalEventDBForUser'])
         ->name('hospital-events.createHospitalEventDBForUser');

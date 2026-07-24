@@ -4,6 +4,7 @@ namespace App\Modules\User\Http\Controllers\Auth;
 
 use App\Common\Http\Requests\Auth\PasswordResetLinkSendRequest;
 use App\Common\Http\Requests\Auth\PasswordResetRequest;
+use App\Common\Http\Requests\Auth\PasswordResetTokenVerifyRequest;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountUser\Actions\User\Auth\GetMyProfileForAccountUserAction;
 use App\Domains\AccountUser\Actions\User\Auth\LoginForAccountUserAction;
@@ -12,6 +13,7 @@ use App\Domains\AccountUser\Actions\User\Auth\PasswordUpdateForAccountUserAction
 use App\Domains\AccountUser\Actions\User\Auth\ProfileUpdateForAccountUserAction;
 use App\Domains\Common\PasswordReset\Actions\PasswordResetAction;
 use App\Domains\Common\PasswordReset\Actions\PasswordResetLinkSendAction;
+use App\Domains\Common\PasswordReset\Actions\PasswordResetTokenVerifyAction;
 use App\Domains\Common\PasswordReset\Support\PasswordResetActor;
 use App\Modules\User\Http\Requests\Auth\LoginForAccountUserRequest;
 use App\Modules\User\Http\Requests\Auth\UpdatePasswordForAccountUserRequest;
@@ -31,6 +33,13 @@ final class AuthForUserController
 
     public function sendPasswordResetLink(PasswordResetLinkSendRequest $request, PasswordResetLinkSendAction $action)
     {
+        return ApiResponse::success($action->execute(PasswordResetActor::USER, $request->filters()));
+    }
+
+    public function verifyPasswordResetToken(
+        PasswordResetTokenVerifyRequest $request,
+        PasswordResetTokenVerifyAction $action
+    ) {
         return ApiResponse::success($action->execute(PasswordResetActor::USER, $request->filters()));
     }
 

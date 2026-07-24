@@ -34,13 +34,16 @@ use App\Modules\Staff\Http\Controllers\TalkComment\TalkCommentForStaffController
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthForStaffController::class, 'login'])->name('login')->middleware('throttle:6,1');
+    Route::post('login', [AuthForStaffController::class, 'login'])->name('login')->middleware('throttle:auth-login');
     Route::post('password-reset-link', [AuthForStaffController::class, 'sendPasswordResetLink'])
         ->name('password-reset-link')
-        ->middleware('throttle:3,1');
+        ->middleware('throttle:password-reset-link');
+    Route::post('password-reset/verify', [AuthForStaffController::class, 'verifyPasswordResetToken'])
+        ->name('password-reset.verify')
+        ->middleware('throttle:password-reset-verify');
     Route::post('password-reset', [AuthForStaffController::class, 'resetPassword'])
         ->name('password-reset')
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:password-reset-submit');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.access'])->group(function () {
@@ -53,7 +56,7 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     Route::get('/profile', [AuthForStaffController::class, 'getMyProfile'])->name('profile');
     Route::match(['put', 'patch'], '/profile', [AuthForStaffController::class, 'updateMyProfile'])->name('profile.update');
     Route::match(['put', 'patch'], '/password', [AuthForStaffController::class, 'updateMyPassword'])->name('password.update')
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:password-update');
 
     Route::get('/notes', [AdminNoteForStaffController::class, 'getAdminNotesForStaff'])
         ->name('notes.getAdminNotesForStaff');

@@ -10,13 +10,16 @@ use App\Modules\Beauty\Http\Controllers\Auth\AuthForBeautyController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthForBeautyController::class, 'login'])->name('login')->middleware('throttle:6,1');
+    Route::post('login', [AuthForBeautyController::class, 'login'])->name('login')->middleware('throttle:auth-login');
     Route::post('password-reset-link', [AuthForBeautyController::class, 'sendPasswordResetLink'])
         ->name('password-reset-link')
-        ->middleware('throttle:3,1');
+        ->middleware('throttle:password-reset-link');
+    Route::post('password-reset/verify', [AuthForBeautyController::class, 'verifyPasswordResetToken'])
+        ->name('password-reset.verify')
+        ->middleware('throttle:password-reset-verify');
     Route::post('password-reset', [AuthForBeautyController::class, 'resetPassword'])
         ->name('password-reset')
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:password-reset-submit');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:beauty'])->group(function () {
@@ -26,7 +29,7 @@ Route::middleware(['auth:sanctum', 'abilities:actor:beauty'])->group(function ()
 
     Route::get('/profile', [AuthForBeautyController::class, 'getMyProfile'])->name('profile');
     Route::match(['put', 'patch'], '/profile', [AuthForBeautyController::class, 'updateMyProfile'])->name('profile.update');
-    Route::match(['put', 'patch'], '/password', [AuthForBeautyController::class, 'updateMyPassword'])->name('password.update')->middleware('throttle:6,1');
+    Route::match(['put', 'patch'], '/password', [AuthForBeautyController::class, 'updateMyPassword'])->name('password.update')->middleware('throttle:password-update');
     Route::get('/notes', [AdminNoteForBeautyController::class, 'getAdminNotesForBeauty'])->name('notes.getAdminNotesForBeauty');
     Route::post('/notes', [AdminNoteForBeautyController::class, 'createAdminNoteForBeauty'])->name('notes.createAdminNoteForBeauty');
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForBeautyController::class, 'updateAdminNoteForBeauty'])->name('notes.updateAdminNoteForBeauty');

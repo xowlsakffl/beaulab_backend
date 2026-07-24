@@ -4,6 +4,7 @@ namespace App\Modules\Staff\Http\Controllers\Auth;
 
 use App\Common\Http\Requests\Auth\PasswordResetLinkSendRequest;
 use App\Common\Http\Requests\Auth\PasswordResetRequest;
+use App\Common\Http\Requests\Auth\PasswordResetTokenVerifyRequest;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\AccountStaff\Actions\Staff\Auth\GetMyProfileForStaffAction;
 use App\Domains\AccountStaff\Actions\Staff\Auth\LoginForStaffAction;
@@ -12,6 +13,7 @@ use App\Domains\AccountStaff\Actions\Staff\Auth\PasswordUpdateForStaffAction;
 use App\Domains\AccountStaff\Actions\Staff\Auth\ProfileUpdateForStaffAction;
 use App\Domains\Common\PasswordReset\Actions\PasswordResetAction;
 use App\Domains\Common\PasswordReset\Actions\PasswordResetLinkSendAction;
+use App\Domains\Common\PasswordReset\Actions\PasswordResetTokenVerifyAction;
 use App\Domains\Common\PasswordReset\Support\PasswordResetActor;
 use App\Modules\Staff\Http\Requests\Auth\LoginForStaffRequest;
 use App\Modules\Staff\Http\Requests\Auth\UpdatePasswordForStaffRequest;
@@ -38,6 +40,13 @@ final class AuthForStaffController
     public function sendPasswordResetLink(
         PasswordResetLinkSendRequest $request,
         PasswordResetLinkSendAction $action
+    ) {
+        return ApiResponse::success($action->execute(PasswordResetActor::STAFF, $request->filters()));
+    }
+
+    public function verifyPasswordResetToken(
+        PasswordResetTokenVerifyRequest $request,
+        PasswordResetTokenVerifyAction $action
     ) {
         return ApiResponse::success($action->execute(PasswordResetActor::STAFF, $request->filters()));
     }

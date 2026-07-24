@@ -52,6 +52,14 @@ final class AccessPermissions
 
     public const BEAULAB_USER_STATUS_UPDATE = 'beaulab.user.status.update';
 
+    public const BEAULAB_STAFF_SHOW = 'beaulab.staff.show';
+
+    public const BEAULAB_STAFF_CREATE = 'beaulab.staff.create';
+
+    public const BEAULAB_STAFF_UPDATE = 'beaulab.staff.update';
+
+    public const BEAULAB_STAFF_DELETE = 'beaulab.staff.delete';
+
     public const BEAULAB_DOCTOR_SHOW = 'beaulab.doctor.show';
 
     public const BEAULAB_DOCTOR_CREATE = 'beaulab.doctor.create';
@@ -327,6 +335,10 @@ final class AccessPermissions
     public static function beaulabSuperAdminOnly(): array
     {
         return [
+            self::BEAULAB_STAFF_SHOW,
+            self::BEAULAB_STAFF_CREATE,
+            self::BEAULAB_STAFF_UPDATE,
+            self::BEAULAB_STAFF_DELETE,
             self::BEAULAB_CATEGORY_MANAGE,
             self::BEAULAB_HASHTAG_MANAGE,
         ];

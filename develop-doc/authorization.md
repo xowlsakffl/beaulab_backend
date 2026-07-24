@@ -59,6 +59,7 @@ Spatie role/permission은 `staff`, `hospital`, `beauty` guard에만 생성한다
 - `common.profile.update`
 
 `common.access`는 Staff 보호 라우트 공통 진입 권한이다. 도메인 조회/수정 권한을 대체하지 않는다.
+`common.profile.show|update`는 현재 로그인한 자기 프로필 조회/수정과 비밀번호 변경에만 사용한다.
 
 ### Staff 전용
 
@@ -67,6 +68,7 @@ Spatie role/permission은 `staff`, `hospital`, `beauty` guard에만 생성한다
 - Beauty: `beaulab.beauty.show|create|update|delete`
 - Agency: `beaulab.agency.show|create|update|delete`
 - User: `beaulab.user.show`, `beaulab.user.status.update`
+- Staff: `beaulab.staff.show|create|update|delete`
 - Doctor: `beaulab.doctor.show|create|update|delete`
 - Expert: `beaulab.expert.show|create|update|delete`
 - Video: `beaulab.video.show|create|update|delete`
@@ -141,6 +143,10 @@ Spatie role/permission은 `staff`, `hospital`, `beauty` guard에만 생성한다
 - `beaulab.notice.show`
 - `beaulab.faq.show`
 
+현재 `beaulab.admin`, `beaulab.staff`, `beaulab.dev`에는 직원 관리 권한(`beaulab.staff.*`)을 포함하지 않는다.
+직원 관리 권한은 최고관리자(`beaulab.super_admin`) 전용이다.
+단, 로그인한 자기 계정의 프로필 조회/수정과 비밀번호 변경은 `common.profile.show|update`와 자기 자신 여부로 허용한다.
+
 현재 `beaulab.staff`, `beaulab.dev`에는 이벤트, 광고, 동영상, 카테고리, 해시태그 조회/관리 권한이 포함되어 있지 않다.
 
 현재 코드상 `AccessPermissions::beaulabSuperAdminOnly()`는 `beaulab.category.manage`, `beaulab.hashtag.manage`를 반환하지만, 같은 권한이 `AccessPermissions::beaulab()`에도 포함되어 있다. 따라서 실제로는 `beaulab.admin`도 카테고리/해시태그 권한을 가진다. 진짜 super admin 전용 권한을 만들 경우 해당 permission은 `beaulab()`에 넣지 않는다.
@@ -196,7 +202,7 @@ Staff 라우트에 도메인별 `permission:*` 미들웨어를 직접 붙이는 
 
 ## 7) Policy 규칙
 
-Action은 도메인 처리 전에 `Gate::authorize()`를 호출한다.
+API 진입 Action은 도메인 처리 전에 `Gate::authorize()`를 호출한다.
 
 예시:
 
@@ -205,6 +211,7 @@ Gate::authorize('viewAny', HospitalEventAd::class);
 Gate::authorize('update', $hospital);
 Gate::authorize('updateStatus', $user);
 Gate::authorize('viewAny', [ContentReportState::class, $targetAlias]);
+Gate::authorize('viewProfile', $staff);
 ```
 
 Policy 작성 규칙은 아래와 같다.
@@ -215,6 +222,8 @@ Policy 작성 규칙은 아래와 같다.
 - 여러 actor가 접근하는 도메인은 상위 Policy에서 actor 타입별 Policy로 위임한다.
 - 댓글처럼 별도 permission이 없는 리소스는 부모 도메인 permission을 재사용한다.
 - 신고게시물은 `ContentReportStateForStaffPolicy`가 target alias를 기준으로 Reported permission을 매핑한다.
+- 직원 계정은 직원관리용 ability(`viewAny|view|create|update|delete`)와 자기 프로필용 ability(`viewProfile|updateProfile`)를 분리한다.
+- 인증 진입점(Login, Password Reset), 로그아웃, 히스토리 기록, payload/media 보조 Action처럼 독립 API 권한 판단 지점이 아닌 Action은 `Gate::authorize()` 대상에서 제외한다.
 
 신규 도메인 Policy 추가 시 기본 abilities는 아래 이름을 우선 사용한다.
 
@@ -241,9 +250,10 @@ Staff 프론트는 `route-permissions.ts`에서 route별 required permission을 
 - `/hospital-manage/hospitals/new` -> `beaulab.hospital.create`
 - `/hospital-manage/hospitals/[id]/edit` -> `beaulab.hospital.update`
 - `/ads-manage/event-ads` -> `beaulab.hospital_event_ad.show`
+- `/admin-settings/staff` -> `beaulab.staff.show`
 - `/content-manage/hashtags` -> `beaulab.hashtag.manage`
 
-현재 `/admin-settings/staff`는 프론트 route permission에서 `beaulab.agency.show`를 요구한다. 의미상 직원 관리 전용 permission이 아니므로, 직원 관리 권한을 분리할 때는 백엔드 permission 상수와 프론트 route permission을 함께 변경한다.
+직원 관리와 Agency는 다른 리소스다. 직원 관리 화면은 `beaulab.staff.*`, Agency 관리 기능이 생기면 `beaulab.agency.*`를 사용한다.
 
 ## 9) 내부 도구 권한
 

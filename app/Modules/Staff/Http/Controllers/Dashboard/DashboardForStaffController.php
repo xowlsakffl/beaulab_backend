@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Controllers\Dashboard;
 
+use App\Common\Authorization\AccessPermissions;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -16,7 +17,7 @@ final class DashboardForStaffController extends Controller implements HasMiddlew
     public static function middleware()
     {
         return [
-            new Middleware('permission:common.dashboard.show'),
+            new Middleware('permission:'.AccessPermissions::COMMON_DASHBOARD_SHOW),
         ];
     }
 

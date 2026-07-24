@@ -17,7 +17,7 @@ final class AccessRoles
     public const BEAULAB_DEV = 'beaulab.dev';
 
     // =========================
-    // Partner Roles (guard: partner)
+    // Partner Roles
     // =========================
 
     // Hospital
@@ -140,7 +140,7 @@ final class AccessRoles
             ],
 
             // =========================
-            // Partner (guard: partner)
+            // Hospital (guard: hospital)
             // =========================
             AccessPermissions::GUARD_HOSPITAL => [
                 // 1병원 1계정 정책: 현재 병원 파트너는 owner 단일 role만 사용한다.
@@ -151,6 +151,9 @@ final class AccessRoles
                 ]),
             ],
 
+            // =========================
+            // Beauty (guard: beauty)
+            // =========================
             AccessPermissions::GUARD_BEAUTY => [
                 self::BEAUTY_OWNER => self::unique([
                     ...$partnerCommon,

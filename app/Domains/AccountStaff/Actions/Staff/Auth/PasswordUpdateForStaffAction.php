@@ -6,6 +6,7 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountStaff\Queries\Staff\Auth\PasswordUpdateForStaffQuery;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -20,12 +21,14 @@ final class PasswordUpdateForStaffAction
     ) {}
 
     /**
-     * @param array{current_password:string,password:string} $filters
+     * @param  array{current_password:string,password:string}  $filters
      * @return array{message:string}
      */
     public function execute(AccountStaff $staff, array $filters): array
     {
-        if (!Hash::check($filters['current_password'], $staff->password)) {
+        Gate::authorize('updateProfile', $staff);
+
+        if (! Hash::check($filters['current_password'], $staff->password)) {
             throw new CustomException(
                 errorCode: ErrorCode::INVALID_REQUEST,
                 message: '현재 비밀번호가 올바르지 않습니다.',

@@ -1,11 +1,11 @@
 <?php
 
-
 namespace App\Domains\AccountStaff\Actions\Staff\Auth;
 
 use App\Domains\AccountStaff\Dto\Staff\AccountStaffForStaffDto;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountStaff\Queries\Staff\Auth\ProfileForStaffQuery;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * 스태프 내 프로필 조회 유스케이스.
@@ -22,6 +22,8 @@ final class GetMyProfileForStaffAction
      */
     public function execute(AccountStaff $staff): array
     {
+        Gate::authorize('viewProfile', $staff);
+
         $authorization = $this->query->authorizationSnapshot($staff);
 
         return [

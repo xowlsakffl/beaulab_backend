@@ -5,6 +5,7 @@
  * 인증/권한 미들웨어와 컨트롤러 매핑만 두고 비즈니스 로직은 컨트롤러와 Action 계층으로 위임한다.
  */
 
+use App\Common\Authorization\AccessPermissions;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController;
 use App\Modules\Staff\Http\Controllers\AdminNote\AdminNoteForStaffController;
@@ -47,7 +48,7 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:password-reset-submit');
 });
 
-Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.access'])->group(function () {
+Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.AccessPermissions::COMMON_ACCESS])->group(function () {
 
     // 인증
     Route::prefix('auth')->group(function () {

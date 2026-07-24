@@ -5,6 +5,7 @@ namespace App\Domains\AccountStaff\Actions\Staff\Auth;
 use App\Domains\AccountStaff\Dto\Staff\AccountStaffForStaffDto;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountStaff\Queries\Staff\Auth\ProfileUpdateForStaffQuery;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -22,6 +23,8 @@ final class ProfileUpdateForStaffAction
      */
     public function execute(AccountStaff $staff, array $filters): array
     {
+        Gate::authorize('updateProfile', $staff);
+
         Log::info('뷰랩 직원 프로필 수정', [
             'staff_id' => $staff->id,
             'keys' => array_keys($filters),

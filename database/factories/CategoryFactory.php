@@ -2,10 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Domains\Common\Category\Definitions\CategoryDefinitions;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 /**
  * @extends Factory<Category>
@@ -42,41 +44,13 @@ final class CategoryFactory extends Factory
     public static function seedHospitalCategories(): void
     {
         DB::transaction(function (): void {
-            $tree = self::categoryTree('hospital_medical');
+            $tree = CategoryDefinitions::tree(Category::DOMAIN_HOSPITAL_MEDICAL);
 
             self::seedDomainTree(Category::DOMAIN_HOSPITAL_MEDICAL, $tree);
-            self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT,
-                self::categoryUsage('hospital_doctor_subject'),
-            );
-            self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_REVIEW_SURGERY,
-                self::categoryUsage('hospital_review_surgery'),
-            );
-            self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_REVIEW_TREATMENT,
-                self::categoryUsage('hospital_review_treatment'),
-            );
-            self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY,
-                self::categoryUsage('hospital_event_surgery'),
-            );
-            self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT,
-                self::categoryUsage('hospital_event_treatment'),
-            );
-            self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY,
-                self::categoryUsage('hospital_video_category'),
-            );
-            self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_EVENT_AD_SURGERY,
-                self::categoryUsage('hospital_event_ad_surgery'),
-            );
-            self::seedCategoryUsage(
-                CategoryUsage::USAGE_HOSPITAL_EVENT_AD_TREATMENT,
-                self::categoryUsage('hospital_event_ad_treatment'),
-            );
+
+            foreach (array_keys(CategoryDefinitions::hospitalMedicalUsages()) as $usage) {
+                self::seedCategoryUsage($usage, CategoryDefinitions::usageItems($usage));
+            }
 
             self::pruneStaleDomainCategories(Category::DOMAIN_HOSPITAL_MEDICAL, self::categoryCodes($tree));
         });
@@ -85,28 +59,40 @@ final class CategoryFactory extends Factory
     public static function seedHospitalEvaluationCategories(): void
     {
         DB::transaction(function (): void {
-            self::seedDomainTree(Category::DOMAIN_HOSPITAL_EVALUATION, self::categoryTree('hospital_evaluation'));
+            self::seedDomainTree(
+                Category::DOMAIN_HOSPITAL_EVALUATION,
+                CategoryDefinitions::tree(Category::DOMAIN_HOSPITAL_EVALUATION),
+            );
         });
     }
 
     public static function seedBeautyCategories(): void
     {
         DB::transaction(function (): void {
-            self::seedDomainTree(Category::DOMAIN_BEAUTY, self::categoryTree('beauty'));
+            self::seedDomainTree(
+                Category::DOMAIN_BEAUTY,
+                CategoryDefinitions::tree(Category::DOMAIN_BEAUTY),
+            );
         });
     }
 
     public static function seedTalkCategories(): void
     {
         DB::transaction(function (): void {
-            self::seedDomainTree(Category::DOMAIN_TALK, self::categoryTree('talk'));
+            self::seedDomainTree(
+                Category::DOMAIN_TALK,
+                CategoryDefinitions::tree(Category::DOMAIN_TALK),
+            );
         });
     }
 
     public static function seedFaqCategories(): void
     {
         DB::transaction(function (): void {
-            self::seedDomainTree(Category::DOMAIN_FAQ, self::categoryTree('faq'));
+            self::seedDomainTree(
+                Category::DOMAIN_FAQ,
+                CategoryDefinitions::tree(Category::DOMAIN_FAQ),
+            );
         });
     }
 
@@ -157,7 +143,7 @@ final class CategoryFactory extends Factory
                 'sort_order' => $sortOrder,
                 'status' => Category::STATUS_ACTIVE,
                 'is_menu_visible' => true,
-            ]
+            ],
         );
 
         $children = $node['children'] ?? [];
@@ -185,7 +171,7 @@ final class CategoryFactory extends Factory
             : ($parent?->group_code ? (string) $parent->group_code : null);
 
         if ($groupCode !== null && ! in_array($groupCode, Category::groupCodes(), true)) {
-            throw new \RuntimeException("Unknown category group code: {$groupCode}");
+            throw new RuntimeException("Unknown category group code: {$groupCode}");
         }
 
         return $groupCode;
@@ -214,36 +200,6 @@ final class CategoryFactory extends Factory
     }
 
     /**
-     * @return array<int, array<string, mixed>>
-     */
-    private static function categoryTree(string $name): array
-    {
-        $path = database_path("seeders/data/categories/trees/{$name}.php");
-        $tree = require $path;
-
-        if (! is_array($tree)) {
-            throw new \RuntimeException("Category seed data must return an array: {$path}");
-        }
-
-        return $tree;
-    }
-
-    /**
-     * @return array<int, array{code:string, sort_order?:int}>
-     */
-    private static function categoryUsage(string $name): array
-    {
-        $path = database_path("seeders/data/categories/usages/{$name}.php");
-        $usage = require $path;
-
-        if (! is_array($usage)) {
-            throw new \RuntimeException("Category usage seed data must return an array: {$path}");
-        }
-
-        return $usage;
-    }
-
-    /**
      * @param  array<int, array{code:string, sort_order?:int}>  $items
      */
     private static function seedCategoryUsage(string $usage, array $items): void
@@ -266,7 +222,7 @@ final class CategoryFactory extends Factory
             $category = $categoriesByCode->get($item['code']);
 
             if (! $category instanceof Category) {
-                throw new \RuntimeException("Category usage references missing category code: {$item['code']}");
+                throw new RuntimeException("Category usage references missing category code: {$item['code']}");
             }
 
             $categoryIds[] = (int) $category->id;

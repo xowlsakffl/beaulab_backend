@@ -187,5 +187,4 @@ final class TalkSeeder extends Seeder
     {
         return (string) ($user->nickname ?: $user->name ?: "user_{$user->id}");
     }
-
 }

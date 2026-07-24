@@ -2,7 +2,6 @@
 
 namespace App\Domains\Common\Hashtag\Queries\Staff;
 
-use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Hashtag\Models\Hashtag;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -18,10 +17,6 @@ final class HashtagListForStaffQuery
         $perPage = $filters['per_page'] ?? 50;
         $q = $filters['q'] ?? null;
         $statuses = $filters['statuses'] ?? [];
-        $startDate = $filters['start_date'] ?? null;
-        $endDate = $filters['end_date'] ?? null;
-        $updatedStartDate = $filters['updated_start_date'] ?? null;
-        $updatedEndDate = $filters['updated_end_date'] ?? null;
         $sort = $filters['sort'] ?? 'id';
         $direction = $filters['direction'] ?? 'desc';
 
@@ -43,9 +38,6 @@ final class HashtagListForStaffQuery
             )
             ->search($q)
             ->statusIn(is_array($statuses) ? $statuses : []);
-
-        DateRangeFilter::apply($builder, 'created_at', $startDate, $endDate);
-        DateRangeFilter::apply($builder, 'updated_at', $updatedStartDate, $updatedEndDate);
 
         $builder->orderBy($sort, $direction);
 

@@ -9,6 +9,7 @@ use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdSlotAvailabilityForStaffQuery;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdStateUpdateForStaffQuery;
+use App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -30,7 +31,7 @@ final class HospitalEventAdAllowStatusUpdateForStaffAction
             ->all();
         $allowStatus = (string) $payload['allow_status'];
 
-        return DB::transaction(function () use ($ids, $allowStatus, $payload): array {
+        $result = DB::transaction(function () use ($ids, $allowStatus, $payload): array {
             $ads = $this->query->getForUpdate($ids);
             $ads->each(static fn (HospitalEventAd $ad): mixed => Gate::authorize('update', $ad));
             $this->assertApprovalRequirements($ads, $allowStatus);
@@ -60,6 +61,10 @@ final class HospitalEventAdAllowStatusUpdateForStaffAction
                 'ids' => $existingIds,
             ];
         });
+
+        HospitalEventAdCalendarCache::flush();
+
+        return $result;
     }
 
     private function assertApprovalRequirements($ads, string $allowStatus): void

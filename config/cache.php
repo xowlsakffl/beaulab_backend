@@ -33,6 +33,11 @@ return [
         'ttl_seconds' => (int) env('STAFF_SUMMARY_CACHE_TTL', 300),
     ],
 
+    'hospital_event_ad_calendar' => [
+        'store' => env('HOSPITAL_EVENT_AD_CALENDAR_CACHE_STORE', 'redis'),
+        'ttl_seconds' => (int) env('HOSPITAL_EVENT_AD_CALENDAR_CACHE_TTL', 60),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Cache Stores

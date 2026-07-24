@@ -12,6 +12,7 @@ use App\Domains\HospitalEventAd\Dto\Staff\HospitalEventAdForStaffDetailDto;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdCreateForStaffQuery;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdSlotAvailabilityForStaffQuery;
+use App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -54,6 +55,8 @@ final class HospitalEventAdCreateForStaffAction
 
             return $ad;
         });
+
+        HospitalEventAdCalendarCache::flush();
 
         return [
             'hospital_event_ad' => HospitalEventAdForStaffDetailDto::fromModel($ad)->toArray(),

@@ -3,6 +3,7 @@
 namespace App\Domains\HospitalEventAd\Queries\Staff;
 
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
+use App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache;
 use App\Domains\HospitalEventAd\Support\HospitalEventAdSalesDeadline;
 use Illuminate\Support\Carbon;
 
@@ -14,6 +15,16 @@ final class HospitalEventAdAvailabilityForStaffQuery
     ) {}
 
     public function get(string $placement, ?int $categoryId, Carbon $month): array
+    {
+        return HospitalEventAdCalendarCache::rememberAvailability(
+            $placement,
+            $categoryId,
+            $month,
+            fn (): array => $this->uncachedAvailability($placement, $categoryId, $month),
+        );
+    }
+
+    private function uncachedAvailability(string $placement, ?int $categoryId, Carbon $month): array
     {
         $weeks = [];
         $cursor = $month->copy()->startOfMonth();

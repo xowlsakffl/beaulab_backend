@@ -5,6 +5,7 @@ namespace App\Domains\HospitalEventAd\Queries\Staff;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
+use App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache;
 use App\Domains\HospitalEventAd\Support\HospitalEventAdSalesDeadline;
 use Illuminate\Support\Carbon;
 
@@ -21,6 +22,16 @@ final class HospitalEventAdCalendarForStaffQuery
     ) {}
 
     public function get(string $group, ?int $categoryId, Carbon $month): array
+    {
+        return HospitalEventAdCalendarCache::rememberCalendar(
+            $group,
+            $categoryId,
+            $month,
+            fn (): array => $this->uncachedCalendar($group, $categoryId, $month),
+        );
+    }
+
+    private function uncachedCalendar(string $group, ?int $categoryId, Carbon $month): array
     {
         $days = [];
 

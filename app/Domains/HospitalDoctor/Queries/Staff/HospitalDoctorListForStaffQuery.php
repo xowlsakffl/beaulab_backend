@@ -132,8 +132,14 @@ final class HospitalDoctorListForStaffQuery
 
     private function applySort($builder, array $filters): void
     {
-        $sort = (string) ($filters['sort'] ?? 'id');
+        $sort = $filters['sort'] ?? null;
         $direction = $filters['direction'] ?? 'desc';
+
+        if ($sort === null) {
+            $this->applyDefaultSort($builder);
+
+            return;
+        }
 
         if ($sort === 'career_years') {
             $builder->orderBy('career_started_at', $direction === 'desc' ? 'asc' : 'desc');
@@ -146,6 +152,21 @@ final class HospitalDoctorListForStaffQuery
         if ($sort !== 'id') {
             $builder->orderByDesc('id');
         }
+    }
+
+    private function applyDefaultSort($builder): void
+    {
+        $allowStatusColumn = $builder->getModel()->qualifyColumn('allow_status');
+        $createdAtColumn = $builder->getModel()->qualifyColumn('created_at');
+        $idColumn = $builder->getModel()->qualifyColumn('id');
+
+        $builder
+            ->orderByRaw("case when {$allowStatusColumn} in (?, ?) then 0 else 1 end", [
+                HospitalDoctor::ALLOW_PENDING,
+                HospitalDoctor::ALLOW_REVIEWING,
+            ])
+            ->orderByDesc($createdAtColumn)
+            ->orderByDesc($idColumn);
     }
 
     /**

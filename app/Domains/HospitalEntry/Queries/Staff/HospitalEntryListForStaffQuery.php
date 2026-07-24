@@ -27,15 +27,34 @@ final class HospitalEntryListForStaffQuery
 
         $this->applyFilters($builder, $filters);
 
-        $sort = (string) ($filters['sort'] ?? 'id');
+        $sort = $filters['sort'] ?? null;
         $direction = (string) ($filters['direction'] ?? 'desc');
 
-        $builder->orderBy($sort, $direction);
-        if ($sort !== 'id') {
-            $builder->orderByDesc('id');
+        if ($sort === null) {
+            $this->applyDefaultSort($builder);
+        } else {
+            $builder->orderBy($sort, $direction);
+            if ($sort !== 'id') {
+                $builder->orderByDesc('id');
+            }
         }
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+    }
+
+    private function applyDefaultSort(Builder $builder): void
+    {
+        $allowStatusColumn = $builder->getModel()->qualifyColumn('allow_status');
+        $createdAtColumn = $builder->getModel()->qualifyColumn('created_at');
+        $idColumn = $builder->getModel()->qualifyColumn('id');
+
+        $builder
+            ->orderByRaw("case when {$allowStatusColumn} in (?, ?) then 0 else 1 end", [
+                HospitalEntry::ALLOW_PENDING,
+                HospitalEntry::ALLOW_REVIEWING,
+            ])
+            ->orderByDesc($createdAtColumn)
+            ->orderByDesc($idColumn);
     }
 
     private function applyFilters(Builder $builder, array $filters): void

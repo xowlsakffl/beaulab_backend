@@ -45,14 +45,33 @@ final class HospitalEventAdListForStaffQuery
             'allow_status',
             'created_at',
             'updated_at',
-        ], true) ? (string) $filters['sort'] : 'id';
+        ], true) ? (string) $filters['sort'] : null;
 
-        $builder->orderBy($sort, ($filters['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc');
-        if ($sort !== 'id') {
-            $builder->orderByDesc('id');
+        if ($sort === null) {
+            $this->applyDefaultSort($builder);
+        } else {
+            $builder->orderBy($sort, ($filters['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc');
+            if ($sort !== 'id') {
+                $builder->orderByDesc('id');
+            }
         }
 
         return $builder->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+    }
+
+    private function applyDefaultSort(Builder $builder): void
+    {
+        $allowStatusColumn = $builder->getModel()->qualifyColumn('allow_status');
+        $createdAtColumn = $builder->getModel()->qualifyColumn('created_at');
+        $idColumn = $builder->getModel()->qualifyColumn('id');
+
+        $builder
+            ->orderByRaw("case when {$allowStatusColumn} in (?, ?) then 0 else 1 end", [
+                HospitalEventAd::ALLOW_PENDING,
+                HospitalEventAd::ALLOW_REVIEWING,
+            ])
+            ->orderByDesc($createdAtColumn)
+            ->orderByDesc($idColumn);
     }
 
     private function applyFilters(Builder $builder, array $filters): void

@@ -2,7 +2,6 @@
 
 namespace App\Modules\Staff\Http\Requests\HospitalDoctor;
 
-use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Foundation\Http\FormRequest;
@@ -87,8 +86,8 @@ final class HospitalDoctorListForStaffRequest extends FormRequest
             'metric' => $validated['metric'] ?? null,
             'metric_min' => $validated['metric_min'] ?? null,
             'metric_max' => $validated['metric_max'] ?? null,
-            'sort' => $validated['sort'] ?? 'id',
-            'direction' => $validated['direction'] ?? 'desc',
+            'sort' => $validated['sort'] ?? null,
+            'direction' => $validated['direction'] ?? null,
             'per_page' => (int) ($validated['per_page'] ?? 15),
         ];
     }
@@ -120,6 +119,7 @@ final class HospitalDoctorListForStaffRequest extends FormRequest
             static function ($item): ?string {
                 if (is_string($item)) {
                     $item = trim($item);
+
                     return $item === '' ? null : $item;
                 }
 

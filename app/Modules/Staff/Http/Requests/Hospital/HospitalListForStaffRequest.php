@@ -87,8 +87,8 @@ final class HospitalListForStaffRequest extends FormRequest
             'category_ids' => $validate['category_ids'] ?? null,
             'include' => $validate['include'] ?? [],
 
-            'sort' => $validate['sort'] ?? 'id',
-            'direction' => $validate['direction'] ?? 'desc',
+            'sort' => $validate['sort'] ?? null,
+            'direction' => $validate['direction'] ?? null,
 
             'per_page' => (int) ($validate['per_page'] ?? 15),
         ];

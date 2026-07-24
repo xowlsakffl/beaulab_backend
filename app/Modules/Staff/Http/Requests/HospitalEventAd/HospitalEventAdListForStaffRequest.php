@@ -55,8 +55,8 @@ final class HospitalEventAdListForStaffRequest extends FormRequest
             'date_types' => $validated['date_types'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
-            'sort' => $validated['sort'] ?? 'id',
-            'direction' => $validated['direction'] ?? 'desc',
+            'sort' => $validated['sort'] ?? null,
+            'direction' => $validated['direction'] ?? null,
             'per_page' => (int) ($validated['per_page'] ?? 15),
         ];
     }

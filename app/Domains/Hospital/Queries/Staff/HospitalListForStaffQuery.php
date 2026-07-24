@@ -34,7 +34,7 @@ final class HospitalListForStaffQuery
         $departments = $filters['department'] ?? null;
         $categoryIds = $filters['category_ids'] ?? null;
         $include = $filters['include'] ?? [];
-        $sort = $filters['sort'] ?? 'id';
+        $sort = $filters['sort'] ?? null;
         $direction = $filters['direction'] ?? 'desc';
         $perPage = $filters['per_page'] ?? 15;
 
@@ -149,7 +149,9 @@ final class HospitalListForStaffQuery
             }
         }
 
-        if ($sort === 'last_login_at') {
+        if ($sort === null) {
+            $this->applyDefaultSort($builder);
+        } elseif ($sort === 'last_login_at') {
             $builder->orderBy(
                 AccountHospital::query()
                     ->select('last_login_at')
@@ -162,6 +164,21 @@ final class HospitalListForStaffQuery
         }
 
         return $builder->paginate($perPage)->withQueryString();
+    }
+
+    private function applyDefaultSort(Builder $builder): void
+    {
+        $allowStatusColumn = $builder->getModel()->qualifyColumn('allow_status');
+        $createdAtColumn = $builder->getModel()->qualifyColumn('created_at');
+        $idColumn = $builder->getModel()->qualifyColumn('id');
+
+        $builder
+            ->orderByRaw("case when {$allowStatusColumn} in (?, ?) then 0 else 1 end", [
+                Hospital::ALLOW_PENDING,
+                Hospital::ALLOW_REVIEWING,
+            ])
+            ->orderByDesc($createdAtColumn)
+            ->orderByDesc($idColumn);
     }
 
     /**

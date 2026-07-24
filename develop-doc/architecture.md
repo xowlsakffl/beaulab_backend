@@ -72,6 +72,26 @@ Staff 프론트 메뉴 prefix와 API path는 반드시 같을 필요가 없다. 
 - Staff 상세 응답은 복수 계정 배열을 쓰지 않고 `account_hospital`, `account_beauty` 단일 객체를 사용한다.
 - Hospital/Beauty Actor API는 로그인 계정의 `hospital_id`, `beauty_id`를 소유권 기준으로 사용한다.
 
+## 5.1) Staff 메뉴 N 배지
+
+Staff 메뉴의 `N` 표시는 개인별 읽음/미읽음이 아니라 전역 처리대기 신호다.
+
+- API: `GET /api/v1/staff/navigation-badges`
+- 도메인: `app/Domains/Common/NavigationBadge`
+- 응답 key는 프론트 메뉴 path를 사용한다. 예: `/hospital-manage/hospitals`
+- 권한이 없는 메뉴의 badge는 API 응답에서 제외한다.
+- 부모 메뉴 `N`은 자식 메뉴 중 하나라도 `has_new=true`이면 프론트에서 자동 표시한다.
+- 광고 현황처럼 직접 처리 액션이 아닌 조회성 메뉴는 기본적으로 `N` 대상에서 제외한다.
+
+현재 카운트 기준:
+
+- 병원/의료진/입점신청/이벤트/광고: `allow_status = PENDING`
+- 이벤트 DB: `status = NEW`
+- 리얼모델 DB: `status = RECEIVED`
+- 신고게시물: `ContentReportState.report_status = REPORTED`
+- 성형후기/시술후기 메뉴는 게시글과 댓글 신고를 합산한다.
+- 토크 메뉴는 토크와 토크 댓글 신고를 합산한다.
+
 ## 6) 공지사항(Notice) / FAQ 구조
 
 현재 Notice / FAQ는 Staff API 기준으로 구현되어 있다.

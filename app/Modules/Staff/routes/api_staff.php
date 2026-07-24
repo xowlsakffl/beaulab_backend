@@ -28,6 +28,7 @@ use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffCo
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReviewComment\HospitalReviewCommentForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
+use App\Modules\Staff\Http\Controllers\NavigationBadge\NavigationBadgeForStaffController;
 use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\Talk\TalkForStaffController;
 use App\Modules\Staff\Http\Controllers\TalkComment\TalkCommentForStaffController;
@@ -57,6 +58,8 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:common.a
     Route::match(['put', 'patch'], '/profile', [AuthForStaffController::class, 'updateMyProfile'])->name('profile.update');
     Route::match(['put', 'patch'], '/password', [AuthForStaffController::class, 'updateMyPassword'])->name('password.update')
         ->middleware('throttle:password-update');
+    Route::get('/navigation-badges', [NavigationBadgeForStaffController::class, 'getNavigationBadgesForStaff'])
+        ->name('navigation-badges.getNavigationBadgesForStaff');
 
     Route::get('/notes', [AdminNoteForStaffController::class, 'getAdminNotesForStaff'])
         ->name('notes.getAdminNotesForStaff');

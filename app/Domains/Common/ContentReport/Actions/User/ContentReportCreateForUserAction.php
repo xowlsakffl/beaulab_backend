@@ -12,7 +12,11 @@ use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\HospitalReview\Models\HospitalReview;
+use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
+use App\Domains\Talk\Models\Talk;
+use App\Domains\Talk\Models\TalkComment;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
@@ -25,6 +29,24 @@ final class ContentReportCreateForUserAction
         private readonly ContentReportCreateForUserQuery $query,
         private readonly OperationHistoryCreateAction $historyCreateAction,
     ) {}
+
+    public function executeForTalkComment(Model $reporter, Talk $talk, TalkComment $comment, array $payload): void
+    {
+        $this->assertBelongsToParent($comment, 'talk_id', $talk, '토크 댓글을 확인해 주세요.');
+
+        $this->execute($reporter, $comment, $payload);
+    }
+
+    public function executeForHospitalReviewComment(
+        Model $reporter,
+        HospitalReview $hospitalReview,
+        HospitalReviewComment $comment,
+        array $payload,
+    ): void {
+        $this->assertBelongsToParent($comment, 'hospital_review_id', $hospitalReview, '후기 댓글을 확인해 주세요.');
+
+        $this->execute($reporter, $comment, $payload);
+    }
 
     public function execute(Model $reporter, Model $target, array $payload): void
     {
@@ -149,6 +171,15 @@ final class ContentReportCreateForUserAction
         }
 
         return $hourStartAt;
+    }
+
+    private function assertBelongsToParent(Model $target, string $foreignKey, Model $parent, string $message): void
+    {
+        if ((int) $target->getAttribute($foreignKey) === (int) $parent->getKey()) {
+            return;
+        }
+
+        throw new CustomException(ErrorCode::INVALID_REQUEST, $message);
     }
 
     private function targetAuthorId(Model $target): ?int

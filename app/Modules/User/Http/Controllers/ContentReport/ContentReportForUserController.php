@@ -2,7 +2,6 @@
 
 namespace App\Modules\User\Http\Controllers\ContentReport;
 
-use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\Common\ContentReport\Actions\User\ContentReportCreateForUserAction;
@@ -38,11 +37,7 @@ final class ContentReportForUserController extends Controller
         ContentReportCreateForUserRequest $request,
         ContentReportCreateForUserAction $action,
     ) {
-        if ((int) $comment->talk_id !== (int) $talk->id) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '토크 댓글을 확인해 주세요.');
-        }
-
-        $action->execute($request->user(), $comment, [
+        $action->executeForTalkComment($request->user(), $talk, $comment, [
             ...$request->validated(),
             'reporter_ip' => $request->ip(),
         ]);
@@ -73,11 +68,7 @@ final class ContentReportForUserController extends Controller
         ContentReportCreateForUserRequest $request,
         ContentReportCreateForUserAction $action,
     ) {
-        if ((int) $comment->hospital_review_id !== (int) $hospitalReview->id) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '후기 댓글을 확인해 주세요.');
-        }
-
-        $action->execute($request->user(), $comment, [
+        $action->executeForHospitalReviewComment($request->user(), $hospitalReview, $comment, [
             ...$request->validated(),
             'reporter_ip' => $request->ip(),
         ]);

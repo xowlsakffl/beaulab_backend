@@ -427,7 +427,7 @@ Controller는 요청을 해석하고 응답을 연결하는 역할만 담당합�
 
 ## 비동기 처리와 운영
 
-Queue 표준 런타임은 Redis + Horizon입니다. Job은 기술 종류가 아니라 도메인 소유권 기준으로 배치합니다.
+Queue 표준 런타임은 Redis + Horizon입니다. Job은 기술 종류가 아니라 도메인 소유권 기준으로 배치합니다. 상세 운영 기준은 [Queue 운영 가이드](develop-doc/queue.md)와 [Scheduler 운영 가이드](develop-doc/scheduler.md)를 기준으로 합니다.
 
 비밀번호 재설정은 보안 기준 데이터와 비동기 작업을 분리합니다.
 
@@ -435,17 +435,24 @@ Queue 표준 런타임은 Redis + Horizon입니다. Job은 기술 종류가 아�
 - 재설정 메일 발송은 Redis Queue의 `mail` 큐로 위임합니다.
 - 로그인, 비밀번호 재설정 요청, 신고 API 같은 요청 제한과 캐시는 Redis Cache를 기준으로 운영합니다.
 
+현재 실제 큐 작업:
+
+| 작업 | Queue | 용도 |
+| --- | --- | --- |
+| `PasswordResetLinkMail` | `mail` | 비밀번호 재설정 링크 메일 발송 |
+| `SendPushNotificationDeliveryJob` | `notifications` | FCM/APNs Push 발송 |
+
 큐 레인:
 
-| Queue | 용도 |
-| --- | --- |
-| `critical` | 사용자 영향도가 큰 고우선 작업 |
-| `mail` | 메일 발송 |
-| `sms` | 문자 발송 |
-| `chat` | 채팅 비동기 처리 |
-| `notifications` | Push/알림 비동기 처리 |
-| `default` | 일반 비동기 작업 |
-| `maintenance` | 정리, 백필, 유지보수 작업 |
+| Queue | 현재 사용 | 용도 |
+| --- | ---: | --- |
+| `critical` | 예약 | 사용자 영향도가 큰 고우선 작업 |
+| `mail` | 사용 | 메일 발송 |
+| `sms` | 예약 | 문자 발송 |
+| `chat` | 예약 | 채팅 비동기 처리 |
+| `notifications` | 사용 | Push/알림 비동기 처리 |
+| `default` | 예약 | 일반 비동기 작업 |
+| `maintenance` | 예약 | 정리, 백필, 유지보수 작업 |
 
 운영 스케줄:
 
@@ -456,6 +463,7 @@ Queue 표준 런타임은 Redis + Horizon입니다. Job은 기술 종류가 아�
 | `horizon:snapshot` | 5분마다 |
 | `queue:prune-batches --hours=72 --unfinished=72 --cancelled=168` | 매일 03:10 |
 | `queue:prune-failed --hours=168` | 매일 03:20 |
+| `hospital-evaluations:refresh-hospital-ratings` | 매일 03:30 |
 
 운영 서버에서는 OS crontab이 매분 `php artisan schedule:run`을 실행하고, Spatie Schedule Monitor가 스케줄 실행 상태를 기록합니다.
 

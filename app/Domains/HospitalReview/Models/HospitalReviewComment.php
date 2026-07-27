@@ -3,6 +3,8 @@
 namespace App\Domains\HospitalReview\Models;
 
 use App\Common\Concerns\HasAuditLogs;
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
@@ -15,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use InvalidArgumentException;
 
 final class HospitalReviewComment extends Model
 {
@@ -162,11 +163,11 @@ final class HospitalReviewComment extends Model
                 ->find((int) $comment->parent_id);
 
             if (! $parent instanceof self || ! $parent->isRootComment()) {
-                throw new InvalidArgumentException('대댓글은 최상위 댓글에만 작성할 수 있습니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '대댓글은 최상위 댓글에만 작성할 수 있습니다.');
             }
 
             if ((int) $parent->hospital_review_id !== (int) $comment->hospital_review_id) {
-                throw new InvalidArgumentException('대댓글은 부모 댓글과 같은 병원후기에만 작성할 수 있습니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '대댓글은 부모 댓글과 같은 병원후기에만 작성할 수 있습니다.');
             }
         });
     }

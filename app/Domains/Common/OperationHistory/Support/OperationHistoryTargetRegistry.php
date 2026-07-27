@@ -152,9 +152,6 @@ final class OperationHistoryTargetRegistry
             return;
         }
 
-        throw new \InvalidArgumentException(sprintf(
-            'Unsupported operation history target model: %s',
-            $target::class,
-        ));
+        throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 히스토리 대상입니다.');
     }
 }

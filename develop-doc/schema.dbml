@@ -201,17 +201,17 @@ Table beauty_experts {
 }
 
 Table cache {
-  key varchar [note: '캐시 키']
-  value text [note: '직렬화된 캐시 값']
+  key varchar [pk, note: '캐시 키']
+  value mediumtext [note: '직렬화된 캐시 값']
   expiration int [note: '만료 시간(Unix Timestamp)']
-  Note: 'Laravel cache 저장 테이블입니다.'
+  Note: 'Laravel DB cache 저장 테이블입니다. 현재 표준 런타임은 Redis cache이며 DB cache는 fallback/로컬용입니다.'
 }
 
 Table cache_locks {
-  key varchar [note: '락 키']
+  key varchar [pk, note: '락 키']
   owner varchar [note: '락 소유자 식별자']
   expiration int [note: '락 만료 시간(Unix Timestamp)']
-  Note: 'Laravel cache lock 저장 테이블입니다.'
+  Note: 'Laravel DB cache lock 저장 테이블입니다. 현재 표준 분산 락은 Redis 기준으로 운영합니다.'
 }
 
 Table categories {
@@ -353,10 +353,10 @@ Table failed_jobs {
   uuid varchar [unique, note: '실패 작업 UUID']
   connection text [note: '큐 커넥션 정보']
   queue text [note: '큐 이름']
-  payload text [note: '작업 데이터']
-  exception text [note: '예외 메시지']
-  failed_at timestamp [note: '실패 시간']
-  Note: '실패한 queue job 기록입니다.'
+  payload longtext [note: '작업 데이터']
+  exception longtext [note: '예외 메시지']
+  failed_at timestamp [default: `CURRENT_TIMESTAMP`, note: '실패 시간']
+  Note: '실패한 Queue Job 기록입니다. Redis/Horizon 런타임에서도 실패 이력은 DB에 저장합니다.'
 }
 
 Table faqs {
@@ -470,6 +470,26 @@ Table hospital_evaluations {
   Note: '병의원 평가 게시글입니다.'
 }
 
+Table hospital_entries {
+  id bigint [pk, increment, note: '병의원 입점신청 ID']
+  hospital_name varchar(100) [note: '병의원명']
+  hospital_phone varchar(30) [note: '병의원 전화번호']
+  address varchar(255) [note: '주소']
+  address_detail varchar(255) [null, note: '상세주소']
+  business_number varchar(30) [note: '사업자등록번호']
+  ceo_name varchar(50) [note: '대표자명']
+  license_number varchar(50) [null, note: '의사면허번호']
+  applicant_name varchar(50) [note: '신청자 이름']
+  applicant_position varchar(50) [null, note: '신청자 직책']
+  applicant_phone varchar(30) [null, note: '신청자 전화번호']
+  applicant_email varchar(255) [null, note: '신청자 이메일주소']
+  allow_status varchar(20) [default: `'PENDING'`, note: '검수 상태(PENDING, REVIEWING, APPROVED, REJECTED)']
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null, note: '소프트 삭제 시각']
+  Note: '병의원 신규 입점신청 정보입니다. 사업자등록증/의사면허증 파일은 media polymorphic collection으로 관리합니다.'
+}
+
 Table hospital_event_dbs {
   id bigint [pk, increment, note: '병의원 이벤트 DB ID']
   account_user_id bigint [note: '신청 일반회원 account_users ID']
@@ -550,6 +570,22 @@ Table hospital_event_real_model_dbs {
   updated_at timestamp
   deleted_at timestamp [null, note: '소프트 삭제 시각']
   Note: '사용자의 리얼모델 지원 DB입니다.'
+}
+
+Table hospital_event_ads {
+  id bigint [pk, increment, note: '병의원 이벤트 광고 ID']
+  hospital_id bigint [note: '병의원 ID']
+  hospital_event_id bigint [note: '이벤트 ID']
+  manager_staff_id bigint [null, note: '담당자 staff ID']
+  placement varchar(50) [note: '광고 위치']
+  cost bigint [default: `0`, note: '광고 비용(P)']
+  start_at timestamp [note: '광고 시작 일시']
+  end_at timestamp [note: '광고 종료 일시']
+  allow_status varchar(20) [default: `'PENDING'`, note: '검수 상태(PENDING, REVIEWING, APPROVED, REJECTED)']
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null, note: '소프트 삭제 시각']
+  Note: '병의원 이벤트 광고 신청/검수/노출 기간 정보입니다. 광고 이미지는 media polymorphic collection으로 관리하고, 카테고리별 배너 카테고리는 category_assignments로 연결합니다.'
 }
 
 Table hospital_events {
@@ -709,28 +745,32 @@ Table hospitals {
 }
 
 Table job_batches {
-  id varchar [note: '배치 작업 ID']
+  id varchar [pk, note: '배치 작업 ID']
   name varchar [note: '배치 작업 이름']
   total_jobs int [note: '전체 작업 수']
   pending_jobs int [note: '대기 중인 작업 수']
   failed_jobs int [note: '실패한 작업 수']
-  failed_job_ids text [note: '실패한 작업 ID 목록']
-  options text [null, note: '배치 옵션']
+  failed_job_ids longtext [note: '실패한 작업 ID 목록']
+  options mediumtext [null, note: '배치 옵션']
   cancelled_at int [null, note: '배치 취소 시간']
   created_at int [note: '배치 생성 시간']
   finished_at int [null, note: '배치 완료 시간']
-  Note: 'Laravel batch job 상태입니다.'
+  Note: 'Laravel batch job 메타데이터입니다. Queue backend가 Redis여도 batch 상태는 DB에 저장합니다.'
 }
 
 Table jobs {
   id bigint [pk, increment, note: '작업 ID']
   queue varchar [note: '큐 이름']
-  payload text [note: '직렬화된 작업 데이터']
-  attempts tinyint [note: '실행 시도 횟수']
+  payload longtext [note: '직렬화된 작업 데이터']
+  attempts tinyint [note: '실행 시도 횟수(unsigned)']
   reserved_at int [null, note: '작업 예약 시간']
   available_at int [note: '작업 실행 가능 시간']
   created_at int [note: '작업 생성 시간']
-  Note: 'Laravel queue 대기 작업입니다.'
+  Note: 'Laravel database queue 대기 작업입니다. 현재 표준 운영은 Redis + Horizon이라 주 사용 대상은 아닙니다.'
+
+  Indexes {
+    queue [name: 'jobs_queue_index']
+  }
 }
 
 Table likes {
@@ -778,15 +818,17 @@ Table model_has_roles {
 }
 
 Table monitored_scheduled_task_log_items {
+  id bigint [pk, increment, note: '스케줄 작업 로그 ID']
   monitored_scheduled_task_id bigint [note: '스케줄 작업 ID']
   type varchar [note: '이벤트 타입(started, finished, failed, skipped)']
   meta json [null, note: '이벤트 부가 정보(JSON)']
   created_at timestamp
   updated_at timestamp
-  Note: '스케줄 실행 로그입니다.'
+  Note: 'Spatie Schedule Monitor 스케줄 실행 로그입니다.'
 }
 
 Table monitored_scheduled_tasks {
+  id bigint [pk, increment, note: '스케줄 작업 고유 ID']
   name varchar [note: '스케줄 작업 이름']
   type varchar [null, note: '스케줄 작업 타입(분류용)']
   cron_expression varchar [note: '크론 실행 표현식']
@@ -801,7 +843,7 @@ Table monitored_scheduled_tasks {
   grace_time_in_minutes int [note: '허용 지연 시간(분)']
   created_at timestamp
   updated_at timestamp
-  Note: '스케줄 모니터링 대상 작업입니다.'
+  Note: 'Spatie Schedule Monitor 모니터링 대상 작업입니다.'
 }
 
 Table notices {
@@ -924,11 +966,16 @@ Table operation_history_changes {
 }
 
 Table password_reset_tokens {
-  actor varchar [note: 'user|partner|staff']
+  actor varchar [note: '계정 주체(user|hospital|beauty|staff)']
   email varchar [note: '비밀번호 재설정 대상 이메일']
-  token varchar
+  token varchar [note: '해시된 재설정 토큰']
   created_at timestamp [null]
-  Note: '계정 비밀번호 재설정 토큰 저장소입니다.'
+  Note: '계정 비밀번호 재설정 토큰 저장소입니다. actor + email 복합 PK를 사용합니다.'
+
+  Indexes {
+    (actor, email) [pk]
+    email [name: 'password_reset_tokens_email_index']
+  }
 }
 
 Table permissions {
@@ -1083,6 +1130,7 @@ TableGroup "Accounts & Auth" {
 TableGroup "Hospital Core" {
   hospitals
   hospital_business_registrations
+  hospital_entries
   hospital_doctors
   hospital_features
   hospital_feature_assignments
@@ -1122,6 +1170,7 @@ TableGroup "Content Boards" {
 
 TableGroup "Hospital Events & Customer DB" {
   hospital_events
+  hospital_event_ads
   hospital_event_doctor_assignments
   hospital_event_options
   hospital_event_dbs
@@ -1196,6 +1245,7 @@ Ref: chat_messages.chat_id > chats.id
 Ref: chat_messages.sender_user_id > account_users.id
 Ref: chat_messages.reply_to_message_id > chat_messages.id
 Ref: notification_deliveries.notification_inbox_id > notification_inboxes.id
+Ref: monitored_scheduled_task_log_items.monitored_scheduled_task_id > monitored_scheduled_tasks.id
 Ref: account_user_blocks.blocker_user_id > account_users.id
 Ref: account_user_blocks.blocked_user_id > account_users.id
 Ref: talk_saves.talk_id > talks.id
@@ -1226,6 +1276,9 @@ Ref: content_report_items.target_author_id > account_users.id
 Ref: content_report_states.processed_by > account_staffs.id
 Ref: content_report_states.warning_processed_by > account_staffs.id
 Ref: hospital_events.hospital_id > hospitals.id
+Ref: hospital_event_ads.hospital_id > hospitals.id
+Ref: hospital_event_ads.hospital_event_id > hospital_events.id
+Ref: hospital_event_ads.manager_staff_id > account_staffs.id
 Ref: hospital_event_doctor_assignments.hospital_event_id > hospital_events.id
 Ref: hospital_event_doctor_assignments.hospital_doctor_id > hospital_doctors.id
 Ref: hospital_event_options.hospital_event_id > hospital_events.id

@@ -30,6 +30,10 @@ final class ContentReportCreateForUserAction
     {
         ContentReportTargetRegistry::assertSupported($target);
 
+        if ($target instanceof HospitalVideo && ! $target->isVisible()) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '신고할 수 없는 동영상입니다.');
+        }
+
         $reporterUserId = (int) $reporter->getKey();
         $targetType = $target::class;
         $targetId = (int) $target->getKey();

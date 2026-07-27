@@ -2,7 +2,6 @@
 
 namespace App\Modules\User\Http\Controllers\ContentReport;
 
-use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
@@ -108,10 +107,6 @@ final class ContentReportForUserController extends Controller
         HospitalVideoReportForUserRequest $request,
         ContentReportCreateForUserAction $action,
     ) {
-        if (! $video->isVisible()) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '신고할 수 없는 동영상입니다.');
-        }
-
         $action->execute($request->user(), $video, [
             ...$request->validated(),
             'reporter_ip' => $request->ip(),

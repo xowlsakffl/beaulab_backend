@@ -20,6 +20,13 @@ final class OperationHistory extends Model
 
     public const string ACTION_DELETED = 'DELETED';
 
+    public const array ACTIONS = [
+        self::ACTION_CREATED,
+        self::ACTION_UPDATED,
+        self::ACTION_STATE_UPDATED,
+        self::ACTION_DELETED,
+    ];
+
     public const string ACTOR_KIND_STAFF = 'STAFF';
 
     public const string ACTOR_KIND_HOSPITAL = 'HOSPITAL';
@@ -89,5 +96,13 @@ final class OperationHistory extends Model
     public function getAfterValueAttribute(): mixed
     {
         return $this->changes->first()?->after_value;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function actions(): array
+    {
+        return self::ACTIONS;
     }
 }

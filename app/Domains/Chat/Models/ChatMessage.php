@@ -4,6 +4,7 @@ namespace App\Domains\Chat\Models;
 
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Media\Models\Media;
+use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class ChatMessage extends Model
 {
-    use SoftDeletes;
+    use HasOperationHistories, SoftDeletes;
 
     public const TYPE_TEXT = 'TEXT';
 

@@ -2,6 +2,8 @@
 
 namespace App\Domains\Common\OperationHistory\Actions;
 
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Queries\OperationHistoryCreateQuery;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryActorRegistry;
@@ -30,6 +32,7 @@ final class OperationHistoryCreateAction
         array $changes = [],
     ): OperationHistory {
         OperationHistoryTargetRegistry::assertSupported($target);
+        $this->assertSupportedAction($action);
 
         return DB::transaction(function () use ($target, $action, $actor, $actorKind, $batchUuid, $reason, $metadata, $changes): OperationHistory {
             $history = $this->query->create([
@@ -127,5 +130,14 @@ final class OperationHistoryCreateAction
         $reason = trim((string) $reason);
 
         return $reason === '' ? null : $reason;
+    }
+
+    private function assertSupportedAction(string $action): void
+    {
+        if (in_array($action, OperationHistory::actions(), true)) {
+            return;
+        }
+
+        throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 히스토리 액션입니다.');
     }
 }

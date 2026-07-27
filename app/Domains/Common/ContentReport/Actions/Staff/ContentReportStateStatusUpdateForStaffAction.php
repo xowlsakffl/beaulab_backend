@@ -194,6 +194,11 @@ final class ContentReportStateStatusUpdateForStaffAction
             );
         }
 
+        $changes = $changesBuilder->toArray();
+        if ($changes === []) {
+            return;
+        }
+
         $this->historyCreateAction->execute(
             target: $target,
             action: OperationHistory::ACTION_STATE_UPDATED,
@@ -206,7 +211,7 @@ final class ContentReportStateStatusUpdateForStaffAction
                     ? 'staff.content_report.reexposed'
                     : 'staff.content_report.status',
             ],
-            changes: $changesBuilder->toArray(),
+            changes: $changes,
         );
     }
 

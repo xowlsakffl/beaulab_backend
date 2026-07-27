@@ -72,18 +72,21 @@ final class ContentReportProcessForStaffAction
             $state->processed_by = $actor instanceof Model ? (int) $actor->getKey() : null;
             $state->save();
 
-            $this->historyCreateAction->execute(
-                target: $target,
-                action: OperationHistory::ACTION_STATE_UPDATED,
-                actor: $actor instanceof Model ? $actor : null,
-                reason: $processReason,
-                metadata: [
-                    ...$metadata,
-                    'warning_status_before' => $metadata['warning_status_before'] ?? $beforeWarningStatus,
-                    'warning_status_after' => $metadata['warning_status_after'] ?? (string) $state->warning_status,
-                ],
-                changes: $changesBuilder->toArray(),
-            );
+            $changes = $changesBuilder->toArray();
+            if ($changes !== []) {
+                $this->historyCreateAction->execute(
+                    target: $target,
+                    action: OperationHistory::ACTION_STATE_UPDATED,
+                    actor: $actor instanceof Model ? $actor : null,
+                    reason: $processReason,
+                    metadata: [
+                        ...$metadata,
+                        'warning_status_before' => $metadata['warning_status_before'] ?? $beforeWarningStatus,
+                        'warning_status_after' => $metadata['warning_status_after'] ?? (string) $state->warning_status,
+                    ],
+                    changes: $changes,
+                );
+            }
 
             $state->load(['processedBy:id,name,email', 'warningProcessedBy:id,name,email']);
 

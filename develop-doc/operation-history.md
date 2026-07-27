@@ -1,17 +1,19 @@
-# 운영 히스토리 설계
+# 운영 히스토리 가이드
 
-작성 기준: 2026-06-29
+작성 기준: 2026-07-27
 
-이 문서는 Staff 운영 화면에서 표시하는 처리 이력 구조를 정리한다.  
-운영 히스토리는 `activity_log` 감사 로그와 목적이 다르다. `activity_log`는 모델 변경 감사 추적용이고, `operation_histories`는 관리자 화면에 노출되는 업무 처리 이력이다.
+이 문서는 Staff 운영 화면에 노출되는 처리 이력 구조를 정리한다.
 
-## 1) 핵심 목적
+운영 히스토리와 로그는 목적이 다르다.
 
-- 관리자 화면에서 노출/미노출, 신고 처리, 영수증 인증, 이벤트 검수, 병원 상태 변경 같은 운영 행위를 사람이 읽을 수 있게 표시한다.
-- 단일 필드 변경과 여러 필드 동시 변경을 같은 구조로 기록한다.
-- 변경 전/후 원본 값과 화면 표시값을 함께 저장해, 나중에 상태 라벨이나 포맷 규칙이 바뀌어도 당시 이력을 안정적으로 보여준다.
+- `operation_histories`: 관리자 화면에서 사람이 읽는 업무 처리 이력
+- `operation_history_changes`: 처리 이력에 붙는 필드별 변경 전/후 값
+- 앱 로그(`Log::*`): 인증/보안 이벤트, 외부 연동 실패, 예외 분석용 운영 로그
+- 모델 감사 로그(`activity_log` 등): 모델 변경 감사 추적용 로그
 
-## 2) 테이블 구조
+운영 히스토리는 “누가, 어떤 대상에, 어떤 업무 처리를 했고, 어떤 값이 바뀌었는지”를 화면에 안정적으로 보여주는 것이 목적이다.
+
+## 1) 테이블 구조
 
 | 테이블 | 역할 |
 |---|---|
@@ -40,163 +42,292 @@
 | `before_display`, `after_display` | 변경 전/후 표시값 |
 | `sort_order` | 표시 순서 |
 
-## 3) 모델 구조
+## 2) 대상 레지스트리
 
-- `OperationHistory`
-  - `changes()` hasMany relation을 가진다.
-  - 기본 조회 시 `changes`를 함께 로드한다.
-  - 구버전 응답 호환을 위해 `field`, `before_value`, `after_value` accessor는 첫 번째 change를 반환한다.
-- `OperationHistoryChange`
-  - `operation_history_changes` 테이블 모델이다.
-  - `before_value`, `after_value`는 JSON 캐스팅한다.
+운영 히스토리 대상은 반드시 `OperationHistoryTargetRegistry`에 등록되어 있어야 한다.
 
-## 4) 기록 방식
+등록되지 않은 모델에 이력을 기록하면 `OperationHistoryCreateAction`에서 `지원하지 않는 히스토리 대상입니다.` 예외가 발생한다. 신규 도메인에 운영 히스토리를 붙일 때는 먼저 레지스트리에 alias와 모델 class를 추가한다.
 
-운영 이력 생성은 `OperationHistoryCreateAction`만 사용한다.
+현재 지원 대상:
+
+| alias | 모델 |
+|---|---|
+| `hospital` | `Hospital` |
+| `hospital_doctor` | `HospitalDoctor` |
+| `hospital_entry` | `HospitalEntry` |
+| `beauty` | `Beauty` |
+| `beauty_expert` | `BeautyExpert` |
+| `hospital_event` | `HospitalEvent` |
+| `hospital_event_db` | `HospitalEventDB` |
+| `hospital_event_real_model_db` | `HospitalEventRealModelDB` |
+| `hospital_event_ad` | `HospitalEventAd` |
+| `hospital_video` | `HospitalVideo` |
+| `account_user` | `AccountUser` |
+| `hospital_review` | `HospitalReview` |
+| `hospital_review_comment` | `HospitalReviewComment` |
+| `hospital_evaluation` | `HospitalEvaluation` |
+| `talk` | `Talk` |
+| `talk_comment` | `TalkComment` |
+| `chat_message` | `ChatMessage` |
+| `notice` | `Notice` |
+| `faq` | `Faq` |
+| `category` | `Category` |
+| `hashtag` | `Hashtag` |
+
+`ContentReport`와 `ContentReportState` 자체는 히스토리 대상이 아니다. 신고 처리 이력은 신고 상태 행이 아니라 실제 신고 대상 모델(`Talk`, `TalkComment`, `HospitalReview`, `HospitalReviewComment`, `HospitalEvaluation`, `ChatMessage`, `HospitalVideo` 등)에 기록한다.
+
+## 3) 수행자 레지스트리
+
+수행자는 `OperationHistoryActorRegistry` 기준으로 alias/kind를 판정한다.
+
+현재 actor kind:
+
+- `STAFF`
+- `HOSPITAL`
+- `BEAUTY`
+- `USER`
+- `SYSTEM`
+- `UNKNOWN`
+
+규칙:
+
+- `actor`가 있으면 모델 class 기준으로 kind를 판정한다.
+- `actor`가 없으면 기본적으로 `SYSTEM`이다.
+- 자동 처리나 시스템성 처리에서는 `actorKind`로 명시 override할 수 있다.
+- DTO는 actor relation이 로드되어 있으면 이름/이메일을 내려주고, 없으면 `actor_kind`를 fallback label로 사용한다.
+
+## 4) 액션 정책
+
+`operation_histories.action`은 큰 행위 분류만 담당한다. 필드별 의미는 `operation_history_changes.field_key`, `field_label`로 구분한다.
+
+| action | 화면 라벨 | 사용 기준 |
+|---|---|---|
+| `CREATED` | 생성 | 대상 생성 |
+| `UPDATED` | 수정 | 일반 정보 수정 |
+| `STATE_UPDATED` | 상태 변경 | 상태성 값 변경 |
+| `DELETED` | 삭제 | 실제 삭제 이력 |
+
+상태성 변경은 전부 `STATE_UPDATED`를 사용한다.
+
+예:
+
+- `status`
+- `allow_status`
+- `admin_status`
+- `hospital_status`
+- `report_status`
+- `warning_status`
+- `receipt_status`
+
+`ACTION_STATUS_UPDATED`는 사용하지 않는다. 과거 상태 변경 표현은 `STATE_UPDATED`로 통일한다.
+
+삭제처럼 보이는 처리라도 실제로는 상태값을 바꿔 화면 노출을 제어하는 플로우라면 `DELETED`가 아니라 `STATE_UPDATED`를 사용한다.
+
+예:
+
+- 신고 처리로 게시물이 미노출됨: `STATE_UPDATED`
+- 유저가 댓글을 삭제해서 상태가 삭제/미노출로 바뀜: `STATE_UPDATED`
+- 운영상 실제 삭제 행위를 이력으로 남겨야 함: `DELETED`
+
+## 5) 변경값 정책
+
+신규 운영 히스토리는 반드시 `changes` 배열을 기준으로 기록한다.
+
+필드 규칙:
+
+- `field_key`: 실제 컬럼명 또는 도메인 상태 키
+- `field_label`: 화면에 보여줄 순수 필드명
+- `before_value`, `after_value`: 원본 값
+- `before_display`, `after_display`: 사람이 읽는 표시값
+
+`field_label`에는 `변경`, `수정`, `처리` 같은 동사를 붙이지 않는다.
+
+올바른 예:
+
+- `노출여부`
+- `검수상태`
+- `조치유형`
+- `신고상태`
+- `경고여부`
+- `영수증 상태`
+- `강제중지`
+
+잘못된 예:
+
+- `노출여부 변경`
+- `검수상태 변경`
+- `조치유형 변경`
+- `경고여부 변경`
+
+`OperationHistoryCreateAction`과 `OperationHistoryDto`는 호환 방어용으로 `field_label` 끝의 ` 변경`을 제거한다. 그래도 신규 호출부에서는 처음부터 순수 필드명을 넘긴다.
+
+화면 표시 문구가 필요한 값은 반드시 `before_display`, `after_display`를 함께 저장한다. 라벨 계산 로직이 나중에 바뀌어도 과거 이력 화면이 흔들리지 않게 하기 위함이다.
+
+## 6) 기록 방식
+
+운영 이력 생성은 `OperationHistoryCreateAction`만 사용한다. 도메인 Action에서 직접 `operation_histories`나 `operation_history_changes`를 생성하지 않는다.
+
+단건 변경:
 
 ```php
 $this->historyCreateAction->execute(
     target: $target,
-    action: OperationHistory::ACTION_UPDATED,
+    action: OperationHistory::ACTION_STATE_UPDATED,
     actor: $staff,
     reason: $reason,
     changes: OperationHistoryChangeSetBuilder::single(
-        key: 'status',
-        label: '노출여부',
+        key: 'allow_status',
+        label: '검수상태',
         before: $before,
         after: $after,
-        beforeDisplay: '노출',
-        afterDisplay: '미노출',
+        beforeDisplay: '신청',
+        afterDisplay: '승인',
     ),
 );
 ```
 
-단건 변경은 `OperationHistoryChangeSetBuilder::single()`을 사용한다.  
-여러 필드 변경은 `OperationHistoryChangeSetBuilder::make()->compare(...)->compare(...)->toArray()`로 만든다.  
-수정 전/후 스냅샷을 이미 가지고 있는 경우에는 `OperationHistoryChangeSetBuilder::fromSnapshots($before, $after)`를 사용한다.
+여러 필드 변경:
 
-도메인 Action에서는 직접 `operation_history_changes`를 만들지 않는다. 변경 payload 조립은 공통 builder를 사용하고, 저장은 `OperationHistoryCreateAction`에 맡긴다.
-
-## 5) 다중 변경 처리
-
-이벤트 수정처럼 여러 필드가 한 번에 바뀌는 경우에도 부모 이력은 1건만 만든다.
-
-예시:
-
-```text
-operation_histories
-- action: UPDATED
-- reason: null
-
-operation_history_changes
-- 이벤트명: 변경 전/후
-- 이벤트 설명: 변경 전/후
-- 이벤트 기간: 변경 전/후
-- 이벤트 가격: 변경 전/후
+```php
+$changes = OperationHistoryChangeSetBuilder::make()
+    ->compare(
+        key: 'name',
+        label: '병의원명',
+        before: $beforeName,
+        after: $afterName,
+    )
+    ->compare(
+        key: 'tel',
+        label: '전화번호',
+        before: $beforeTel,
+        after: $afterTel,
+    )
+    ->toArray();
 ```
 
-프론트는 부모 이력 1건 아래의 `changes` 배열을 순서대로 표시한다.
+수정 전/후 스냅샷이 있으면 `OperationHistoryChangeSetBuilder::fromSnapshots($before, $after)`를 사용한다.
 
-## 6) 현재 적용 도메인
+`OperationHistoryChangeSetBuilder`는 JSON 기준으로 변경 전/후가 같으면 change를 만들지 않는다. 도메인별 `*UpdateHistoryRecordAction`은 변경값이 없으면 생성 이력을 제외하고 히스토리를 남기지 않는 흐름으로 작성한다.
 
-현재 `OperationHistoryCreateAction`을 쓰는 도메인은 모두 `changes` 구조를 사용한다.
+생성 이력은 최초 입력값 전체를 `changes`에 남기지 않는다. 부모 이력 1건만 남기고 `reason`은 `null`로 둔다.
 
-- `Talk`
-- `TalkComment`
-- `HospitalReview`
-- `HospitalReviewComment`
-- `HospitalEvaluation`
-- `Hospital`
-- `HospitalEntry`
-- `HospitalDoctor`
-- `HospitalEvent`
-- `HospitalEventDB`
-- `HospitalEventRealModelDB`
-- `HospitalVideo`
-- `Notice`
-- `Faq`
-- `Category`
-- `Hashtag`
-- `AccountUser`
-- `Beauty`
-- `BeautyExpert`
-- `ContentReport`
-- `ContentReportState`
+## 7) 도메인별 기록 위치
 
-## 7) API 응답 기준
+일반 수정 이력은 도메인별 `*UpdateHistoryRecordAction`에서 담당한다.
+
+현재 기록 액션이 있는 주요 도메인:
+
+- `AccountUserUpdateHistoryRecordAction`
+- `BeautyUpdateHistoryRecordAction`
+- `BeautyExpertUpdateHistoryRecordAction`
+- `CategoryUpdateHistoryRecordAction`
+- `HashtagUpdateHistoryRecordAction`
+- `FaqUpdateHistoryRecordAction`
+- `HospitalUpdateHistoryRecordAction`
+- `HospitalDoctorUpdateHistoryRecordAction`
+- `HospitalEntryUpdateHistoryRecordAction`
+- `HospitalEventUpdateHistoryRecordAction`
+- `HospitalEventDBUpdateHistoryRecordAction`
+- `HospitalEventRealModelDBUpdateHistoryRecordAction`
+- `HospitalEventAdUpdateHistoryRecordAction`
+- `HospitalVideoUpdateHistoryRecordAction`
+- `NoticeUpdateHistoryRecordAction`
+
+신고 게시물 처리는 공통 `ContentReport` Action에서 처리하되, 히스토리 대상은 신고 대상 모델이다.
+
+상태 변경 전용 Action은 직접 `OperationHistoryCreateAction`을 호출해도 된다. 단, action은 `STATE_UPDATED`, label은 순수 필드명, 값 라벨은 `before_display`/`after_display` 원칙을 지킨다.
+
+## 8) API 응답 기준
 
 `OperationHistoryDto`는 다음 구조를 내려준다.
 
 ```json
 {
   "id": 1,
-  "target": {
-    "type": "App\\Domains\\Talk\\Models\\Talk",
-    "id": 10
-  },
+  "target_type": "App\\Domains\\Hospital\\Models\\Hospital",
+  "target_id": 10,
+  "target_alias": "hospital",
+  "actor_kind": "STAFF",
+  "actor_type": "account_staff",
+  "actor_alias": "staff",
+  "actor_id": 3,
   "actor": {
-    "kind": "STAFF",
-    "label": "관리자"
+    "id": 3,
+    "name": "관리자",
+    "email": "admin@example.com"
   },
-  "action": "UPDATED",
-  "reason": "관리자 미노출",
-  "field": "status",
-  "before_value": "ACTIVE",
-  "after_value": "INACTIVE",
+  "actor_label": "관리자",
+  "action": "STATE_UPDATED",
+  "action_label": "상태 변경",
+  "batch_uuid": null,
+  "field": "allow_status",
+  "before_value": "PENDING",
+  "after_value": "APPROVED",
+  "reason": null,
+  "metadata": null,
   "changes": [
     {
-      "field_key": "status",
-      "field_label": "노출여부",
-      "before_value": "ACTIVE",
-      "after_value": "INACTIVE",
-      "before_display": "노출",
-      "after_display": "미노출"
+      "id": 1,
+      "field_key": "allow_status",
+      "field_label": "검수상태",
+      "before_value": "PENDING",
+      "after_value": "APPROVED",
+      "before_display": "신청",
+      "after_display": "승인",
+      "sort_order": 0
     }
-  ]
+  ],
+  "created_at": "2026-07-27T09:00:00.000000Z",
+  "updated_at": "2026-07-27T09:00:00.000000Z"
 }
 ```
 
-`field`, `before_value`, `after_value`는 기존 프론트 호환용이다. 신규 화면은 `changes` 배열을 기준으로 렌더링한다.
+`field`, `before_value`, `after_value`는 기존 프론트 호환용으로 첫 번째 change를 내려주는 필드다. 신규 화면은 `changes` 배열을 기준으로 렌더링한다.
 
-## 8) 구현 규칙
+## 9) 조회 API 기준
 
-- 새 운영 이력은 반드시 `changes`를 사용한다.
-- `operation_histories`에 변경 필드 컬럼을 다시 추가하지 않는다.
-- `operation_histories.action`은 큰 행위 분류만 담당한다.
-  - `CREATED`: 생성
-  - `UPDATED`: 일반 정보 수정
-  - `STATE_UPDATED`: 상태성 값 변경
-  - `DELETED`: 삭제
-- `operation_history_changes.field_label`은 순수 필드명만 저장한다. `변경`, `수정`, `처리` 같은 동사를 붙이지 않는다.
-  - 올바른 예: `노출여부`, `검수상태`, `조치유형`, `경고여부`, `영수증 상태`
-  - 잘못된 예: `노출여부 변경`, `검수상태 변경`, `조치유형 변경`
-- 화면 표시 문구가 필요한 값은 `before_display`, `after_display`를 함께 저장한다.
-- 단순 상태 변경도 `changes` 배열 1건으로 저장한다.
-- 생성 이력은 `CREATED`, 수정 이력은 `UPDATED`, 상태 전용 처리 이력은 `STATE_UPDATED`를 사용한다.
-- `status` 변경과 `allow_status` 변경은 모두 상태 전용 처리이지만, change의 `field_key`로 의미를 구분한다.
-- `allow_status` 변경의 `field_label`은 도메인 화면 용어에 맞춘다.
-  - 병원/의료진/이벤트: `검수상태`
-  - 입점신청: `승인상태`
-  - 이벤트 DB: `검증상태`
-- 생성 이력은 최초 입력값 전체를 `changes`에 남기지 않는다. 부모 이력 1건만 남기고 `reason`은 null로 둬 화면에서 `-`로 표시한다.
-- 한 번의 저장/수정 요청에서 여러 필드가 바뀌면 부모 이력 1건에 change 여러 건을 붙인다.
-- 스태프 관리 화면의 일반 수정 기능은 각 도메인별 `*UpdateHistoryRecordAction`에서 수정 전/후 스냅샷을 잡아 기록한다.
-- 목록 필터나 summary에서 특정 변경 필드를 봐야 하면 `operation_history_changes.field_key` 기준으로 조회한다.
-- 기존 코드 호환이 필요한 DTO 외에는 `history->field`, `history->after_value` accessor에 의존하지 않는다.
+별도 페이지네이션 히스토리 API가 필요한 도메인은 도메인별 `*OperationHistoriesForStaffAction`을 둔다.
 
-## 9) 화면 표시 규칙
+현재 별도 조회 Action이 있는 도메인:
 
-- 신규 상세 이력 UI는 `changes` 배열을 기준으로 렌더링한다.
-- `field`, `before_value`, `after_value`는 기존 호환 필드로만 취급한다.
-- JSON 원본 값을 그대로 노출하지 않고, 도메인 history action에서 사람이 읽을 수 있는 표시값을 저장한다.
+- `Hospital`
+- `HospitalEvent`
+- `HospitalEventAd`
+- `HospitalVideo`
+- `HospitalEventDB`
+- `HospitalEventRealModelDB`
+- `HospitalReview`
+- `HospitalReviewComment`
+- `HospitalEvaluation`
+- `Talk`
+- `TalkComment`
+
+그 외 도메인은 상세 DTO에서 최근 이력을 함께 내려주거나, 화면 요구가 생길 때 같은 패턴으로 별도 조회 Action을 추가한다.
+
+조회 Query는 target model 기준으로 제한해야 한다. 신고 처리 이력처럼 공통 처리 Action에서 남긴 이력도 조회는 실제 target alias 기준으로 한다.
+
+## 10) 화면 표시 규칙
+
+프론트 신규 히스토리 UI는 `changes` 배열을 기준으로 렌더링한다.
+
 - 작업 컬럼은 `action_label`만 표시한다.
-  - `CREATED`: `생성`
-  - `UPDATED`: `수정`
-  - `STATE_UPDATED`: `상태 변경`
-  - `DELETED`: `삭제`
-- 변경내용 컬럼은 `changes`를 공통 규칙으로 요약한다.
-  - `UPDATED` 단일 필드: `병의원명 변경`
-  - `UPDATED` 다중 필드: `병의원명 외 3개 변경`
-  - `STATE_UPDATED`: `검수상태: 신청 → 승인`
-- 상태 변경에서 `검수상태 변경`, `조치유형 변경` 같은 문구를 action label로 만들지 않는다. action은 `상태 변경`, 필드는 `field_label`로 분리한다.
-- 프론트는 히스토리 페이지네이션 중 기존 목록 영역을 불필요하게 비우지 않는다. 일반 목록과 같은 loading state를 사용해 스크롤 튐을 막는다.
+- 변경내용은 `changes`를 공통 규칙으로 요약한다.
+- `UPDATED` 단일 필드: `병의원명 변경`
+- `UPDATED` 다중 필드: `병의원명 외 3개 변경`
+- `STATE_UPDATED`: `검수상태: 신청 → 승인`
+- 상태 변경에서 `검수상태 변경`, `조치유형 변경` 같은 문구를 action label로 만들지 않는다.
+- JSON 원본 값을 그대로 노출하지 않는다. 사람이 읽을 수 있는 값은 도메인 기록 액션에서 `before_display`, `after_display`로 저장한다.
+- 히스토리 페이지네이션 중 기존 목록 영역을 비우지 않는다. 일반 목록과 같은 loading state를 사용해 스크롤 튐을 막는다.
+
+## 11) 신규 도메인 적용 체크리스트
+
+신규 도메인에 운영 히스토리를 붙일 때 확인한다.
+
+- `OperationHistoryTargetRegistry`에 alias와 모델 class를 등록했는가?
+- 모델에 `operationHistories()` morphMany 관계가 필요한가?
+- 일반 수정은 도메인별 `*UpdateHistoryRecordAction`으로 분리했는가?
+- 상태 변경은 `STATE_UPDATED`로 기록했는가?
+- `field_label`에 `변경`, `수정`, `처리`를 붙이지 않았는가?
+- 상태값 라벨을 `before_display`, `after_display`로 저장했는가?
+- 변경값이 없을 때 불필요한 이력이 생기지 않는가?
+- 상세 화면에서 별도 페이지네이션이 필요하면 `*OperationHistoriesForStaffAction`을 추가했는가?

@@ -265,7 +265,7 @@ final class ContentReportCreateForUserAction
             actorKind: OperationHistory::ACTOR_KIND_SYSTEM,
             changes: OperationHistoryChangeSetBuilder::single(
                 key: 'status',
-                label: '노출여부 변경',
+                label: '노출여부',
                 before: $beforeStatus,
                 after: $status,
                 beforeDisplay: $this->visibilityLabel($beforeStatus),

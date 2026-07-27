@@ -82,7 +82,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
                 metadata: $metadata,
                 changes: OperationHistoryChangeSetBuilder::single(
                     key: 'warning_status',
-                    label: '경고여부 변경',
+                    label: '경고여부',
                     before: $beforeWarningStatus,
                     after: $warningStatus,
                     beforeDisplay: $metadata['before_label'],

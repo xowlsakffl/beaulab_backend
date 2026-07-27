@@ -131,8 +131,6 @@ final class CreateNotificationAction
         $allowed = [
             NotificationDelivery::CHANNEL_IN_APP,
             NotificationDelivery::CHANNEL_PUSH,
-            NotificationDelivery::CHANNEL_EMAIL,
-            NotificationDelivery::CHANNEL_WEB,
         ];
 
         return collect($channels)
@@ -140,7 +138,7 @@ final class CreateNotificationAction
             ->filter(fn (string $channel): bool => in_array($channel, $allowed, true))
             ->unique()
             ->values()
-            ->all() ?: [NotificationDelivery::CHANNEL_IN_APP];
+            ->all();
     }
 
     private function normalizeRequiredString(mixed $value): string

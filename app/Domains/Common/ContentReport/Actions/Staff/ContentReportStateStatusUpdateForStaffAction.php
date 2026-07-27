@@ -133,7 +133,7 @@ final class ContentReportStateStatusUpdateForStaffAction
 
             return [
                 'key' => 'admin_status',
-                'label' => '강제중지 변경',
+                'label' => '강제중지',
                 'before' => $before,
                 'after' => $after,
                 'before_display' => $this->videoReportTargetStatusDisplayLabel($before),
@@ -154,7 +154,7 @@ final class ContentReportStateStatusUpdateForStaffAction
 
         return [
             'key' => 'status',
-            'label' => '노출여부 변경',
+            'label' => '노출여부',
             'before' => $before,
             'after' => $after,
             'before_display' => $this->visibilityLabel($before),
@@ -176,7 +176,7 @@ final class ContentReportStateStatusUpdateForStaffAction
         $changesBuilder = OperationHistoryChangeSetBuilder::make()
             ->compare(
                 key: 'report_status',
-                label: $target instanceof HospitalVideo ? '신고상태 변경' : '조치유형 변경',
+                label: $target instanceof HospitalVideo ? '신고상태' : '조치유형',
                 before: $reportStatusBefore,
                 after: $reportStatusAfter,
                 beforeDisplay: $this->reportStatusDisplayLabel($target, $reportStatusBefore),

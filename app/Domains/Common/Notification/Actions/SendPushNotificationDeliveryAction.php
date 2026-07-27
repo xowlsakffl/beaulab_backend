@@ -198,11 +198,21 @@ final class SendPushNotificationDeliveryAction
 
         $error = $response->json('error') ?? ['status' => $response->status(), 'body' => $response->body()];
         $error = is_array($error) ? $error : ['body' => (string) $error];
+        $invalidToken = $this->isFcmInvalidToken($error);
+
+        Log::warning('FCM 푸시 발송 실패', [
+            'inbox_id' => $inbox->id,
+            'device_id' => $device->id,
+            'status' => $response->status(),
+            'error_status' => $error['status'] ?? null,
+            'error_code' => $error['code'] ?? null,
+            'invalid_token' => $invalidToken,
+        ]);
 
         return $this->failedResult(
             NotificationDelivery::PROVIDER_FCM,
             json_encode($error, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: 'FCM 발송 실패',
-            $this->isFcmInvalidToken($error)
+            $invalidToken
         );
     }
 
@@ -256,11 +266,20 @@ final class SendPushNotificationDeliveryAction
         }
 
         $reason = (string) ($response->json('reason') ?? $response->body());
+        $invalidToken = in_array($reason, ['BadDeviceToken', 'Unregistered'], true);
+
+        Log::warning('APNs 푸시 발송 실패', [
+            'inbox_id' => $inbox->id,
+            'device_id' => $device->id,
+            'status' => $response->status(),
+            'reason' => $reason !== '' ? mb_strimwidth($reason, 0, 500, '...') : null,
+            'invalid_token' => $invalidToken,
+        ]);
 
         return $this->failedResult(
             NotificationDelivery::PROVIDER_APNS,
             $reason !== '' ? $reason : 'APNs 발송 실패',
-            in_array($reason, ['BadDeviceToken', 'Unregistered'], true)
+            $invalidToken
         );
     }
 

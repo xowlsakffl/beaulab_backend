@@ -29,6 +29,11 @@ final class PasswordUpdateForStaffAction
         Gate::authorize('updateProfile', $staff);
 
         if (! Hash::check($filters['current_password'], $staff->password)) {
+            Log::warning('뷰랩 직원 비밀번호 변경 실패', [
+                'reason' => 'current_password_mismatch',
+                'staff_id' => $staff->id,
+            ]);
+
             throw new CustomException(
                 errorCode: ErrorCode::INVALID_REQUEST,
                 message: '현재 비밀번호가 올바르지 않습니다.',
@@ -36,11 +41,11 @@ final class PasswordUpdateForStaffAction
             );
         }
 
+        $this->query->update($staff, (string) $filters['password']);
+
         Log::info('뷰랩 직원 비밀번호 변경', [
             'staff_id' => $staff->id,
         ]);
-
-        $this->query->update($staff, (string) $filters['password']);
 
         return [
             'message' => 'Password updated',

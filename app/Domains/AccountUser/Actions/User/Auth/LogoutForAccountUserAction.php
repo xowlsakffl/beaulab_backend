@@ -21,12 +21,12 @@ final class LogoutForAccountUserAction
      */
     public function execute(?Authenticatable $actor): array
     {
+        $this->query->deleteCurrentToken($actor);
+
         Log::info('앱 사용자 로그아웃', [
             'actor_type' => $actor ? get_class($actor) : null,
             'actor_id' => $actor?->getAuthIdentifier(),
         ]);
-
-        $this->query->deleteCurrentToken($actor);
 
         return [
             'message' => '로그아웃됨',

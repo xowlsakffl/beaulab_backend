@@ -2,13 +2,12 @@
 
 namespace App\Domains\Hospital\Actions\Staff;
 
-use App\Domains\Common\Actions\Media\MediaAttachDeleteAction;
 use App\Domains\Common\Cache\Support\StaffSummaryCache;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalDeleteForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * HospitalDeleteForStaffAction 역할 정의.
@@ -24,10 +23,6 @@ final class HospitalDeleteForStaffAction
     public function execute(Hospital $hospital): array
     {
         Gate::authorize('delete', $hospital);
-
-        Log::info('병원 삭제(soft delete) 실행', [
-            'hospital_id' => $hospital->id,
-        ]);
 
         $result = DB::transaction(function () use ($hospital) {
             $this->mediaAttachAction->deleteCollectionMediaBulk($hospital, ['logo', 'gallery']);

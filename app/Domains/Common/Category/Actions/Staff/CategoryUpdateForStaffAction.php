@@ -11,7 +11,6 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * CategoryUpdateForStaffAction 역할 정의.
@@ -77,12 +76,6 @@ final class CategoryUpdateForStaffAction
 
             return $updatedCategory;
         });
-
-        Log::info('카테고리 수정', [
-            'category_id' => $updated->id,
-            'domain' => $updated->domain,
-            'name' => $updated->name,
-        ]);
 
         return [
             'category' => CategoryForStaffDto::fromModel($updated->load('iconMedia'))->toArray(),

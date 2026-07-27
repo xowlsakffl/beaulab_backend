@@ -9,7 +9,6 @@ use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * HospitalCreateForStaffAction 역할 정의.
@@ -30,10 +29,6 @@ final class HospitalCreateForStaffAction
     public function execute(array $filters): array
     {
         Gate::authorize('create', Hospital::class);
-
-        Log::info('병원 생성', [
-            'filters' => $filters,
-        ]);
 
         $hospital = DB::transaction(function () use ($filters) {
             $hospital = $this->query->create($filters);

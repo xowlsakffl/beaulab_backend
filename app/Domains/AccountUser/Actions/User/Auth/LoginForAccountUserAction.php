@@ -2,6 +2,7 @@
 
 namespace App\Domains\AccountUser\Actions\User\Auth;
 
+use App\Common\Exceptions\CustomException;
 use App\Domains\AccountUser\Dto\User\Auth\AccountUserForAccountUserDto;
 use App\Domains\AccountUser\Queries\User\Auth\LoginForAccountUserQuery;
 use Illuminate\Support\Facades\Log;
@@ -22,11 +23,20 @@ final class LoginForAccountUserAction
      */
     public function execute(array $filters): array
     {
-        Log::info('앱 사용자 로그인', [
-            'email' => $filters['email'] ?? null,
-        ]);
+        try {
+            $result = $this->query->login($filters);
+        } catch (CustomException $exception) {
+            Log::warning('앱 사용자 로그인 실패', [
+                'reason' => $exception->errorCode->value,
+                'email_hash' => hash('sha256', (string) ($filters['email'] ?? '')),
+            ]);
 
-        $result = $this->query->login($filters);
+            throw $exception;
+        }
+
+        Log::info('앱 사용자 로그인 성공', [
+            'user_id' => $result['user']->id,
+        ]);
 
         return [
             'token' => $result['token'],

@@ -23,12 +23,12 @@ final class ProfileUpdateForAccountBeautyAction
      */
     public function execute(AccountBeauty $beauty, array $filters): array
     {
+        $beauty = $this->query->update($beauty, $filters);
+
         Log::info('뷰티 프로필 수정', [
             'beauty_id' => $beauty->id,
             'keys' => array_keys($filters),
         ]);
-
-        $beauty = $this->query->update($beauty, $filters);
 
         return [
             'profile' => AccountBeautyForAccountBeautyDto::fromModel($beauty)->toArray(),

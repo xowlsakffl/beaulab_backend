@@ -2,14 +2,13 @@
 
 namespace App\Domains\Beauty\Actions\Staff;
 
-use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Beauty\Dto\Staff\BeautyForStaffDetailDto;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Beauty\Queries\Staff\BeautyUpdateForStaffQuery;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * BeautyUpdateForStaffAction 역할 정의.
@@ -30,10 +29,6 @@ final class BeautyUpdateForStaffAction
     public function execute(Beauty $beauty, array $payload): array
     {
         Gate::authorize('update', $beauty);
-
-        Log::info('뷰티업체 정보 수정 실행', [
-            'hospital_id' => $beauty->id,
-        ]);
 
         $updated = DB::transaction(function () use ($beauty, $payload) {
             $before = $this->historyRecordAction->capture($beauty);

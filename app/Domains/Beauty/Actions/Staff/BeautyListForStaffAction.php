@@ -7,7 +7,6 @@ use App\Domains\Beauty\Dto\Staff\BeautyForStaffDto;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Beauty\Queries\Staff\BeautyListForStaffQuery;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * BeautyListForStaffAction 역할 정의.
@@ -36,10 +35,6 @@ final class BeautyListForStaffAction
     public function execute(array $filters): array
     {
         Gate::authorize('viewAny', Beauty::class);
-
-        Log::info('뷰티업체 목록 조회 실행', [
-            'filters' => $filters,
-        ]);
 
         $paginator = $this->query->paginate($filters);
 

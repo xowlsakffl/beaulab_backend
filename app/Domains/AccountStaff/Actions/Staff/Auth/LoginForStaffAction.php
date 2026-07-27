@@ -2,6 +2,7 @@
 
 namespace App\Domains\AccountStaff\Actions\Staff\Auth;
 
+use App\Common\Exceptions\CustomException;
 use App\Domains\AccountStaff\Dto\Staff\AccountStaffForStaffDto;
 use App\Domains\AccountStaff\Queries\Staff\Auth\LoginForStaffQuery;
 use Illuminate\Support\Facades\Log;
@@ -22,11 +23,22 @@ final class LoginForStaffAction
      */
     public function execute(array $filters): array
     {
-        Log::info('뷰랩 직원 로그인', [
-            'nickname' => $filters['nickname'] ?? null,
-        ]);
+        try {
+            $result = $this->query->login($filters);
+        } catch (CustomException $exception) {
+            Log::warning('뷰랩 직원 로그인 실패', [
+                'reason' => $exception->errorCode->value,
+                'nickname_hash' => hash('sha256', (string) ($filters['nickname'] ?? '')),
+            ]);
 
-        $result = $this->query->login($filters);
+            throw $exception;
+        }
+
+        Log::info('뷰랩 직원 로그인 성공', [
+            'staff_id' => $result['staff']->id,
+            'nickname' => $result['staff']->nickname,
+            'keep_logged_in' => (bool) ($filters['keep_logged_in'] ?? false),
+        ]);
 
         return [
             'token' => $result['token'],

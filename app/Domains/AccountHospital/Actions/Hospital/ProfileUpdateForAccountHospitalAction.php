@@ -23,12 +23,12 @@ final class ProfileUpdateForAccountHospitalAction
      */
     public function execute(AccountHospital $hospital, array $filters): array
     {
+        $hospital = $this->query->update($hospital, $filters);
+
         Log::info('병원 프로필 수정', [
             'hospital_id' => $hospital->id,
             'keys' => array_keys($filters),
         ]);
-
-        $hospital = $this->query->update($hospital, $filters);
 
         return [
             'profile' => AccountHospitalForAccountHospitalDto::fromModel($hospital)->toArray(),

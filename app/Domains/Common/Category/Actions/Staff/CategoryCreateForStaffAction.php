@@ -11,7 +11,6 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * CategoryCreateForStaffAction 역할 정의.
@@ -89,13 +88,6 @@ final class CategoryCreateForStaffAction
 
             return $created;
         });
-
-        Log::info('카테고리 생성', [
-            'category_id' => $category->id,
-            'domain' => $category->domain,
-            'name' => $category->name,
-            'depth' => $category->depth,
-        ]);
 
         return [
             'category' => CategoryForStaffDto::fromModel($category->load('iconMedia'))->toArray(),

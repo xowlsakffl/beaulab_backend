@@ -8,7 +8,6 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Queries\Staff\CategoryDeleteForStaffQuery;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * CategoryDeleteForStaffAction 역할 정의.
@@ -39,11 +38,6 @@ final class CategoryDeleteForStaffAction
 
         $this->mediaAttachAction->deleteCollectionMedia($category, 'icon');
         $this->query->delete($category);
-
-        Log::info('카테고리 삭제', [
-            'category_id' => $category->id,
-            'domain' => $category->domain,
-        ]);
 
         return [
             'deleted_id' => (int) $category->id,

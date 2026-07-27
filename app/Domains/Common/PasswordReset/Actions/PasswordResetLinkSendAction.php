@@ -36,6 +36,11 @@ final class PasswordResetLinkSendAction
 
         $throttleSeconds = PasswordResetActor::throttleSeconds($actor);
         if ($this->tokenQuery->recentlyCreated($actor, $email, $throttleSeconds)) {
+            Log::info('비밀번호 재설정 링크 요청 제한', [
+                'actor' => $actor,
+                'email_hash' => hash('sha256', $email),
+            ]);
+
             return ['message' => $message];
         }
 

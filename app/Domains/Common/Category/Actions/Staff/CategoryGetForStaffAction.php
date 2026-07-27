@@ -6,7 +6,6 @@ use App\Domains\Common\Category\Dto\Staff\CategoryForStaffDto;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Queries\Staff\CategoryGetForStaffQuery;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * CategoryGetForStaffAction 역할 정의.
@@ -24,11 +23,6 @@ final class CategoryGetForStaffAction
     public function execute(Category $category, array $include = []): array
     {
         Gate::authorize('view', $category);
-
-        Log::info('카테고리 단건 조회', [
-            'category_id' => $category->id,
-            'include' => $include,
-        ]);
 
         $detail = $this->query->get($category, $include);
 

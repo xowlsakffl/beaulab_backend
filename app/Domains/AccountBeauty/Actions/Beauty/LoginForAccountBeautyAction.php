@@ -2,6 +2,7 @@
 
 namespace App\Domains\AccountBeauty\Actions\Beauty;
 
+use App\Common\Exceptions\CustomException;
 use App\Domains\AccountBeauty\Dto\Beauty\AccountBeautyForAccountBeautyDto;
 use App\Domains\AccountBeauty\Queries\Beauty\LoginForAccountBeautyQuery;
 use Illuminate\Support\Facades\Log;
@@ -22,11 +23,21 @@ final class LoginForAccountBeautyAction
      */
     public function execute(array $filters): array
     {
-        Log::info('뷰티 로그인', [
-            'nickname' => $filters['nickname'] ?? null,
-        ]);
+        try {
+            $result = $this->query->login($filters);
+        } catch (CustomException $exception) {
+            Log::warning('뷰티 로그인 실패', [
+                'reason' => $exception->errorCode->value,
+                'nickname_hash' => hash('sha256', (string) ($filters['nickname'] ?? '')),
+            ]);
 
-        $result = $this->query->login($filters);
+            throw $exception;
+        }
+
+        Log::info('뷰티 로그인 성공', [
+            'beauty_id' => $result['beauty']->id,
+            'nickname' => $result['beauty']->nickname,
+        ]);
 
         return [
             'token' => $result['token'],

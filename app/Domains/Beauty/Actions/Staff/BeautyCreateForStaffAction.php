@@ -8,7 +8,6 @@ use App\Domains\Beauty\Queries\Staff\BeautyCreateForStaffQuery;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * BeautyCreateForStaffAction 역할 정의.
@@ -29,10 +28,6 @@ final class BeautyCreateForStaffAction
     public function execute(array $filters): array
     {
         Gate::authorize('create', Beauty::class);
-
-        Log::info('뷰티 생성', [
-            'filters' => $filters,
-        ]);
 
         $beauty = DB::transaction(function () use ($filters) {
             $beauty = $this->query->create([

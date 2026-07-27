@@ -7,7 +7,6 @@ use App\Domains\Beauty\Queries\Staff\BeautyDeleteForStaffQuery;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 /**
  * BeautyDeleteForStaffAction 역할 정의.
@@ -23,10 +22,6 @@ final class BeautyDeleteForStaffAction
     public function execute(Beauty $beauty): array
     {
         Gate::authorize('delete', $beauty);
-
-        Log::info('뷰티업체 삭제(soft delete) 실행', [
-            'beauty_id' => $beauty->id,
-        ]);
 
         return DB::transaction(function () use ($beauty) {
             $this->mediaAttachAction->deleteCollectionMediaBulk($beauty, ['logo', 'gallery']);

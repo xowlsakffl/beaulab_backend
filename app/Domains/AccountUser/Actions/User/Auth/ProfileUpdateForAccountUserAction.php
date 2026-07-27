@@ -23,12 +23,12 @@ final class ProfileUpdateForAccountUserAction
      */
     public function execute(AccountUser $user, array $filters): array
     {
+        $user = $this->query->update($user, $filters);
+
         Log::info('앱 사용자 프로필 수정', [
             'user_id' => $user->id,
             'keys' => array_keys($filters),
         ]);
-
-        $user = $this->query->update($user, $filters);
 
         return [
             'profile' => AccountUserForAccountUserDto::fromModel($user)->toArray(),

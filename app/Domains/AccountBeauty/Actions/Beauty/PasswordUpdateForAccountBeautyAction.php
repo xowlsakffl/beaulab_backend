@@ -26,6 +26,11 @@ final class PasswordUpdateForAccountBeautyAction
     public function execute(AccountBeauty $beauty, array $filters): array
     {
         if (! Hash::check($filters['current_password'], $beauty->password)) {
+            Log::warning('뷰티 비밀번호 변경 실패', [
+                'reason' => 'current_password_mismatch',
+                'beauty_id' => $beauty->id,
+            ]);
+
             throw new CustomException(
                 errorCode: ErrorCode::INVALID_REQUEST,
                 message: '현재 비밀번호가 올바르지 않습니다.',
@@ -33,11 +38,11 @@ final class PasswordUpdateForAccountBeautyAction
             );
         }
 
+        $this->query->update($beauty, (string) $filters['password']);
+
         Log::info('뷰티 비밀번호 변경', [
             'beauty_id' => $beauty->id,
         ]);
-
-        $this->query->update($beauty, (string) $filters['password']);
 
         return [
             'message' => '비밀번호가 변경되었습니다.',

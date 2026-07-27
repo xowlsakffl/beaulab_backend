@@ -21,12 +21,12 @@ final class LogoutForStaffAction
      */
     public function execute(?Authenticatable $actor): array
     {
-        Log::info('스태프 로그아웃', [
-            'actor_type' => get_class($actor),
-            'actor_id' => $actor->getAuthIdentifier(),
-        ]);
-
         $this->query->deleteCurrentToken($actor);
+
+        Log::info('스태프 로그아웃', [
+            'actor_type' => $actor ? get_class($actor) : null,
+            'actor_id' => $actor?->getAuthIdentifier(),
+        ]);
 
         return [
             'message' => '로그아웃됨',

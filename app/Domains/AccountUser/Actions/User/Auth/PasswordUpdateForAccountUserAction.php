@@ -26,6 +26,11 @@ final class PasswordUpdateForAccountUserAction
     public function execute(AccountUser $user, array $filters): array
     {
         if (! Hash::check($filters['current_password'], $user->password)) {
+            Log::warning('앱 사용자 비밀번호 변경 실패', [
+                'reason' => 'current_password_mismatch',
+                'user_id' => $user->id,
+            ]);
+
             throw new CustomException(
                 errorCode: ErrorCode::INVALID_REQUEST,
                 message: '현재 비밀번호가 올바르지 않습니다.',
@@ -33,11 +38,11 @@ final class PasswordUpdateForAccountUserAction
             );
         }
 
+        $this->query->update($user, (string) $filters['password']);
+
         Log::info('앱 사용자 비밀번호 변경', [
             'user_id' => $user->id,
         ]);
-
-        $this->query->update($user, (string) $filters['password']);
 
         return [
             'message' => 'Password updated',

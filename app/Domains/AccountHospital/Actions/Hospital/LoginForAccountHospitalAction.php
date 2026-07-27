@@ -2,6 +2,7 @@
 
 namespace App\Domains\AccountHospital\Actions\Hospital;
 
+use App\Common\Exceptions\CustomException;
 use App\Domains\AccountHospital\Dto\Hospital\AccountHospitalForAccountHospitalDto;
 use App\Domains\AccountHospital\Queries\Hospital\LoginForAccountHospitalQuery;
 use Illuminate\Support\Facades\Log;
@@ -22,11 +23,21 @@ final class LoginForAccountHospitalAction
      */
     public function execute(array $filters): array
     {
-        Log::info('병원 로그인', [
-            'nickname' => $filters['nickname'] ?? null,
-        ]);
+        try {
+            $result = $this->query->login($filters);
+        } catch (CustomException $exception) {
+            Log::warning('병원 로그인 실패', [
+                'reason' => $exception->errorCode->value,
+                'nickname_hash' => hash('sha256', (string) ($filters['nickname'] ?? '')),
+            ]);
 
-        $result = $this->query->login($filters);
+            throw $exception;
+        }
+
+        Log::info('병원 로그인 성공', [
+            'hospital_id' => $result['hospital']->id,
+            'nickname' => $result['hospital']->nickname,
+        ]);
 
         return [
             'token' => $result['token'],

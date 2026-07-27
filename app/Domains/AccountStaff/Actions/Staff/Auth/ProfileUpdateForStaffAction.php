@@ -25,12 +25,12 @@ final class ProfileUpdateForStaffAction
     {
         Gate::authorize('updateProfile', $staff);
 
+        $staff = $this->query->update($staff, $filters);
+
         Log::info('뷰랩 직원 프로필 수정', [
             'staff_id' => $staff->id,
             'keys' => array_keys($filters),
         ]);
-
-        $staff = $this->query->update($staff, $filters);
 
         return [
             'profile' => AccountStaffForStaffDto::fromModel($staff)->toArray(),

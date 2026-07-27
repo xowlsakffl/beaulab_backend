@@ -50,6 +50,12 @@ final class DeveloperToolAuthController
         ];
 
         if (! Auth::guard('tool_staff')->attempt($credentials)) {
+            Log::warning('내부도구 로그인 실패', [
+                'reason' => 'invalid_credentials',
+                'nickname_hash' => hash('sha256', $credentials['nickname']),
+                'ip' => $request->ip(),
+            ]);
+
             return back()
                 ->withErrors(['nickname' => '아이디 또는 비밀번호가 일치하지 않습니다.'])
                 ->onlyInput('nickname');
@@ -60,10 +66,22 @@ final class DeveloperToolAuthController
         $staff = Auth::guard('tool_staff')->user();
 
         if (! $staff instanceof AccountStaff || ! $staff->isActive()) {
+            Log::warning('내부도구 로그인 거부', [
+                'reason' => 'inactive_account',
+                'staff_id' => $staff instanceof AccountStaff ? $staff->id : null,
+                'ip' => $request->ip(),
+            ]);
+
             return $this->logoutWithError($request, '비활성화된 계정입니다.');
         }
 
         if (! Gate::forUser($staff)->allows('viewTool')) {
+            Log::warning('내부도구 로그인 거부', [
+                'reason' => 'permission_denied',
+                'staff_id' => $staff->id,
+                'ip' => $request->ip(),
+            ]);
+
             return $this->logoutWithError($request, '내부도구 접근 권한이 없습니다.');
         }
 

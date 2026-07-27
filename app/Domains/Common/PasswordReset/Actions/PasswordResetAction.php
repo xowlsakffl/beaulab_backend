@@ -29,6 +29,12 @@ final class PasswordResetAction
             $account = PasswordResetActor::findAccountByEmail($actor, $email);
 
             if (! $account || ! PasswordResetActor::canResetPassword($account)) {
+                Log::warning('비밀번호 재설정 실패', [
+                    'actor' => $actor,
+                    'reason' => 'account_unavailable',
+                    'email_hash' => hash('sha256', $email),
+                ]);
+
                 throw $this->invalidTokenException();
             }
 
@@ -40,6 +46,12 @@ final class PasswordResetAction
             );
 
             if (! $isValidToken) {
+                Log::warning('비밀번호 재설정 실패', [
+                    'actor' => $actor,
+                    'reason' => 'invalid_or_expired_token',
+                    'account_id' => $account->getKey(),
+                ]);
+
                 throw $this->invalidTokenException();
             }
 

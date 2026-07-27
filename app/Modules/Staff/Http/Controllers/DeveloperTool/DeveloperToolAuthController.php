@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 /**
- * ToolAuthController 역할 정의.
- * 스태프 모듈의 HTTP 컨트롤러로, 라우트 요청을 받아 Request 검증 결과와 Action 실행 결과를 API 응답으로 연결한다.
+ * 내부도구 웹 로그인과 허브 화면을 처리한다.
  */
 final class DeveloperToolAuthController
 {

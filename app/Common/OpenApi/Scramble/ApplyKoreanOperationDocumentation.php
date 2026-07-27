@@ -44,6 +44,7 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'hospital-review-comments' => '병의원 후기 댓글',
         'hospital-evaluations' => '병의원 평가',
         'hospital-events' => '병의원 이벤트',
+        'hospital-event-ads' => '이벤트 광고',
         'hospital-event-dbs' => '이벤트 DB',
         'hospital-event-real-model-dbs' => '리얼모델 DB',
         'talks' => '토크',
@@ -53,6 +54,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'chats' => '채팅',
         'blocks' => '차단 사용자',
         'notifications' => '알림',
+        'navigation-badges' => '메뉴 신규 표시',
+        'reported-contents' => '신고게시물',
     ];
 
     /**
@@ -217,8 +220,14 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         }
 
         $segments = $this->segments($path);
-        $resource = $this->resourceLabel($segments);
         $method = strtolower($operation->method);
+        $patternSummary = $this->patternSummary($segments, $method);
+
+        if ($patternSummary !== null) {
+            return $patternSummary;
+        }
+
+        $resource = $this->resourceLabel($segments);
 
         if ($method === 'get') {
             return $this->hasRouteParameter($segments)
@@ -241,6 +250,120 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         return "{$resource} 생성";
     }
 
+    /**
+     * @param  array<int, string>  $segments
+     */
+    private function patternSummary(array $segments, string $method): ?string
+    {
+        $actor = self::ACTOR_LABELS[$segments[0] ?? ''] ?? 'API 사용자';
+        $resource = $segments[1] ?? null;
+        $last = $segments[array_key_last($segments)] ?? null;
+
+        if ($resource === 'auth') {
+            if (($segments[2] ?? null) === 'password-reset-link') {
+                return "{$actor} 비밀번호 재설정 링크 발송";
+            }
+
+            if (($segments[2] ?? null) === 'password-reset' && ($segments[3] ?? null) === 'verify') {
+                return "{$actor} 비밀번호 재설정 링크 검증";
+            }
+
+            if (($segments[2] ?? null) === 'password-reset') {
+                return "{$actor} 비밀번호 재설정";
+            }
+        }
+
+        if ($resource === 'reported-contents') {
+            return $this->reportedContentSummary($segments, $method);
+        }
+
+        if ($method === 'post' && $last === 'reports') {
+            return $this->reportTargetLabel($segments).' 신고';
+        }
+
+        if ($last === 'summary') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 집계 조회';
+        }
+
+        if ($last === 'operation-histories') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 히스토리 조회';
+        }
+
+        if ($last === 'allow-status') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 검수상태 변경';
+        }
+
+        if ($last === 'admin-status') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 강제중지 상태 변경';
+        }
+
+        if ($last === 'hospital-status') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 공개여부 변경';
+        }
+
+        if ($last === 'warning-status') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 경고여부 변경';
+        }
+
+        if ($last === 'status') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 상태 변경';
+        }
+
+        if ($last === 'period') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 기간 수정';
+        }
+
+        if ($last === 'duplicate') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 복제';
+        }
+
+        if ($last === 'calendar') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 현황 달력 조회';
+        }
+
+        if ($last === 'availability') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 예약 가능 구좌 조회';
+        }
+
+        if ($last === 'placements') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 위치 옵션 조회';
+        }
+
+        if ($last === 'category-filter-options') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 필터 카테고리 옵션 조회';
+        }
+
+        if ($last === 'hospital-options') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 병의원 선택 옵션 조회';
+        }
+
+        if ($last === 'doctor-options') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 의료진 선택 옵션 조회';
+        }
+
+        if ($last === 'read-all') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 전체 읽음 처리';
+        }
+
+        if ($last === 'unread-count') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 읽지 않은 수 조회';
+        }
+
+        if ($last === 'read') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 읽음 처리';
+        }
+
+        if ($last === 'revoke') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 해제';
+        }
+
+        if ($last === 'poll-votes') {
+            return $this->resourceLabel($this->withoutLast($segments)).' 투표';
+        }
+
+        return null;
+    }
+
     private function description(Operation $operation, string $path, string $summary): string
     {
         $segments = $this->segments($path);
@@ -257,6 +380,110 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         $resource = $this->resourceLabel($segments);
 
         return "{$actor} / {$resource}";
+    }
+
+    /**
+     * @param  array<int, string>  $segments
+     */
+    private function reportedContentSummary(array $segments, string $method): string
+    {
+        $last = $segments[array_key_last($segments)] ?? null;
+
+        if (($segments[2] ?? null) === 'detail') {
+            return '신고게시물 상세 조회';
+        }
+
+        if ($last === 'reports') {
+            return '신고내역 조회';
+        }
+
+        if ($last === 'process') {
+            return '신고게시물 조치 처리';
+        }
+
+        if ($last === 'status') {
+            return '신고게시물 노출상태 변경';
+        }
+
+        if ($last === 'warning-status') {
+            return '신고게시물 경고여부 변경';
+        }
+
+        $label = $this->reportedContentLabel($segments);
+
+        if ($last === 'summary') {
+            return "{$label} 집계 조회";
+        }
+
+        return $method === 'get'
+            ? "{$label} 목록 조회"
+            : "{$label} 수정";
+    }
+
+    /**
+     * @param  array<int, string>  $segments
+     */
+    private function reportedContentLabel(array $segments): string
+    {
+        $target = $segments[2] ?? null;
+        $category = $segments[3] ?? null;
+
+        return match ($target) {
+            'chats' => '신고 채팅',
+            'hospital-evaluations' => '신고 병의원 평가',
+            'hospital-review-comments' => match ($category) {
+                'surgery' => '신고 성형후기 댓글',
+                'treatment' => '신고 쁘띠후기 댓글',
+                default => '신고 후기 댓글',
+            },
+            'hospital-reviews' => match ($category) {
+                'surgery' => '신고 성형후기',
+                'treatment' => '신고 쁘띠후기',
+                default => '신고 후기',
+            },
+            'talk-comments' => '신고 토크 댓글',
+            'talks' => '신고 토크',
+            'videos' => '신고 동영상',
+            default => '신고게시물',
+        };
+    }
+
+    /**
+     * @param  array<int, string>  $segments
+     */
+    private function reportTargetLabel(array $segments): string
+    {
+        $resource = $segments[1] ?? null;
+
+        if ($resource === 'chats') {
+            return '채팅 메시지';
+        }
+
+        if ($resource === 'hospital-evaluations') {
+            return '병의원 평가';
+        }
+
+        if ($resource === 'hospital-reviews' && in_array('comments', $segments, true)) {
+            return '후기 댓글';
+        }
+
+        if ($resource === 'hospital-reviews') {
+            return '후기';
+        }
+
+        if ($resource === 'talks' && in_array('comments', $segments, true)) {
+            return '토크 댓글';
+        }
+
+        if ($resource === 'talks') {
+            return '토크';
+        }
+
+        if ($resource === 'videos') {
+            return '동영상';
+        }
+
+        return $this->resourceLabel($segments);
     }
 
     /**
@@ -283,6 +510,17 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         }
 
         return self::RESOURCE_LABELS[$resource] ?? str_replace('-', ' ', $resource);
+    }
+
+    /**
+     * @param  array<int, string>  $segments
+     * @return array<int, string>
+     */
+    private function withoutLast(array $segments): array
+    {
+        array_pop($segments);
+
+        return array_values($segments);
     }
 
     /**
@@ -334,11 +572,17 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
             'hospital' => '병의원 ID',
             'hospitalEntry' => '입점신청 ID',
             'hospitalEvaluation' => '병의원 평가 ID',
+            'hospitalEvent' => '병의원 이벤트 ID',
+            'hospitalEventAd' => '이벤트 광고 ID',
+            'hospitalEventDB' => '이벤트 DB ID',
+            'hospitalEventRealModelDB' => '리얼모델 DB ID',
+            'hospitalReview' => '병의원 후기 ID',
             'beauty' => '뷰티업체 ID',
             'doctor' => '의사 ID',
             'expert' => '뷰티전문가 ID',
             'video' => '동영상 ID',
             'talk' => '토크 ID',
+            'comment' => '댓글 ID',
             'faq' => 'FAQ ID',
             'notice' => '공지사항 ID',
             'category' => '카테고리 ID',
@@ -348,6 +592,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
             'note' => '관리자 메모 ID',
             'notificationInbox' => '알림함 ID',
             'blockedUserId' => '차단 대상 사용자 ID',
+            'targetType' => '신고 대상 타입',
+            'targetId' => '신고 대상 ID',
         ][$name] ?? null;
     }
 }

@@ -19,7 +19,6 @@ use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
 final class NavigationBadgeListForStaffQuery
 {
@@ -29,7 +28,7 @@ final class NavigationBadgeListForStaffQuery
      */
     public function counts(array $paths): array
     {
-        $counts = [];
+        $counts = array_fill_keys($paths, 0);
 
         foreach ($paths as $path) {
             $counts[$path] = match ($path) {
@@ -44,21 +43,11 @@ final class NavigationBadgeListForStaffQuery
                     ->count(),
                 '/ads-manage/events' => $this->countPendingAllowStatus(HospitalEvent::query(), HospitalEvent::ALLOW_PENDING),
                 '/ads-manage/event-ads' => $this->countPendingAllowStatus(HospitalEventAd::query(), HospitalEventAd::ALLOW_PENDING),
-                '/reported-post-manage/surgery-reviews' => $this->countReportedHospitalReviews(HospitalReview::CATEGORY_DOMAIN_SURGERY),
-                '/reported-post-manage/treatment-reviews' => $this->countReportedHospitalReviews(HospitalReview::CATEGORY_DOMAIN_TREATMENT),
-                '/reported-post-manage/talks' => $this->countReportedTargets([
-                    Talk::class,
-                    TalkComment::class,
-                ]),
-                '/reported-post-manage/hospital-evaluations' => $this->countReportedTargets([
-                    HospitalEvaluation::class,
-                ]),
-                '/reported-post-manage/chats' => $this->countReportedTargets([
-                    ChatMessage::class,
-                ]),
-                default => 0,
+                default => $counts[$path],
             };
         }
+
+        $this->applyReportedContentCounts($counts, $paths);
 
         return $counts;
     }
@@ -70,52 +59,103 @@ final class NavigationBadgeListForStaffQuery
             ->count();
     }
 
-    private function countReportedHospitalReviews(string $categoryDomain): int
-    {
-        return $this->countReportedTargets([
-            HospitalReview::class,
-            HospitalReviewComment::class,
-        ], $categoryDomain);
-    }
-
     /**
-     * @param  list<class-string<Model>>  $targetClasses
+     * @param  array<string, int>  $counts
+     * @param  list<string>  $paths
      */
-    private function countReportedTargets(array $targetClasses, ?string $categoryDomain = null): int
+    private function applyReportedContentCounts(array &$counts, array $paths): void
     {
-        $total = 0;
+        $requestedPaths = array_fill_keys($paths, true);
+        $targetTypesByPath = [
+            '/reported-post-manage/talks' => [Talk::class, TalkComment::class],
+            '/reported-post-manage/hospital-evaluations' => [HospitalEvaluation::class],
+            '/reported-post-manage/chats' => [ChatMessage::class],
+        ];
+        $requestedTargetTypes = [];
 
-        foreach ($targetClasses as $targetClass) {
-            $query = ContentReportState::query()
-                ->where('target_type', $targetClass)
-                ->where('report_status', ContentReportState::STATUS_REPORTED);
-
-            if ($categoryDomain !== null) {
-                $this->applyHospitalReviewCategoryDomain($query, $targetClass, $categoryDomain);
+        foreach ($targetTypesByPath as $path => $targetTypes) {
+            if (! isset($requestedPaths[$path])) {
+                continue;
             }
 
-            $total += $query->count();
+            array_push($requestedTargetTypes, ...$targetTypes);
         }
 
-        return $total;
-    }
+        if ($requestedTargetTypes !== []) {
+            $countsByTargetType = ContentReportState::query()
+                ->selectRaw('target_type, COUNT(*) AS aggregate')
+                ->whereIn('target_type', $requestedTargetTypes)
+                ->where('report_status', ContentReportState::STATUS_REPORTED)
+                ->groupBy('target_type')
+                ->pluck('aggregate', 'target_type');
 
-    /**
-     * @param  class-string<Model>  $targetClass
-     */
-    private function applyHospitalReviewCategoryDomain(Builder $query, string $targetClass, string $categoryDomain): void
-    {
-        if ($targetClass === HospitalReview::class) {
-            $query->whereHasMorph('target', [$targetClass], fn (Builder $targetQuery) => $targetQuery
-                ->where('category_domain', $categoryDomain));
+            foreach ($targetTypesByPath as $path => $targetTypes) {
+                if (! isset($requestedPaths[$path])) {
+                    continue;
+                }
 
+                $counts[$path] = array_sum(array_map(
+                    static fn (string $targetType): int => (int) ($countsByTargetType[$targetType] ?? 0),
+                    $targetTypes,
+                ));
+            }
+        }
+
+        $reviewPaths = [
+            HospitalReview::CATEGORY_DOMAIN_SURGERY => '/reported-post-manage/surgery-reviews',
+            HospitalReview::CATEGORY_DOMAIN_TREATMENT => '/reported-post-manage/treatment-reviews',
+        ];
+
+        if (! array_intersect($paths, array_values($reviewPaths))) {
             return;
         }
 
-        if ($targetClass === HospitalReviewComment::class) {
-            $query->whereHasMorph('target', [$targetClass], fn (Builder $targetQuery) => $targetQuery
-                ->whereHas('review', fn (Builder $reviewQuery) => $reviewQuery
-                    ->where('category_domain', $categoryDomain)));
+        $reviewCounts = $this->reportedHospitalReviewCounts();
+        $commentCounts = $this->reportedHospitalReviewCommentCounts();
+
+        foreach ($reviewPaths as $categoryDomain => $path) {
+            if (! isset($requestedPaths[$path])) {
+                continue;
+            }
+
+            $counts[$path] = (int) ($reviewCounts[$categoryDomain] ?? 0)
+                + (int) ($commentCounts[$categoryDomain] ?? 0);
         }
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function reportedHospitalReviewCounts(): array
+    {
+        return ContentReportState::query()
+            ->join('hospital_reviews', 'hospital_reviews.id', '=', 'content_report_states.target_id')
+            ->where('content_report_states.target_type', HospitalReview::class)
+            ->where('content_report_states.report_status', ContentReportState::STATUS_REPORTED)
+            ->whereNull('hospital_reviews.deleted_at')
+            ->selectRaw('hospital_reviews.category_domain, COUNT(*) AS aggregate')
+            ->groupBy('hospital_reviews.category_domain')
+            ->pluck('aggregate', 'hospital_reviews.category_domain')
+            ->map(static fn ($count): int => (int) $count)
+            ->all();
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function reportedHospitalReviewCommentCounts(): array
+    {
+        return ContentReportState::query()
+            ->join('hospital_review_comments', 'hospital_review_comments.id', '=', 'content_report_states.target_id')
+            ->join('hospital_reviews', 'hospital_reviews.id', '=', 'hospital_review_comments.hospital_review_id')
+            ->where('content_report_states.target_type', HospitalReviewComment::class)
+            ->where('content_report_states.report_status', ContentReportState::STATUS_REPORTED)
+            ->whereNull('hospital_review_comments.deleted_at')
+            ->whereNull('hospital_reviews.deleted_at')
+            ->selectRaw('hospital_reviews.category_domain, COUNT(*) AS aggregate')
+            ->groupBy('hospital_reviews.category_domain')
+            ->pluck('aggregate', 'hospital_reviews.category_domain')
+            ->map(static fn ($count): int => (int) $count)
+            ->all();
     }
 }

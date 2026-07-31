@@ -4,6 +4,7 @@ namespace App\Domains\Common\Media\Actions;
 
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\Media\Queries\MediaAttachDeleteQuery;
+use App\Domains\Common\Media\Services\MediaStorage;
 use App\Domains\Common\Media\Services\MediaVariantGenerator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -18,6 +19,7 @@ final class MediaAttachDeleteAction
     public function __construct(
         private readonly MediaAttachDeleteQuery $query,
         private readonly MediaVariantGenerator $variantGenerator,
+        private readonly MediaStorage $mediaStorage,
     ) {}
 
     public function attachOne(
@@ -109,8 +111,12 @@ final class MediaAttachDeleteAction
         bool $isPrimary,
         int $sortOrder,
     ): Media {
-        $disk = 'public';
-        $path = Storage::disk($disk)->putFile($dir, $file);
+        $disk = $this->mediaStorage->uploadDisk();
+        $path = Storage::disk($disk)->putFile($dir, $file, $this->mediaStorage->publicWriteOptions());
+
+        if (! is_string($path) || $path === '') {
+            throw new \RuntimeException('Media upload failed.');
+        }
 
         [$w, $h] = $this->imageSize($file);
         $mimeType = $file->getMimeType();

@@ -13,6 +13,10 @@ final class MediaVariantGenerator
         'medium' => ['max_width' => 960, 'max_height' => 960],
     ];
 
+    public function __construct(
+        private readonly MediaStorage $mediaStorage,
+    ) {}
+
     /**
      * @return array<string, array{path:string,mime_type:string,size:int,width:int,height:int}>
      */
@@ -51,7 +55,27 @@ final class MediaVariantGenerator
                     continue;
                 }
 
-                Storage::disk($disk)->put($variant['path'], $variant['contents']);
+                if ($this->shouldUseOriginal(
+                    sourceSize: strlen($contents),
+                    variantSize: strlen($variant['contents']),
+                    sourceWidth: $width,
+                    sourceHeight: $height,
+                    maxWidth: $config['max_width'],
+                    maxHeight: $config['max_height'],
+                )) {
+                    continue;
+                }
+
+                $stored = Storage::disk($disk)->put(
+                    $variant['path'],
+                    $variant['contents'],
+                    $this->mediaStorage->publicWriteOptions(),
+                );
+
+                if (! $stored) {
+                    continue;
+                }
+
                 $variants[$name] = [
                     'path' => $variant['path'],
                     'mime_type' => (string) $mimeType,
@@ -67,6 +91,21 @@ final class MediaVariantGenerator
         } catch (\Throwable) {
             return [];
         }
+    }
+
+    private function shouldUseOriginal(
+        int $sourceSize,
+        int $variantSize,
+        int $sourceWidth,
+        int $sourceHeight,
+        int $maxWidth,
+        int $maxHeight,
+    ): bool {
+        if ($variantSize < $sourceSize) {
+            return false;
+        }
+
+        return $sourceWidth <= $maxWidth * 2 && $sourceHeight <= $maxHeight * 2;
     }
 
     private function canGenerate(?string $mimeType): bool

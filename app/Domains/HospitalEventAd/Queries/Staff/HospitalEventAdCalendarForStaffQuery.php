@@ -7,6 +7,7 @@ use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache;
 use App\Domains\HospitalEventAd\Support\HospitalEventAdSalesDeadline;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
 final class HospitalEventAdCalendarForStaffQuery
@@ -34,9 +35,29 @@ final class HospitalEventAdCalendarForStaffQuery
     private function uncachedCalendar(string $group, ?int $categoryId, Carbon $month): array
     {
         $days = [];
+        $placements = $this->placements($group, $categoryId);
+        $startAtsByPlacement = [];
+        $allStartAts = [];
 
-        foreach ($this->placements($group, $categoryId) as $placement) {
-            foreach ($this->placementWeeks($placement, $categoryId, $month) as $week) {
+        foreach ($placements as $placement) {
+            $startAtsByPlacement[$placement] = $this->placementStartAts($placement, $month);
+            array_push($allStartAts, ...$startAtsByPlacement[$placement]);
+        }
+
+        $reservedAds = $this->slotQuery->reservedAdsForSlots(
+            $placements,
+            $categoryId,
+            $allStartAts,
+            allowStatuses: [HospitalEventAd::ALLOW_APPROVED],
+        );
+        $adsBySlot = [];
+
+        foreach ($reservedAds as $ad) {
+            $adsBySlot[$this->slotKey((string) $ad->placement, $ad->start_at)][] = $ad;
+        }
+
+        foreach ($startAtsByPlacement as $placement => $startAts) {
+            foreach ($this->placementWeeks($placement, $categoryId, $startAts, $adsBySlot) as $week) {
                 $date = (string) $week['date'];
                 $day = $days[$date] ?? [
                     'date' => $date,
@@ -92,41 +113,52 @@ final class HospitalEventAdCalendarForStaffQuery
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function placementWeeks(string $placement, ?int $categoryId, Carbon $month): array
+    private function placementWeeks(string $placement, ?int $categoryId, array $startAts, array $adsBySlot): array
     {
         $weeks = [];
+
+        foreach ($startAts as $startAt) {
+            $ads = new Collection($adsBySlot[$this->slotKey($placement, $startAt)] ?? []);
+            $weeks[] = $this->weekStatus($placement, $categoryId, $startAt, $ads);
+        }
+
+        return $weeks;
+    }
+
+    /**
+     * @return list<Carbon>
+     */
+    private function placementStartAts(string $placement, Carbon $month): array
+    {
+        $startAts = [];
         $cursor = $month->copy()->startOfMonth();
         $endOfMonth = $month->copy()->endOfMonth();
         $startDayOfWeek = HospitalEventAd::startDayOfWeek($placement);
 
         while ($cursor->lte($endOfMonth)) {
             if ($cursor->dayOfWeek === $startDayOfWeek) {
-                $weeks[] = $this->weekStatus($placement, $categoryId, $cursor);
+                $startAts[] = $cursor->copy()->setTime(11, 0, 0);
             }
 
             $cursor->addDay();
         }
 
-        return $weeks;
+        return $startAts;
     }
 
-    private function weekStatus(string $placement, ?int $categoryId, Carbon $date): array
+    /**
+     * @param  Collection<int, HospitalEventAd>  $ads
+     */
+    private function weekStatus(string $placement, ?int $categoryId, Carbon $startAt, Collection $ads): array
     {
-        $startAt = $date->copy()->setTime(11, 0, 0);
-        $ads = $this->slotQuery->reservedAds(
-            $placement,
-            HospitalEventAd::requiresCategory($placement) ? $categoryId : null,
-            $startAt,
-            allowStatuses: [HospitalEventAd::ALLOW_APPROVED],
-        );
         $reservedCount = $ads->count();
         $slotLimit = $this->slotLimit($placement, $categoryId);
         $remainingCount = max(0, $slotLimit - $reservedCount);
-        $isPast = $date->copy()->startOfDay()->lessThanOrEqualTo(now()->startOfDay());
+        $isPast = $startAt->copy()->startOfDay()->lessThanOrEqualTo(now()->startOfDay());
         $isDeadlineClosed = $this->salesDeadline->isClosed($startAt);
 
         return [
-            'date' => $date->toDateString(),
+            'date' => $startAt->toDateString(),
             'placement' => $placement,
             'placement_label' => HospitalEventAd::placementLabel($placement),
             'reserved_count' => $reservedCount,
@@ -141,6 +173,11 @@ final class HospitalEventAdCalendarForStaffQuery
                 ->values()
                 ->all(),
         ];
+    }
+
+    private function slotKey(string $placement, Carbon $startAt): string
+    {
+        return $placement.'|'.$startAt->format('Y-m-d H:i:s');
     }
 
     private function adSummary(HospitalEventAd $ad): array

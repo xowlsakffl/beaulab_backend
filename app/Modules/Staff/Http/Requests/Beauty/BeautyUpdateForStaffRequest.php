@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Beauty;
 
+use App\Common\Support\BusinessNumber;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Category\Models\Category;
 use Illuminate\Foundation\Http\FormRequest;
@@ -47,8 +48,7 @@ final class BeautyUpdateForStaffRequest extends FormRequest
         }
 
         if (isset($data['business_number']) && is_string($data['business_number'])) {
-            $normalizedBusinessNumber = preg_replace('/\D+/', '', $data['business_number']);
-            $data['business_number'] = $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $data['business_number'];
+            $data['business_number'] = BusinessNumber::normalize($data['business_number']);
         }
 
         if (array_key_exists('category_ids', $data)) {
@@ -84,7 +84,7 @@ final class BeautyUpdateForStaffRequest extends FormRequest
             'business_number' => [
                 'nullable',
                 'string',
-                'max:20',
+                BusinessNumber::VALIDATION_RULE,
                 Rule::unique('beauty_business_registrations', 'business_number')->ignore($this->businessRegistrationId()),
             ],
             'company_name' => ['nullable', 'string', 'max:255'],
@@ -108,15 +108,22 @@ final class BeautyUpdateForStaffRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'business_number.regex' => '사업자등록번호는 숫자 10자리로 입력해 주세요.',
+        ];
+    }
+
     private function businessRegistrationId(): ?int
     {
         $beauty = $this->route('beauty');
         if (! $beauty instanceof Beauty) {
             return null;
         }
+
         return $beauty->businessRegistration()->value('id');
     }
-
 
     public function attributes(): array
     {
@@ -177,5 +184,4 @@ final class BeautyUpdateForStaffRequest extends FormRequest
             ->values()
             ->all();
     }
-
 }

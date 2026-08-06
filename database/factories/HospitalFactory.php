@@ -118,7 +118,7 @@ final class HospitalFactory extends Factory
         return $this->afterCreating(function (Hospital $hospital): void {
             HospitalBusinessRegistration::query()->create([
                 'hospital_id' => $hospital->id,
-                'business_number' => $this->faker->unique()->numerify('###-##-#####'),
+                'business_number' => $this->faker->unique()->numerify('##########'),
                 'company_name' => $hospital->name,
                 'ceo_name' => $this->faker->name(),
                 'business_type' => $this->faker->randomElement(['의료업', '보건업']),

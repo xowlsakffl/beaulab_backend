@@ -81,7 +81,7 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
                 }),
             ],
 
-            'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
+            'profile_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'license_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
 
             'specialist_certificate_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
@@ -92,7 +92,6 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
     {
         return [
             'profile_image.max' => '5MB 이하의 파일만 업로드 가능합니다.',
-            'profile_image.dimensions' => '1:1비율의 이미지로 업로드 가능합니다.',
             'license_number.required' => '의사면허 번호를 입력해 주세요.',
             'license_number.regex' => '의사면허 번호는 숫자만 입력할 수 있습니다.',
             'educations.max' => '학력사항은 최대 20개까지 입력할 수 있습니다.',
@@ -104,11 +103,11 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => "병원 ID",
-            'sort_order' => "정렬 순서",
+            'hospital_id' => '병원 ID',
+            'sort_order' => '정렬 순서',
             'name' => '의사명',
             'gender' => '성별',
-            'position' => "직책",
+            'position' => '직책',
             'career_started_at' => '경력 시작일',
             'license_number' => '면허증 번호',
             'specialist_field' => '전문의 분류',
@@ -158,5 +157,4 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
             ->values()
             ->all();
     }
-
 }

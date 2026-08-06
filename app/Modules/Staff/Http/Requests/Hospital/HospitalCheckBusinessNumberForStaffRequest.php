@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
+use App\Common\Support\BusinessNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -20,10 +21,8 @@ final class HospitalCheckBusinessNumberForStaffRequest extends FormRequest
             return;
         }
 
-        $normalizedBusinessNumber = preg_replace('/\D+/', '', $businessNumber);
-
         $this->merge([
-            'business_number' => $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : trim($businessNumber),
+            'business_number' => BusinessNumber::normalize($businessNumber),
         ]);
     }
 
@@ -35,7 +34,14 @@ final class HospitalCheckBusinessNumberForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'business_number' => ['required', 'string', 'max:20'],
+            'business_number' => ['required', 'string', BusinessNumber::VALIDATION_RULE],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'business_number.regex' => '사업자등록번호는 숫자 10자리로 입력해 주세요.',
         ];
     }
 }

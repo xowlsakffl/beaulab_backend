@@ -24,7 +24,7 @@ final class HospitalEntryFactory extends Factory
             'hospital_phone' => $this->faker->randomElement(['02', '031', '032', '051', '053']).'-'.$this->faker->numerify('####').'-'.$this->faker->numerify('####'),
             'address' => $this->faker->randomElement($this->addresses()),
             'address_detail' => $this->faker->randomElement(['2층', '3층', '4층', '5층', '6층 전체', '본관 2층', null]),
-            'business_number' => $this->faker->unique()->numerify('###-##-#####'),
+            'business_number' => $this->faker->unique()->numerify('##########'),
             'ceo_name' => $this->faker->randomElement($this->personNames()),
             'license_number' => $hasLicense ? $this->faker->unique()->numerify('#######') : null,
             'applicant_name' => $this->faker->randomElement($this->personNames()),

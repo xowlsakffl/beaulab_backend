@@ -1,8 +1,8 @@
 <?php
 
-
 namespace App\Modules\Staff\Http\Requests\Beauty;
 
+use App\Common\Support\BusinessNumber;
 use App\Domains\Common\Category\Models\Category;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -21,9 +21,7 @@ final class BeautyCreateForStaffRequest extends FormRequest
         $mergePayload = [];
 
         if (is_string($businessNumber)) {
-            $normalizedBusinessNumber = preg_replace('/\D+/', '', $businessNumber);
-
-            $mergePayload['business_number'] = $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $businessNumber;
+            $mergePayload['business_number'] = BusinessNumber::normalize($businessNumber);
         }
 
         if ($this->has('category_ids')) {
@@ -75,7 +73,12 @@ final class BeautyCreateForStaffRequest extends FormRequest
              * 사업자 정보
              **/
             // 사업자 등록 필수
-            'business_number' => ['required', 'string', 'max:20', 'unique:beauty_business_registrations,business_number'],
+            'business_number' => [
+                'required',
+                'string',
+                BusinessNumber::VALIDATION_RULE,
+                'unique:beauty_business_registrations,business_number',
+            ],
             'company_name' => ['required', 'string', 'max:255'],
             'ceo_name' => ['required', 'string', 'max:100'],
             'business_type' => ['required', 'string', 'max:100'],
@@ -99,6 +102,13 @@ final class BeautyCreateForStaffRequest extends FormRequest
             'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'gallery' => ['required', 'array', 'min:1', 'max:12'],
             'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'business_number.regex' => '사업자등록번호는 숫자 10자리로 입력해 주세요.',
         ];
     }
 

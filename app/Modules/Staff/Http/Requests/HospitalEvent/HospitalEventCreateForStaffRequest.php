@@ -137,8 +137,8 @@ final class HospitalEventCreateForStaffRequest extends FormRequest
             'procedure_benefits' => ['required_if:event_type,TEXT', 'array', 'min:1', 'max:6'],
             'procedure_benefits.*' => ['string', 'max:90'],
 
-            'thumbnail_image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048', 'dimensions:min_width=800,min_height=800,ratio=1/1'],
-            'event_page_image' => ['required_if:event_type,IMAGE', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:5120', 'dimensions:min_width=800'],
+            'thumbnail_image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'event_page_image' => ['required_if:event_type,IMAGE', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ];
     }
 
@@ -147,10 +147,8 @@ final class HospitalEventCreateForStaffRequest extends FormRequest
         return [
             'name.regex' => '이벤트명에 사용할 수 없는 특수문자 또는 이모티콘이 포함되어 있습니다.',
             'description.regex' => '이벤트 설명에 사용할 수 없는 특수문자 또는 이모티콘이 포함되어 있습니다.',
-            'thumbnail_image.dimensions' => '이미지 규격을 확인해 주세요. (800x800px, 2MB 이하)',
-            'thumbnail_image.max' => '이미지 규격을 확인해 주세요. (800x800px, 2MB 이하)',
-            'event_page_image.dimensions' => '이미지 규격을 확인해 주세요. (가로 800px 이상, 5MB 이하)',
-            'event_page_image.max' => '이미지 규격을 확인해 주세요. (가로 800px 이상, 5MB 이하)',
+            'thumbnail_image.max' => '썸네일 이미지는 최대 2MB 이하만 업로드할 수 있습니다.',
+            'event_page_image.max' => '이벤트 페이지 이미지는 최대 5MB 이하만 업로드할 수 있습니다.',
         ];
     }
 

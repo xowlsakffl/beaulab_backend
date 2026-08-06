@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
+use App\Common\Support\BusinessNumber;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
@@ -58,8 +59,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         }
 
         if (isset($data['business_number']) && is_string($data['business_number'])) {
-            $normalizedBusinessNumber = preg_replace('/\D+/', '', $data['business_number']);
-            $data['business_number'] = $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $data['business_number'];
+            $data['business_number'] = BusinessNumber::normalize($data['business_number']);
         }
 
         if (array_key_exists('operation_hours', $data)) {
@@ -121,7 +121,7 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'business_number' => [
                 'nullable',
                 'string',
-                'max:20',
+                BusinessNumber::VALIDATION_RULE,
                 Rule::unique('hospital_business_registrations', 'business_number')->ignore($this->businessRegistrationId()),
             ],
             'company_name' => ['nullable', 'string', 'max:255'],
@@ -277,17 +277,17 @@ final class HospitalUpdateForStaffRequest extends FormRequest
                     }
                 },
             ],
-            'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
+            'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'gallery' => ['nullable', 'array', 'min:1', 'max:5'],
-            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:10240', 'dimensions:width=760,height=490'],
+            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
         ];
     }
 
     public function messages(): array
     {
         return [
+            'business_number.regex' => '사업자등록번호는 숫자 10자리로 입력해 주세요.',
             'logo.max' => '5MB 이하의 파일만 업로드 가능합니다.',
-            'logo.dimensions' => '1:1비율의 이미지로 업로드 가능합니다.',
         ];
     }
 

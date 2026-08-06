@@ -73,7 +73,7 @@ final class BeautyFactory extends Factory
         return $this->afterCreating(function (Beauty $beauty): void {
             BeautyBusinessRegistration::query()->create([
                 'beauty_id' => $beauty->id,
-                'business_number' => $this->faker->unique()->numerify('###-##-#####'),
+                'business_number' => $this->faker->unique()->numerify('##########'),
                 'company_name' => $beauty->name,
                 'ceo_name' => $this->faker->name(),
                 'business_type' => $this->faker->randomElement(['미용업', '서비스업']),

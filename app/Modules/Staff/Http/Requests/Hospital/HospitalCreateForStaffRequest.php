@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Http\Requests\Hospital;
 
+use App\Common\Support\BusinessNumber;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
@@ -24,8 +25,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
         $mergePayload = [];
 
         if (is_string($businessNumber)) {
-            $normalizedBusinessNumber = preg_replace('/\D+/', '', $businessNumber);
-            $mergePayload['business_number'] = $normalizedBusinessNumber !== '' ? $normalizedBusinessNumber : $businessNumber;
+            $mergePayload['business_number'] = BusinessNumber::normalize($businessNumber);
         }
 
         if ($this->has('category_ids')) {
@@ -74,7 +74,12 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'allow_status' => ['required', Rule::in(Hospital::allowStatuses())],
             'status' => ['required', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
 
-            'business_number' => ['required', 'string', 'max:20', 'unique:hospital_business_registrations,business_number'],
+            'business_number' => [
+                'required',
+                'string',
+                BusinessNumber::VALIDATION_RULE,
+                'unique:hospital_business_registrations,business_number',
+            ],
             'company_name' => ['required', 'string', 'max:255'],
             'ceo_name' => ['required', 'string', 'max:100'],
             'business_type' => ['required', 'string', 'max:100'],
@@ -104,17 +109,17 @@ final class HospitalCreateForStaffRequest extends FormRequest
                     ->where('status', HospitalFeature::STATUS_ACTIVE)),
             ],
 
-            'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:ratio=1/1'],
+            'logo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'gallery' => ['required', 'array', 'min:1', 'max:5'],
-            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:10240', 'dimensions:width=760,height=490'],
+            'gallery.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
         ];
     }
 
     public function messages(): array
     {
         return [
+            'business_number.regex' => '사업자등록번호는 숫자 10자리로 입력해 주세요.',
             'logo.max' => '5MB 이하의 파일만 업로드 가능합니다.',
-            'logo.dimensions' => '1:1비율의 이미지로 업로드 가능합니다.',
         ];
     }
 

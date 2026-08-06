@@ -4,10 +4,22 @@ declare(strict_types=1);
 
 namespace App\Modules\Staff\Http\Requests\HospitalEntry;
 
+use App\Common\Support\BusinessNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class HospitalEntryUpdateForStaffRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $businessNumber = $this->input('business_number');
+
+        if (is_string($businessNumber)) {
+            $this->merge([
+                'business_number' => BusinessNumber::normalize($businessNumber),
+            ]);
+        }
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -20,7 +32,7 @@ final class HospitalEntryUpdateForStaffRequest extends FormRequest
             'hospital_phone' => ['required', 'string', 'max:30'],
             'address' => ['required', 'string', 'max:255'],
             'address_detail' => ['nullable', 'string', 'max:255'],
-            'business_number' => ['required', 'string', 'max:30'],
+            'business_number' => ['required', 'string', BusinessNumber::VALIDATION_RULE],
             'business_registration_file' => ['nullable', 'file', 'max:10240'],
             'existing_business_registration_file_id' => ['nullable'],
             'ceo_name' => ['required', 'string', 'max:50'],
@@ -31,6 +43,13 @@ final class HospitalEntryUpdateForStaffRequest extends FormRequest
             'applicant_position' => ['nullable', 'string', 'max:50'],
             'applicant_phone' => ['nullable', 'string', 'max:30'],
             'applicant_email' => ['nullable', 'email', 'max:255'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'business_number.regex' => '사업자등록번호는 숫자 10자리로 입력해 주세요.',
         ];
     }
 

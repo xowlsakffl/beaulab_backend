@@ -69,7 +69,7 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             ],
             'hashtag_names' => ['nullable', 'array', 'max:30'],
             'hashtag_names.*' => ['string', 'distinct', 'max:'.Hashtag::NAME_MAX_LENGTH, 'regex:'.Hashtag::VALID_NAME_REGEX],
-            'thumbnail_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:5120', 'dimensions:ratio=16/9'],
+            'thumbnail_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ];
     }
 
@@ -82,7 +82,6 @@ final class HospitalVideoCreateForStaffRequest extends FormRequest
             'thumbnail_file.image' => '썸네일은 이미지 파일만 업로드할 수 있습니다.',
             'thumbnail_file.mimes' => '썸네일은 jpg, jpeg, png 파일만 업로드할 수 있습니다.',
             'thumbnail_file.max' => '썸네일은 최대 5MB 이하로 업로드해 주세요.',
-            'thumbnail_file.dimensions' => '썸네일은 16:9 비율의 이미지만 업로드할 수 있습니다.',
         ];
     }
 

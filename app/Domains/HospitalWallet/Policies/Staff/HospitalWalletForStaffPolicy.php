@@ -19,4 +19,14 @@ final class HospitalWalletForStaffPolicy
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW);
     }
+
+    public function grantService(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_SERVICE_GRANT);
+    }
+
+    public function reclaimService(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_SERVICE_RECLAIM);
+    }
 }

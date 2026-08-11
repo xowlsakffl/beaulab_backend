@@ -174,6 +174,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.Access
 
     Route::get('hospital-wallets', [HospitalWalletForStaffController::class, 'getHospitalWalletsForStaff'])
         ->name('hospital-wallets.getHospitalWalletsForStaff');
+    Route::post('hospital-wallets/service-grants', [HospitalWalletForStaffController::class, 'grantHospitalWalletServicePointsForStaff'])
+        ->name('hospital-wallets.grantHospitalWalletServicePointsForStaff');
+    Route::post('hospital-wallets/service-reclaims', [HospitalWalletForStaffController::class, 'reclaimHospitalWalletServicePointsForStaff'])
+        ->name('hospital-wallets.reclaimHospitalWalletServicePointsForStaff');
 
     /**
      * 카테고리 관리

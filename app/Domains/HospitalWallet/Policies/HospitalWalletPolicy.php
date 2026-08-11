@@ -20,6 +20,16 @@ final class HospitalWalletPolicy
         return $this->delegate($actor)->view($actor, $wallet);
     }
 
+    public function grantService(mixed $actor): bool
+    {
+        return $this->delegate($actor)->grantService($actor);
+    }
+
+    public function reclaimService(mixed $actor): bool
+    {
+        return $this->delegate($actor)->reclaimService($actor);
+    }
+
     private function delegate(mixed $actor): object
     {
         return match (true) {
@@ -32,6 +42,16 @@ final class HospitalWalletPolicy
                 }
 
                 public function view(mixed $actor, HospitalWallet $wallet): bool
+                {
+                    return false;
+                }
+
+                public function grantService(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function reclaimService(mixed $actor): bool
                 {
                     return false;
                 }

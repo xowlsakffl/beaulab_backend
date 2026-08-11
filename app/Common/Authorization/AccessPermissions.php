@@ -30,6 +30,10 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_WALLET_SHOW = 'beaulab.hospital_wallet.show';
 
+    public const BEAULAB_HOSPITAL_WALLET_SERVICE_GRANT = 'beaulab.hospital_wallet.service_grant';
+
+    public const BEAULAB_HOSPITAL_WALLET_SERVICE_RECLAIM = 'beaulab.hospital_wallet.service_reclaim';
+
     public const BEAULAB_HOSPITAL_ENTRY_SHOW = 'beaulab.hospital_entry.show';
 
     public const BEAULAB_HOSPITAL_ENTRY_UPDATE = 'beaulab.hospital_entry.update';
@@ -259,6 +263,8 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_UPDATE,
             self::BEAULAB_HOSPITAL_DELETE,
             self::BEAULAB_HOSPITAL_WALLET_SHOW,
+            self::BEAULAB_HOSPITAL_WALLET_SERVICE_GRANT,
+            self::BEAULAB_HOSPITAL_WALLET_SERVICE_RECLAIM,
             self::BEAULAB_HOSPITAL_ENTRY_SHOW,
             self::BEAULAB_HOSPITAL_ENTRY_UPDATE,
 

@@ -11,7 +11,9 @@ use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
+use Carbon\CarbonInterface;
 use Database\Factories\HospitalEventFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -242,6 +244,25 @@ final class HospitalEvent extends Model
                 || $this->event_end_at === null
                 || ! $this->event_end_at->copy()->endOfDay()->lessThan($now)
             );
+    }
+
+    public function scopeApplicationOpen(Builder $query, ?CarbonInterface $at = null): Builder
+    {
+        $at ??= now();
+
+        return $query
+            ->where('hospital_status', self::HOSPITAL_STATUS_PUBLIC)
+            ->where('admin_status', self::ADMIN_STATUS_NORMAL)
+            ->where('allow_status', self::ALLOW_APPROVED)
+            ->where(function (Builder $startQuery) use ($at): void {
+                $startQuery->whereNull('event_start_at')
+                    ->orWhere('event_start_at', '<=', $at);
+            })
+            ->where(function (Builder $endQuery) use ($at): void {
+                $endQuery->where('is_event_period_unlimited', true)
+                    ->orWhereNull('event_end_at')
+                    ->orWhere('event_end_at', '>=', $at->copy()->startOfDay());
+            });
     }
 
     /**

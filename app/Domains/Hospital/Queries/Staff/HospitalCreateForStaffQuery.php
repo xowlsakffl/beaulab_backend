@@ -29,7 +29,7 @@ final class HospitalCreateForStaffQuery
             'longitude' => $data['longitude'] ?? null,
 
             'tel' => $data['tel'] ?? null,
-            'ad_reception_phone_1' => $data['ad_reception_phone_1'] ?? null,
+            'ad_reception_phone_1' => $data['ad_reception_phone_1'],
             'ad_reception_phone_2' => $data['ad_reception_phone_2'] ?? null,
             'ad_reception_phone_3' => $data['ad_reception_phone_3'] ?? null,
 

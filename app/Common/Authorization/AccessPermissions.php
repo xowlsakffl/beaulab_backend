@@ -28,6 +28,8 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_DELETE = 'beaulab.hospital.delete';
 
+    public const BEAULAB_HOSPITAL_WALLET_SHOW = 'beaulab.hospital_wallet.show';
+
     public const BEAULAB_HOSPITAL_ENTRY_SHOW = 'beaulab.hospital_entry.show';
 
     public const BEAULAB_HOSPITAL_ENTRY_UPDATE = 'beaulab.hospital_entry.update';
@@ -256,6 +258,7 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_CREATE,
             self::BEAULAB_HOSPITAL_UPDATE,
             self::BEAULAB_HOSPITAL_DELETE,
+            self::BEAULAB_HOSPITAL_WALLET_SHOW,
             self::BEAULAB_HOSPITAL_ENTRY_SHOW,
             self::BEAULAB_HOSPITAL_ENTRY_UPDATE,
 

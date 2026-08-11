@@ -29,6 +29,7 @@ use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffCo
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReviewComment\HospitalReviewCommentForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalWallet\HospitalWalletForStaffController;
 use App\Modules\Staff\Http\Controllers\NavigationBadge\NavigationBadgeForStaffController;
 use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\Talk\TalkForStaffController;
@@ -170,6 +171,9 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.Access
         ->name('hospitals.updateHospitalForStaff');
     Route::delete('hospitals/{hospital}', [HospitalForStaffController::class, 'deleteHospitalForStaff'])
         ->name('hospitals.deleteHospitalForStaff');
+
+    Route::get('hospital-wallets', [HospitalWalletForStaffController::class, 'getHospitalWalletsForStaff'])
+        ->name('hospital-wallets.getHospitalWalletsForStaff');
 
     /**
      * 카테고리 관리

@@ -13,6 +13,7 @@ use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use Carbon\CarbonInterface;
 use Database\Factories\HospitalEventAdFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -365,6 +366,16 @@ final class HospitalEventAd extends Model
         }
 
         return self::AD_STATUS_RUNNING;
+    }
+
+    public function scopeRunning(Builder $query, ?CarbonInterface $at = null): Builder
+    {
+        $at ??= now();
+
+        return $query
+            ->where('allow_status', self::ALLOW_APPROVED)
+            ->where('start_at', '<=', $at)
+            ->where('end_at', '>=', $at);
     }
 
     public static function adStatusLabel(?string $status): string

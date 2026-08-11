@@ -17,20 +17,21 @@ final class AccountHospitalFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'              => $this->faker->name(),
-            'nickname'          => $this->faker->unique()->userName(),
-            'email'             => $this->faker->unique()->safeEmail(),
-            'phone'             => $this->faker->numerify('010-####-####'),
+            'name' => $this->faker->name(),
+            'nickname' => $this->faker->unique()->userName(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'phone' => $this->faker->numerify('010-####-####'),
 
-            'password'          => Hash::make('password'),
+            'password' => Hash::make('password'),
 
-            'status'            => AccountHospital::STATUS_ACTIVE,
+            'status' => AccountHospital::STATUS_ACTIVE,
 
-            'hospital_id'         => null,
+            'hospital_id' => null,
 
             'email_verified_at' => now(),
+            'phone_verified_at' => now(),
 
-            'last_login_at'     => $this->faker->optional(0.85)->dateTimeBetween('-90 days', 'now'),
+            'last_login_at' => $this->faker->optional(0.85)->dateTimeBetween('-90 days', 'now'),
         ];
     }
 
@@ -57,10 +58,11 @@ final class AccountHospitalFactory extends Factory
         ]);
     }
 
-    public function withPhone(?string $phone): self
+    public function withPhone(string $phone): self
     {
         return $this->state(fn () => [
             'phone' => $phone,
+            'phone_verified_at' => now(),
         ]);
     }
 

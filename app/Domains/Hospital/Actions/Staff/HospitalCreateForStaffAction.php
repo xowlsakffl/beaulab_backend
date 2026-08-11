@@ -7,6 +7,7 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Queries\Staff\HospitalCreateForStaffQuery;
+use App\Domains\HospitalWallet\Queries\HospitalWalletCreateQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -18,6 +19,7 @@ final class HospitalCreateForStaffAction
 {
     public function __construct(
         private readonly HospitalCreateForStaffQuery $query,
+        private readonly HospitalWalletCreateQuery $walletCreateQuery,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalBusinessRegistrationCreateForStaffAction $businessRegistrationCreateAction,
         private readonly HospitalUpdateHistoryRecordAction $historyRecordAction,
@@ -32,6 +34,7 @@ final class HospitalCreateForStaffAction
 
         $hospital = DB::transaction(function () use ($filters) {
             $hospital = $this->query->create($filters);
+            $this->walletCreateQuery->createForHospital($hospital);
 
             $this->mediaAttachAction->attachOne($hospital, $filters['logo'], 'logo', 'hospital', 'logo');
             $this->mediaAttachAction->attachMany($hospital, $filters['gallery'], 'gallery', 'hospital', 'gallery', true);

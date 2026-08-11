@@ -17,6 +17,7 @@ use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
 use App\Domains\HospitalReview\Models\HospitalReview;
+use App\Domains\HospitalWallet\Models\HospitalWallet;
 use Database\Factories\HospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -115,6 +116,11 @@ final class Hospital extends Model
     public function accountHospital(): HasOne
     {
         return $this->hasOne(AccountHospital::class, 'hospital_id');
+    }
+
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(HospitalWallet::class, 'hospital_id');
     }
 
     public function hospitalReviews(): HasMany

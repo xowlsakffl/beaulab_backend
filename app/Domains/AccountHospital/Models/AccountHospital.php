@@ -20,17 +20,21 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class AccountHospital extends Authenticatable
 {
-    use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes, HasAuditLogs;
+    use HasApiTokens, HasAuditLogs, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     protected string $guard_name = 'hospital';
 
     protected $table = 'account_hospitals';
+
     /**
      * 계정 상태 상수 (migration comment: active, suspended, blocked, withdrawn)
      */
     public const STATUS_ACTIVE = 'ACTIVE'; // 활성
+
     public const STATUS_SUSPENDED = 'SUSPENDED'; // 정지
+
     public const STATUS_BLOCKED = 'BLOCKED'; // 차단
+
     public const STATUS_WITHDRAWN = 'WITHDRAWN'; // 탈퇴
 
     /**
@@ -41,7 +45,6 @@ class AccountHospital extends Authenticatable
     ];
 
     /**
-     *
      * @var list<string>
      */
     protected $fillable = [
@@ -53,6 +56,7 @@ class AccountHospital extends Authenticatable
         'status',
         'hospital_id',
         'email_verified_at',
+        'phone_verified_at',
         'last_login_at',
     ];
 
@@ -74,6 +78,7 @@ class AccountHospital extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
         ];

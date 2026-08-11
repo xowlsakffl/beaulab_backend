@@ -18,7 +18,7 @@ final class ProfileUpdateForAccountHospitalAction
     ) {}
 
     /**
-     * @param array{name?:string,email?:string,phone?:string|null} $filters
+     * @param  array{name?:string,email?:string}  $filters
      * @return array{profile: array}
      */
     public function execute(AccountHospital $hospital, array $filters): array

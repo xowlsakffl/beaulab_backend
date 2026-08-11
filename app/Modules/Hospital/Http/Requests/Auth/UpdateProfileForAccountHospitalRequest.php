@@ -20,7 +20,6 @@ final class UpdateProfileForAccountHospitalRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'email', 'max:255'],
-            'phone' => ['sometimes', 'nullable', 'string', 'max:50', 'regex:/^[0-9+\-().\s]{6,50}$/'],
         ];
     }
 
@@ -29,7 +28,6 @@ final class UpdateProfileForAccountHospitalRequest extends FormRequest
         return [
             'name' => '이름',
             'email' => '이메일',
-            'phone' => '전화번호',
         ];
     }
 

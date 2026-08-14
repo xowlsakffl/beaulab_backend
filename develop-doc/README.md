@@ -21,6 +21,8 @@
 - [성능 / 인덱스 / 쿼리 규칙](./performance.md)
 - [채팅 설계](./chat.md)
 - [알림 설계](./notification.md)
+- [문자 발송 설계](./sms.md)
+- [병의원 충전금 설계](./hospital-wallet.md)
 
 ## 현재 기준 핵심 요약
 
@@ -42,10 +44,11 @@
 - LengthAware pagination 목록은 `PaginatedResponse`를 사용하고, 채팅 메시지처럼 cursor 방식인 목록만 예외로 둔다.
 - 권한 단일 소스는 `AccessPermissions` / `AccessRoles`이며 Seeder로 동기화한다.
 - 신고게시물, 이벤트 DB, 리얼모델 DB, 입점신청처럼 같은 메뉴 그룹에 있어도 업무 책임이 다른 리소스는 별도 권한으로 분리한다.
-- Queue 표준 런타임은 Redis + Horizon이며, 현재 실제 사용 큐는 비밀번호 재설정 메일(`mail`)과 Push 발송(`notifications`)이다.
+- Queue 표준 런타임은 Redis + Horizon이며, 현재 실제 사용 큐는 비밀번호 재설정 메일(`mail`), Push 발송(`notifications`), 공통 문자 발송(`sms`)이다.
 - Scheduler는 OS crontab이 매분 `schedule:run`을 실행하고, Laravel Scheduler와 Spatie Schedule Monitor로 관리한다.
 - Staff summary count는 `StaffSummaryCache`를 통해 Redis 캐시를 사용하고, 원본 데이터 변경 후 관련 캐시를 무효화한다.
 - 모든 예외 응답은 공통 예외 핸들러/응답 포맷 규칙을 따른다.
+- 충전금은 업무 상태(`HospitalWalletOperation`)와 완료 원장(`HospitalWalletTransaction`)을 분리한다.
 - 목록/summary/selector 성능 규칙과 인덱스 기준은 `performance.md`를 따른다.
 
-작성 기준: 2026-07-27
+작성 기준: 2026-08-12

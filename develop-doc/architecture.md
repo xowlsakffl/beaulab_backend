@@ -74,8 +74,9 @@ Staff 프론트 메뉴 prefix와 API path는 반드시 같을 필요가 없다. 
 - 계정: `AccountStaff`, `AccountHospital`, `AccountBeauty`, `AccountUser`, `AccountUserAccessLog`, `AccountUserBlock`
 - 파트너: `Hospital`, `HospitalEntry`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `HospitalFeature`
 - 병원 이벤트/광고/고객 DB: `HospitalEvent`, `HospitalEventAd`, `HospitalEventDB`, `HospitalEventRealModelDB`, `HospitalEventOption`, `HospitalEventDoctorAssignment`
+- 충전금: `HospitalWallet`, `HospitalWalletOperation`, `HospitalWalletTransaction`, `HospitalWalletTransactionEntry`, `HospitalWalletPayment`, `HospitalWalletRefund`
 - 콘텐츠: `Talk`, `TalkComment`, `TalkCommentMention`, `TalkPoll`, `TalkPollOption`, `TalkPollVote`, `TalkSave`, `HospitalReview`, `HospitalReviewComment`, `HospitalReviewCommentMention`, `HospitalEvaluation`, `HospitalVideo`, `Notice`, `Faq`
-- 커뮤니케이션: `Chat`, `ChatMessage`, `ChatParticipant`, `NotificationInbox`, `NotificationDelivery`, `NotificationDevice`, `NotificationPreference`
+- 커뮤니케이션: `Chat`, `ChatMessage`, `ChatParticipant`, `NotificationInbox`, `NotificationDelivery`, `NotificationDevice`, `NotificationPreference`, `SmsBatch`, `SmsDelivery`, 공통 `SmsProvider`
 - 공통 운영: `Media`, `Category`, `CategoryUsage`, `Hashtag`, `AdminNote`, `ContentReport`, `ContentReportItem`, `ContentReportState`, `OperationHistory`, `OperationHistoryChange`, `PasswordReset`
 
 파트너 계정 관계:
@@ -247,6 +248,18 @@ DTO 응답 원칙:
 - 판매 마감 판단은 `HospitalEventAdSalesDeadline`에 둔다.
 - 광고 상태(`광고예정`/`광고중`/`광고종료`)는 저장 컬럼이 아니라 `allow_status = APPROVED`와 `start_at/end_at` 기준으로 계산한다.
 - 승인 시점에는 이벤트/병원 상태, 이미지, 구좌를 다시 검증한다.
+
+## 7.2) 병의원 충전금 구조
+
+충전금은 신청/대기 상태를 포함하는 `HospitalWalletOperation`과 실제 잔액 변경 원장인 `HospitalWalletTransaction`을 분리한다.
+
+- `Operation`: 업무 유형, 상태, 요청자/처리자, 결제 대상, 멱등 키
+- `Transaction`: 완료된 Operation의 변경 전/후 잔액
+- `TransactionEntry`: 유상/서비스 잔액별 증감
+- `Payment`: 유상 충전의 결제/가상계좌 스냅샷
+- `Refund`: 환불 금액·암호화 계좌·반려사유와 첨부서류 소유 모델
+
+서비스 지급/회수처럼 잔액이 즉시 변경되는 흐름은 Action이 DB transaction을 열고 Query를 조합한다. 목록은 대기·취소도 보여야 하므로 Transaction이 아니라 Operation을 조회한다. 상세 규칙은 `./hospital-wallet.md`를 따른다.
 
 ## 8) API 응답 / 페이지네이션 원칙
 

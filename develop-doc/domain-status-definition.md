@@ -790,6 +790,53 @@ Provider:
 | `ANDROID` | Android |
 | `WEB` | Web |
 
+### 13.4 `SmsBatch`
+
+| 저장값 | 의미 |
+|---|---|
+| `PENDING` | 발송대기 |
+| `PROCESSING` | 발송중 |
+| `SENT` | 전건 발송완료 |
+| `PARTIAL_FAILED` | 일부실패 또는 발송제외 포함 |
+| `FAILED` | 성공 건 없는 발송실패 |
+
+### 13.5 `SmsDelivery`
+
+| 저장값 | 의미 |
+|---|---|
+| `PENDING` | 발송대기 또는 재시도 대기 |
+| `PROCESSING` | Provider 호출 중 |
+| `SENT` | 발송완료 |
+| `FAILED` | 최종 발송실패 |
+| `SKIPPED` | 연락처 누락·미인증·형식 오류로 제외 |
+
+문자 유형은 `SMS`, `LMS`를 사용한다. `purpose`와 `recipient_kinds`는 업무 도메인이 정의하며, 현재 충전금 안내는 `HOSPITAL_WALLET_BALANCE_NOTICE`와 `MANAGER`, `REPRESENTATIVE`를 사용한다.
+
+## 13.6 병의원 충전금
+
+업무 유형:
+
+| 저장값 | 표시명 |
+|---|---|
+| `CHARGE` | 입금충전 |
+| `USAGE` | 사용 |
+| `REFUND` | 환불 |
+| `SERVICE_GRANT` | 서비스 적립 |
+| `SERVICE_RECLAIM` | 서비스 회수 |
+| `REVERSAL` | 거래 취소 |
+
+업무 상태:
+
+| 저장값 | 충전 표시 | 환불 표시 | 공통 의미 |
+|---|---|---|---|
+| `PENDING` | 입금대기 | 환불신청 | 처리 대기 |
+| `COMPLETED` | 완료 | 환불완료 | 처리 완료 |
+| `CANCELED` | 취소 | 취소 | 요청 취소 |
+| `REJECTED` | 반려 | 환불반려 | 처리 반려 |
+| `FAILED` | 실패 | 실패 | 처리 실패 |
+
+잔액 변경은 `COMPLETED` 상태에서만 원장으로 기록한다. 환불 `PENDING`은 유상 포인트를 예약하고, `REJECTED`는 예약만 해제한다. 상태별 표시명은 `HospitalWalletOperation::statusLabel()`을 사용한다.
+
 ## 14. 공통 미디어 / 메모 / 히스토리
 
 ### 14.1 `Media`

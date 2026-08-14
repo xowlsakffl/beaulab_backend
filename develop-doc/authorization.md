@@ -299,6 +299,8 @@ Staff 프론트는 `route-permissions.ts`에서 route별 required permission을 
 - 이벤트와 이벤트 DB는 분리: `beaulab.hospital_event.*`, `beaulab.hospital_event_db.*`
 - 이벤트와 광고는 분리: `beaulab.hospital_event.*`, `beaulab.hospital_event_ad.*`
 - 일반 게시물과 신고게시물은 분리: `beaulab.talk.*`, `beaulab.reported_talk.*`
+- 충전금 조회·서비스 지급·서비스 회수·환불 신청·환불 처리·문자 이력 조회·안내 문자 발송은 분리: `beaulab.hospital_wallet.show`, `service_grant`, `service_reclaim`, `refund_request`, `refund_process`, `notice_show`, `notice_send`
+- 일반 관리자는 `refund_request`, 최고관리자는 `refund_request`와 `refund_process`를 가진다. 재무 담당 계정에는 `refund_process`를 직접 부여한다.
 
 ## 11) 금지/주의
 

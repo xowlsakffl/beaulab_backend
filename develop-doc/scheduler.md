@@ -1,6 +1,6 @@
 # Scheduler 운영 가이드
 
-작성 기준: 2026-07-27
+작성 기준: 2026-08-12
 
 이 문서는 Beaulab 프로젝트의 스케줄 실행 구조를 정리한다.
 
@@ -34,6 +34,7 @@
 | `schedule-monitor:sync` | 매일 02:50 | Schedule Monitor 대상 동기화 |
 | `notice:cleanup-temp-editor-images --hours=24` | 매시간 | 공지 에디터 임시 이미지 정리 |
 | `horizon:snapshot` | 5분마다 | Horizon 메트릭 스냅샷 수집 |
+| `sms:dispatch-pending --limit=500` | 매분 | Redis 큐 미등록 문자 재큐잉 |
 | `queue:prune-batches --hours=72 --unfinished=72 --cancelled=168` | 매일 03:10 | 오래된 job batch 메타 정리 |
 | `queue:prune-failed --hours=168` | 매일 03:20 | 오래된 failed job 정리 |
 | `hospital-evaluations:refresh-hospital-ratings` | 매일 03:30 | 병원별 평가 수/평균 평점 집계 보정 |
@@ -46,6 +47,7 @@
 |---|---|---:|
 | `notice:cleanup-temp-editor-images {--hours=24}` | 오래된 공지 에디터 임시 이미지 정리 | 예 |
 | `notifications:send-pending-push {--limit=100}` | 누락된 pending Push delivery 재큐잉 | 아니오 |
+| `sms:dispatch-pending {--limit=100} {--stale-minutes=}` | 큐 미등록 문자 재큐잉, 옵션 지정 시 장기대기 포함 | 예 |
 | `media:generate-variants {--force} {--limit=500}` | 기존 이미지 thumb/medium variant 백필 | 아니오 |
 | `hospital-evaluations:refresh-hospital-ratings {--hospital-id=*}` | 병원 평가 평균/집계 보정 | 예 |
 

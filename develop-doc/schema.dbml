@@ -36,6 +36,8 @@ Table account_hospitals {
   name varchar [note: '병원 관리자 실명']
   nickname varchar [unique, note: '병원 관리자 로그인 아이디']
   email varchar [unique, note: '병원 관리자 이메일']
+  phone varchar(50) [note: '인증 대상 전화번호']
+  phone_verified_at timestamp [null, note: '전화번호 인증 완료 시각']
   email_verified_at timestamp [null, note: '이메일 인증 완료 시각']
   password varchar [note: '암호화된 비밀번호']
   status varchar [default: `'SUSPENDED'`, note: '계정 상태(ACTIVE, SUSPENDED, BLOCKED, WITHDRAWN)']
@@ -588,6 +590,158 @@ Table hospital_event_ads {
   Note: '병의원 이벤트 광고 신청/검수/노출 기간 정보입니다. 광고 이미지는 media polymorphic collection으로 관리하고, 카테고리별 배너 카테고리는 category_assignments로 연결합니다.'
 }
 
+Table hospital_wallets {
+    id bigint [pk, increment, note: '병의원 충전금 지갑 ID']
+    hospital_id bigint [unique, note: '병의원 ID']
+    paid_balance bigint [default: `0`, note: '유상 충전 보유 포인트']
+    reserved_paid_balance bigint [default: `0`, note: '환불 처리 중 예약된 유상 포인트']
+    service_balance bigint [default: `0`, note: '서비스 보유 포인트']
+    last_transaction_at timestamp [null, note: '마지막 잔액 변경 일시']
+    created_at timestamp
+    updated_at timestamp
+    Note: '병의원별 유상 충전금과 서비스 포인트의 현재 잔액 스냅샷입니다.'
+  }
+
+  Table hospital_wallet_operations {
+    id bigint [pk, increment, note: '충전금 업무 건 ID']
+    hospital_wallet_id bigint [note: '병의원 충전금 지갑 ID']
+    batch_uuid varchar(36) [null, note: '일괄 처리 묶음 UUID']
+    type varchar(30) [note: '업무 유형']
+    status varchar(30) [note: '업무 처리 상태']
+    amount bigint [note: '처리 포인트']
+    idempotency_key varchar(100) [unique, note: '중복 처리 방지 키']
+    requester_type varchar(255) [null, note: '요청자 모델 타입']
+    requester_id bigint [null, note: '요청자 ID']
+    requester_kind varchar(40) [note: '요청 주체 구분']
+    processor_type varchar(255) [null, note: '최종 처리자 모델 타입']
+    processor_id bigint [null, note: '최종 처리자 ID']
+    processor_kind varchar(40) [null, note: '최종 처리 주체 구분']
+    reference_type varchar(255) [null, note: '결제 대상 모델 타입']
+    reference_id bigint [null, note: '결제 대상 ID']
+    reference_label varchar(255) [null, note: '결제 대상 표시명 스냅샷']
+    reason text [null, note: '처리 사유']
+    processed_at timestamp [null, note: '완료 처리 일시']
+    canceled_at timestamp [null, note: '취소 일시']
+    failed_at timestamp [null, note: '실패 일시']
+    metadata json [null, note: '추가 업무 데이터']
+    created_at timestamp
+    updated_at timestamp
+    Note: '충전, 소진, 환불, 서비스 지급/회수의 신청 및 처리 업무 건입니다.'
+  }
+
+  Table hospital_wallet_transactions {
+    id bigint [pk, increment, note: '병의원 충전금 원장 ID']
+    hospital_wallet_operation_id bigint [unique, note: '충전금 업무 건 ID']
+    hospital_wallet_id bigint [note: '병의원 충전금 지갑 ID']
+    amount bigint [note: '실제 반영 포인트']
+    paid_balance_before bigint [note: '반영 전 유상 보유 포인트']
+    paid_balance_after bigint [note: '반영 후 유상 보유 포인트']
+    reserved_paid_balance_before bigint [note: '반영 전 예약 유상 포인트']
+    reserved_paid_balance_after bigint [note: '반영 후 예약 유상 포인트']
+    service_balance_before bigint [note: '반영 전 서비스 포인트']
+    service_balance_after bigint [note: '반영 후 서비스 포인트']
+    reversed_transaction_id bigint [null, note: '취소 대상 원장 ID']
+    created_at timestamp
+    updated_at timestamp
+    Note: '실제 잔액 변경이 완료된 업무 건의 불변 원장입니다.'
+}
+
+Table hospital_wallet_transaction_entries {
+  id bigint [pk, increment, note: '병의원 충전금 거래 상세 ID']
+  hospital_wallet_transaction_id bigint [note: '병의원 충전금 거래 ID']
+  balance_type varchar(20) [note: '잔액 구분(PAID, SERVICE)']
+  direction varchar(10) [note: '증감 구분(CREDIT, DEBIT)']
+  amount bigint [note: '변동 포인트(P)']
+  created_at timestamp
+  updated_at timestamp
+    Note: '한 원장에서 유상·서비스 잔액별 증감 내역을 저장합니다.'
+  }
+
+  Table hospital_wallet_payments {
+    id bigint [pk, increment, note: '유상 충전 결제 상세 ID']
+    hospital_wallet_operation_id bigint [unique, note: '충전 업무 건 ID']
+    payment_method varchar(30) [note: '결제 수단']
+    provider varchar(50) [null, note: '결제 제공자']
+    provider_transaction_id varchar(120) [null, unique, note: '외부 결제 거래 ID']
+    depositor_name varchar(100) [null, note: '입금자명']
+    supply_amount bigint [note: '공급가액']
+    vat_amount bigint [note: '부가세']
+    payment_amount bigint [note: '총 결제금액']
+    virtual_account_bank varchar(50) [null, note: '가상계좌 은행']
+    virtual_account_number varchar(100) [null, note: '가상계좌 번호']
+    virtual_account_expires_at timestamp [null, note: '가상계좌 입금 기한']
+    paid_at timestamp [null, note: '입금 완료 일시']
+    metadata json [null, note: '결제사 응답 스냅샷']
+    created_at timestamp
+    updated_at timestamp
+    Note: '유상 충전의 결제 및 가상계좌 상세 스냅샷입니다.'
+}
+
+Table hospital_wallet_refunds {
+  id bigint [pk, increment, note: '충전금 환불 상세 ID']
+  hospital_wallet_operation_id bigint [unique, note: '환불 업무 건 ID']
+  supply_amount bigint [note: '환불 공급가액']
+  vat_amount bigint [note: '환불 부가세']
+  refund_amount bigint [note: '최종 환불 금액']
+  bank_name varchar(50) [note: '환불 은행']
+  account_number text [note: '암호화된 환불 계좌번호']
+  rejection_reason text [null, note: '환불 반려 사유']
+  created_at timestamp
+  updated_at timestamp
+  Note: '충전금 환불 계좌와 금액 상세입니다. 첨부서류는 media polymorphic collection으로 관리합니다.'
+}
+
+Table sms_batches {
+  id bigint [pk, increment, note: '문자 발송 배치 ID']
+  idempotency_key varchar(36) [unique, note: '중복 발송 방지 키']
+  purpose varchar(100) [note: '도메인 발송 용도']
+  request_hash char(64) [note: '멱등 요청 내용 SHA-256 해시']
+  message_template text [null, note: '치환 전 문자 템플릿']
+  metadata json [null, note: '도메인별 발송 요청 메타데이터']
+  target_count int [default: `0`, note: '업무 대상 수']
+  recipient_count int [default: `0`, note: '전체 수신 대상 수']
+  sent_count int [default: `0`, note: '발송 성공 수']
+  failed_count int [default: `0`, note: '발송 실패 수']
+  skipped_count int [default: `0`, note: '발송 제외 수']
+  status varchar(30) [note: '배치 발송 상태']
+  actor_type varchar(255) [null, note: '요청 actor 타입']
+  actor_id bigint [null, note: '요청 actor ID']
+  queued_at timestamp [null, note: '큐 등록 완료 시각']
+  completed_at timestamp [null, note: '배치 처리 완료 시각']
+  created_at timestamp
+  updated_at timestamp
+  Note: '도메인 공통 문자 발송 요청과 집계 상태입니다.'
+}
+
+Table sms_deliveries {
+  id bigint [pk, increment, note: '수신자별 문자 발송 ID']
+  sms_batch_id bigint [note: '문자 발송 배치 ID']
+  deduplication_key varchar(191) [note: '배치 내 중복 수신 방지 키']
+  reference_type varchar(255) [null, note: '업무 대상 타입']
+  reference_id bigint [null, note: '업무 대상 ID']
+  reference_label varchar(255) [null, note: '발송 당시 업무 대상명']
+  recipient_type varchar(255) [null, note: '수신 계정 타입']
+  recipient_id bigint [null, note: '수신 계정 ID']
+  recipient_kinds json [null, note: '도메인별 수신자 구분 목록']
+  phone varchar(50) [null, note: '발송 당시 전화번호']
+  phone_normalized varchar(30) [null, note: '숫자 정규화 전화번호']
+  message_type varchar(10) [null, note: '문자 유형(SMS, LMS)']
+  message_body text [null, note: '치환 완료 발송 문구']
+  byte_length int [null, note: '발송 문구 바이트 수']
+  status varchar(30) [note: '수신자별 발송 상태']
+  provider varchar(50) [null, note: '문자 발송 업체']
+  provider_message_id varchar(255) [null, note: '문자 업체 메시지 ID']
+  attempt_count int [default: `0`, note: '발송 시도 횟수']
+  queued_at timestamp [null, note: '마지막 큐 등록 시각']
+  attempted_at timestamp [null, note: '마지막 발송 시도 시각']
+  sent_at timestamp [null, note: '발송 성공 시각']
+  failed_at timestamp [null, note: '최종 실패 또는 제외 시각']
+  error_message text [null, note: '발송 실패 또는 제외 사유']
+  created_at timestamp
+  updated_at timestamp
+  Note: '도메인 공통 수신자별 문자 발송 결과입니다.'
+}
+
 Table hospital_events {
   id bigint [pk, increment, note: '병의원 이벤트 ID']
   hospital_id bigint [note: '소속 병의원 ID']
@@ -726,7 +880,7 @@ Table hospitals {
   latitude varchar [null, note: '위도']
   longitude varchar [null, note: '경도']
   tel varchar [null, note: '대표 번호']
-  ad_reception_phone_1 varchar(50) [null, note: '광고 수신 접수 전화번호 1']
+  ad_reception_phone_1 varchar(50) [note: '광고 안내 수신 접수 전화번호 1']
   ad_reception_phone_2 varchar(50) [null, note: '광고 수신 접수 전화번호 2']
   ad_reception_phone_3 varchar(50) [null, note: '광고 수신 접수 전화번호 3']
   email varchar [null, note: '대표 이메일']
@@ -1177,6 +1331,15 @@ TableGroup "Hospital Events & Customer DB" {
   hospital_event_real_model_dbs
 }
 
+  TableGroup "Hospital Wallet" {
+    hospital_wallets
+    hospital_wallet_operations
+    hospital_wallet_transactions
+    hospital_wallet_transaction_entries
+    hospital_wallet_payments
+    hospital_wallet_refunds
+}
+
 TableGroup "Reports & Operations" {
   content_reports
   content_report_items
@@ -1196,6 +1359,8 @@ TableGroup "Chat & Notifications" {
   notification_deliveries
   notification_devices
   notification_preferences
+  sms_batches
+  sms_deliveries
 }
 
 TableGroup "Runtime Infrastructure" {
@@ -1289,6 +1454,15 @@ Ref: hospital_event_dbs.hospital_doctor_id > hospital_doctors.id
 Ref: hospital_event_real_model_dbs.account_user_id > account_users.id
 Ref: hospital_event_real_model_dbs.hospital_id > hospitals.id
 Ref: hospital_event_real_model_dbs.hospital_event_id > hospital_events.id
+Ref: hospital_wallets.hospital_id > hospitals.id
+Ref: hospital_wallet_operations.hospital_wallet_id > hospital_wallets.id
+Ref: hospital_wallet_transactions.hospital_wallet_operation_id > hospital_wallet_operations.id
+Ref: hospital_wallet_transactions.hospital_wallet_id > hospital_wallets.id
+Ref: hospital_wallet_transactions.reversed_transaction_id > hospital_wallet_transactions.id
+Ref: hospital_wallet_transaction_entries.hospital_wallet_transaction_id > hospital_wallet_transactions.id
+Ref: hospital_wallet_payments.hospital_wallet_operation_id > hospital_wallet_operations.id
+Ref: hospital_wallet_refunds.hospital_wallet_operation_id > hospital_wallet_operations.id
+Ref: sms_deliveries.sms_batch_id > sms_batches.id
 Ref: model_has_permissions.permission_id > permissions.id
 Ref: model_has_roles.role_id > roles.id
 Ref: role_has_permissions.permission_id > permissions.id

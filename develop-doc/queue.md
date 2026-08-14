@@ -1,6 +1,6 @@
 # Queue 운영 가이드
 
-작성 기준: 2026-07-27
+작성 기준: 2026-08-12
 
 이 문서는 Beaulab 프로젝트의 Queue, Redis, Horizon 구조와 운영 규칙을 정리한다.
 
@@ -29,10 +29,13 @@ Queue 표준 런타임은 Redis + Horizon이다.
 |---|---|---|---|---|
 | 비밀번호 재설정 메일 | `PasswordResetLinkMail` | `PASSWORD_RESET_MAIL_QUEUE_CONNECTION` 기본 `redis` | `PASSWORD_RESET_MAIL_QUEUE` 기본 `mail` | 재설정 링크 메일 발송 |
 | Push 발송 | `SendPushNotificationDeliveryJob` | `redis` | `PUSH_QUEUE` 기본 `notifications` | FCM/APNs 외부 발송 |
+| 공통 문자 발송 | `SendSmsDeliveryJob` | `redis` | `SMS_QUEUE` 기본 `sms` | 수신자별 SMS/LMS 발송 및 이력 갱신 |
 
 비밀번호 재설정 메일은 `Mail::queue()`로 발행한다. 메일 본문과 큐 설정은 `PasswordResetLinkSendAction`, `PasswordResetLinkMail`, `config/password_reset.php`를 기준으로 한다.
 
 Push 발송은 `CreateNotificationAction`에서 `PUSH` delivery가 pending이면 `SendPushNotificationDeliveryJob`을 발행한다. 실제 외부 provider 호출은 `SendPushNotificationDeliveryAction`이 처리한다.
+
+문자는 `sms_batches`와 수신자별 `sms_deliveries`를 DB에 먼저 확정한 뒤 `SendSmsDeliveryJob`을 발행한다. 실제 Provider 호출, 재시도와 상태 집계는 공통 `Sms` 도메인이 담당한다. 충전금·이벤트 등 업무 도메인은 수신자 선정, 치환과 발송 용도만 소유하며 상세 정책은 `sms.md`를 따른다.
 
 ## 3) 큐 레인 정책
 
@@ -42,7 +45,7 @@ Horizon에는 현재와 향후 확장을 고려해 아래 레인을 표준으로
 |---|---:|---|---:|
 | `critical` | 예약 | 사용자 영향도가 큰 고우선 작업 | 10초 |
 | `mail` | 사용 | 메일 발송 | 30초 |
-| `sms` | 예약 | 문자 발송 | 30초 |
+| `sms` | 사용 | 문자 발송 | 30초 |
 | `chat` | 예약 | 채팅 비동기 처리 | 15초 |
 | `notifications` | 사용 | Push/알림 외부 발송 | 15초 |
 | `default` | 예약 | 일반 비동기 작업 | 60초 |
@@ -132,6 +135,14 @@ php artisan queue:prune-batches --hours=72 --unfinished=72 --cancelled=168
 php artisan notifications:send-pending-push --limit=100
 ```
 
+큐 미등록 문자 재큐잉:
+
+```bash
+php artisan sms:dispatch-pending --limit=100
+```
+
+장기대기 건을 운영 판단으로 강제 재큐잉할 때만 `--stale-minutes=30`처럼 기준 시간을 명시한다.
+
 ## 8) 배포 체크리스트
 
 1. 코드 배포
@@ -172,6 +183,14 @@ php artisan notifications:send-pending-push --limit=100
 2. 로컬이면 Mailpit 실행 여부 확인
 3. 운영이면 SMTP/SES/Resend 등 외부 provider 설정 확인
 4. 실패 Job에 남은 `PasswordResetLinkMail` 재시도 여부 판단
+
+### 문자 발송 누락
+
+1. `sms_deliveries`의 `status`, `attempt_count`, `error_message` 확인
+2. Horizon의 `sms` 큐 적체와 실패 Job 확인
+3. `SMS_ENABLED`, `SMS_PROVIDER` 및 업체 인증 설정 확인
+4. Provider가 `log` 또는 `DISABLED`인지 확인
+5. 외부 업체 장애가 해소된 뒤 재시도 가능한 실패 Job만 재처리
 
 ## 10) 향후 적용 우선순위
 

@@ -25,7 +25,7 @@ final class FaqUpdateHistoryRecordAction
             'channel' => $this->item('노출 대상', $faq->channel, $faq->channel),
             'question' => $this->item('질문', $faq->question, $faq->question),
             'content' => $this->item('답변', $faq->content, $faq->content),
-            'status' => $this->item('노출여부', $faq->status, $faq->status),
+            'status' => $this->item('공개여부', $faq->status, $faq->status),
             'sort_order' => $this->item('정렬순서', (int) $faq->sort_order, (string) (int) $faq->sort_order),
             'categories' => $this->item('카테고리', $this->categoryValue($faq), $this->categoryDisplay($faq)),
         ];
@@ -37,7 +37,7 @@ final class FaqUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(Faq $faq, array $before): void
     {
@@ -76,7 +76,7 @@ final class FaqUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, mixed> $items
+     * @param  array<int, mixed>  $items
      */
     private function lineList(array $items): ?string
     {
@@ -90,7 +90,7 @@ final class FaqUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      */
     private function record(Faq $faq, string $action, string $source, array $changes): void
     {

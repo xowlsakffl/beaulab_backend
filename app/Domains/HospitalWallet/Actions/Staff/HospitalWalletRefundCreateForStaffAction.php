@@ -15,6 +15,7 @@ use App\Domains\HospitalWallet\Models\HospitalWallet;
 use App\Domains\HospitalWallet\Models\HospitalWalletOperation;
 use App\Domains\HospitalWallet\Models\HospitalWalletRefund;
 use App\Domains\HospitalWallet\Queries\Staff\HospitalWalletRefundForStaffQuery;
+use App\Domains\HospitalWallet\Support\HospitalWalletRefundAmount;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -90,11 +91,11 @@ final class HospitalWalletRefundCreateForStaffAction
                 ],
             ]);
 
-            $vatAmount = (int) round($amount * 0.1);
+            $refundAmount = HospitalWalletRefundAmount::fromPoints($amount);
             $refund = $this->query->createRefund($operation, [
-                'supply_amount' => $amount,
-                'vat_amount' => $vatAmount,
-                'refund_amount' => $amount + $vatAmount,
+                'supply_amount' => $refundAmount->supplyAmount,
+                'vat_amount' => $refundAmount->vatAmount,
+                'refund_amount' => $refundAmount->totalAmount,
                 'bank_name' => trim((string) $payload['bank_name']),
                 'account_number' => (string) $payload['account_number'],
             ]);

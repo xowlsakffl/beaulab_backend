@@ -408,7 +408,7 @@ final class ContentReportProcessForStaffAction
 
         return [
             'key' => 'status',
-            'label' => '노출여부',
+            'label' => '공개여부',
             'value' => $value,
             'display' => $value === 'ACTIVE' ? '노출' : '미노출',
         ];

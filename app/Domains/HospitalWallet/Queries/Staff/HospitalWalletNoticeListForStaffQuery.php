@@ -7,6 +7,7 @@ namespace App\Domains\HospitalWallet\Queries\Staff;
 use App\Common\Support\DateRangeFilter;
 use App\Domains\Common\Sms\Models\SmsBatch;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\HospitalWallet\Support\HospitalWalletHospitalIdParser;
 use App\Domains\HospitalWallet\Support\HospitalWalletSms;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,7 +47,7 @@ final class HospitalWalletNoticeListForStaffQuery
 
         $keyword = trim($keyword);
         $numericId = ctype_digit($keyword) ? (int) $keyword : null;
-        $hospitalId = $this->hospitalIdFromKeyword($keyword);
+        $hospitalId = HospitalWalletHospitalIdParser::fromKeyword($keyword);
         $normalizedPhone = preg_replace('/\D+/', '', $keyword) ?? '';
 
         $builder->where(function (Builder $query) use ($keyword, $numericId, $hospitalId, $normalizedPhone): void {
@@ -76,14 +77,5 @@ final class HospitalWalletNoticeListForStaffQuery
                 });
             });
         });
-    }
-
-    private function hospitalIdFromKeyword(string $keyword): ?int
-    {
-        if (preg_match('/^HID[-_ ]?(\d+)$/i', $keyword, $matches) === 1) {
-            return (int) $matches[1];
-        }
-
-        return null;
     }
 }

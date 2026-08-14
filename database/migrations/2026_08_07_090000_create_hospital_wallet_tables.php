@@ -25,6 +25,8 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE hospital_wallets COMMENT = '병의원 충전금 지갑'");
 
+        DB::statement('ALTER TABLE hospital_wallets ADD CONSTRAINT h_wallet_reserved_lte_paid_chk CHECK (reserved_paid_balance <= paid_balance)');
+
         DB::table('hospital_wallets')->insertUsing(
             [
                 'hospital_id',
@@ -80,6 +82,10 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE hospital_wallet_operations COMMENT = '병의원 충전금 신청 및 처리 업무 건'");
 
+        DB::statement('ALTER TABLE hospital_wallet_operations ADD CONSTRAINT h_wallet_op_amount_positive_chk CHECK (amount > 0)');
+        DB::statement("ALTER TABLE hospital_wallet_operations ADD CONSTRAINT h_wallet_op_type_chk CHECK (type IN ('CHARGE', 'USAGE', 'REFUND', 'SERVICE_GRANT', 'SERVICE_RECLAIM', 'REVERSAL'))");
+        DB::statement("ALTER TABLE hospital_wallet_operations ADD CONSTRAINT h_wallet_op_status_chk CHECK (status IN ('PENDING', 'COMPLETED', 'CANCELED', 'REJECTED', 'FAILED'))");
+
         Schema::create('hospital_wallet_transactions', function (Blueprint $table) {
             $table->id()->comment('병의원 충전금 원장 ID');
             $table->unsignedBigInteger('hospital_wallet_operation_id')->comment('충전금 업무 건 ID');
@@ -112,6 +118,10 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE hospital_wallet_transactions COMMENT = '실제 잔액 변경이 완료된 불변 원장'");
 
+        DB::statement('ALTER TABLE hospital_wallet_transactions ADD CONSTRAINT h_wallet_tx_amount_positive_chk CHECK (amount > 0)');
+        DB::statement('ALTER TABLE hospital_wallet_transactions ADD CONSTRAINT h_wallet_tx_reserved_before_chk CHECK (reserved_paid_balance_before <= paid_balance_before)');
+        DB::statement('ALTER TABLE hospital_wallet_transactions ADD CONSTRAINT h_wallet_tx_reserved_after_chk CHECK (reserved_paid_balance_after <= paid_balance_after)');
+
         Schema::create('hospital_wallet_transaction_entries', function (Blueprint $table) {
             $table->id()->comment('충전금 원장 계정별 증감 ID');
             $table->unsignedBigInteger('hospital_wallet_transaction_id')->comment('병의원 충전금 원장 ID');
@@ -131,6 +141,10 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE hospital_wallet_transaction_entries COMMENT = '충전금 원장 잔액 종류별 증감 상세'");
+
+        DB::statement("ALTER TABLE hospital_wallet_transaction_entries ADD CONSTRAINT h_wallet_entry_balance_type_chk CHECK (balance_type IN ('PAID', 'SERVICE'))");
+        DB::statement("ALTER TABLE hospital_wallet_transaction_entries ADD CONSTRAINT h_wallet_entry_direction_chk CHECK (direction IN ('CREDIT', 'DEBIT'))");
+        DB::statement('ALTER TABLE hospital_wallet_transaction_entries ADD CONSTRAINT h_wallet_entry_amount_positive_chk CHECK (amount > 0)');
 
         Schema::create('hospital_wallet_payments', function (Blueprint $table) {
             $table->id()->comment('유상 충전 결제 상세 ID');
@@ -159,6 +173,8 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE hospital_wallet_payments COMMENT = '유상 충전 결제 및 가상계좌 상세'");
 
+        DB::statement('ALTER TABLE hospital_wallet_payments ADD CONSTRAINT h_wallet_payment_amount_chk CHECK (payment_amount = supply_amount + vat_amount)');
+
         Schema::create('hospital_wallet_refunds', function (Blueprint $table) {
             $table->id()->comment('충전금 환불 상세 ID');
             $table->unsignedBigInteger('hospital_wallet_operation_id')->comment('환불 업무 건 ID');
@@ -178,6 +194,7 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE hospital_wallet_refunds COMMENT = '충전금 환불 계좌 및 금액 상세'");
+        DB::statement('ALTER TABLE hospital_wallet_refunds ADD CONSTRAINT h_wallet_refund_amount_chk CHECK (refund_amount = supply_amount + vat_amount)');
     }
 
     public function down(): void

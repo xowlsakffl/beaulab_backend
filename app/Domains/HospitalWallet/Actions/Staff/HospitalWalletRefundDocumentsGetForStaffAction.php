@@ -18,7 +18,7 @@ final class HospitalWalletRefundDocumentsGetForStaffAction
 
     public function execute(HospitalWalletOperation $operation): array
     {
-        Gate::authorize('viewHistory', HospitalWallet::class);
+        Gate::authorize('viewRefundDocuments', HospitalWallet::class);
 
         $operation = $this->query->loadDetail($operation);
         if ($operation->type !== HospitalWalletOperation::TYPE_REFUND || ! $operation->refund) {

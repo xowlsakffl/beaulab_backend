@@ -7,10 +7,12 @@ use App\Domains\Common\Notification\Models\NotificationDelivery;
 use App\Domains\Common\Sms\Actions\SmsPendingDispatchAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
+use App\Domains\HospitalWallet\Queries\HospitalWalletIntegrityAuditQuery;
 use App\Domains\Notice\Actions\Common\CleanupTempEditorImagesAction;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use Symfony\Component\Console\Command\Command;
 
 // 개발용 기본 예시 커맨드 (Laravel 기본 제공)
 Artisan::command('inspire', function () {
@@ -147,6 +149,24 @@ Artisan::command('hospital-evaluations:refresh-hospital-ratings {--hospital-id=*
     $this->info("Refreshed hospital evaluation ratings: {$refreshedCount} hospitals");
 })->purpose('Refresh denormalized hospital evaluation rating aggregates');
 
+Artisan::command('hospital-wallet:audit-integrity', function () {
+    $counts = app(HospitalWalletIntegrityAuditQuery::class)->counts();
+    $violations = collect($counts)->filter(static fn (int $count): bool => $count > 0);
+
+    $this->table(
+        ['check', 'violations'],
+        collect($counts)->map(static fn (int $count, string $check): array => [$check, $count])->values()->all(),
+    );
+
+    if ($violations->isNotEmpty()) {
+        logger()->critical('Hospital wallet integrity violations detected.', $violations->all());
+
+        return Command::FAILURE;
+    }
+
+    return Command::SUCCESS;
+})->purpose('Audit hospital wallet balance and ledger invariants');
+
 // Schedule Monitor 대상 작업 동기화 (모니터링 대상/설정 갱신)
 Schedule::command('schedule-monitor:sync')->dailyAt('02:50');
 
@@ -169,3 +189,7 @@ Schedule::command('queue:prune-failed --hours=168')->dailyAt('03:20');
 
 // 병원별 평가 평점 집계 정합성 보정
 Schedule::command('hospital-evaluations:refresh-hospital-ratings')->dailyAt('03:30');
+
+Schedule::command('hospital-wallet:audit-integrity')
+    ->dailyAt('03:40')
+    ->withoutOverlapping();

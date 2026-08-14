@@ -45,6 +45,11 @@ final class HospitalWalletPolicy
         return $this->delegate($actor)->processRefund($actor);
     }
 
+    public function viewRefundDocuments(mixed $actor): bool
+    {
+        return $this->delegate($actor)->viewRefundDocuments($actor);
+    }
+
     public function updateRefundDocuments(mixed $actor): bool
     {
         return $this->delegate($actor)->updateRefundDocuments($actor);
@@ -97,6 +102,11 @@ final class HospitalWalletPolicy
                 }
 
                 public function processRefund(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function viewRefundDocuments(mixed $actor): bool
                 {
                     return false;
                 }

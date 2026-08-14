@@ -16,6 +16,7 @@ final class HospitalWalletRefundForStaffQuery
     {
         return HospitalWallet::query()
             ->with('hospital:id,name')
+            ->whereHas('hospital')
             ->where('hospital_id', $hospitalId)
             ->lockForUpdate()
             ->first();

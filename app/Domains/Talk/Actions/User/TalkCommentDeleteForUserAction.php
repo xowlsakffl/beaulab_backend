@@ -54,7 +54,7 @@ final class TalkCommentDeleteForUserAction
                 ],
                 changes: OperationHistoryChangeSetBuilder::single(
                     key: 'status',
-                    label: '노출여부',
+                    label: '공개여부',
                     before: $beforeStatus,
                     after: TalkComment::STATUS_INACTIVE,
                     beforeDisplay: $beforeStatus === TalkComment::STATUS_ACTIVE ? '노출' : '미노출',

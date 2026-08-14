@@ -20,7 +20,7 @@ final class HospitalWalletRefundDocumentDownloadForStaffAction
 
     public function execute(HospitalWalletOperation $operation, string $document): StreamedResponse
     {
-        Gate::authorize('viewHistory', HospitalWallet::class);
+        Gate::authorize('viewRefundDocuments', HospitalWallet::class);
 
         $operation = $this->query->loadDetail($operation);
         if ($operation->type !== HospitalWalletOperation::TYPE_REFUND || ! $operation->refund) {

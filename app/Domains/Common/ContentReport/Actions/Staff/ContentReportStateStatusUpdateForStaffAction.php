@@ -154,7 +154,7 @@ final class ContentReportStateStatusUpdateForStaffAction
 
         return [
             'key' => 'status',
-            'label' => '노출여부',
+            'label' => '공개여부',
             'before' => $before,
             'after' => $after,
             'before_display' => $this->visibilityLabel($before),

@@ -257,7 +257,7 @@ Staff 처리는 세 가지 엔드포인트가 있다.
 
 신고 상태 변경과 경고/무시 변경은 `OperationHistory::ACTION_STATE_UPDATED`로 기록한다.
 
-변경 상세는 `operation_history_changes`에 저장된다. `OperationHistoryCreateAction`은 `field_label` 저장 시 `변경` 접미사를 제거한다. 따라서 호출부는 `조치유형 변경`, `경고여부 변경`, `신고상태 변경`, `노출여부 변경`, `강제중지 변경`처럼 넘겨도 저장 label은 화면 공통 formatter 기준으로 정규화된다.
+변경 상세는 `operation_history_changes`에 저장된다. `OperationHistoryCreateAction`은 `field_label` 저장 시 `변경` 접미사를 제거한다. 따라서 호출부는 `조치유형 변경`, `경고여부 변경`, `신고상태 변경`, `공개여부 변경`, `강제중지 변경`처럼 넘겨도 저장 label은 화면 공통 formatter 기준으로 정규화된다.
 
 대표 변경 key:
 
@@ -266,7 +266,7 @@ Staff 처리는 세 가지 엔드포인트가 있다.
 | `report_status` | `조치유형 변경` | 일반 신고 조치유형 변경 |
 | `report_status` | `신고상태 변경` | 동영상 신고 상태 변경 |
 | `warning_status` | `경고여부 변경` | 작성자 경고/무시 변경 |
-| `status` | `노출여부 변경` | 일반 콘텐츠 원본 노출 상태 변경 |
+| `status` | `공개여부 변경` | 일반 콘텐츠 원본 노출 상태 변경 |
 | `admin_status` | `강제중지 변경` | 동영상 원본 강제중지 상태 변경 |
 
 자동차단은 system actor로 기록하고, metadata에 `source = user.content_report.auto_block`을 남긴다.

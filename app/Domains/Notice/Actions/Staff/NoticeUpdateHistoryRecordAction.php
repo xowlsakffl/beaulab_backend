@@ -25,7 +25,7 @@ final class NoticeUpdateHistoryRecordAction
             'channel' => $this->item('노출 대상', $notice->channel, $notice->channel),
             'title' => $this->item('제목', $notice->title, $notice->title),
             'content' => $this->item('내용', $notice->content, $notice->content),
-            'status' => $this->item('노출여부', $notice->status, $notice->status),
+            'status' => $this->item('공개여부', $notice->status, $notice->status),
             'is_pinned' => $this->item('상단 고정', (bool) $notice->is_pinned, (bool) $notice->is_pinned ? '예' : '아니오'),
             'is_important' => $this->item('중요 공지', (bool) $notice->is_important, (bool) $notice->is_important ? '예' : '아니오'),
             'publish_period' => $this->item('게시기간', [
@@ -43,7 +43,7 @@ final class NoticeUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(Notice $notice, array $before): void
     {
@@ -90,7 +90,7 @@ final class NoticeUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, mixed> $items
+     * @param  array<int, mixed>  $items
      */
     private function lineList(array $items): ?string
     {
@@ -104,7 +104,7 @@ final class NoticeUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      */
     private function record(Notice $notice, string $action, string $source, array $changes): void
     {

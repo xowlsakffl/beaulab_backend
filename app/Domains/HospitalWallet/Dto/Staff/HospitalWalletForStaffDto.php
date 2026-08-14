@@ -40,6 +40,7 @@ final readonly class HospitalWalletForStaffDto
         return [
             'id' => (int) $this->wallet->hospital->id,
             'name' => (string) $this->wallet->hospital->name,
+            'is_deleted' => $this->wallet->hospital->trashed(),
         ];
     }
 }

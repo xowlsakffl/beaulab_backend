@@ -45,10 +45,17 @@ final class HospitalWalletForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS);
     }
 
+    public function viewRefundDocuments(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_DOCUMENT_SHOW)
+            || $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS);
+    }
+
     public function updateRefundDocuments(AccountStaff $actor): bool
     {
-        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_REQUEST)
-            || $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS);
+        return $this->viewRefundDocuments($actor)
+            && ($actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_REQUEST)
+                || $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS));
     }
 
     public function sendNotice(AccountStaff $actor): bool

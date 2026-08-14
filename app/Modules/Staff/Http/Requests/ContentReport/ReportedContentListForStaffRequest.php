@@ -90,7 +90,7 @@ final class ReportedContentListForStaffRequest extends FormRequest
             'report_reason' => '신고 사유',
             'report_count_min' => '최소 신고 수',
             'report_count_max' => '최대 신고 수',
-            'target_status' => '노출 여부',
+            'target_status' => '공개 여부',
             'warning_status' => '경고 처리 상태',
             'summary_filter' => '요약 필터',
             'report_status' => '신고 처리 상태',

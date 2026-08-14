@@ -40,7 +40,7 @@ final class TalkStatusUpdateForStaffAction
         return DB::transaction(function () use ($ids, $status, $historyReason, $actor): array {
             $talks = $this->query->getForUpdate($ids);
             if ($talks->contains(fn (Talk $talk): bool => $talk->isStatusChangeLocked())) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 처리 상태가 자동차단 또는 노출중지인 게시물은 노출여부를 변경할 수 없습니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 처리 상태가 자동차단 또는 노출중지인 게시물은 공개여부를 변경할 수 없습니다.');
             }
 
             $existingIds = $talks
@@ -68,7 +68,7 @@ final class TalkStatusUpdateForStaffAction
                     ],
                     changes: OperationHistoryChangeSetBuilder::single(
                         key: 'status',
-                        label: '노출여부',
+                        label: '공개여부',
                         before: $beforeStatus,
                         after: $status,
                         beforeDisplay: $beforeStatus === Talk::STATUS_ACTIVE ? '노출' : '미노출',

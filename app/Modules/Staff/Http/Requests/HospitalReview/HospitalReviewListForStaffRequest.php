@@ -104,8 +104,8 @@ final class HospitalReviewListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
-            'status' => '노출 여부',
-            'status.*' => '노출 여부',
+            'status' => '공개 여부',
+            'status.*' => '공개 여부',
             'report_status' => '상태',
             'report_status.*' => '상태',
             'author_id' => '작성자',

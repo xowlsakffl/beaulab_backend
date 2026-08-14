@@ -38,6 +38,8 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_WALLET_REFUND_REQUEST = 'beaulab.hospital_wallet.refund_request';
 
+    public const BEAULAB_HOSPITAL_WALLET_REFUND_DOCUMENT_SHOW = 'beaulab.hospital_wallet.refund_document_show';
+
     public const BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS = 'beaulab.hospital_wallet.refund_process';
 
     public const BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW = 'beaulab.hospital_wallet.notice_show';
@@ -277,6 +279,7 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_WALLET_SERVICE_GRANT,
             self::BEAULAB_HOSPITAL_WALLET_SERVICE_RECLAIM,
             self::BEAULAB_HOSPITAL_WALLET_REFUND_REQUEST,
+            self::BEAULAB_HOSPITAL_WALLET_REFUND_DOCUMENT_SHOW,
             self::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW,
             self::BEAULAB_HOSPITAL_WALLET_NOTICE_SEND,
             self::BEAULAB_HOSPITAL_ENTRY_SHOW,

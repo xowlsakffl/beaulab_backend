@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalWallet\Models;
 
+use App\Domains\HospitalWallet\Concerns\PreventsLedgerMutation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class HospitalWalletTransactionEntry extends Model
 {
+    use PreventsLedgerMutation;
+
     public const string BALANCE_TYPE_ALL = 'ALL';
 
     public const string BALANCE_TYPE_PAID = 'PAID';

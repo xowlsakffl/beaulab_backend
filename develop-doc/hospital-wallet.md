@@ -139,6 +139,7 @@ HospitalWalletOperation(신청·대기·완료·취소)
 ### 충전금 현황 집계 기준
 
 - 연간 입금·사용·환불과 월별 추이는 `COMPLETED` Operation에 연결된 Transaction 생성 시각을 기준으로 집계한다.
+- 연간 요약은 조회 연도 전체를 기준으로 하고, 월별 추이는 현재 월을 포함한 최근 6개월을 기준으로 한다.
 - 화면 단위는 모두 포인트(`P`)다. 부가세 포함 원화 결제액은 현황 포인트와 합산하지 않는다.
 - 총 잔여 포인트는 `SUM(paid_balance - reserved_paid_balance + service_balance)`다. 처리 대기 환불로 예약된 유상 포인트는 가용 잔액에서 제외한다.
 - 충전금 사용 상위 병의원은 `USAGE + COMPLETED + DEBIT` Entry만 합산하며 `ALL`, `PAID`, `SERVICE`로 구분할 수 있다.

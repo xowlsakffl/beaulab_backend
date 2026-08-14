@@ -54,7 +54,7 @@ final class HospitalReviewCommentDeleteForUserAction
                 ],
                 changes: OperationHistoryChangeSetBuilder::single(
                     key: 'status',
-                    label: '노출여부',
+                    label: '공개여부',
                     before: $beforeStatus,
                     after: HospitalReviewComment::STATUS_INACTIVE,
                     beforeDisplay: $beforeStatus === HospitalReviewComment::STATUS_ACTIVE ? '노출' : '미노출',

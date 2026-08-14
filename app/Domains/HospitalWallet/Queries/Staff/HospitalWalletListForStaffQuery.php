@@ -7,6 +7,7 @@ namespace App\Domains\HospitalWallet\Queries\Staff;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Domains\HospitalWallet\Models\HospitalWallet;
+use App\Domains\HospitalWallet\Support\HospitalWalletHospitalIdParser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -40,8 +41,11 @@ final class HospitalWalletListForStaffQuery
                 'active_event_count' => $activeEventCount,
                 'active_ad_count' => $activeAdCount,
             ])
-            ->whereHas('hospital')
-            ->with('hospital:id,name');
+            ->with([
+                'hospital' => fn ($query) => $query
+                    ->withTrashed()
+                    ->select(['id', 'name', 'deleted_at']),
+            ]);
 
         $this->applySearch($builder, $filters['q'] ?? null);
         $this->applySort(
@@ -62,9 +66,10 @@ final class HospitalWalletListForStaffQuery
         }
 
         $keyword = trim($keyword);
-        $hospitalId = $this->hospitalIdFromKeyword($keyword);
+        $hospitalId = HospitalWalletHospitalIdParser::fromKeyword($keyword, allowPlainNumber: true);
 
         $builder->whereHas('hospital', function (Builder $query) use ($keyword, $hospitalId): void {
+            $query->withTrashed();
             $query->where('name', 'like', "%{$keyword}%");
 
             if ($hospitalId !== null) {
@@ -108,18 +113,5 @@ final class HospitalWalletListForStaffQuery
         if ($sort !== 'hospital_id') {
             $builder->orderByDesc('hospital_wallets.hospital_id');
         }
-    }
-
-    private function hospitalIdFromKeyword(string $keyword): ?int
-    {
-        if (ctype_digit($keyword)) {
-            return (int) $keyword;
-        }
-
-        if (preg_match('/^HID[-_ ]?(\d+)$/i', $keyword, $matches) === 1) {
-            return (int) $matches[1];
-        }
-
-        return null;
     }
 }

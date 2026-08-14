@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalWallet\Models;
 
+use App\Domains\HospitalWallet\Concerns\PreventsLedgerMutation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class HospitalWalletTransaction extends Model
 {
+    use PreventsLedgerMutation;
+
     protected $table = 'hospital_wallet_transactions';
 
     protected $fillable = [

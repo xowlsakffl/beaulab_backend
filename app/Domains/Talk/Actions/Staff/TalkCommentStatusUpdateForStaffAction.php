@@ -40,7 +40,7 @@ final class TalkCommentStatusUpdateForStaffAction
         return DB::transaction(function () use ($ids, $status, $historyReason, $actor): array {
             $comments = $this->query->getForUpdate($ids);
             if ($comments->contains(fn (TalkComment $comment): bool => $comment->isStatusChangeLocked())) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 처리 상태가 자동차단 또는 노출중지인 댓글은 노출여부를 변경할 수 없습니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 처리 상태가 자동차단 또는 노출중지인 댓글은 공개여부를 변경할 수 없습니다.');
             }
 
             $existingIds = $comments
@@ -68,7 +68,7 @@ final class TalkCommentStatusUpdateForStaffAction
                     ],
                     changes: OperationHistoryChangeSetBuilder::single(
                         key: 'status',
-                        label: '노출여부',
+                        label: '공개여부',
                         before: $beforeStatus,
                         after: $status,
                         beforeDisplay: $beforeStatus === TalkComment::STATUS_ACTIVE ? '노출' : '미노출',

@@ -2,47 +2,42 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\HospitalWallet\Queries\Staff;
+namespace App\Domains\HospitalWallet\Queries;
 
 use App\Domains\HospitalWallet\Models\HospitalWallet;
 use App\Domains\HospitalWallet\Models\HospitalWalletOperation;
+use App\Domains\HospitalWallet\Models\HospitalWalletPayment;
 use App\Domains\HospitalWallet\Models\HospitalWalletTransaction;
 use App\Domains\HospitalWallet\Models\HospitalWalletTransactionEntry;
-use Illuminate\Support\Collection;
+use DateTimeInterface;
 
-final class HospitalWalletServicePointUpdateForStaffQuery
+final class HospitalWalletBalanceMutationQuery
 {
-    public function getWalletsForUpdate(array $hospitalIds): Collection
+    public function walletForUpdate(int $hospitalId): ?HospitalWallet
     {
         return HospitalWallet::query()
-            ->with('hospital:id,name')
             ->whereHas('hospital')
-            ->whereIn('hospital_id', $hospitalIds)
-            ->orderBy('hospital_id')
+            ->where('hospital_id', $hospitalId)
             ->lockForUpdate()
-            ->get([
-                'id',
-                'hospital_id',
-                'paid_balance',
-                'reserved_paid_balance',
-                'service_balance',
-                'last_transaction_at',
-            ]);
+            ->first();
     }
 
-    public function getBatchOperations(string $batchUuid): Collection
+    public function operationByIdempotencyKeyForUpdate(string $idempotencyKey): ?HospitalWalletOperation
     {
         return HospitalWalletOperation::query()
-            ->with(['wallet.hospital:id,name', 'transaction'])
-            ->where('batch_uuid', $batchUuid)
-            ->orderBy('hospital_wallet_id')
+            ->where('idempotency_key', $idempotencyKey)
             ->lockForUpdate()
-            ->get();
+            ->first();
     }
 
     public function createOperation(HospitalWallet $wallet, array $attributes): HospitalWalletOperation
     {
         return $wallet->operations()->create($attributes);
+    }
+
+    public function createPayment(HospitalWalletOperation $operation, array $attributes): HospitalWalletPayment
+    {
+        return $operation->payment()->create($attributes);
     }
 
     public function createTransaction(
@@ -56,26 +51,34 @@ final class HospitalWalletServicePointUpdateForStaffQuery
         ]);
     }
 
-    public function createServiceEntry(
+    public function createEntry(
         HospitalWalletTransaction $transaction,
+        string $balanceType,
         string $direction,
         int $amount,
     ): HospitalWalletTransactionEntry {
         return $transaction->entries()->create([
-            'balance_type' => HospitalWalletTransactionEntry::BALANCE_TYPE_SERVICE,
+            'balance_type' => $balanceType,
             'direction' => $direction,
             'amount' => $amount,
         ]);
     }
 
-    public function updateServiceBalance(
+    public function updateWallet(
         HospitalWallet $wallet,
+        int $paidBalance,
         int $serviceBalance,
-        \DateTimeInterface $lastTransactionAt,
+        DateTimeInterface $lastTransactionAt,
     ): void {
         $wallet->update([
+            'paid_balance' => $paidBalance,
             'service_balance' => $serviceBalance,
             'last_transaction_at' => $lastTransactionAt,
         ]);
+    }
+
+    public function loadDetail(HospitalWalletOperation $operation): HospitalWalletOperation
+    {
+        return $operation->load(['wallet', 'payment', 'transaction.entries', 'reference']);
     }
 }

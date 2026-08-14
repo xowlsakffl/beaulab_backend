@@ -58,7 +58,7 @@ final class HospitalReviewDeleteForUserAction
                 ],
                 changes: OperationHistoryChangeSetBuilder::single(
                     key: 'status',
-                    label: '노출여부',
+                    label: '공개여부',
                     before: $beforeStatus,
                     after: HospitalReview::STATUS_INACTIVE,
                     beforeDisplay: $beforeStatus === HospitalReview::STATUS_ACTIVE ? '노출' : '미노출',

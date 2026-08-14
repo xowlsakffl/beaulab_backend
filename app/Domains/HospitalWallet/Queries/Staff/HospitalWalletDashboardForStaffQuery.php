@@ -17,17 +17,21 @@ final class HospitalWalletDashboardForStaffQuery
 {
     public function overview(int $year): array
     {
-        $monthly = $this->monthlyOperationPoints($year);
+        $now = now();
+        $yearStartAt = Carbon::create($year, 1, 1)->startOfDay();
+        $yearEndAt = $yearStartAt->copy()->endOfYear();
+        $recentStartAt = $now->copy()->startOfMonth()->subMonths(5);
+        $recentEndAt = $now->copy()->endOfMonth();
+        $yearRows = $this->operationPointsByMonth($yearStartAt, $yearEndAt);
+        $recentRows = $recentStartAt->year === $year && $recentEndAt->year === $year
+            ? $yearRows
+            : $this->operationPointsByMonth($recentStartAt, $recentEndAt);
 
         return [
             'year' => $year,
-            'annual' => [
-                'charged_points' => array_sum(array_column($monthly, 'charged_points')),
-                'used_points' => array_sum(array_column($monthly, 'used_points')),
-                'refunded_points' => array_sum(array_column($monthly, 'refunded_points')),
-            ],
+            'annual' => $this->annualOperationPoints($yearRows),
             'balances' => $this->currentBalances(),
-            'monthly' => $monthly,
+            'monthly' => $this->recentMonthlyOperationPoints($recentRows, $recentStartAt),
             'category_shares' => $this->eventDBCategoryShares(),
         ];
     }
@@ -87,11 +91,9 @@ final class HospitalWalletDashboardForStaffQuery
             ->all();
     }
 
-    private function monthlyOperationPoints(int $year): array
+    private function operationPointsByMonth(Carbon $startAt, Carbon $endAt): Collection
     {
-        $startAt = Carbon::create($year, 1, 1)->startOfDay();
-        $endAt = $startAt->copy()->endOfYear();
-        $rows = DB::table('hospital_wallet_operations as operations')
+        return DB::table('hospital_wallet_operations as operations')
             ->join(
                 'hospital_wallet_transactions as transactions',
                 'transactions.hospital_wallet_operation_id',
@@ -107,7 +109,7 @@ final class HospitalWalletDashboardForStaffQuery
                 HospitalWalletOperation::TYPE_SERVICE_GRANT,
                 HospitalWalletOperation::TYPE_SERVICE_RECLAIM,
             ])
-            ->selectRaw('MONTH(transactions.created_at) as month_number')
+            ->selectRaw("DATE_FORMAT(transactions.created_at, '%Y-%m') as month_key")
             ->selectRaw(
                 'SUM(CASE WHEN operations.type = ? THEN operations.amount ELSE 0 END) as service_granted_points',
                 [HospitalWalletOperation::TYPE_SERVICE_GRANT],
@@ -128,18 +130,29 @@ final class HospitalWalletDashboardForStaffQuery
                 'SUM(CASE WHEN operations.type = ? THEN operations.amount ELSE 0 END) as refunded_points',
                 [HospitalWalletOperation::TYPE_REFUND],
             )
-            ->groupByRaw('MONTH(transactions.created_at)')
+            ->groupByRaw("DATE_FORMAT(transactions.created_at, '%Y-%m')")
             ->get()
-            ->keyBy(static fn ($row): int => (int) $row->month_number);
+            ->keyBy(static fn ($row): string => (string) $row->month_key);
+    }
 
-        $monthCount = $year === now()->year ? now()->month : 12;
+    private function annualOperationPoints(Collection $rows): array
+    {
+        return [
+            'charged_points' => (int) $rows->sum('charged_points'),
+            'used_points' => (int) $rows->sum('used_points'),
+            'refunded_points' => (int) $rows->sum('refunded_points'),
+        ];
+    }
 
-        return collect(range(1, $monthCount))
-            ->map(static function (int $month) use ($rows, $year): array {
+    private function recentMonthlyOperationPoints(Collection $rows, Carbon $startAt): array
+    {
+        return collect(range(0, 5))
+            ->map(static function (int $monthOffset) use ($rows, $startAt): array {
+                $month = $startAt->copy()->addMonths($monthOffset)->format('Y-m');
                 $row = $rows->get($month);
 
                 return [
-                    'month' => sprintf('%d-%02d', $year, $month),
+                    'month' => $month,
                     'service_granted_points' => (int) ($row->service_granted_points ?? 0),
                     'service_reclaimed_points' => (int) ($row->service_reclaimed_points ?? 0),
                     'charged_points' => (int) ($row->charged_points ?? 0),

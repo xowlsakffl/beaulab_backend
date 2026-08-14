@@ -37,9 +37,9 @@ final class HospitalFactory extends Factory
             'longitude' => $this->faker->longitude(124.5, 132.0),
 
             'tel' => $this->faker->phoneNumber(),
-            'ad_reception_phone_1' => $this->faker->phoneNumber(),
-            'ad_reception_phone_2' => $this->faker->optional(0.5)->phoneNumber(),
-            'ad_reception_phone_3' => $this->faker->optional(0.3)->phoneNumber(),
+            'ad_reception_phone_1' => $this->faker->numerify('010-####-####'),
+            'ad_reception_phone_2' => $this->faker->optional(0.5)->numerify('010-####-####'),
+            'ad_reception_phone_3' => $this->faker->optional(0.3)->numerify('010-####-####'),
 
             'consulting_hours' => $this->faker->optional(0.6)->sentence(10),
             'operation_hours' => $this->defaultOperationHours(),

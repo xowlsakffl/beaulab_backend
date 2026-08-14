@@ -20,6 +20,7 @@ final class HospitalWalletFactory extends Factory
         return [
             'hospital_id' => Hospital::factory(),
             'paid_balance' => 0,
+            'reserved_paid_balance' => 0,
             'service_balance' => 0,
             'last_transaction_at' => null,
         ];

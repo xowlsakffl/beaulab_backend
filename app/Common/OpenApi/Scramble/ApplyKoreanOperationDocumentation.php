@@ -56,6 +56,8 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'notifications' => '알림',
         'navigation-badges' => '메뉴 신규 표시',
         'reported-contents' => '신고게시물',
+        'hospital-wallets' => '병의원 충전금',
+        'hospital-wallet-operations' => '충전금 내역',
     ];
 
     /**
@@ -108,6 +110,15 @@ final class ApplyKoreanOperationDocumentation extends OperationExtension
         'put staff/hospital-event-ads/{hospitalEventAd}' => '이벤트 광고 수정',
         'patch staff/hospital-event-ads/{hospitalEventAd}' => '이벤트 광고 수정',
         'get staff/hospital-event-ads/{hospitalEventAd}/operation-histories' => '이벤트 광고 히스토리 조회',
+        'get staff/hospital-wallets' => '병의원 충전금 목록 조회',
+        'get staff/hospital-wallet-operations' => '충전금 내역 조회',
+        'patch staff/hospital-wallet-operations/{hospitalWalletOperation}/refund' => '충전금 환불 상태 변경',
+        'post staff/hospital-wallets/refunds' => '충전금 환불 신청',
+        'post staff/hospital-wallets/service-grants' => '서비스 포인트 지급',
+        'post staff/hospital-wallets/service-reclaims' => '서비스 포인트 회수',
+        'get staff/hospital-wallets/balance-notices' => '충전금 안내 발송 이력 조회',
+        'get staff/hospital-wallets/balance-notices/{hospitalWalletNoticeBatch}' => '충전금 안내 발송 상세 조회',
+        'post staff/hospital-wallets/balance-notices' => '충전금 안내 발송',
         'post staff/notices/editor-images' => '공지사항 에디터 이미지 업로드',
         'delete staff/notices/editor-images' => '공지사항 에디터 임시 이미지 정리',
         'post staff/faqs/editor-images' => 'FAQ 에디터 이미지 업로드',

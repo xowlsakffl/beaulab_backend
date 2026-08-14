@@ -20,8 +20,10 @@ final readonly class HospitalWalletForStaffDto
         return [
             'id' => (int) $this->wallet->id,
             'hospital' => $this->hospital(),
-            'total_balance' => $this->wallet->totalBalance(),
-            'paid_balance' => (int) $this->wallet->paid_balance,
+            'total_balance' => $this->wallet->availableTotalBalance(),
+            'paid_balance' => $this->wallet->availablePaidBalance(),
+            'owned_paid_balance' => (int) $this->wallet->paid_balance,
+            'reserved_paid_balance' => (int) $this->wallet->reserved_paid_balance,
             'service_balance' => (int) $this->wallet->service_balance,
             'active_event_count' => (int) $this->wallet->getAttribute('active_event_count'),
             'active_ad_count' => (int) $this->wallet->getAttribute('active_ad_count'),

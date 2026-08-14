@@ -32,6 +32,7 @@ final class HospitalWalletListForStaffQuery
                 'hospital_wallets.id',
                 'hospital_wallets.hospital_id',
                 'hospital_wallets.paid_balance',
+                'hospital_wallets.reserved_paid_balance',
                 'hospital_wallets.service_balance',
                 'hospital_wallets.last_transaction_at',
             ])
@@ -91,9 +92,12 @@ final class HospitalWalletListForStaffQuery
                 $direction,
             ),
             'total_balance' => $builder->orderByRaw(
-                '(hospital_wallets.paid_balance + hospital_wallets.service_balance) '.$direction,
+                '(hospital_wallets.paid_balance - hospital_wallets.reserved_paid_balance + hospital_wallets.service_balance) '.$direction,
             ),
-            'paid_balance', 'service_balance', 'last_transaction_at' => $builder->orderBy(
+            'paid_balance' => $builder->orderByRaw(
+                '(hospital_wallets.paid_balance - hospital_wallets.reserved_paid_balance) '.$direction,
+            ),
+            'service_balance', 'last_transaction_at' => $builder->orderBy(
                 "hospital_wallets.{$sort}",
                 $direction,
             ),

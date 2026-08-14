@@ -30,9 +30,19 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_WALLET_SHOW = 'beaulab.hospital_wallet.show';
 
+    public const BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW = 'beaulab.hospital_wallet.history_show';
+
     public const BEAULAB_HOSPITAL_WALLET_SERVICE_GRANT = 'beaulab.hospital_wallet.service_grant';
 
     public const BEAULAB_HOSPITAL_WALLET_SERVICE_RECLAIM = 'beaulab.hospital_wallet.service_reclaim';
+
+    public const BEAULAB_HOSPITAL_WALLET_REFUND_REQUEST = 'beaulab.hospital_wallet.refund_request';
+
+    public const BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS = 'beaulab.hospital_wallet.refund_process';
+
+    public const BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW = 'beaulab.hospital_wallet.notice_show';
+
+    public const BEAULAB_HOSPITAL_WALLET_NOTICE_SEND = 'beaulab.hospital_wallet.notice_send';
 
     public const BEAULAB_HOSPITAL_ENTRY_SHOW = 'beaulab.hospital_entry.show';
 
@@ -263,8 +273,12 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_UPDATE,
             self::BEAULAB_HOSPITAL_DELETE,
             self::BEAULAB_HOSPITAL_WALLET_SHOW,
+            self::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
             self::BEAULAB_HOSPITAL_WALLET_SERVICE_GRANT,
             self::BEAULAB_HOSPITAL_WALLET_SERVICE_RECLAIM,
+            self::BEAULAB_HOSPITAL_WALLET_REFUND_REQUEST,
+            self::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW,
+            self::BEAULAB_HOSPITAL_WALLET_NOTICE_SEND,
             self::BEAULAB_HOSPITAL_ENTRY_SHOW,
             self::BEAULAB_HOSPITAL_ENTRY_UPDATE,
 
@@ -348,6 +362,7 @@ final class AccessPermissions
             self::BEAULAB_STAFF_CREATE,
             self::BEAULAB_STAFF_UPDATE,
             self::BEAULAB_STAFF_DELETE,
+            self::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS,
             self::BEAULAB_CATEGORY_MANAGE,
             self::BEAULAB_HASHTAG_MANAGE,
         ];

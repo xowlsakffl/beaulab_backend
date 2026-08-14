@@ -8,7 +8,7 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\HospitalWallet\Models\HospitalWallet;
-use App\Domains\HospitalWallet\Models\HospitalWalletTransaction;
+use App\Domains\HospitalWallet\Models\HospitalWalletOperation;
 use Illuminate\Support\Facades\Gate;
 
 final class HospitalWalletServicePointGrantForStaffAction
@@ -28,7 +28,7 @@ final class HospitalWalletServicePointGrantForStaffAction
 
         return $this->processAction->execute(
             $payload,
-            HospitalWalletTransaction::TYPE_SERVICE_GRANT,
+            HospitalWalletOperation::TYPE_SERVICE_GRANT,
             $actor,
         );
     }

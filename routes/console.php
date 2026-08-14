@@ -1,9 +1,10 @@
 <?php
 
-use App\Domains\Common\Notification\Jobs\SendPushNotificationDeliveryJob;
-use App\Domains\Common\Notification\Models\NotificationDelivery;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\Media\Services\MediaVariantGenerator;
+use App\Domains\Common\Notification\Jobs\SendPushNotificationDeliveryJob;
+use App\Domains\Common\Notification\Models\NotificationDelivery;
+use App\Domains\Common\Sms\Actions\SmsPendingDispatchAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\Notice\Actions\Common\CleanupTempEditorImagesAction;
@@ -42,6 +43,19 @@ Artisan::command('notifications:send-pending-push {--limit=100}', function () {
     $this->info("Queued pending push deliveries: {$ids->count()}");
 })->purpose('Queue pending push notification deliveries');
 
+// Redis 장애 등으로 큐 등록이 누락되거나 장기 대기 중인 문자를 재큐잉한다.
+Artisan::command('sms:dispatch-pending {--limit=100} {--stale-minutes=}', function () {
+    $limit = max(1, min((int) $this->option('limit'), 1000));
+    $staleMinutes = $this->option('stale-minutes');
+    $staleMinutes = is_numeric($staleMinutes) ? max(1, (int) $staleMinutes) : null;
+    $queuedCount = app(SmsPendingDispatchAction::class)->execute(
+        limit: $limit,
+        staleMinutes: $staleMinutes,
+    );
+
+    $this->info("Queued pending SMS deliveries: {$queuedCount}");
+})->purpose('Queue pending SMS deliveries');
+
 // 기존 업로드 이미지에 thumb/medium variant를 생성한다.
 Artisan::command('media:generate-variants {--force} {--limit=500}', function () {
     $force = (bool) $this->option('force');
@@ -70,6 +84,7 @@ Artisan::command('media:generate-variants {--force} {--limit=500}', function () 
 
                 if (! $force && is_array($existingVariants) && $existingVariants !== []) {
                     $skippedCount++;
+
                     continue;
                 }
 
@@ -81,6 +96,7 @@ Artisan::command('media:generate-variants {--force} {--limit=500}', function () 
 
                 if ($variants === []) {
                     $skippedCount++;
+
                     continue;
                 }
 
@@ -139,6 +155,11 @@ Schedule::command('notice:cleanup-temp-editor-images --hours=24')->hourly();
 
 // Horizon 메트릭 스냅샷 수집 (대시보드 그래프 데이터 유지)
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
+
+// 문자 원장 생성 후 Redis 큐 등록 자체가 누락된 건만 자동 복구한다.
+Schedule::command('sms:dispatch-pending --limit=500')
+    ->everyMinute()
+    ->withoutOverlapping();
 
 // 오래된 큐 배치 메타 정리 (job_batches 비대화 방지)
 Schedule::command('queue:prune-batches --hours=72 --unfinished=72 --cancelled=168')->dailyAt('03:10');

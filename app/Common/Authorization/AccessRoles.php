@@ -95,6 +95,8 @@ final class AccessRoles
                     // 조회 중심
                     AccessPermissions::BEAULAB_HOSPITAL_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_ENTRY_SHOW,
                     AccessPermissions::BEAULAB_BEAUTY_SHOW,
                     AccessPermissions::BEAULAB_AGENCY_SHOW,
@@ -120,6 +122,8 @@ final class AccessRoles
                     ...$staffCommon,
                     AccessPermissions::BEAULAB_HOSPITAL_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_ENTRY_SHOW,
                     AccessPermissions::BEAULAB_BEAUTY_SHOW,
                     AccessPermissions::BEAULAB_AGENCY_SHOW,

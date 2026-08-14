@@ -12,10 +12,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * HospitalWallet 역할 정의.
- * 병의원별 유상 충전 잔액과 서비스 잔액의 현재값을 관리한다.
- */
 final class HospitalWallet extends Model
 {
     use HasFactory;
@@ -25,12 +21,14 @@ final class HospitalWallet extends Model
     protected $fillable = [
         'hospital_id',
         'paid_balance',
+        'reserved_paid_balance',
         'service_balance',
         'last_transaction_at',
     ];
 
     protected $casts = [
         'paid_balance' => 'integer',
+        'reserved_paid_balance' => 'integer',
         'service_balance' => 'integer',
         'last_transaction_at' => 'datetime',
     ];
@@ -45,6 +43,12 @@ final class HospitalWallet extends Model
         return $this->belongsTo(Hospital::class, 'hospital_id');
     }
 
+    public function operations(): HasMany
+    {
+        return $this->hasMany(HospitalWalletOperation::class, 'hospital_wallet_id')
+            ->latest('id');
+    }
+
     public function transactions(): HasMany
     {
         return $this->hasMany(HospitalWalletTransaction::class, 'hospital_wallet_id')
@@ -54,5 +58,15 @@ final class HospitalWallet extends Model
     public function totalBalance(): int
     {
         return (int) $this->paid_balance + (int) $this->service_balance;
+    }
+
+    public function availablePaidBalance(): int
+    {
+        return max(0, (int) $this->paid_balance - (int) $this->reserved_paid_balance);
+    }
+
+    public function availableTotalBalance(): int
+    {
+        return $this->availablePaidBalance() + (int) $this->service_balance;
     }
 }

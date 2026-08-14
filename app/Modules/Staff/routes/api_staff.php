@@ -172,8 +172,32 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.Access
     Route::delete('hospitals/{hospital}', [HospitalForStaffController::class, 'deleteHospitalForStaff'])
         ->name('hospitals.deleteHospitalForStaff');
 
+    Route::get('hospital-wallets/dashboard', [HospitalWalletForStaffController::class, 'getHospitalWalletDashboardForStaff'])
+        ->name('hospital-wallets.getHospitalWalletDashboardForStaff');
+    Route::get('hospital-wallets/dashboard/top-hospitals', [HospitalWalletForStaffController::class, 'getHospitalWalletTopHospitalsForStaff'])
+        ->name('hospital-wallets.getHospitalWalletTopHospitalsForStaff');
     Route::get('hospital-wallets', [HospitalWalletForStaffController::class, 'getHospitalWalletsForStaff'])
         ->name('hospital-wallets.getHospitalWalletsForStaff');
+    Route::get('hospital-wallet-operations', [HospitalWalletForStaffController::class, 'getHospitalWalletOperationsForStaff'])
+        ->name('hospital-wallet-operations.getHospitalWalletOperationsForStaff');
+    Route::post('hospital-wallets/refunds', [HospitalWalletForStaffController::class, 'createHospitalWalletRefundForStaff'])
+        ->name('hospital-wallets.createHospitalWalletRefundForStaff');
+    Route::get('hospital-wallet-operations/{hospitalWalletOperation}/refund-documents', [HospitalWalletForStaffController::class, 'getHospitalWalletRefundDocumentsForStaff'])
+        ->name('hospital-wallet-operations.getHospitalWalletRefundDocumentsForStaff');
+    Route::get('hospital-wallet-operations/{hospitalWalletOperation}/refund-documents/{document}/download', [HospitalWalletForStaffController::class, 'downloadHospitalWalletRefundDocumentForStaff'])
+        ->whereIn('document', ['business-registration', 'bankbook'])
+        ->name('hospital-wallet-operations.downloadHospitalWalletRefundDocumentForStaff');
+    Route::post('hospital-wallet-operations/{hospitalWalletOperation}/refund-documents', [HospitalWalletForStaffController::class, 'updateHospitalWalletRefundDocumentsForStaff'])
+        ->name('hospital-wallet-operations.updateHospitalWalletRefundDocumentsForStaff');
+    Route::patch('hospital-wallet-operations/{hospitalWalletOperation}/refund', [HospitalWalletForStaffController::class, 'processHospitalWalletRefundForStaff'])
+        ->name('hospital-wallet-operations.processHospitalWalletRefundForStaff');
+    Route::get('hospital-wallets/balance-notices', [HospitalWalletForStaffController::class, 'getHospitalWalletNoticesForStaff'])
+        ->name('hospital-wallets.getHospitalWalletNoticesForStaff');
+    Route::get('hospital-wallets/balance-notices/{hospitalWalletNoticeBatch}', [HospitalWalletForStaffController::class, 'getHospitalWalletNoticeForStaff'])
+        ->name('hospital-wallets.getHospitalWalletNoticeForStaff');
+    Route::post('hospital-wallets/balance-notices', [HospitalWalletForStaffController::class, 'createHospitalWalletNoticeForStaff'])
+        ->middleware('throttle:staff-sms-send')
+        ->name('hospital-wallets.createHospitalWalletNoticeForStaff');
     Route::post('hospital-wallets/service-grants', [HospitalWalletForStaffController::class, 'grantHospitalWalletServicePointsForStaff'])
         ->name('hospital-wallets.grantHospitalWalletServicePointsForStaff');
     Route::post('hospital-wallets/service-reclaims', [HospitalWalletForStaffController::class, 'reclaimHospitalWalletServicePointsForStaff'])

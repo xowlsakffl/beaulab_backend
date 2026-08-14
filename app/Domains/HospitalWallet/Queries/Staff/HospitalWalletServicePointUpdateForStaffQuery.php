@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace App\Domains\HospitalWallet\Queries\Staff;
 
 use App\Domains\HospitalWallet\Models\HospitalWallet;
+use App\Domains\HospitalWallet\Models\HospitalWalletOperation;
 use App\Domains\HospitalWallet\Models\HospitalWalletTransaction;
 use App\Domains\HospitalWallet\Models\HospitalWalletTransactionEntry;
 use Illuminate\Support\Collection;
 
 final class HospitalWalletServicePointUpdateForStaffQuery
 {
-    /**
-     * @param  array<int, int>  $hospitalIds
-     * @return Collection<int, HospitalWallet>
-     */
     public function getWalletsForUpdate(array $hospitalIds): Collection
     {
         return HospitalWallet::query()
@@ -26,27 +23,36 @@ final class HospitalWalletServicePointUpdateForStaffQuery
                 'id',
                 'hospital_id',
                 'paid_balance',
+                'reserved_paid_balance',
                 'service_balance',
                 'last_transaction_at',
             ]);
     }
 
-    /**
-     * @return Collection<int, HospitalWalletTransaction>
-     */
-    public function getBatchTransactions(string $batchUuid): Collection
+    public function getBatchOperations(string $batchUuid): Collection
     {
-        return HospitalWalletTransaction::query()
-            ->with('wallet.hospital:id,name')
+        return HospitalWalletOperation::query()
+            ->with(['wallet.hospital:id,name', 'transaction'])
             ->where('batch_uuid', $batchUuid)
             ->orderBy('hospital_wallet_id')
             ->lockForUpdate()
             ->get();
     }
 
-    public function createTransaction(HospitalWallet $wallet, array $attributes): HospitalWalletTransaction
+    public function createOperation(HospitalWallet $wallet, array $attributes): HospitalWalletOperation
     {
-        return $wallet->transactions()->create($attributes);
+        return $wallet->operations()->create($attributes);
+    }
+
+    public function createTransaction(
+        HospitalWalletOperation $operation,
+        HospitalWallet $wallet,
+        array $attributes,
+    ): HospitalWalletTransaction {
+        return $operation->transaction()->create([
+            'hospital_wallet_id' => $wallet->getKey(),
+            ...$attributes,
+        ]);
     }
 
     public function createServiceEntry(

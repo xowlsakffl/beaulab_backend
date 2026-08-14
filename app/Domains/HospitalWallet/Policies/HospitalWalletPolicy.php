@@ -20,6 +20,11 @@ final class HospitalWalletPolicy
         return $this->delegate($actor)->view($actor, $wallet);
     }
 
+    public function viewHistory(mixed $actor): bool
+    {
+        return $this->delegate($actor)->viewHistory($actor);
+    }
+
     public function grantService(mixed $actor): bool
     {
         return $this->delegate($actor)->grantService($actor);
@@ -28,6 +33,31 @@ final class HospitalWalletPolicy
     public function reclaimService(mixed $actor): bool
     {
         return $this->delegate($actor)->reclaimService($actor);
+    }
+
+    public function requestRefund(mixed $actor): bool
+    {
+        return $this->delegate($actor)->requestRefund($actor);
+    }
+
+    public function processRefund(mixed $actor): bool
+    {
+        return $this->delegate($actor)->processRefund($actor);
+    }
+
+    public function updateRefundDocuments(mixed $actor): bool
+    {
+        return $this->delegate($actor)->updateRefundDocuments($actor);
+    }
+
+    public function sendNotice(mixed $actor): bool
+    {
+        return $this->delegate($actor)->sendNotice($actor);
+    }
+
+    public function viewNotices(mixed $actor): bool
+    {
+        return $this->delegate($actor)->viewNotices($actor);
     }
 
     private function delegate(mixed $actor): object
@@ -46,12 +76,42 @@ final class HospitalWalletPolicy
                     return false;
                 }
 
+                public function viewHistory(mixed $actor): bool
+                {
+                    return false;
+                }
+
                 public function grantService(mixed $actor): bool
                 {
                     return false;
                 }
 
                 public function reclaimService(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function requestRefund(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function processRefund(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function updateRefundDocuments(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function sendNotice(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function viewNotices(mixed $actor): bool
                 {
                     return false;
                 }

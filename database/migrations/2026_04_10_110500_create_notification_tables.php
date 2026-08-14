@@ -118,10 +118,76 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE notification_preferences COMMENT = '이벤트별 알림 채널 설정'");
+
+        Schema::create('sms_batches', function (Blueprint $table) {
+            $table->id()->comment('문자 발송 배치 ID');
+            $table->uuid('idempotency_key')->unique()->comment('중복 발송 방지 키');
+            $table->string('purpose', 100)->comment('도메인 발송 용도');
+            $table->char('request_hash', 64)->comment('멱등 요청 내용 SHA-256 해시');
+            $table->text('message_template')->nullable()->comment('치환 전 문자 템플릿');
+            $table->json('metadata')->nullable()->comment('도메인별 발송 요청 메타데이터');
+            $table->unsignedInteger('target_count')->default(0)->comment('업무 대상 수');
+            $table->unsignedInteger('recipient_count')->default(0)->comment('전체 수신 대상 수');
+            $table->unsignedInteger('sent_count')->default(0)->comment('발송 성공 수');
+            $table->unsignedInteger('failed_count')->default(0)->comment('발송 실패 수');
+            $table->unsignedInteger('skipped_count')->default(0)->comment('연락처 누락 등 제외 수');
+            $table->string('status', 30)->comment('발송 상태');
+            $table->string('actor_type', 255)->nullable()->comment('요청 actor 타입');
+            $table->unsignedBigInteger('actor_id')->nullable()->comment('요청 actor ID');
+            $table->timestamp('queued_at')->nullable()->comment('큐 등록 완료 시각');
+            $table->timestamp('completed_at')->nullable()->comment('배치 처리 완료 시각');
+            $table->timestamps();
+
+            $table->index(['purpose', 'created_at', 'id'], 'sms_batches_purpose_created_idx');
+            $table->index(['status', 'created_at', 'id'], 'sms_batches_status_created_idx');
+            $table->index(['actor_type', 'actor_id'], 'sms_batches_actor_idx');
+        });
+
+        DB::statement("ALTER TABLE sms_batches COMMENT = '도메인 공통 문자 발송 배치'");
+
+        Schema::create('sms_deliveries', function (Blueprint $table) {
+            $table->id()->comment('수신자별 문자 발송 ID');
+            $table->foreignId('sms_batch_id')
+                ->comment('문자 발송 배치 ID')
+                ->constrained('sms_batches')
+                ->restrictOnDelete();
+            $table->string('deduplication_key', 191)->comment('배치 내 중복 수신 방지 키');
+            $table->string('reference_type', 255)->nullable()->comment('업무 대상 타입');
+            $table->unsignedBigInteger('reference_id')->nullable()->comment('업무 대상 ID');
+            $table->string('reference_label', 255)->nullable()->comment('발송 당시 업무 대상명');
+            $table->string('recipient_type', 255)->nullable()->comment('수신 계정 타입');
+            $table->unsignedBigInteger('recipient_id')->nullable()->comment('수신 계정 ID');
+            $table->json('recipient_kinds')->nullable()->comment('도메인별 수신자 구분 목록');
+            $table->string('phone', 50)->nullable()->comment('발송 당시 전화번호');
+            $table->string('phone_normalized', 30)->nullable()->comment('숫자 정규화 전화번호');
+            $table->string('message_type', 10)->nullable()->comment('문자 유형(SMS, LMS)');
+            $table->text('message_body')->nullable()->comment('치환 완료 발송 문구');
+            $table->unsignedInteger('byte_length')->nullable()->comment('발송 문구 바이트 수');
+            $table->string('status', 30)->comment('수신자별 발송 상태');
+            $table->string('provider', 50)->nullable()->comment('문자 발송 업체');
+            $table->string('provider_message_id', 255)->nullable()->comment('문자 업체 메시지 ID');
+            $table->unsignedSmallInteger('attempt_count')->default(0)->comment('발송 시도 횟수');
+            $table->timestamp('queued_at')->nullable()->comment('마지막 큐 등록 시각');
+            $table->timestamp('attempted_at')->nullable()->comment('마지막 발송 시도 시각');
+            $table->timestamp('sent_at')->nullable()->comment('발송 성공 시각');
+            $table->timestamp('failed_at')->nullable()->comment('최종 발송 실패 시각');
+            $table->text('error_message')->nullable()->comment('발송 실패 또는 제외 사유');
+            $table->timestamps();
+
+            $table->unique(['sms_batch_id', 'deduplication_key'], 'sms_deliveries_batch_dedupe_unique');
+            $table->index(['sms_batch_id', 'status', 'id'], 'sms_deliveries_batch_status_idx');
+            $table->index(['reference_type', 'reference_id', 'created_at'], 'sms_deliveries_reference_idx');
+            $table->index(['recipient_type', 'recipient_id', 'created_at'], 'sms_deliveries_recipient_idx');
+            $table->index(['status', 'created_at', 'id'], 'sms_deliveries_status_created_idx');
+        });
+
+        DB::statement("ALTER TABLE sms_deliveries COMMENT = '도메인 공통 수신자별 문자 발송 이력'");
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('sms_deliveries');
+        Schema::dropIfExists('sms_batches');
         Schema::dropIfExists('notification_preferences');
         Schema::dropIfExists('notification_devices');
         Schema::dropIfExists('notification_deliveries');

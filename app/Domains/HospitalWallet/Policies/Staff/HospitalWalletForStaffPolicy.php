@@ -20,6 +20,11 @@ final class HospitalWalletForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW);
     }
 
+    public function viewHistory(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW);
+    }
+
     public function grantService(AccountStaff $actor): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_SERVICE_GRANT);
@@ -28,5 +33,31 @@ final class HospitalWalletForStaffPolicy
     public function reclaimService(AccountStaff $actor): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_SERVICE_RECLAIM);
+    }
+
+    public function requestRefund(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_REQUEST);
+    }
+
+    public function processRefund(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS);
+    }
+
+    public function updateRefundDocuments(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_REQUEST)
+            || $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS);
+    }
+
+    public function sendNotice(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_NOTICE_SEND);
+    }
+
+    public function viewNotices(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW);
     }
 }

@@ -18,6 +18,7 @@ final class HospitalWalletCreateQuery
         return HospitalWallet::query()->create([
             'hospital_id' => $hospital->getKey(),
             'paid_balance' => 0,
+            'reserved_paid_balance' => 0,
             'service_balance' => 0,
             'last_transaction_at' => null,
         ]);

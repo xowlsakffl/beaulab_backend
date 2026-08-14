@@ -40,9 +40,10 @@
     36 => 'Spatie\\QueryBuilder\\QueryBuilderServiceProvider',
     37 => 'Spatie\\ScheduleMonitor\\ScheduleMonitorServiceProvider',
     38 => 'App\\Providers\\RateLimitServiceProvider',
-    39 => 'App\\Providers\\InternalToolServiceProvider',
-    40 => 'App\\Providers\\HorizonServiceProvider',
-    41 => 'App\\Providers\\TelescopeServiceProvider',
+    39 => 'App\\Providers\\SmsServiceProvider',
+    40 => 'App\\Providers\\InternalToolServiceProvider',
+    41 => 'App\\Providers\\HorizonServiceProvider',
+    42 => 'App\\Providers\\TelescopeServiceProvider',
   ),
   'eager' => 
   array (
@@ -69,9 +70,10 @@
     20 => 'Spatie\\QueryBuilder\\QueryBuilderServiceProvider',
     21 => 'Spatie\\ScheduleMonitor\\ScheduleMonitorServiceProvider',
     22 => 'App\\Providers\\RateLimitServiceProvider',
-    23 => 'App\\Providers\\InternalToolServiceProvider',
-    24 => 'App\\Providers\\HorizonServiceProvider',
-    25 => 'App\\Providers\\TelescopeServiceProvider',
+    23 => 'App\\Providers\\SmsServiceProvider',
+    24 => 'App\\Providers\\InternalToolServiceProvider',
+    25 => 'App\\Providers\\HorizonServiceProvider',
+    26 => 'App\\Providers\\TelescopeServiceProvider',
   ),
   'deferred' => 
   array (

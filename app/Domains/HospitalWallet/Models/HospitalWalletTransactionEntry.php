@@ -7,26 +7,24 @@ namespace App\Domains\HospitalWallet\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * HospitalWalletTransactionEntry 역할 정의.
- * 충전금 거래 한 건에서 유상 또는 서비스 잔액의 실제 증감을 관리한다.
- */
 final class HospitalWalletTransactionEntry extends Model
 {
+    public const string BALANCE_TYPE_ALL = 'ALL';
+
     public const string BALANCE_TYPE_PAID = 'PAID';
 
     public const string BALANCE_TYPE_SERVICE = 'SERVICE';
-
-    public const array BALANCE_TYPES = [
-        self::BALANCE_TYPE_PAID,
-        self::BALANCE_TYPE_SERVICE,
-    ];
 
     public const string DIRECTION_CREDIT = 'CREDIT';
 
     public const string DIRECTION_DEBIT = 'DEBIT';
 
-    public const array DIRECTIONS = [
+    private const array BALANCE_TYPES = [
+        self::BALANCE_TYPE_PAID,
+        self::BALANCE_TYPE_SERVICE,
+    ];
+
+    private const array DIRECTIONS = [
         self::DIRECTION_CREDIT,
         self::DIRECTION_DEBIT,
     ];
@@ -49,19 +47,36 @@ final class HospitalWalletTransactionEntry extends Model
         return $this->belongsTo(HospitalWalletTransaction::class, 'hospital_wallet_transaction_id');
     }
 
-    /**
-     * @return list<string>
-     */
     public static function balanceTypes(): array
     {
         return self::BALANCE_TYPES;
     }
 
-    /**
-     * @return list<string>
-     */
+    public static function dashboardBalanceTypes(): array
+    {
+        return [self::BALANCE_TYPE_ALL, ...self::BALANCE_TYPES];
+    }
+
     public static function directions(): array
     {
         return self::DIRECTIONS;
+    }
+
+    public static function balanceTypeLabel(?string $balanceType): string
+    {
+        return match ($balanceType) {
+            self::BALANCE_TYPE_PAID => '유상 충전금',
+            self::BALANCE_TYPE_SERVICE => '서비스 포인트',
+            default => $balanceType ?: '-',
+        };
+    }
+
+    public static function directionLabel(?string $direction): string
+    {
+        return match ($direction) {
+            self::DIRECTION_CREDIT => '증가',
+            self::DIRECTION_DEBIT => '감소',
+            default => $direction ?: '-',
+        };
     }
 }

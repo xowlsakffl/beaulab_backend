@@ -69,6 +69,15 @@ final class RateLimitServiceProvider extends ServiceProvider
                 Limit::perMinute(60)->by("content-report-create:ip:{$request->ip()}"),
             ];
         });
+
+        RateLimiter::for('staff-sms-send', function (Request $request) {
+            $staffKey = $request->user()?->getAuthIdentifier() ?? $request->ip();
+
+            return [
+                Limit::perMinute(10)->by("staff-sms-send:staff:{$staffKey}"),
+                Limit::perMinute(30)->by("staff-sms-send:ip:{$request->ip()}"),
+            ];
+        });
     }
 
     private function actor(Request $request): string

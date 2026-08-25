@@ -28,10 +28,11 @@ Queue 표준 런타임은 Redis + Horizon이다.
 | 작업 | 클래스/위치 | 연결 | 큐 | 용도 |
 |---|---|---|---|---|
 | 비밀번호 재설정 메일 | `PasswordResetLinkMail` | `PASSWORD_RESET_MAIL_QUEUE_CONNECTION` 기본 `redis` | `PASSWORD_RESET_MAIL_QUEUE` 기본 `mail` | 재설정 링크 메일 발송 |
+| 병의원 계정 초대 메일 | `HospitalAccountInvitationMail` | `HOSPITAL_ACCOUNT_INVITATION_MAIL_QUEUE_CONNECTION` 기본 `redis` | `HOSPITAL_ACCOUNT_INVITATION_MAIL_QUEUE` 기본 `mail` | 병의원 계정 생성 링크 발송 |
 | Push 발송 | `SendPushNotificationDeliveryJob` | `redis` | `PUSH_QUEUE` 기본 `notifications` | FCM/APNs 외부 발송 |
 | 공통 문자 발송 | `SendSmsDeliveryJob` | `redis` | `SMS_QUEUE` 기본 `sms` | 수신자별 SMS/LMS 발송 및 이력 갱신 |
 
-비밀번호 재설정 메일은 `Mail::queue()`로 발행한다. 메일 본문과 큐 설정은 `PasswordResetLinkSendAction`, `PasswordResetLinkMail`, `config/password_reset.php`를 기준으로 한다.
+비밀번호 재설정 메일과 병의원 계정 초대 메일은 `Mail::queue()`로 발행한다. 초대 메일은 원문 토큰이 Redis payload에 노출되지 않도록 `ShouldBeEncrypted`를 적용한다. 초대 메일의 본문과 큐 설정은 `HospitalAccountInvitationSendForStaffAction`, `HospitalAccountInvitationMail`, `config/hospital_account_invitation.php`를 기준으로 한다.
 
 Push 발송은 `CreateNotificationAction`에서 `PUSH` delivery가 pending이면 `SendPushNotificationDeliveryJob`을 발행한다. 실제 외부 provider 호출은 `SendPushNotificationDeliveryAction`이 처리한다.
 

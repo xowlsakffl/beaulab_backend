@@ -296,6 +296,7 @@ Staff 프론트는 `route-permissions.ts`에서 route별 required permission을 
 예시:
 
 - 병의원과 입점신청은 분리: `beaulab.hospital.*`, `beaulab.hospital_entry.*`
+- 병의원/입점신청 수정과 계정 초대는 분리: `beaulab.hospital_account_invitation.show`, `beaulab.hospital_account_invitation.update`
 - 이벤트와 이벤트 DB는 분리: `beaulab.hospital_event.*`, `beaulab.hospital_event_db.*`
 - 이벤트와 광고는 분리: `beaulab.hospital_event.*`, `beaulab.hospital_event_ad.*`
 - 일반 게시물과 신고게시물은 분리: `beaulab.talk.*`, `beaulab.reported_talk.*`

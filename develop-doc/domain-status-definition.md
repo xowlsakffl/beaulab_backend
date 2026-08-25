@@ -75,6 +75,8 @@
 
 - `AccountHospital`은 `Hospital`과 1:1이다.
 - `account_hospitals.hospital_id`는 unique다.
+- 계정에는 이메일을 저장하지 않는다. 초대 이메일은 `HospitalAccountInvitation` 이력에만 저장한다.
+- 초대 완료로 생성되는 계정은 휴대폰 본인확인을 마친 `ACTIVE` 상태다.
 
 ### 3.3 `AccountBeauty`
 
@@ -124,7 +126,7 @@
 
 ### 4.1 공통 검수 상태
 
-다음 검수 상태는 `Hospital`, `HospitalDoctor`, `HospitalEntry`, `HospitalEvent`, `HospitalEventAd`가 사용한다.
+검수 흐름에 들어간 `Hospital`, `HospitalDoctor`, `HospitalEntry`, `HospitalEvent`, `HospitalEventAd`는 다음 상태를 사용한다.
 
 | 저장값 | 표시명 | 의미 |
 |---|---|---|
@@ -133,9 +135,11 @@
 | `APPROVED` | 승인 | 검수 통과 |
 | `REJECTED` | 반려 | 검수 반려 |
 
+Staff 직접 생성 또는 입점신청 전환으로 만들어진 `Hospital`과 Staff가 생성한 `HospitalDoctor`는 검수를 신청하지 않은 상태인 `NOT_APPLIED`(미신청)를 추가로 사용한다.
+
 ### 4.2 `Hospital`
 
-검수 상태: 공통 검수 상태 4종 사용
+검수 상태: `NOT_APPLIED`와 공통 검수 상태 4종 사용
 
 운영 상태:
 
@@ -147,7 +151,7 @@
 
 기본값:
 
-- `allow_status`: `PENDING`
+- `allow_status`: `NOT_APPLIED`
 - `status`: `ACTIVE`
 - `department`: `OTHER`
 - `view_count`, `evaluation_count`, `evaluation_average_rating`: `0`
@@ -186,7 +190,7 @@
 
 ### 4.4 `HospitalDoctor`
 
-검수 상태: 공통 검수 상태 4종 사용
+검수 상태: `NOT_APPLIED`와 공통 검수 상태 4종 사용
 
 운영 상태:
 
@@ -198,7 +202,7 @@
 
 기본값:
 
-- `allow_status`: `PENDING`
+- `allow_status`: `NOT_APPLIED`
 - `status`: `SUSPENDED`
 - `view_count`: `0`
 

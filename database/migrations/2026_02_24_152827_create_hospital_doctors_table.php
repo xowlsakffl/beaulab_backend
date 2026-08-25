@@ -35,7 +35,7 @@ return new class extends Migration
             // - specialist_certificate_image
 
             $table->string('status', 20)->default('SUSPENDED')->comment('운영 상태(정상, 정지, 비활성)');
-            $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(신청, 검수, 승인, 반려)');
+            $table->string('allow_status', 20)->default('NOT_APPLIED')->comment('검수 상태(미신청, 신청, 검수, 승인, 반려)');
             $table->unsignedBigInteger('view_count')->default(0)->comment('의사 조회수');
 
             $table->timestamps();

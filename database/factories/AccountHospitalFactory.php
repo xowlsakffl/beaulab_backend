@@ -19,7 +19,6 @@ final class AccountHospitalFactory extends Factory
         return [
             'name' => $this->faker->name(),
             'nickname' => $this->faker->unique()->userName(),
-            'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->numerify('010-####-####'),
 
             'password' => Hash::make('password'),
@@ -28,7 +27,6 @@ final class AccountHospitalFactory extends Factory
 
             'hospital_id' => null,
 
-            'email_verified_at' => now(),
             'phone_verified_at' => now(),
 
             'last_login_at' => $this->faker->optional(0.85)->dateTimeBetween('-90 days', 'now'),
@@ -49,12 +47,11 @@ final class AccountHospitalFactory extends Factory
         ]);
     }
 
-    public function withIdentity(string $name, string $nickname, string $email): self
+    public function withIdentity(string $name, string $nickname): self
     {
         return $this->state(fn () => [
             'name' => $name,
             'nickname' => $nickname,
-            'email' => $email,
         ]);
     }
 

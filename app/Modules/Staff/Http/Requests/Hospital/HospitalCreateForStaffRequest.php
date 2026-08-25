@@ -71,9 +71,6 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'operation_hours.*.is_closed' => ['required', 'boolean'],
             'operation_hours.*.start' => ['nullable', 'date_format:H:i'],
             'operation_hours.*.end' => ['nullable', 'date_format:H:i'],
-            'allow_status' => ['required', Rule::in(Hospital::allowStatuses())],
-            'status' => ['required', Rule::in([Hospital::STATUS_ACTIVE, Hospital::STATUS_SUSPENDED, Hospital::STATUS_WITHDRAWN])],
-
             'business_number' => [
                 'required',
                 'string',
@@ -144,8 +141,6 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'operation_hours.*.is_closed' => '진료 여부',
             'operation_hours.*.start' => '진료 시작 시간',
             'operation_hours.*.end' => '진료 종료 시간',
-            'allow_status' => '검수 상태',
-            'status' => '운영 상태',
             'business_number' => '사업자등록번호',
             'company_name' => '상호명',
             'ceo_name' => '대표자',

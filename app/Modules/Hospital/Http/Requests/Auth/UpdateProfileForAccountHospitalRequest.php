@@ -19,7 +19,6 @@ final class UpdateProfileForAccountHospitalRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'email', 'max:255'],
         ];
     }
 
@@ -27,7 +26,6 @@ final class UpdateProfileForAccountHospitalRequest extends FormRequest
     {
         return [
             'name' => '이름',
-            'email' => '이메일',
         ];
     }
 

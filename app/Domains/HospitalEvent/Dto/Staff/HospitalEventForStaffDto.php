@@ -134,9 +134,8 @@ final readonly class HospitalEventForStaffDto
 
         return [
             'id' => (int) $account->id,
-            'name' => (string) ($account->name ?: $account->nickname ?: $account->email),
+            'name' => (string) ($account->name ?: $account->nickname),
             'nickname' => $account->nickname,
-            'email' => $account->email,
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Domains\Hospital\Actions\Staff;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
+use App\Domains\HospitalWallet\Models\HospitalWallet;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Gate;
 final class HospitalGetForStaffAction
 {
     /**
-     * @param array<int, string> $include
+     * @param  array<int, string>  $include
      * @return array{hospital: array}
      */
     public function execute(Hospital $hospital, array $include = []): array
@@ -34,6 +35,11 @@ final class HospitalGetForStaffAction
         if (in_array('doctors', $include, true)) {
             Gate::authorize('viewAny', HospitalDoctor::class);
             $relations[] = 'doctors';
+        }
+
+        if (in_array('wallet', $include, true)) {
+            Gate::authorize('viewAny', HospitalWallet::class);
+            $relations[] = 'wallet';
         }
 
         return [

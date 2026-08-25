@@ -8,6 +8,7 @@ use Database\Factories\AccountHospitalFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -50,12 +51,10 @@ class AccountHospital extends Authenticatable
     protected $fillable = [
         'name',
         'nickname',
-        'email',
         'phone',
         'password',
         'status',
         'hospital_id',
-        'email_verified_at',
         'phone_verified_at',
         'last_login_at',
     ];
@@ -77,7 +76,6 @@ class AccountHospital extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
@@ -92,6 +90,22 @@ class AccountHospital extends Authenticatable
     public function hospital(): BelongsTo
     {
         return $this->belongsTo(Hospital::class, 'hospital_id');
+    }
+
+    public function completedInvitations(): HasMany
+    {
+        return $this->hasMany(HospitalAccountInvitation::class, 'completed_account_hospital_id');
+    }
+
+    public function verifiedPhone(): ?string
+    {
+        if ($this->phone_verified_at === null) {
+            return null;
+        }
+
+        $phone = trim((string) $this->phone);
+
+        return $phone !== '' ? $phone : null;
     }
 
     /**

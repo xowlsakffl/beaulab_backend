@@ -7,20 +7,20 @@
 
 use App\Modules\Hospital\Http\Controllers\AdminNote\AdminNoteForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\AuthForHospitalController;
+use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountInvitationForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthForHospitalController::class, 'login'])->name('login')->middleware('throttle:auth-login');
-    Route::post('password-reset-link', [AuthForHospitalController::class, 'sendPasswordResetLink'])
-        ->name('password-reset-link')
-        ->middleware('throttle:password-reset-link');
-    Route::post('password-reset/verify', [AuthForHospitalController::class, 'verifyPasswordResetToken'])
-        ->name('password-reset.verify')
-        ->middleware('throttle:password-reset-verify');
-    Route::post('password-reset', [AuthForHospitalController::class, 'resetPassword'])
-        ->name('password-reset')
-        ->middleware('throttle:password-reset-submit');
+    Route::get('account-invitations/{token}', [HospitalAccountInvitationForHospitalController::class, 'getHospitalAccountInvitationForHospital'])
+        ->name('account-invitations.getHospitalAccountInvitationForHospital')
+        ->where('token', '[A-Za-z0-9]{64}')
+        ->middleware('throttle:hospital-account-invitation-verify');
+    Route::post('account-invitations/{token}', [HospitalAccountInvitationForHospitalController::class, 'completeHospitalAccountInvitationForHospital'])
+        ->name('account-invitations.completeHospitalAccountInvitationForHospital')
+        ->where('token', '[A-Za-z0-9]{64}')
+        ->middleware('throttle:hospital-account-invitation-complete');
 });
 
 Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function () {

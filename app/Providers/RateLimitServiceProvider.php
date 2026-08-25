@@ -78,6 +78,33 @@ final class RateLimitServiceProvider extends ServiceProvider
                 Limit::perMinute(30)->by("staff-sms-send:ip:{$request->ip()}"),
             ];
         });
+
+        RateLimiter::for('staff-hospital-account-invitation-send', function (Request $request) {
+            $staffKey = $request->user()?->getAuthIdentifier() ?? $request->ip();
+
+            return [
+                Limit::perMinute(10)->by("hospital-account-invitation-send:staff:{$staffKey}"),
+                Limit::perMinute(30)->by("hospital-account-invitation-send:ip:{$request->ip()}"),
+            ];
+        });
+
+        RateLimiter::for('hospital-account-invitation-verify', function (Request $request) {
+            $tokenHash = hash('sha256', (string) $request->route('token'));
+
+            return [
+                Limit::perMinute(20)->by("hospital-account-invitation-verify:token:{$tokenHash}"),
+                Limit::perMinute(60)->by("hospital-account-invitation-verify:ip:{$request->ip()}"),
+            ];
+        });
+
+        RateLimiter::for('hospital-account-invitation-complete', function (Request $request) {
+            $tokenHash = hash('sha256', (string) $request->route('token'));
+
+            return [
+                Limit::perMinute(5)->by("hospital-account-invitation-complete:token:{$tokenHash}"),
+                Limit::perMinute(15)->by("hospital-account-invitation-complete:ip:{$request->ip()}"),
+            ];
+        });
     }
 
     private function actor(Request $request): string

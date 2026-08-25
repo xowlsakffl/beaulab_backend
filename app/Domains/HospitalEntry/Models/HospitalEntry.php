@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalEntry\Models;
 
+use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
+use App\Domains\Hospital\Models\Hospital;
 use Database\Factories\HospitalEntryFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -40,7 +44,16 @@ final class HospitalEntry extends Model
         'applicant_phone',
         'applicant_email',
         'allow_status',
+        'hospital_id',
+        'converted_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'converted_at' => 'datetime',
+        ];
+    }
 
     protected static function newFactory(): Factory
     {
@@ -81,5 +94,15 @@ final class HospitalEntry extends Model
     {
         return $this->morphOne(Media::class, 'model')
             ->where('collection', 'hospital_entry_license_file');
+    }
+
+    public function hospital(): BelongsTo
+    {
+        return $this->belongsTo(Hospital::class, 'hospital_id');
+    }
+
+    public function accountInvitations(): HasMany
+    {
+        return $this->hasMany(HospitalAccountInvitation::class, 'hospital_entry_id');
     }
 }

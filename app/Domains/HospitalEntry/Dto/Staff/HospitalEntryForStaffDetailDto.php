@@ -30,6 +30,8 @@ final readonly class HospitalEntryForStaffDetailDto
         public ?string $applicantPhone,
         public ?string $applicantEmail,
         public array $allowStatus,
+        public ?int $hospitalId,
+        public ?string $convertedAt,
         public ?string $createdAt,
         public ?string $updatedAt,
     ) {}
@@ -55,6 +57,8 @@ final readonly class HospitalEntryForStaffDetailDto
                 'code' => (string) $entry->allow_status,
                 'label' => HospitalEntry::allowStatusLabel($entry->allow_status),
             ],
+            hospitalId: $entry->hospital_id !== null ? (int) $entry->hospital_id : null,
+            convertedAt: $entry->converted_at?->toISOString(),
             createdAt: $entry->created_at?->toISOString(),
             updatedAt: $entry->updated_at?->toISOString(),
         );
@@ -78,6 +82,8 @@ final readonly class HospitalEntryForStaffDetailDto
             'applicant_phone' => $this->applicantPhone,
             'applicant_email' => $this->applicantEmail,
             'allow_status' => $this->allowStatus,
+            'hospital_id' => $this->hospitalId,
+            'converted_at' => $this->convertedAt,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

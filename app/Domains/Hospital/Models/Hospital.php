@@ -6,6 +6,7 @@ namespace App\Domains\Hospital\Models;
 
 use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
@@ -39,6 +40,8 @@ final class Hospital extends Model
     use HasAdminNotes, HasAuditLogs, HasFactory, HasOperationHistories, SoftDeletes;
 
     // allow_status
+    public const ALLOW_NOT_APPLIED = 'NOT_APPLIED';
+
     public const ALLOW_PENDING = 'PENDING';
 
     public const ALLOW_REVIEWING = 'REVIEWING';
@@ -116,6 +119,11 @@ final class Hospital extends Model
     public function accountHospital(): HasOne
     {
         return $this->hasOne(AccountHospital::class, 'hospital_id');
+    }
+
+    public function accountInvitations(): HasMany
+    {
+        return $this->hasMany(HospitalAccountInvitation::class, 'hospital_id');
     }
 
     public function wallet(): HasOne
@@ -205,6 +213,11 @@ final class Hospital extends Model
         return $this->allow_status === self::ALLOW_APPROVED;
     }
 
+    public function isNotApplied(): bool
+    {
+        return $this->allow_status === self::ALLOW_NOT_APPLIED;
+    }
+
     public function isPending(): bool
     {
         return $this->allow_status === self::ALLOW_PENDING;
@@ -257,6 +270,7 @@ final class Hospital extends Model
     public static function allowStatuses(): array
     {
         return [
+            self::ALLOW_NOT_APPLIED,
             self::ALLOW_PENDING,
             self::ALLOW_REVIEWING,
             self::ALLOW_APPROVED,
@@ -267,6 +281,7 @@ final class Hospital extends Model
     public static function allowStatusLabel(?string $status): string
     {
         return match ($status) {
+            self::ALLOW_NOT_APPLIED => '미신청',
             self::ALLOW_PENDING => '신청',
             self::ALLOW_REVIEWING => '검수',
             self::ALLOW_APPROVED => '승인',

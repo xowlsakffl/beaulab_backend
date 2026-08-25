@@ -66,10 +66,10 @@ final class HospitalAccountInvitationTest extends TestCase
         ]);
         self::assertSame(HospitalAccountInvitation::STATUS_EXPIRED, $invitation->status());
 
-        self::assertSame('계정 생성 가능', HospitalAccountInvitation::statusLabel(HospitalAccountInvitation::STATUS_ACTIVE));
-        self::assertSame('계정 생성 완료', HospitalAccountInvitation::statusLabel(HospitalAccountInvitation::STATUS_USED));
-        self::assertSame('전송 취소', HospitalAccountInvitation::statusLabel(HospitalAccountInvitation::STATUS_REVOKED));
-        self::assertSame('기간 만료', HospitalAccountInvitation::statusLabel(HospitalAccountInvitation::STATUS_EXPIRED));
+        self::assertSame('사용 가능', HospitalAccountInvitation::statusLabel(HospitalAccountInvitation::STATUS_ACTIVE));
+        self::assertSame('사용 완료', HospitalAccountInvitation::statusLabel(HospitalAccountInvitation::STATUS_USED));
+        self::assertSame('폐기', HospitalAccountInvitation::statusLabel(HospitalAccountInvitation::STATUS_REVOKED));
+        self::assertSame('만료', HospitalAccountInvitation::statusLabel(HospitalAccountInvitation::STATUS_EXPIRED));
     }
 
     public function test_tokens_are_stored_as_sha256_hashes(): void

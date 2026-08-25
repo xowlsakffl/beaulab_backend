@@ -642,7 +642,6 @@ php artisan db:seed --class=AuthorizationSeeder
 | `REDIS_HOST` | Redis 호스트 |
 | `REDIS_PORT` | Redis 포트 |
 | `PASSWORD_RESET_USER_URL` | 사용자 비밀번호 재설정 프론트 URL |
-| `PASSWORD_RESET_HOSPITAL_URL` | 병원 계정 비밀번호 재설정 프론트 URL |
 | `PASSWORD_RESET_BEAUTY_URL` | 뷰티 계정 비밀번호 재설정 프론트 URL |
 | `PASSWORD_RESET_STAFF_URL` | Staff 계정 비밀번호 재설정 프론트 URL |
 | `PASSWORD_RESET_MAIL_QUEUE_CONNECTION` | 비밀번호 재설정 메일 큐 연결 |
@@ -726,5 +725,6 @@ php artisan db:seed --class=AuthorizationSeeder
 
 ## 관련 저장소
 
-- 백엔드 저장소: `https://github.com/xowlsakffl/beaulab_backend.git`
+- 백엔드 원격 저장소: `https://github.com/beaulab/beaulab_new_dev.git`
+- 프론트엔드 원격 저장소: `https://github.com/beaulab/beaulab_new_frontend.git`
 - 본 저장소는 뷰랩 성형·미용 중개 앱 플랫폼의 Laravel API 서버와 도메인/운영 백엔드 구성을 포함합니다.

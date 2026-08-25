@@ -9,6 +9,7 @@ use App\Domains\Common\OperationHistory\Dto\OperationHistoryDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalFeature\Models\HospitalFeature;
+use App\Domains\HospitalWallet\Models\HospitalWallet;
 
 /**
  * HospitalForStaffDetailDto 역할 정의.
@@ -24,6 +25,7 @@ final readonly class HospitalForStaffDetailDto
      * @param  array<string, mixed>|null  $accountHospital
      * @param  array<int, array<string, mixed>>|null  $doctors
      * @param  array<string, mixed>|null  $businessRegistration
+     * @param  array<string, mixed>|null  $wallet
      */
     public function __construct(
         public int $id,
@@ -55,6 +57,7 @@ final readonly class HospitalForStaffDetailDto
         public ?array $accountHospital = null,
         public ?array $doctors = null,
         public ?array $businessRegistration = null,
+        public ?array $wallet = null,
     ) {}
 
     public static function fromModel(Hospital $hospital): self
@@ -89,6 +92,7 @@ final readonly class HospitalForStaffDetailDto
             accountHospital: self::accountHospital($hospital),
             doctors: self::doctors($hospital),
             businessRegistration: self::businessRegistration($hospital),
+            wallet: self::wallet($hospital),
         );
     }
 
@@ -135,7 +139,37 @@ final readonly class HospitalForStaffDetailDto
             $data['business_registration'] = $this->businessRegistration;
         }
 
+        if ($this->wallet !== null) {
+            $data['wallet'] = $this->wallet;
+        }
+
         return $data;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function wallet(Hospital $hospital): ?array
+    {
+        if (! $hospital->relationLoaded('wallet')) {
+            return null;
+        }
+
+        $wallet = $hospital->wallet;
+
+        if (! $wallet instanceof HospitalWallet) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $wallet->id,
+            'total_balance' => $wallet->availableTotalBalance(),
+            'paid_balance' => $wallet->availablePaidBalance(),
+            'owned_paid_balance' => (int) $wallet->paid_balance,
+            'reserved_paid_balance' => (int) $wallet->reserved_paid_balance,
+            'service_balance' => (int) $wallet->service_balance,
+            'last_transaction_at' => $wallet->last_transaction_at?->toISOString(),
+        ];
     }
 
     /**
@@ -157,8 +191,7 @@ final readonly class HospitalForStaffDetailDto
             'id' => $accountHospital->id,
             'name' => $accountHospital->name,
             'nickname' => $accountHospital->nickname,
-            'email' => $accountHospital->email,
-            'phone' => $accountHospital->phone,
+            'phone' => $accountHospital->verifiedPhone(),
             'status' => $accountHospital->status,
             'roles' => $accountHospital->getRoleNames()->values()->all(),
             'last_login_at' => $accountHospital->last_login_at?->toISOString(),

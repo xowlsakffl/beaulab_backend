@@ -133,6 +133,8 @@ final class HospitalDoctor extends Model
         self::SPECIALIST_FIELD_OTHER => '기타',
     ];
 
+    public const ALLOW_NOT_APPLIED = 'NOT_APPLIED';
+
     public const ALLOW_PENDING = 'PENDING';
 
     public const ALLOW_REVIEWING = 'REVIEWING';
@@ -245,6 +247,7 @@ final class HospitalDoctor extends Model
     public static function allowStatuses(): array
     {
         return [
+            self::ALLOW_NOT_APPLIED,
             self::ALLOW_PENDING,
             self::ALLOW_REVIEWING,
             self::ALLOW_APPROVED,
@@ -255,6 +258,7 @@ final class HospitalDoctor extends Model
     public static function allowStatusLabel(?string $status): string
     {
         return match ($status) {
+            self::ALLOW_NOT_APPLIED => '미신청',
             self::ALLOW_PENDING => '신청',
             self::ALLOW_REVIEWING => '검수',
             self::ALLOW_APPROVED => '승인',
@@ -332,6 +336,11 @@ final class HospitalDoctor extends Model
     public function isApproved(): bool
     {
         return $this->allow_status === self::ALLOW_APPROVED;
+    }
+
+    public function isNotApplied(): bool
+    {
+        return $this->allow_status === self::ALLOW_NOT_APPLIED;
     }
 
     public function isPending(): bool

@@ -17,11 +17,9 @@ return new class extends Migration
 
             $table->string('name')->comment('병원 관리자 실명');
             $table->string('nickname')->unique()->comment('병원 관리자 로그인 아이디');
-            $table->string('email')->unique()->comment('병원 관리자 이메일');
             $table->string('phone', 50)->comment('인증된 전화번호');
             $table->timestamp('phone_verified_at')->nullable()->comment('전화번호 인증 완료 시각');
 
-            $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
             $table->string('password')->comment('암호화된 비밀번호');
 
             $table->string('status')->default('SUSPENDED')->comment('계정 상태(ACTIVE, SUSPENDED, BLOCKED, WITHDRAWN)');

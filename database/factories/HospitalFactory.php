@@ -146,10 +146,6 @@ final class HospitalFactory extends Factory
         $rawPassword = (string) config('seeding.staff.password', '');
         $suffix = $type === 'owner' ? '' : str_pad((string) $index, 2, '0', STR_PAD_LEFT);
 
-        $email = $type === 'owner'
-            ? "hospital{$seedKey}@owner.test"
-            : "hospital{$seedKey}.{$type}{$suffix}@hospital.test";
-
         $nickname = $type === 'owner'
             ? "hospital_owner_{$seedKey}"
             : "hospital_{$type}_{$seedKey}_{$suffix}";
@@ -160,7 +156,8 @@ final class HospitalFactory extends Factory
 
         $accountHospitalFactory = AccountHospital::factory()
             ->forHospital($hospital)
-            ->withIdentity($name, $nickname, $email)
+            ->withIdentity($name, $nickname)
+            ->withPhone((string) $hospital->ad_reception_phone_1)
             ->active();
 
         if ($rawPassword !== '') {
@@ -177,6 +174,13 @@ final class HospitalFactory extends Factory
     {
         return $this->state(fn () => [
             'allow_status' => Hospital::ALLOW_APPROVED,
+        ]);
+    }
+
+    public function notApplied(): self
+    {
+        return $this->state(fn () => [
+            'allow_status' => Hospital::ALLOW_NOT_APPLIED,
         ]);
     }
 

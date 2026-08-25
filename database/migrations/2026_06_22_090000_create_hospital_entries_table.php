@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('applicant_email', 255)->nullable()->comment('신청자 이메일주소');
 
             $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(신청, 검수, 승인, 반려)');
+            $table->foreignId('hospital_id')->nullable()->unique()->comment('전환된 병의원 ID')->constrained('hospitals')->nullOnDelete();
+            $table->timestamp('converted_at')->nullable()->comment('병의원 전환 완료 시각');
 
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
@@ -44,6 +46,7 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE hospital_entries COMMENT = '병의원 입점신청'");
+
     }
 
     public function down(): void

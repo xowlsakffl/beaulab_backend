@@ -7,6 +7,7 @@
 
 use App\Common\Authorization\AccessPermissions;
 use App\Domains\HospitalReview\Models\HospitalReview;
+use App\Modules\Staff\Http\Controllers\AccountHospital\HospitalAccountInvitationForStaffController;
 use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController;
 use App\Modules\Staff\Http\Controllers\AdminNote\AdminNoteForStaffController;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
@@ -62,6 +63,14 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.Access
         ->middleware('throttle:password-update');
     Route::get('/navigation-badges', [NavigationBadgeForStaffController::class, 'getNavigationBadgesForStaff'])
         ->name('navigation-badges.getNavigationBadgesForStaff');
+
+    Route::get('hospital-account-invitations', [HospitalAccountInvitationForStaffController::class, 'getHospitalAccountInvitationsForStaff'])
+        ->name('hospital-account-invitations.getHospitalAccountInvitationsForStaff');
+    Route::post('hospital-account-invitations', [HospitalAccountInvitationForStaffController::class, 'sendHospitalAccountInvitationForStaff'])
+        ->name('hospital-account-invitations.sendHospitalAccountInvitationForStaff')
+        ->middleware('throttle:staff-hospital-account-invitation-send');
+    Route::delete('hospital-account-invitations/{hospitalAccountInvitation}', [HospitalAccountInvitationForStaffController::class, 'revokeHospitalAccountInvitationForStaff'])
+        ->name('hospital-account-invitations.revokeHospitalAccountInvitationForStaff');
 
     Route::get('/notes', [AdminNoteForStaffController::class, 'getAdminNotesForStaff'])
         ->name('notes.getAdminNotesForStaff');

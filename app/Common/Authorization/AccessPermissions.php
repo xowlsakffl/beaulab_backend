@@ -50,6 +50,10 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_ENTRY_UPDATE = 'beaulab.hospital_entry.update';
 
+    public const BEAULAB_HOSPITAL_ACCOUNT_INVITATION_SHOW = 'beaulab.hospital_account_invitation.show';
+
+    public const BEAULAB_HOSPITAL_ACCOUNT_INVITATION_UPDATE = 'beaulab.hospital_account_invitation.update';
+
     public const BEAULAB_BEAUTY_SHOW = 'beaulab.beauty.show';
 
     public const BEAULAB_BEAUTY_CREATE = 'beaulab.beauty.create';
@@ -284,6 +288,8 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_WALLET_NOTICE_SEND,
             self::BEAULAB_HOSPITAL_ENTRY_SHOW,
             self::BEAULAB_HOSPITAL_ENTRY_UPDATE,
+            self::BEAULAB_HOSPITAL_ACCOUNT_INVITATION_SHOW,
+            self::BEAULAB_HOSPITAL_ACCOUNT_INVITATION_UPDATE,
 
             self::BEAULAB_BEAUTY_SHOW,
             self::BEAULAB_BEAUTY_CREATE,

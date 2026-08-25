@@ -164,7 +164,7 @@ RateLimiter 정의 위치:
 적용 라우트:
 
 - Staff/Hospital/Beauty/User 로그인
-- Staff/Hospital/Beauty/User 비밀번호 재설정 링크 발송/검증/제출
+- Staff/Beauty/User 비밀번호 재설정 링크 발송/검증/제출
 - Staff/Hospital/Beauty/User 로그인 후 비밀번호 변경
 - User 신고 생성
 

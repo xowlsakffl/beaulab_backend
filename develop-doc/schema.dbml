@@ -35,10 +35,8 @@ Table account_hospitals {
   hospital_id bigint [note: '소속 병원 ID']
   name varchar [note: '병원 관리자 실명']
   nickname varchar [unique, note: '병원 관리자 로그인 아이디']
-  email varchar [unique, note: '병원 관리자 이메일']
-  phone varchar(50) [note: '인증 대상 전화번호']
+  phone varchar(50) [note: '인증된 전화번호']
   phone_verified_at timestamp [null, note: '전화번호 인증 완료 시각']
-  email_verified_at timestamp [null, note: '이메일 인증 완료 시각']
   password varchar [note: '암호화된 비밀번호']
   status varchar [default: `'SUSPENDED'`, note: '계정 상태(ACTIVE, SUSPENDED, BLOCKED, WITHDRAWN)']
   last_login_at timestamp [null, note: '마지막 로그인 시각']
@@ -433,7 +431,7 @@ Table hospital_doctors {
   careers json [null, note: '경력사항 목록']
   etc_contents json [null, note: '기타사항 목록']
   status varchar(20) [default: `'SUSPENDED'`, note: '운영 상태(정상, 정지, 비활성)']
-  allow_status varchar(20) [default: `'PENDING'`, note: '검수 상태(PENDING, REVIEWING, APPROVED, REJECTED)']
+  allow_status varchar(20) [default: `'NOT_APPLIED'`, note: '검수 상태(NOT_APPLIED, PENDING, REVIEWING, APPROVED, REJECTED)']
   view_count bigint [default: `0`, note: '의사 조회수']
   created_at timestamp
   updated_at timestamp
@@ -486,10 +484,51 @@ Table hospital_entries {
   applicant_phone varchar(30) [null, note: '신청자 전화번호']
   applicant_email varchar(255) [null, note: '신청자 이메일주소']
   allow_status varchar(20) [default: `'PENDING'`, note: '검수 상태(PENDING, REVIEWING, APPROVED, REJECTED)']
+  hospital_id bigint [null, unique, note: '전환된 병의원 ID']
+  converted_at timestamp [null, note: '병의원 전환 완료 시각']
   created_at timestamp
   updated_at timestamp
   deleted_at timestamp [null, note: '소프트 삭제 시각']
   Note: '병의원 신규 입점신청 정보입니다. 사업자등록증/의사면허증 파일은 media polymorphic collection으로 관리합니다.'
+}
+
+Table hospital_account_invitations {
+  id bigint [pk, increment, note: '병의원 계정 초대 ID']
+  source_type varchar(30) [note: '초대 원본(HOSPITAL, HOSPITAL_ENTRY)']
+  hospital_id bigint [null, note: '직접 생성 병의원 ID']
+  hospital_entry_id bigint [null, note: '입점신청 ID']
+  recipient_email varchar [note: '초대 메일 수신 주소']
+  token_hash char(64) [unique, note: '초대 토큰 SHA-256 해시']
+  expires_at timestamp [note: '초대 만료 시각']
+  sent_at timestamp [null, note: '초대 큐 등록 시각']
+  used_at timestamp [null, note: '초대 사용 완료 시각']
+  revoked_at timestamp [null, note: '초대 폐기 시각']
+  created_by_staff_id bigint [null, note: '초대 발송 관리자 ID']
+  completed_account_hospital_id bigint [null, note: '생성된 병의원 계정 ID']
+  created_at timestamp
+  updated_at timestamp
+  Note: '직접 생성 병의원과 입점신청이 공통으로 사용하는 계정 생성 초대 이력입니다.'
+}
+
+Table hospital_account_identity_verifications {
+  id bigint [pk, increment, note: '병의원 계정 본인확인 ID']
+  hospital_account_invitation_id bigint [note: '병의원 계정 초대 ID']
+  provider varchar(30) [note: '본인확인 제공자']
+  provider_reference_hash char(64) [note: '제공자 인증 식별값 해시']
+  token_hash char(64) [unique, note: '본인확인 증명 토큰 SHA-256 해시']
+  verified_name varchar(100) [note: '본인확인 실명']
+  verified_phone varchar(30) [note: '본인확인 휴대폰 번호']
+  ci_hash char(64) [null, note: '연계정보(CI) SHA-256 해시']
+  verified_at timestamp [note: '본인확인 완료 시각']
+  expires_at timestamp [note: '본인확인 증명 만료 시각']
+  consumed_at timestamp [null, note: '본인확인 증명 사용 시각']
+  created_at timestamp
+  updated_at timestamp
+
+  Indexes {
+    (provider, provider_reference_hash) [unique]
+  }
+  Note: '병의원 계정 생성에만 사용할 수 있는 단기 일회용 휴대폰 본인확인 증명입니다.'
 }
 
 Table hospital_event_dbs {
@@ -875,6 +914,7 @@ Table hospitals {
   name varchar [unique, note: '병원명']
   department varchar(30) [default: `'OTHER'`, note: '분과(성형외과, 피부과, 의원, 치과, 안과, 한의원, 기타)']
   description text [null, note: '병원 소개']
+  youtube_link varchar(500) [null, note: '유튜브 링크']
   address varchar [null, note: '병원 주소']
   address_detail varchar [null, note: '병원 상세 주소']
   latitude varchar [null, note: '위도']
@@ -883,15 +923,14 @@ Table hospitals {
   ad_reception_phone_1 varchar(50) [note: '광고 안내 수신 접수 전화번호 1']
   ad_reception_phone_2 varchar(50) [null, note: '광고 수신 접수 전화번호 2']
   ad_reception_phone_3 varchar(50) [null, note: '광고 수신 접수 전화번호 3']
-  email varchar [null, note: '대표 이메일']
   consulting_hours text [null, note: '진료 시간']
   operation_hours json [null, note: '요일별 진료 시간']
   direction text [null, note: '오시는 길']
   view_count bigint [default: `0`, note: '조회수']
   evaluation_count int [default: `0`, note: '노출 병의원 평가 수']
   evaluation_average_rating decimal [default: `0`, note: '노출 병의원 평가 평균 평점']
-  allow_status varchar(20) [default: `'PENDING'`, note: '검수 상태(PENDING, REVIEWING, APPROVED, REJECTED)']
-  status varchar(20) [default: `'SUSPENDED'`, note: '운영 상태(정상, 운영중지, 탈퇴)']
+  allow_status varchar(20) [default: `'NOT_APPLIED'`, note: '검수 상태(NOT_APPLIED, PENDING, REVIEWING, APPROVED, REJECTED)']
+  status varchar(20) [default: `'ACTIVE'`, note: '운영 상태(정상, 운영중지, 탈퇴)']
   created_at timestamp
   updated_at timestamp
   deleted_at timestamp [null, note: '병원 비활성/삭제 시각']
@@ -1270,6 +1309,8 @@ TableGroup "Accounts & Auth" {
   account_user_blocks
   account_staffs
   account_hospitals
+  hospital_account_invitations
+  hospital_account_identity_verifications
   account_beauties
   personal_access_tokens
   password_reset_tokens
@@ -1376,6 +1417,12 @@ TableGroup "Runtime Infrastructure" {
 // Hard database foreign keys
 Ref: account_user_access_logs.account_user_id > account_users.id
 Ref: account_hospitals.hospital_id > hospitals.id
+Ref: hospital_account_invitations.hospital_id > hospitals.id
+Ref: hospital_account_invitations.hospital_entry_id > hospital_entries.id
+Ref: hospital_account_invitations.created_by_staff_id > account_staffs.id
+Ref: hospital_account_invitations.completed_account_hospital_id > account_hospitals.id
+Ref: hospital_account_identity_verifications.hospital_account_invitation_id > hospital_account_invitations.id
+Ref: hospital_entries.hospital_id > hospitals.id
 Ref: account_beauties.beauty_id > beauties.id
 Ref: beauty_business_registrations.beauty_id > beauties.id
 Ref: hospital_business_registrations.hospital_id > hospitals.id

@@ -84,10 +84,10 @@ final class HospitalAccountInvitation extends Model
     public static function statusLabel(string $status): string
     {
         return match ($status) {
-            self::STATUS_ACTIVE => '계정 생성 가능',
-            self::STATUS_USED => '계정 생성 완료',
-            self::STATUS_REVOKED => '전송 취소',
-            self::STATUS_EXPIRED => '기간 만료',
+            self::STATUS_ACTIVE => '사용 가능',
+            self::STATUS_USED => '사용 완료',
+            self::STATUS_REVOKED => '폐기',
+            self::STATUS_EXPIRED => '만료',
             default => '-',
         };
     }

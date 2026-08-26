@@ -11,7 +11,6 @@ final readonly class AccountHospitalForAccountHospitalDto
 {
     public function __construct(
         public int $id,
-        public string $name,
         public string $nickname,
         public ?string $phone,
         public string $status,
@@ -25,7 +24,6 @@ final readonly class AccountHospitalForAccountHospitalDto
     {
         return new self(
             id: $hospital->id,
-            name: $hospital->name,
             nickname: $hospital->nickname,
             phone: $hospital->phone,
             status: $hospital->status,
@@ -40,7 +38,6 @@ final readonly class AccountHospitalForAccountHospitalDto
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
             'nickname' => $this->nickname,
             'phone' => $this->phone,
             'status' => $this->status,

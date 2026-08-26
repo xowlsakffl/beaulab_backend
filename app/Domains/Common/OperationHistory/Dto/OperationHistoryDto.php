@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\OperationHistory\Dto;
 
+use App\Common\Support\ActorDisplay;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryActorRegistry;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryTargetRegistry;
@@ -114,11 +115,7 @@ final readonly class OperationHistoryDto
             return null;
         }
 
-        return [
-            'id' => (int) $history->actor->getKey(),
-            'name' => (string) ($history->actor->name ?? $history->actor->nickname ?? ''),
-            'email' => $history->actor->email ?? null,
-        ];
+        return ActorDisplay::toArray($history->actor);
     }
 
     private static function actorLabel(OperationHistory $history): string
@@ -128,9 +125,7 @@ final readonly class OperationHistoryDto
         }
 
         if ($history->relationLoaded('actor') && $history->actor instanceof Model) {
-            $name = trim((string) ($history->actor->name ?? $history->actor->nickname ?? ''));
-
-            return $name !== '' ? $name : (string) ($history->actor->email ?? $history->actor_kind);
+            return ActorDisplay::label($history->actor, (string) $history->actor_kind);
         }
 
         return (string) $history->actor_kind;

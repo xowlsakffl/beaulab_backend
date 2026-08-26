@@ -17,7 +17,7 @@ final readonly class HospitalAccountInvitationForHospitalDto
         return [
             'hospital_name' => (string) $hospitalName,
             'expires_at' => $invitation->expires_at?->toISOString(),
-            'identity_verification_required' => true,
+            'phone_verification_required' => true,
         ];
     }
 }

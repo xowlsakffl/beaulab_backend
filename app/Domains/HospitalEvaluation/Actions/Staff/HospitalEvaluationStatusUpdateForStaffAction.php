@@ -22,7 +22,7 @@ final class HospitalEvaluationStatusUpdateForStaffAction
 
     public function execute(array $payload): array
     {
-        Gate::authorize('update', HospitalEvaluation::class);
+        Gate::authorize('updateStatus', HospitalEvaluation::class);
 
         $ids = collect($payload['ids'] ?? [])
             ->map(static fn (int|string $id): int => (int) $id)

@@ -59,6 +59,7 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
 
         return [
             'hospital_id' => ['sometimes', 'integer', Rule::exists('hospitals', 'id')->whereNull('deleted_at')],
+            'manager_staff_id' => ['sometimes', 'nullable', 'integer', Rule::exists('account_staffs', 'id')->whereNull('deleted_at')],
             'event_type' => ['sometimes', Rule::in(HospitalEvent::types())],
             'is_male_targeted' => ['sometimes', 'boolean'],
             'name' => ['sometimes', 'string', 'max:20', "regex:{$allowedTextPattern}"],
@@ -128,6 +129,7 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
     {
         return [
             'hospital_id' => '병의원',
+            'manager_staff_id' => '담당자',
             'event_type' => '이벤트 유형',
             'is_male_targeted' => '남자성형 이벤트 여부',
             'name' => '이벤트명',

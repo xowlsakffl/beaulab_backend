@@ -32,6 +32,12 @@ final class NoticePolicy
         return $this->delegate($actor)->update($actor, $notice);
     }
 
+    public function updateStatus(mixed $actor, ?Notice $notice = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(NoticeForStaffPolicy::class)->updateStatus($actor, $notice);
+    }
+
     public function delete(mixed $actor, Notice $notice): bool
     {
         return $this->delegate($actor)->delete($actor, $notice);
@@ -41,12 +47,32 @@ final class NoticePolicy
     {
         return match (true) {
             $actor instanceof AccountStaff => app(NoticeForStaffPolicy::class),
-            default => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, Notice $notice): bool { return false; }
-                public function create(mixed $actor): bool { return false; }
-                public function update(mixed $actor, Notice $notice): bool { return false; }
-                public function delete(mixed $actor, Notice $notice): bool { return false; }
+            default => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, Notice $notice): bool
+                {
+                    return false;
+                }
+
+                public function create(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, Notice $notice): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, Notice $notice): bool
+                {
+                    return false;
+                }
             },
         };
     }

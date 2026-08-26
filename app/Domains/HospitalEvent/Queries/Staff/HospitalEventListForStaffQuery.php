@@ -38,6 +38,7 @@ final class HospitalEventListForStaffQuery
             ->select([
                 'id',
                 'hospital_id',
+                'manager_staff_id',
                 'event_type',
                 'name',
                 'description',
@@ -60,7 +61,7 @@ final class HospitalEventListForStaffQuery
             ])
             ->with([
                 'hospital:id,name',
-                'hospital.accountHospital:id,hospital_id,name,nickname',
+                'managerStaff:id,name,email',
                 'categories' => fn ($query) => $query
                     ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
                     ->orderBy('depth')
@@ -112,10 +113,10 @@ final class HospitalEventListForStaffQuery
                 $query
                     ->orWhere('description', 'like', "%{$q}%")
                     ->orWhereHas('hospital', fn ($hospitalQuery) => $hospitalQuery
+                        ->where('name', 'like', "%{$q}%"))
+                    ->orWhereHas('managerStaff', fn ($staffQuery) => $staffQuery
                         ->where('name', 'like', "%{$q}%")
-                        ->orWhereHas('accountHospital', fn ($accountQuery) => $accountQuery
-                            ->where('name', 'like', "%{$q}%")
-                            ->orWhere('nickname', 'like', "%{$q}%")));
+                        ->orWhere('email', 'like', "%{$q}%"));
             });
         }
 

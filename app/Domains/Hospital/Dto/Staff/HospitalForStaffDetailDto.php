@@ -48,6 +48,7 @@ final readonly class HospitalForStaffDetailDto
         public string $allowStatus,
         public string $status,
         public ?array $latestStatusHistory,
+        public ?array $pendingStatusChangeRequest,
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?array $logo,
@@ -83,6 +84,7 @@ final readonly class HospitalForStaffDetailDto
             allowStatus: (string) $hospital->allow_status,
             status: (string) $hospital->status,
             latestStatusHistory: self::latestStatusHistory($hospital),
+            pendingStatusChangeRequest: self::pendingStatusChangeRequest($hospital),
             createdAt: $hospital->created_at?->toISOString(),
             updatedAt: $hospital->updated_at?->toISOString(),
             logo: self::logo($hospital),
@@ -119,6 +121,7 @@ final readonly class HospitalForStaffDetailDto
             'allow_status' => $this->allowStatus,
             'status' => $this->status,
             'latest_status_history' => $this->latestStatusHistory,
+            'pending_status_change_request' => $this->pendingStatusChangeRequest,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'logo' => $this->logo,
@@ -189,7 +192,6 @@ final readonly class HospitalForStaffDetailDto
 
         return [
             'id' => $accountHospital->id,
-            'name' => $accountHospital->name,
             'nickname' => $accountHospital->nickname,
             'phone' => $accountHospital->verifiedPhone(),
             'status' => $accountHospital->status,
@@ -218,6 +220,22 @@ final readonly class HospitalForStaffDetailDto
             });
 
         return $history ? OperationHistoryDto::fromModel($history)->toArray() : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function pendingStatusChangeRequest(Hospital $hospital): ?array
+    {
+        if (! $hospital->relationLoaded('pendingStatusChangeRequest')) {
+            return null;
+        }
+
+        $request = $hospital->pendingStatusChangeRequest;
+
+        return $request
+            ? HospitalStatusChangeRequestForStaffDto::fromModel($request)
+            : null;
     }
 
     /**

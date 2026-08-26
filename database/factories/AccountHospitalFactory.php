@@ -17,7 +17,7 @@ final class AccountHospitalFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name(),
+            'name' => $this->faker->company(),
             'nickname' => $this->faker->unique()->userName(),
             'phone' => $this->faker->numerify('010-####-####'),
 
@@ -44,13 +44,15 @@ final class AccountHospitalFactory extends Factory
     {
         return $this->state(fn () => [
             'hospital_id' => $hospital instanceof Hospital ? $hospital->getKey() : $hospital,
+            'name' => $hospital instanceof Hospital
+                ? $hospital->name
+                : Hospital::query()->whereKey($hospital)->value('name'),
         ]);
     }
 
-    public function withIdentity(string $name, string $nickname): self
+    public function withNickname(string $nickname): self
     {
         return $this->state(fn () => [
-            'name' => $name,
             'nickname' => $nickname,
         ]);
     }

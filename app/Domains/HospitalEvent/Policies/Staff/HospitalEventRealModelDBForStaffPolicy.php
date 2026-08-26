@@ -22,4 +22,9 @@ final class HospitalEventRealModelDBForStaffPolicy
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_UPDATE);
     }
+
+    public function updateStatus(AccountStaff $actor, ?HospitalEventRealModelDB $application = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_STATUS_UPDATE);
+    }
 }

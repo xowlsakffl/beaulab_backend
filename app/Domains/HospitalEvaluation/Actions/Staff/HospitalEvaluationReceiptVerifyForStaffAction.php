@@ -22,7 +22,7 @@ final class HospitalEvaluationReceiptVerifyForStaffAction
 
     public function execute(HospitalEvaluation $evaluation): array
     {
-        Gate::authorize('update', $evaluation);
+        Gate::authorize('updateStatus', $evaluation);
 
         $actor = auth()->user();
 

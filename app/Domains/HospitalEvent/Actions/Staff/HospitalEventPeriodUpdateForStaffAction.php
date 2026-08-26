@@ -40,7 +40,8 @@ final class HospitalEventPeriodUpdateForStaffAction
 
         return [
             'event' => HospitalEventForStaffDto::fromModel($event->load([
-                'hospital.accountHospital',
+                'hospital',
+                'managerStaff',
                 'categories',
                 'doctors',
                 'thumbnailImage',

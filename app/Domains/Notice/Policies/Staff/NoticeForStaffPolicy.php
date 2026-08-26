@@ -32,6 +32,11 @@ final class NoticeForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_NOTICE_UPDATE);
     }
 
+    public function updateStatus(AccountStaff $actor, ?Notice $notice = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_NOTICE_STATUS_UPDATE);
+    }
+
     public function delete(AccountStaff $actor, Notice $notice): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_NOTICE_DELETE);

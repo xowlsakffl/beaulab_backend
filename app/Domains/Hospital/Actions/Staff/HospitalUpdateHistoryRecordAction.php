@@ -82,6 +82,7 @@ final class HospitalUpdateHistoryRecordAction
         string $beforeStatus,
         string $afterStatus,
         ?string $reason = null,
+        string $source = 'staff.hospital.status',
     ): void {
         $changes = OperationHistoryChangeSetBuilder::single(
             key: 'status',
@@ -104,7 +105,7 @@ final class HospitalUpdateHistoryRecordAction
             actor: $actor instanceof Model ? $actor : null,
             reason: $reason,
             metadata: [
-                'source' => 'staff.hospital.status',
+                'source' => $source,
             ],
             changes: $changes,
         );

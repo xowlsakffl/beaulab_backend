@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,20 +20,20 @@ final class AccountStaffFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'              => $this->faker->name(),
-            'nickname'          => $this->faker->unique()->userName(),
-            'email'             => $this->faker->unique()->safeEmail(),
+            'name' => $this->faker->name(),
+            'nickname' => $this->faker->unique()->userName(),
+            'email' => $this->faker->unique()->safeEmail(),
 
-            'password'          => Hash::make('password'),
+            'password' => Hash::make('password'),
 
-            'status'            => AccountStaff::STATUS_ACTIVE,
+            'status' => AccountStaff::STATUS_ACTIVE,
 
-            'department'        => $this->faker->jobTitle(),
-            'job_title'          => $this->faker->jobTitle(),
+            'department' => $this->faker->jobTitle(),
+            'job_title' => $this->faker->jobTitle(),
 
             'email_verified_at' => now(),
 
-            'last_login_at'     => null,
+            'last_login_at' => null,
         ];
     }
 
@@ -41,6 +42,34 @@ final class AccountStaffFactory extends Factory
         return $this->state(fn () => [
             'password' => Hash::make($password),
         ]);
+    }
+
+    public function withRole(string $role): self
+    {
+        return $this->afterCreating(function (AccountStaff $staff) use ($role): void {
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+            $staff->syncRoles([$role]);
+        });
+    }
+
+    public function asSuperAdmin(): self
+    {
+        return $this->withRole(AccessRoles::BEAULAB_SUPER_ADMIN);
+    }
+
+    public function asAdmin(): self
+    {
+        return $this->withRole(AccessRoles::BEAULAB_ADMIN);
+    }
+
+    public function asStaff(): self
+    {
+        return $this->withRole(AccessRoles::BEAULAB_STAFF);
+    }
+
+    public function asDev(): self
+    {
+        return $this->withRole(AccessRoles::BEAULAB_DEV);
     }
 
     public function fromSeedEnv(): self
@@ -87,6 +116,50 @@ final class AccountStaffFactory extends Factory
     }
 
     /**
+     * @return array<string, AccountStaff>
+     */
+    public function createSeededRoleTestAccounts(): array
+    {
+        $payload = $this->seedPayload();
+        $definitions = [
+            AccessRoles::BEAULAB_SUPER_ADMIN => ['nickname' => 'test_super_admin', 'name' => '테스트 최고관리자', 'department' => '개발팀'],
+            AccessRoles::BEAULAB_ADMIN => ['nickname' => 'test_admin', 'name' => '테스트 관리자', 'department' => '운영팀'],
+            AccessRoles::BEAULAB_STAFF => ['nickname' => 'test_staff', 'name' => '테스트 직원', 'department' => '운영팀'],
+            AccessRoles::BEAULAB_DEV => ['nickname' => 'test_dev', 'name' => '테스트 개발자', 'department' => '개발팀'],
+        ];
+
+        return DB::transaction(function () use ($definitions, $payload): array {
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+            $accounts = [];
+
+            foreach ($definitions as $role => $definition) {
+                $staff = AccountStaff::query()->updateOrCreate(
+                    ['nickname' => $definition['nickname']],
+                    [
+                        'name' => $definition['name'],
+                        'email' => $definition['nickname'].'@beaulab.local',
+                        'email_verified_at' => now(),
+                        'password' => Hash::make($payload['password']),
+                        'department' => $definition['department'],
+                        'job_title' => $definition['name'],
+                        'status' => AccountStaff::STATUS_ACTIVE,
+                    ],
+                );
+
+                $staff->syncRoles([$role]);
+                $staff->syncPermissions(
+                    $role === AccessRoles::BEAULAB_STAFF ? $this->staffViewPermissions() : [],
+                );
+                $accounts[$role] = $staff;
+            }
+
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+            return $accounts;
+        });
+    }
+
+    /**
      * @return array{email:string,name:string,nickname:string,password:string}
      */
     private function seedPayload(): array
@@ -99,6 +172,17 @@ final class AccountStaffFactory extends Factory
             'nickname' => trim((string) ($seedConfig['nickname'] ?? 'admin')),
             'password' => (string) ($seedConfig['password'] ?? ''),
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function staffViewPermissions(): array
+    {
+        return array_values(array_filter(
+            AccessPermissions::byGuard()[AccessPermissions::GUARD_STAFF],
+            static fn (string $permission): bool => str_ends_with($permission, '.show'),
+        ));
     }
 
     public function suspended(): self

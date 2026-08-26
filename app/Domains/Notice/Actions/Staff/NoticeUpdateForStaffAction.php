@@ -4,11 +4,11 @@ namespace App\Domains\Notice\Actions\Staff;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Notice\Actions\Common\SyncNoticeEditorImagesAction;
 use App\Domains\Notice\Dto\Staff\NoticeForStaffDetailDto;
 use App\Domains\Notice\Models\Notice;
 use App\Domains\Notice\Queries\Staff\NoticeUpdateForStaffQuery;
-use App\Domains\Common\Media\Models\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -30,6 +30,9 @@ final class NoticeUpdateForStaffAction
     public function execute(Notice $notice, array $payload): array
     {
         Gate::authorize('update', $notice);
+        if (array_key_exists('status', $payload)) {
+            Gate::authorize('updateStatus', $notice);
+        }
 
         $normalized = $this->normalizePayload($payload);
 
@@ -92,7 +95,7 @@ final class NoticeUpdateForStaffAction
     }
 
     /**
-     * @param array<int, UploadedFile> $files
+     * @param  array<int, UploadedFile>  $files
      * @return array<int, UploadedFile>
      */
     private function onlyFiles(array $files): array
@@ -101,8 +104,8 @@ final class NoticeUpdateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $existingAttachmentIds
-     * @param array<int, UploadedFile> $newAttachments
+     * @param  array<int, int|string>  $existingAttachmentIds
+     * @param  array<int, UploadedFile>  $newAttachments
      */
     private function syncAttachments(Notice $notice, array $existingAttachmentIds, array $newAttachments): void
     {

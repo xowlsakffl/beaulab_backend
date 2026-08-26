@@ -2,8 +2,8 @@
 
 namespace App\Domains\HospitalVideo\Policies;
 
-use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\HospitalVideo\Policies\Hospital\HospitalVideoForHospitalPolicy;
@@ -35,6 +35,12 @@ final class HospitalVideoPolicy
         return $this->delegate($actor)->update($actor, $video);
     }
 
+    public function updateStatus(mixed $actor, ?HospitalVideo $video = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalVideoForStaffPolicy::class)->updateStatus($actor, $video);
+    }
+
     public function delete(mixed $actor, HospitalVideo $video): bool
     {
         return $this->delegate($actor)->delete($actor, $video);
@@ -50,21 +56,69 @@ final class HospitalVideoPolicy
         return match (true) {
             $actor instanceof AccountStaff => app(HospitalVideoForStaffPolicy::class),
             $actor instanceof AccountHospital => app(HospitalVideoForHospitalPolicy::class),
-            $actor instanceof AccountUser => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, HospitalVideo $video): bool { return false; }
-                public function create(mixed $actor): bool { return false; }
-                public function update(mixed $actor, HospitalVideo $video): bool { return false; }
-                public function delete(mixed $actor, HospitalVideo $video): bool { return false; }
-                public function cancel(mixed $actor, HospitalVideo $video): bool { return false; }
+            $actor instanceof AccountUser => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, HospitalVideo $video): bool
+                {
+                    return false;
+                }
+
+                public function create(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, HospitalVideo $video): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, HospitalVideo $video): bool
+                {
+                    return false;
+                }
+
+                public function cancel(mixed $actor, HospitalVideo $video): bool
+                {
+                    return false;
+                }
             },
-            default => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, HospitalVideo $video): bool { return false; }
-                public function create(mixed $actor): bool { return false; }
-                public function update(mixed $actor, HospitalVideo $video): bool { return false; }
-                public function delete(mixed $actor, HospitalVideo $video): bool { return false; }
-                public function cancel(mixed $actor, HospitalVideo $video): bool { return false; }
+            default => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, HospitalVideo $video): bool
+                {
+                    return false;
+                }
+
+                public function create(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, HospitalVideo $video): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, HospitalVideo $video): bool
+                {
+                    return false;
+                }
+
+                public function cancel(mixed $actor, HospitalVideo $video): bool
+                {
+                    return false;
+                }
             },
         };
     }

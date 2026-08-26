@@ -21,6 +21,7 @@ final class HospitalEventUpdateForStaffQuery
     {
         $fields = [
             'hospital_id',
+            'manager_staff_id',
             'event_type',
             'is_male_targeted',
             'name',

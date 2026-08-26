@@ -28,6 +28,11 @@ final class HospitalEventForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVENT_UPDATE);
     }
 
+    public function updateStatus(AccountStaff $actor, ?HospitalEvent $event = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVENT_STATUS_UPDATE);
+    }
+
     public function delete(AccountStaff $actor, HospitalEvent $event): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVENT_DELETE);

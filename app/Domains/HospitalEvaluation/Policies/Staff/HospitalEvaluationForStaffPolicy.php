@@ -22,4 +22,9 @@ final class HospitalEvaluationForStaffPolicy
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVALUATION_UPDATE);
     }
+
+    public function updateStatus(AccountStaff $actor, ?HospitalEvaluation $evaluation = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVALUATION_STATUS_UPDATE);
+    }
 }

@@ -32,6 +32,11 @@ final class FaqForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_FAQ_UPDATE);
     }
 
+    public function updateStatus(AccountStaff $actor, ?Faq $faq = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_FAQ_STATUS_UPDATE);
+    }
+
     public function delete(AccountStaff $actor, Faq $faq): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_FAQ_DELETE);

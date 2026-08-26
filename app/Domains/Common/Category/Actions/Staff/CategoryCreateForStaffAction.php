@@ -27,6 +27,9 @@ final class CategoryCreateForStaffAction
     public function execute(array $payload): array
     {
         Gate::authorize('create', Category::class);
+        if (array_key_exists('status', $payload)) {
+            Gate::authorize('updateStatus', Category::class);
+        }
 
         $domain = (string) $payload['domain'];
         $name = trim((string) $payload['name']);

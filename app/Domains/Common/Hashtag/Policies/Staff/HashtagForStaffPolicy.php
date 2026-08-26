@@ -32,6 +32,11 @@ final class HashtagForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_HASHTAG_MANAGE);
     }
 
+    public function updateStatus(AccountStaff $actor, ?Hashtag $hashtag = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HASHTAG_STATUS_UPDATE);
+    }
+
     public function delete(AccountStaff $actor, Hashtag $hashtag): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HASHTAG_MANAGE);

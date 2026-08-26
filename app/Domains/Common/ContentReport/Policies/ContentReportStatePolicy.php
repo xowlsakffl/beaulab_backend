@@ -17,6 +17,12 @@ final class ContentReportStatePolicy
         return $this->delegate($actor)->update($actor, $targetAlias);
     }
 
+    public function updateStatus(mixed $actor, ?string $targetAlias = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(ContentReportStateForStaffPolicy::class)->updateStatus($actor, $targetAlias);
+    }
+
     private function delegate(mixed $actor): object
     {
         return match (true) {

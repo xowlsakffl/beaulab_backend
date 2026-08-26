@@ -32,6 +32,9 @@ final class HospitalUpdateForStaffAction
     public function execute(Hospital $hospital, array $payload): array
     {
         Gate::authorize('update', $hospital);
+        if (array_key_exists('allow_status', $payload)) {
+            Gate::authorize('updateStatus', $hospital);
+        }
 
         $beforeHistory = $this->historyRecordAction->capture($hospital);
 
@@ -302,7 +305,6 @@ final class HospitalUpdateForStaffAction
 
     private function shouldForgetSummary(array $payload): bool
     {
-        return array_key_exists('allow_status', $payload)
-            || array_key_exists('status', $payload);
+        return array_key_exists('allow_status', $payload);
     }
 }

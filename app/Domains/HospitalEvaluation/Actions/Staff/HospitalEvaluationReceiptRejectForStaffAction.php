@@ -22,7 +22,7 @@ final class HospitalEvaluationReceiptRejectForStaffAction
 
     public function execute(HospitalEvaluation $evaluation, array $payload): array
     {
-        Gate::authorize('update', $evaluation);
+        Gate::authorize('updateStatus', $evaluation);
 
         $reason = (string) $payload['reason'];
         $reasonText = $reason === HospitalEvaluation::RECEIPT_REJECTION_REASON_OTHER

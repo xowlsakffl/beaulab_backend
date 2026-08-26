@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalWallet\Models;
 
+use App\Domains\AccountHospital\Models\AccountHospital;
 use Database\Factories\HospitalWalletOperationFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -136,12 +137,18 @@ final class HospitalWalletOperation extends Model
 
     public function requester(): MorphTo
     {
-        return $this->morphTo('requester', 'requester_type', 'requester_id');
+        return $this->morphTo('requester', 'requester_type', 'requester_id')
+            ->morphWith([
+                AccountHospital::class => ['hospital:id,name'],
+            ]);
     }
 
     public function processor(): MorphTo
     {
-        return $this->morphTo('processor', 'processor_type', 'processor_id');
+        return $this->morphTo('processor', 'processor_type', 'processor_id')
+            ->morphWith([
+                AccountHospital::class => ['hospital:id,name'],
+            ]);
     }
 
     public function reference(): MorphTo

@@ -35,7 +35,12 @@ final class HospitalStatusUpdateForStaffRequest extends FormRequest
                 Hospital::STATUS_ACTIVE,
                 Hospital::STATUS_SUSPENDED,
             ])],
-            'reason' => ['nullable', 'string', 'max:500'],
+            'reason' => [
+                'nullable',
+                'string',
+                'max:500',
+                Rule::requiredIf(fn (): bool => $this->input('status') === Hospital::STATUS_SUSPENDED),
+            ],
         ];
     }
 

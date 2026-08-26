@@ -29,6 +29,12 @@ final class HospitalEventPolicy
         return $this->delegate($actor)->update($actor, $event);
     }
 
+    public function updateStatus(mixed $actor, ?HospitalEvent $event = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalEventForStaffPolicy::class)->updateStatus($actor, $event);
+    }
+
     public function delete(mixed $actor, HospitalEvent $event): bool
     {
         return $this->delegate($actor)->delete($actor, $event);

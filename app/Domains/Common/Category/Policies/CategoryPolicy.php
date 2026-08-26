@@ -32,6 +32,12 @@ final class CategoryPolicy
         return $this->delegate($actor)->update($actor, $category);
     }
 
+    public function updateStatus(mixed $actor, ?Category $category = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(CategoryForStaffPolicy::class)->updateStatus($actor, $category);
+    }
+
     public function delete(mixed $actor, Category $category): bool
     {
         return $this->delegate($actor)->delete($actor, $category);
@@ -41,14 +47,33 @@ final class CategoryPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff => app(CategoryForStaffPolicy::class),
-            default => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, Category $category): bool { return false; }
-                public function create(mixed $actor): bool { return false; }
-                public function update(mixed $actor, Category $category): bool { return false; }
-                public function delete(mixed $actor, Category $category): bool { return false; }
+            default => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, Category $category): bool
+                {
+                    return false;
+                }
+
+                public function create(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, Category $category): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, Category $category): bool
+                {
+                    return false;
+                }
             },
         };
     }
 }
-

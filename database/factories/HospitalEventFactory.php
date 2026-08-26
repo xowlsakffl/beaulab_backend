@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
@@ -27,6 +28,7 @@ final class HospitalEventFactory extends Factory
 
         return [
             'hospital_id' => $this->randomHospitalId(),
+            'manager_staff_id' => AccountStaff::query()->inRandomOrder()->value('id'),
             'event_type' => $this->faker->randomElement(HospitalEvent::types()),
             'is_male_targeted' => $this->faker->boolean(15),
             'name' => $this->faker->randomElement([

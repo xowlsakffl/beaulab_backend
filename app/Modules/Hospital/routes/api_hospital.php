@@ -17,6 +17,15 @@ Route::prefix('auth')->group(function () {
         ->name('account-invitations.getHospitalAccountInvitationForHospital')
         ->where('token', '[A-Za-z0-9]{64}')
         ->middleware('throttle:hospital-account-invitation-verify');
+    Route::post('account-invitations/{token}/phone-verifications', [HospitalAccountInvitationForHospitalController::class, 'sendHospitalAccountPhoneVerificationForHospital'])
+        ->name('account-invitations.sendHospitalAccountPhoneVerificationForHospital')
+        ->where('token', '[A-Za-z0-9]{64}')
+        ->middleware('throttle:hospital-account-phone-verification-send');
+    Route::post('account-invitations/{token}/phone-verifications/{phoneVerification}/verify', [HospitalAccountInvitationForHospitalController::class, 'verifyHospitalAccountPhoneVerificationForHospital'])
+        ->name('account-invitations.verifyHospitalAccountPhoneVerificationForHospital')
+        ->where('token', '[A-Za-z0-9]{64}')
+        ->whereNumber('phoneVerification')
+        ->middleware('throttle:hospital-account-phone-verification-verify');
     Route::post('account-invitations/{token}', [HospitalAccountInvitationForHospitalController::class, 'completeHospitalAccountInvitationForHospital'])
         ->name('account-invitations.completeHospitalAccountInvitationForHospital')
         ->where('token', '[A-Za-z0-9]{64}')
@@ -29,7 +38,6 @@ Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function 
     });
 
     Route::get('/profile', [AuthForHospitalController::class, 'getMyProfile'])->name('profile');
-    Route::match(['put', 'patch'], '/profile', [AuthForHospitalController::class, 'updateMyProfile'])->name('profile.update');
     Route::match(['put', 'patch'], '/password', [AuthForHospitalController::class, 'updateMyPassword'])->name('password.update')->middleware('throttle:password-update');
     Route::get('/notes', [AdminNoteForHospitalController::class, 'getAdminNotesForHospital'])->name('notes.getAdminNotesForHospital');
     Route::post('/notes', [AdminNoteForHospitalController::class, 'createAdminNoteForHospital'])->name('notes.createAdminNoteForHospital');

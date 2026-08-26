@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalWallet\Dto\Staff;
 
+use App\Common\Support\ActorDisplay;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\HospitalWallet\Models\HospitalWalletOperation;
 use App\Domains\HospitalWallet\Models\HospitalWalletTransactionEntry;
@@ -91,9 +92,7 @@ final readonly class HospitalWalletOperationForStaffDto
             return '-';
         }
 
-        $name = trim((string) ($actor->name ?? $actor->nickname ?? ''));
-
-        return $name !== '' ? $name : (string) ($actor->email ?? '-');
+        return ActorDisplay::label($actor);
     }
 
     private function reference(): ?array

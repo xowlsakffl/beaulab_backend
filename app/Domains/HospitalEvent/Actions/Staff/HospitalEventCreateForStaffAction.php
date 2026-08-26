@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
@@ -20,12 +21,16 @@ final class HospitalEventCreateForStaffAction
         private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
-    public function execute(array $payload): array
+    public function execute(AccountStaff $actor, array $payload): array
     {
         Gate::authorize('create', HospitalEvent::class);
+        if (array_intersect(['allow_status', 'hospital_status', 'admin_status'], array_keys($payload)) !== []) {
+            Gate::authorize('updateStatus', HospitalEvent::class);
+        }
 
-        $event = DB::transaction(function () use ($payload): HospitalEvent {
+        $event = DB::transaction(function () use ($actor, $payload): HospitalEvent {
             $data = $this->payloadResolver->normalizePersistPayload($payload);
+            $data['manager_staff_id'] = $payload['manager_staff_id'] ?? $actor->getKey();
             $categorySync = $this->payloadResolver->resolveCategorySyncPayload(
                 $payload['category_ids'] ?? [],
                 (int) ($payload['primary_category_id'] ?? 0),

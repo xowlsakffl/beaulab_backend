@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domains\AccountHospital\Support;
 
-use Illuminate\Support\Str;
-
-final class HospitalAccountIdentityVerificationToken
+final class HospitalAccountPhoneVerificationToken
 {
     public static function make(): string
     {
-        return Str::random(64);
+        return bin2hex(random_bytes(32));
     }
 
     public static function hash(string $token): string

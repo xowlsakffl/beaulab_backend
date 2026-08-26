@@ -32,6 +32,11 @@ final class HospitalDoctorForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_DOCTOR_UPDATE);
     }
 
+    public function updateStatus(AccountStaff $actor, ?HospitalDoctor $doctor = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_DOCTOR_STATUS_UPDATE);
+    }
+
     public function delete(AccountStaff $actor, HospitalDoctor $doctor): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_DOCTOR_DELETE);

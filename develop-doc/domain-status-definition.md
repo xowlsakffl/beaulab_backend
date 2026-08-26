@@ -8,6 +8,14 @@
 
 상태값의 기준은 모델 상수다. 프론트는 상태값을 임의로 새로 만들지 않고, 백엔드 DTO에서 내려주는 label 또는 모델의 `statusLabel()` / `allowStatusLabel()` 계열 메서드를 기준으로 표시한다.
 
+Staff 권한 기준:
+
+- 일반 등록·수정은 도메인의 `create`, `update` permission으로 처리한다.
+- 검수, 승인/반려, 노출, 운영중지, 강제중지, 신고 조치·경고 같은 상태 변경은 도메인의 `*.status_update` permission으로 별도 인가한다.
+- 기본 `beaulab.admin` 역할에는 상태 변경 permission을 부여하지 않고, 기본 `beaulab.super_admin` 역할에만 부여한다.
+- 일반 수정 API가 상태 필드를 함께 받을 수 있어도 Action은 `updateStatus`를 추가 검사한다.
+- 상태 변경 권한이 없는 화면은 현재 상태만 읽기 전용 뱃지로 표시한다.
+
 상태 컬럼의 의미는 컬럼명별로 구분한다.
 
 | 컬럼/개념 | 의미 |
@@ -76,7 +84,7 @@
 - `AccountHospital`은 `Hospital`과 1:1이다.
 - `account_hospitals.hospital_id`는 unique다.
 - 계정에는 이메일을 저장하지 않는다. 초대 이메일은 `HospitalAccountInvitation` 이력에만 저장한다.
-- 초대 완료로 생성되는 계정은 휴대폰 본인확인을 마친 `ACTIVE` 상태다.
+- 초대 완료로 생성되는 계정은 휴대폰 문자 인증을 마친 `ACTIVE` 상태다.
 
 ### 3.3 `AccountBeauty`
 
@@ -145,9 +153,31 @@ Staff 직접 생성 또는 입점신청 전환으로 만들어진 `Hospital`과 
 
 | 저장값 | 표시명 | 의미 |
 |---|---|---|
-| `ACTIVE` | 정상 | 병의원 정상 운영 |
-| `SUSPENDED` | 운영중지 | 병의원 운영중지 |
+| `ACTIVE` | 정상 | 사용자 서비스에 병의원 노출 |
+| `SUSPENDED` | 운영중지 | 사용자 서비스에서 병의원 미노출 |
 | `WITHDRAWN` | 탈퇴 | 병의원 탈퇴/종료 |
+
+`Hospital.status`는 병의원의 노출 상태다. `SUSPENDED`로 변경해도 연결된
+`AccountHospital.status`는 변경하지 않으며 병의원 관리자 로그인도 차단하지 않는다.
+로그인 차단이 필요하면 별도 계정 정책에 따라 `AccountHospital.status`를 변경해야 한다.
+
+운영상태 변경 권한과 결재:
+
+- `beaulab.hospital.status_update` 권한 보유자는 `Hospital.status`를 직접 변경할 수 있다.
+- `beaulab.hospital_status_request.create` 권한 보유자는 운영상태 변경 신청을 등록하며, 승인 전까지 `Hospital.status`는 바뀌지 않는다.
+- `beaulab.hospital_status_request.process` 권한 보유자는 신청을 승인하거나 반려할 수 있다.
+- 승인자는 본인이 등록한 신청을 직접 승인하거나 반려할 수 없다.
+- 승인 시에만 신청의 `target_status`를 `Hospital.status`에 반영한다.
+- 직접 상태 변경 권한 보유자가 상태를 변경하면 같은 병의원의 대기 중 신청은 `CANCELLED` 처리한다.
+
+운영상태 변경 신청 상태:
+
+| 저장값 | 표시명 | 의미 |
+|---|---|---|
+| `PENDING` | 결재대기 | 운영상태 변경 결재 대기 |
+| `APPROVED` | 승인 | 신청 상태를 병의원에 반영 |
+| `REJECTED` | 반려 | 신청을 반려하고 병의원 상태 유지 |
+| `CANCELLED` | 취소 | 직접 상태 변경 등으로 신청 자동 취소 |
 
 기본값:
 

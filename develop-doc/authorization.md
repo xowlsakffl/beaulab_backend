@@ -64,10 +64,12 @@ Spatie role/permission은 `staff`, `hospital`, `beauty` guard에만 생성한다
 ### Staff 전용
 
 - Hospital: `beaulab.hospital.show|create|update|delete`
+- Hospital status: `beaulab.hospital.status_update`
+- Hospital status request: `beaulab.hospital_status_request.show|create|process`
 - Hospital Entry: `beaulab.hospital_entry.show|update`
 - Beauty: `beaulab.beauty.show|create|update|delete`
 - Agency: `beaulab.agency.show|create|update|delete`
-- User: `beaulab.user.show`, `beaulab.user.status.update`
+- User: `beaulab.user.show`, `beaulab.user.status_update`
 - Staff: `beaulab.staff.show|create|update|delete`
 - Doctor: `beaulab.doctor.show|create|update|delete`
 - Expert: `beaulab.expert.show|create|update|delete`
@@ -88,6 +90,16 @@ Spatie role/permission은 `staff`, `hospital`, `beauty` guard에만 생성한다
 - FAQ: `beaulab.faq.show|create|update|delete`
 - Category: `beaulab.category.manage`
 - Hashtag: `beaulab.hashtag.manage`
+
+상태 변경 permission은 일반 생성·수정 permission과 분리한다.
+
+- 병의원/입점/의료진/전문가: `beaulab.hospital|hospital_entry|doctor|expert.status_update`
+- 동영상/이벤트/광고/고객 DB: `beaulab.video|hospital_event|hospital_event_ad|hospital_event_db|hospital_event_real_model_db.status_update`
+- 게시물: `beaulab.hospital_review|hospital_evaluation|talk.status_update`
+- 신고게시물: `beaulab.reported_talk|reported_hospital_review|reported_hospital_evaluation|reported_chat_message|reported_video.status_update`
+- 회원/공지/FAQ/카테고리/해시태그: `beaulab.user|notice|faq|category|hashtag.status_update`
+
+댓글 상태는 부모 도메인의 `status_update`를 재사용한다.
 
 댓글 리소스는 별도 permission을 두지 않는다.
 
@@ -143,13 +155,30 @@ Spatie role/permission은 `staff`, `hospital`, `beauty` guard에만 생성한다
 - `beaulab.notice.show`
 - `beaulab.faq.show`
 
-현재 `beaulab.admin`, `beaulab.staff`, `beaulab.dev`에는 직원 관리 권한(`beaulab.staff.*`)을 포함하지 않는다.
-직원 관리 권한은 최고관리자(`beaulab.super_admin`) 전용이다.
+현재 기본 역할 매핑에서 `beaulab.admin`, `beaulab.staff`, `beaulab.dev`에는 직원 관리 권한(`beaulab.staff.*`)을 포함하지 않는다.
+직원 관리 권한은 `beaulab.super_admin` 역할에만 기본 부여한다. 실제 인가는 역할명이 아니라 각 `beaulab.staff.*` permission으로 판단한다.
 단, 로그인한 자기 계정의 프로필 조회/수정과 비밀번호 변경은 `common.profile.show|update`와 자기 자신 여부로 허용한다.
+
+병의원 운영상태 권한은 일반 병의원 수정 권한과 분리한다.
+
+- `beaulab.hospital.status_update`: 병의원 운영상태 직접 변경. 기본 역할 매핑에서는 최고관리자에게만 부여
+- `beaulab.hospital_status_request.process`: 운영상태 변경 신청 승인/반려. 기본 역할 매핑에서는 최고관리자에게만 부여
+- `beaulab.hospital_status_request.show|create`: Admin과 Staff/Dev에 부여
+- `beaulab.hospital.update`만으로는 운영상태를 변경할 수 없다.
+
+기능 인가와 결재 알림 대상은 역할명이 아니라 위 permission 보유 여부로 판단한다. 따라서 다른 역할이나 특정 계정에 permission을 위임하면 같은 작업과 알림 수신이 가능하다.
+
+기본 역할 정책:
+
+- `beaulab.admin`: 조회·등록·수정·삭제와 일반 운영 기능을 수행하지만 `*.status_update`는 갖지 않는다.
+- `beaulab.super_admin`: Staff guard의 전체 permission을 가지므로 모든 `*.status_update`를 수행한다.
+- 상태 전용 permission을 개별 계정이나 별도 역할에 위임하면 역할명과 무관하게 해당 상태만 변경할 수 있다.
+- 일반 생성·수정 payload에 상태 필드가 포함돼도 Action에서 `updateStatus`를 추가 검사한다.
+- 상태 권한이 없는 프론트 화면은 조작 버튼 대신 현재 상태 뱃지만 표시한다.
 
 현재 `beaulab.staff`, `beaulab.dev`에는 이벤트, 광고, 동영상, 카테고리, 해시태그 조회/관리 권한이 포함되어 있지 않다.
 
-현재 코드상 `AccessPermissions::beaulabSuperAdminOnly()`는 `beaulab.category.manage`, `beaulab.hashtag.manage`를 반환하지만, 같은 권한이 `AccessPermissions::beaulab()`에도 포함되어 있다. 따라서 실제로는 `beaulab.admin`도 카테고리/해시태그 권한을 가진다. 진짜 super admin 전용 권한을 만들 경우 해당 permission은 `beaulab()`에 넣지 않는다.
+카테고리/해시태그의 일반 관리는 `beaulab.admin`도 가능하지만 운영 상태 변경에는 각각 별도 `status_update`가 필요하다.
 
 ### Hospital
 
@@ -229,9 +258,10 @@ Policy 작성 규칙은 아래와 같다.
 
 - 목록/상세 조회: `viewAny`, `view`
 - 등록: `create`
-- 수정/상태 변경: `update`
+- 수정: `update`
+- 상태 변경: `updateStatus`
 - 삭제: `delete`
-- 상태 변경이 일반 수정과 명확히 분리되어야 하는 경우에만 `updateStatus`처럼 별도 ability 사용
+- 검수, 승인/반려, 공개/미공개, 운영중지, 강제중지, 신고 조치/경고 등 상태성 필드는 `updateStatus` ability 사용
 
 ## 8) Staff 프론트 route permission
 

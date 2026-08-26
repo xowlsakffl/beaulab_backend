@@ -2,14 +2,16 @@
 
 작성 기준: 2026-08-25
 
-이 문서는 Staff가 병의원 계정 생성 링크를 발송하고, 수신자가 휴대폰 본인확인 후 `AccountHospital`을 생성하는 기준을 정리한다.
+이 문서는 Staff가 병의원 계정 생성 링크를 발송하고, 수신자가 휴대폰 문자 인증 후 `AccountHospital`을 생성하는 기준을 정리한다.
 
 ## 1. 핵심 정책
 
 - `Hospital`과 `AccountHospital`은 1:1이다. DB의 `account_hospitals.hospital_id` unique 제약이 최종 기준이다.
 - `AccountHospital`은 이메일을 저장하지 않는다. 로그인 식별자는 `nickname`이다.
 - 초대 수신 이메일은 `hospital_account_invitations.recipient_email`에 초대 이력으로만 저장한다.
-- 계정 생성 폼은 아이디, 비밀번호, 휴대폰 본인확인만 받는다. 이름과 전화번호는 본인확인 제공자의 서버 검증 결과를 사용한다.
+- 계정 생성 폼은 아이디, 비밀번호, 휴대폰 번호와 문자 인증번호만 받는다.
+- `AccountHospital.name`은 사용자 실명이 아니다. 호환을 위해 연결된 `Hospital.name`을 복제해 저장하고 로그인·검색·담당자 판정에는 사용하지 않는다.
+- 병의원 계정이 남긴 운영 히스토리와 충전금 처리자명은 복제된 `AccountHospital.name`이 아니라 관계의 최신 `Hospital.name`을 사용한다.
 - 인증된 계정 연락처는 `phone_verified_at`이 기록된 계정 전화번호만 노출한다. 계정이 없거나 인증되지 않은 번호는 빈 값으로 취급한다.
 - 신규 병의원의 검수 상태는 `NOT_APPLIED`(미신청), 운영 상태는 `ACTIVE`다.
 
@@ -55,32 +57,36 @@
 | 메서드 | 경로 | 용도 |
 |---|---|---|
 | `GET` | `/api/v1/hospital/auth/account-invitations/{token}` | 링크 유효성 및 병의원명 확인 |
+| `POST` | `/api/v1/hospital/auth/account-invitations/{token}/phone-verifications` | 휴대폰 인증번호 발송 |
+| `POST` | `/api/v1/hospital/auth/account-invitations/{token}/phone-verifications/{id}/verify` | 인증번호 확인 및 완료 증표 발급 |
 | `POST` | `/api/v1/hospital/auth/account-invitations/{token}` | 계정 생성 완료 |
 
 공개 조회 응답은 병의원명과 만료시각만 반환한다. 초대 수신 이메일, 원본 ID, 토큰 해시는 노출하지 않는다.
 
 초대 토큰은 원문을 저장하지 않고 SHA-256 해시만 저장한다. 메일 큐 payload도 암호화한다. 기본 만료시간은 72시간이며 사용 또는 폐기된 토큰은 재사용할 수 없다.
 
-## 4. 휴대폰 본인확인
+## 4. 휴대폰 문자 인증
 
-브라우저가 전달한 이름과 전화번호를 신뢰하지 않는다. PASS 등 본인확인 제공자의 콜백을 서버가 검증한 뒤 `HospitalAccountIdentityVerificationRecordAction`으로 일회용 증표를 생성한다.
+문자 인증은 휴대폰 번호의 현재 점유만 확인하며 실명확인이 아니다. 인증번호 발송과 결과 이력은 공통 `Sms` 도메인과 Redis `sms` 큐를 사용한다.
 
-- 증표는 특정 초대 ID에 귀속된다.
+- 인증번호는 6자리 숫자이며 DB에는 단방향 해시만 저장한다.
+- 인증번호 기본 유효시간은 5분, 재발송 간격은 60초, 최대 오입력은 5회이며 인증 성공 즉시 재사용할 수 없다.
+- 새 인증번호를 발송하면 같은 초대의 기존 미사용 인증은 즉시 무효화한다.
+- 인증 성공 시 특정 초대와 전화번호에 귀속된 64자리 일회용 증표를 발급한다.
 - 원문 증표는 응답 시 한 번만 반환하고 DB에는 SHA-256 해시만 저장한다.
-- 기본 유효시간은 15분이다.
-- 계정 생성 성공 시 `consumed_at`을 기록해 재사용을 막는다.
-- 제공자 거래 식별값과 CI는 원문 대신 해시를 저장한다.
-- 실제 PASS 제공자가 정해지기 전에는 검증 증표를 임의 발급하는 공개 API를 만들지 않는다.
+- 완료 증표 기본 유효시간은 15분이며 계정 생성 성공 시 `consumed_at`을 기록한다.
+- 발송 Provider 상태와 최종 본문은 `sms_deliveries`, 인증 상태는 `hospital_account_phone_verifications`가 각각 소유한다.
+- 발송은 초대·전화번호 기준 분당 2회/시간당 5회, IP 기준 시간당 20회로 제한한다.
 
 ## 5. 완료 트랜잭션
 
 ### 직접 생성 병의원
 
-1. 초대와 본인확인 증표를 row lock으로 재검증한다.
+1. 초대와 휴대폰 인증 증표를 row lock으로 재검증한다.
 2. 병의원에 계정이 연결되어 있지 않은지 확인한다.
 3. 인증 전화번호를 병의원 광고 안내 수신 번호 1과 계정 전화번호에 반영한다.
 4. 활성 `AccountHospital`을 만들고 `hospital.owner` 역할을 부여한다.
-5. 본인확인 증표와 초대를 사용 완료 처리한다.
+5. 휴대폰 인증 증표와 초대를 사용 완료 처리한다.
 
 ### 입점신청 병의원
 
@@ -89,7 +95,7 @@
 3. `Hospital`, `HospitalBusinessRegistration`, 0P `HospitalWallet`을 생성한다.
 4. 입점신청 사업자등록증은 사업자등록정보의 `business_registration_file`로 이전한다.
 5. 의사면허번호와 의사면허증은 입점신청에 유지하며 의료진을 별도로 생성할 때 사용한다.
-6. `AccountHospital`을 생성하고 초대·본인확인·입점신청을 완료 처리한다.
+6. `AccountHospital`을 생성하고 초대·휴대폰 인증·입점신청을 완료 처리한다.
 
 위 작업은 하나의 DB 트랜잭션으로 처리한다. 중간 단계가 실패하면 병의원, 사업자정보, 파일 소유권, 지갑, 계정 변경을 모두 롤백한다.
 
@@ -98,13 +104,16 @@
 ```dotenv
 HOSPITAL_ACCOUNT_INVITATION_URL=http://localhost:3002/account/create
 HOSPITAL_ACCOUNT_INVITATION_EXPIRE_HOURS=72
-HOSPITAL_ACCOUNT_IDENTITY_VERIFICATION_TTL_MINUTES=15
+HOSPITAL_ACCOUNT_PHONE_CODE_TTL_MINUTES=5
+HOSPITAL_ACCOUNT_PHONE_VERIFICATION_TTL_MINUTES=15
+HOSPITAL_ACCOUNT_PHONE_RESEND_SECONDS=60
+HOSPITAL_ACCOUNT_PHONE_MAX_ATTEMPTS=5
 HOSPITAL_ACCOUNT_INVITATION_MAIL_QUEUE_CONNECTION=redis
 HOSPITAL_ACCOUNT_INVITATION_MAIL_QUEUE=mail
 ```
 
-초대 메일은 Redis `mail` 큐를 사용한다. 로컬에서는 Mailpit과 Horizon 또는 `queue:work --queue=mail`이 실행 중이어야 한다.
+초대 메일은 Redis `mail` 큐, 인증문자는 Redis `sms` 큐를 사용한다. 로컬에서는 Mailpit과 Horizon 또는 `queue:work --queue=mail,sms`가 실행 중이어야 한다. `SMS_PROVIDER=log` 환경에서는 실제 문자를 보내지 않고 `storage/logs/laravel.log`에 인증번호가 포함된 발송 내용을 기록한다.
 
-초대 링크는 `apps/hospital-web`의 `/account/create` 화면으로 연결한다. 화면은 링크를 API로 먼저 검증하고, 본인확인 제공자가 발급한 `identity_verification_token`이 있을 때만 계정 생성 요청을 보낸다. 본인확인 시작 URL은 `NEXT_PUBLIC_HOSPITAL_IDENTITY_VERIFICATION_URL`로 설정하며, 실제 제공자 콜백이 없는 환경에서는 임의 인증 우회를 제공하지 않는다.
+초대 링크는 `apps/hospital-web`의 `/account/create` 화면으로 연결한다. 화면은 링크를 API로 먼저 검증하고 `phone_verification_token`이 발급된 경우에만 계정 생성 요청을 보낸다.
 
-입점신청, 계정 초대, 본인확인은 각각 독립 migration으로 관리한다. 기존 개발 DB는 입점신청 스키마 변경까지 함께 반영하려면 `migrate:fresh`가 필요하다. 공유/운영 환경에 최초 배포된 뒤부터는 기존 migration을 수정하지 않고 추가 migration으로 변경한다.
+입점신청, 계정 초대, 휴대폰 인증은 각각 독립 migration으로 관리한다. 기존 개발 DB는 스키마 변경을 반영하려면 `migrate:fresh`가 필요하다. 공유/운영 환경에 최초 배포된 뒤부터는 기존 migration을 수정하지 않고 추가 migration으로 변경한다.

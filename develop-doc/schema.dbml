@@ -937,6 +937,22 @@ Table hospitals {
   Note: '병의원 기본 정보, 운영 상태, 검수 상태, 통계 값을 관리합니다.'
 }
 
+Table hospital_status_change_requests {
+  id bigint [pk, increment, note: '병의원 운영상태 변경 신청 ID']
+  hospital_id bigint [note: '대상 병의원 ID']
+  previous_status varchar(30) [note: '신청 당시 병의원 상태']
+  target_status varchar(30) [note: '요청 병의원 상태(ACTIVE, SUSPENDED)']
+  status varchar(30) [default: `'PENDING'`, note: '결재 상태(PENDING, APPROVED, REJECTED, CANCELLED)']
+  reason text [note: '상태 변경 요청 사유']
+  decision_reason text [null, note: '반려 또는 취소 사유']
+  requested_by_staff_id bigint [note: '신청 관리자 ID']
+  processed_by_staff_id bigint [null, note: '결재 관리자 ID']
+  processed_at timestamp [null, note: '결재 완료 일시']
+  created_at timestamp
+  updated_at timestamp
+  Note: '병의원 운영상태 변경 신청과 결재 이력을 관리합니다.'
+}
+
 Table job_batches {
   id varchar [pk, note: '배치 작업 ID']
   name varchar [note: '배치 작업 이름']
@@ -1324,6 +1340,7 @@ TableGroup "Accounts & Auth" {
 
 TableGroup "Hospital Core" {
   hospitals
+  hospital_status_change_requests
   hospital_business_registrations
   hospital_entries
   hospital_doctors
@@ -1417,6 +1434,9 @@ TableGroup "Runtime Infrastructure" {
 // Hard database foreign keys
 Ref: account_user_access_logs.account_user_id > account_users.id
 Ref: account_hospitals.hospital_id > hospitals.id
+Ref: hospital_status_change_requests.hospital_id > hospitals.id
+Ref: hospital_status_change_requests.requested_by_staff_id > account_staffs.id
+Ref: hospital_status_change_requests.processed_by_staff_id > account_staffs.id
 Ref: hospital_account_invitations.hospital_id > hospitals.id
 Ref: hospital_account_invitations.hospital_entry_id > hospital_entries.id
 Ref: hospital_account_invitations.created_by_staff_id > account_staffs.id

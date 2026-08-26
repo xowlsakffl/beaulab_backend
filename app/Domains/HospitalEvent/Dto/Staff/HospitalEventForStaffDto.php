@@ -15,6 +15,7 @@ final readonly class HospitalEventForStaffDto
     public function __construct(
         public int $id,
         public ?array $hospital,
+        public ?array $managerStaff,
         public string $eventType,
         public bool $isMaleTargeted,
         public string $name,
@@ -48,6 +49,7 @@ final readonly class HospitalEventForStaffDto
         return new self(
             id: (int) $event->id,
             hospital: self::hospital($event),
+            managerStaff: self::managerStaff($event),
             eventType: (string) $event->event_type,
             isMaleTargeted: (bool) $event->is_male_targeted,
             name: (string) $event->name,
@@ -82,6 +84,7 @@ final readonly class HospitalEventForStaffDto
         return [
             'id' => $this->id,
             'hospital' => $this->hospital,
+            'manager_staff' => $this->managerStaff,
             'event_type' => $this->eventType,
             'is_male_targeted' => $this->isMaleTargeted,
             'name' => $this->name,
@@ -120,22 +123,19 @@ final readonly class HospitalEventForStaffDto
         return [
             'id' => (int) $event->hospital->id,
             'name' => (string) $event->hospital->name,
-            'manager' => self::hospitalManager($event),
         ];
     }
 
-    private static function hospitalManager(HospitalEvent $event): ?array
+    private static function managerStaff(HospitalEvent $event): ?array
     {
-        if (! $event->hospital->relationLoaded('accountHospital') || ! $event->hospital->accountHospital) {
+        if (! $event->relationLoaded('managerStaff') || ! $event->managerStaff) {
             return null;
         }
 
-        $account = $event->hospital->accountHospital;
-
         return [
-            'id' => (int) $account->id,
-            'name' => (string) ($account->name ?: $account->nickname),
-            'nickname' => $account->nickname,
+            'id' => (int) $event->managerStaff->id,
+            'name' => (string) $event->managerStaff->name,
+            'email' => $event->managerStaff->email,
         ];
     }
 

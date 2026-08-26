@@ -26,6 +26,9 @@ final class HashtagCreateForStaffAction
     public function execute(array $payload): array
     {
         Gate::authorize('create', Hashtag::class);
+        if (array_key_exists('status', $payload)) {
+            Gate::authorize('updateStatus', Hashtag::class);
+        }
 
         $name = Hashtag::sanitizeName((string) ($payload['name'] ?? ''));
         $normalizedName = Hashtag::normalizeName($name);

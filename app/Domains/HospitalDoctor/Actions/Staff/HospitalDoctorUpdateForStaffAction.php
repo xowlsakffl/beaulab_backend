@@ -18,13 +18,16 @@ final class HospitalDoctorUpdateForStaffAction
 {
     public function __construct(
         private readonly HospitalDoctorUpdateForStaffQuery $query,
-        private readonly MediaAttachDeleteAction           $mediaAttachAction,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalDoctorUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(HospitalDoctor $doctor, array $payload): array
     {
         Gate::authorize('update', $doctor);
+        if (array_key_exists('status', $payload) || array_key_exists('allow_status', $payload)) {
+            Gate::authorize('updateStatus', $doctor);
+        }
 
         $beforeHistory = $this->historyRecordAction->capture($doctor);
         $historyReason = $this->historyReason($doctor, $payload);
@@ -91,7 +94,7 @@ final class HospitalDoctorUpdateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @param  array<int, int|string>  $categoryIds
      */
     private function syncCategories(HospitalDoctor $doctor, array $categoryIds): void
     {

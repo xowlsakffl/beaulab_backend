@@ -31,7 +31,7 @@ final class CompleteHospitalAccountInvitationRequest extends FormRequest
                 'regex:/^[A-Za-z0-9._-]+$/',
             ],
             'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
-            'identity_verification_token' => ['required', 'string', 'size:64', 'alpha_num:ascii'],
+            'phone_verification_token' => ['required', 'string', 'size:64', 'alpha_num:ascii'],
         ];
     }
 
@@ -48,7 +48,7 @@ final class CompleteHospitalAccountInvitationRequest extends FormRequest
             'nickname' => '아이디',
             'password' => '비밀번호',
             'password_confirmation' => '비밀번호 확인',
-            'identity_verification_token' => '휴대폰 본인확인',
+            'phone_verification_token' => '휴대폰 인증',
         ];
     }
 }

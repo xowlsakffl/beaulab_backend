@@ -176,6 +176,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.Access
         ->name('hospitals.createHospitalForStaff');
     Route::patch('hospitals/{hospital}/status', [HospitalForStaffController::class, 'updateHospitalStatusForStaff'])
         ->name('hospitals.updateHospitalStatusForStaff');
+    Route::post('hospitals/{hospital}/status-change-requests', [HospitalForStaffController::class, 'createHospitalStatusChangeRequestForStaff'])
+        ->name('hospitals.createHospitalStatusChangeRequestForStaff');
+    Route::patch('hospital-status-change-requests/{hospitalStatusChangeRequest}/decision', [HospitalForStaffController::class, 'processHospitalStatusChangeRequestForStaff'])
+        ->name('hospitals.processHospitalStatusChangeRequestForStaff');
     Route::match(['post', 'put', 'patch'], 'hospitals/{hospital}', [HospitalForStaffController::class, 'updateHospitalForStaff'])
         ->name('hospitals.updateHospitalForStaff');
     Route::delete('hospitals/{hospital}', [HospitalForStaffController::class, 'deleteHospitalForStaff'])

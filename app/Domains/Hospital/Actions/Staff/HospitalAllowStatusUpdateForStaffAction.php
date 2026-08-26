@@ -29,7 +29,7 @@ final class HospitalAllowStatusUpdateForStaffAction
 
         $result = DB::transaction(function () use ($ids, $allowStatus, $payload): array {
             $hospitals = $this->query->getForUpdate($ids);
-            $hospitals->each(static fn (Hospital $hospital): mixed => Gate::authorize('update', $hospital));
+            $hospitals->each(static fn (Hospital $hospital): mixed => Gate::authorize('updateStatus', $hospital));
 
             $existingIds = $hospitals->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
             $updatedCount = $this->query->updateAllowStatus($existingIds, $allowStatus);

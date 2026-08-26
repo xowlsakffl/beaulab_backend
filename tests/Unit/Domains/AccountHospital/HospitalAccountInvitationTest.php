@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domains\AccountHospital;
 
-use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountIdentityVerificationRecordAction;
+use App\Common\Support\ActorDisplay;
 use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountInvitationCompleteForHospitalAction;
 use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountInvitationGetForHospitalAction;
+use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountPhoneVerificationSendAction;
+use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountPhoneVerificationVerifyAction;
 use App\Domains\AccountHospital\Actions\Staff\HospitalAccountInvitationListForStaffAction;
 use App\Domains\AccountHospital\Actions\Staff\HospitalAccountInvitationSendForStaffAction;
 use App\Domains\AccountHospital\Mail\HospitalAccountInvitationMail;
 use App\Domains\AccountHospital\Models\AccountHospital;
-use App\Domains\AccountHospital\Models\HospitalAccountIdentityVerification;
 use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
+use App\Domains\AccountHospital\Models\HospitalAccountPhoneVerification;
 use App\Domains\AccountHospital\Policies\HospitalAccountInvitationPolicy;
 use App\Domains\AccountHospital\Support\AccountHospitalPhone;
-use App\Domains\AccountHospital\Support\HospitalAccountIdentityVerificationToken;
 use App\Domains\AccountHospital\Support\HospitalAccountInvitationToken;
+use App\Domains\AccountHospital\Support\HospitalAccountPhoneVerificationCode;
+use App\Domains\AccountHospital\Support\HospitalAccountPhoneVerificationToken;
+use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
@@ -75,30 +79,52 @@ final class HospitalAccountInvitationTest extends TestCase
     public function test_tokens_are_stored_as_sha256_hashes(): void
     {
         $invitationToken = HospitalAccountInvitationToken::make();
-        $identityToken = HospitalAccountIdentityVerificationToken::make();
+        $phoneVerificationToken = HospitalAccountPhoneVerificationToken::make();
 
         self::assertSame(64, strlen($invitationToken));
-        self::assertSame(64, strlen($identityToken));
+        self::assertSame(64, strlen($phoneVerificationToken));
         self::assertSame(hash('sha256', $invitationToken), HospitalAccountInvitationToken::hash($invitationToken));
-        self::assertSame(hash('sha256', $identityToken), HospitalAccountIdentityVerificationToken::hash($identityToken));
-        self::assertNotSame($invitationToken, HospitalAccountInvitationToken::hash($invitationToken));
+        self::assertSame(hash('sha256', $phoneVerificationToken), HospitalAccountPhoneVerificationToken::hash($phoneVerificationToken));
+        self::assertNotSame($phoneVerificationToken, HospitalAccountPhoneVerificationToken::hash($phoneVerificationToken));
     }
 
-    public function test_identity_verification_is_short_lived_and_single_use(): void
+    public function test_phone_verification_is_short_lived_and_single_use(): void
     {
-        $verification = new HospitalAccountIdentityVerification;
+        $verification = new HospitalAccountPhoneVerification;
         $verification->setRawAttributes([
             'verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
-            'expires_at' => Carbon::now()->addMinutes(15)->format('Y-m-d H:i:s'),
+            'verification_expires_at' => Carbon::now()->addMinutes(15)->format('Y-m-d H:i:s'),
         ]);
 
-        self::assertTrue($verification->isUsable());
+        self::assertTrue($verification->isVerificationUsable());
 
         $verification->setRawAttributes([
             ...$verification->getAttributes(),
             'consumed_at' => Carbon::now()->format('Y-m-d H:i:s'),
         ]);
-        self::assertFalse($verification->isUsable());
+        self::assertFalse($verification->isVerificationUsable());
+    }
+
+    public function test_verified_phone_code_cannot_be_reused(): void
+    {
+        $verification = new HospitalAccountPhoneVerification;
+        $verification->setRawAttributes([
+            'code_expires_at' => Carbon::now()->addMinutes(5)->format('Y-m-d H:i:s'),
+            'verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
+        ]);
+
+        self::assertFalse($verification->isCodeUsable());
+    }
+
+    public function test_phone_verification_code_is_six_digits_and_hashed(): void
+    {
+        $code = HospitalAccountPhoneVerificationCode::make();
+        $hash = HospitalAccountPhoneVerificationCode::hash($code);
+
+        self::assertMatchesRegularExpression('/^\d{6}$/', $code);
+        self::assertNotSame($code, $hash);
+        self::assertTrue(HospitalAccountPhoneVerificationCode::verify($code, $hash));
+        self::assertFalse(HospitalAccountPhoneVerificationCode::verify('not-code', $hash));
     }
 
     public function test_verified_phone_is_normalized_for_account_storage(): void
@@ -110,15 +136,21 @@ final class HospitalAccountInvitationTest extends TestCase
 
     public function test_account_exposes_only_a_verified_phone(): void
     {
-        $account = new AccountHospital([
-            'phone' => '010-1234-5678',
-        ]);
+        $account = new AccountHospital(['phone' => '010-1234-5678']);
 
         self::assertNull($account->verifiedPhone());
 
         $account->phone_verified_at = now();
 
         self::assertSame('010-1234-5678', $account->verifiedPhone());
+    }
+
+    public function test_hospital_account_actor_uses_hospital_name_instead_of_account_name(): void
+    {
+        $account = new AccountHospital(['name' => '저장된 이전 병원명']);
+        $account->setRelation('hospital', new Hospital(['name' => '현재 병원명']));
+
+        self::assertSame('현재 병원명', ActorDisplay::name($account));
     }
 
     public function test_laravel_discovers_the_invitation_policy(): void
@@ -133,7 +165,8 @@ final class HospitalAccountInvitationTest extends TestCase
     {
         self::assertInstanceOf(HospitalAccountInvitationGetForHospitalAction::class, app(HospitalAccountInvitationGetForHospitalAction::class));
         self::assertInstanceOf(HospitalAccountInvitationCompleteForHospitalAction::class, app(HospitalAccountInvitationCompleteForHospitalAction::class));
-        self::assertInstanceOf(HospitalAccountIdentityVerificationRecordAction::class, app(HospitalAccountIdentityVerificationRecordAction::class));
+        self::assertInstanceOf(HospitalAccountPhoneVerificationSendAction::class, app(HospitalAccountPhoneVerificationSendAction::class));
+        self::assertInstanceOf(HospitalAccountPhoneVerificationVerifyAction::class, app(HospitalAccountPhoneVerificationVerifyAction::class));
         self::assertInstanceOf(HospitalAccountInvitationListForStaffAction::class, app(HospitalAccountInvitationListForStaffAction::class));
         self::assertInstanceOf(HospitalAccountInvitationSendForStaffAction::class, app(HospitalAccountInvitationSendForStaffAction::class));
     }

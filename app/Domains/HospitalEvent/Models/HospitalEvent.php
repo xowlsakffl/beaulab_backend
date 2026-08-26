@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\HospitalEvent\Models;
 
 use App\Common\Concerns\HasAuditLogs;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\AdminNote\Concerns\HasAdminNotes;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
@@ -68,6 +69,7 @@ final class HospitalEvent extends Model
 
     protected $fillable = [
         'hospital_id',
+        'manager_staff_id',
         'event_type',
         'is_male_targeted',
         'name',
@@ -134,6 +136,11 @@ final class HospitalEvent extends Model
     public function hospital(): BelongsTo
     {
         return $this->belongsTo(Hospital::class, 'hospital_id');
+    }
+
+    public function managerStaff(): BelongsTo
+    {
+        return $this->belongsTo(AccountStaff::class, 'manager_staff_id');
     }
 
     public function doctorAssignments(): HasMany

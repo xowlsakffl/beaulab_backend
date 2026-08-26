@@ -32,6 +32,11 @@ final class CategoryForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_CATEGORY_MANAGE);
     }
 
+    public function updateStatus(AccountStaff $actor, ?Category $category = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_CATEGORY_STATUS_UPDATE);
+    }
+
     public function delete(AccountStaff $actor, Category $category): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_CATEGORY_MANAGE);

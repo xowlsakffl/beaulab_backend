@@ -3,8 +3,8 @@
 namespace App\Domains\BeautyExpert\Policies\Staff;
 
 use App\Common\Authorization\AccessPermissions;
-use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\AccountStaff\Models\AccountStaff;
+use App\Domains\BeautyExpert\Models\BeautyExpert;
 
 /**
  * BeautyExpertForStaffPolicy 역할 정의.
@@ -30,6 +30,11 @@ final class BeautyExpertForStaffPolicy
     public function update(AccountStaff $actor, BeautyExpert $expert): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_EXPERT_UPDATE);
+    }
+
+    public function updateStatus(AccountStaff $actor, ?BeautyExpert $expert = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_EXPERT_STATUS_UPDATE);
     }
 
     public function delete(AccountStaff $actor, BeautyExpert $expert): bool

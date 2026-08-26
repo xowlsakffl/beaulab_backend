@@ -18,5 +18,9 @@ final class AccountStaffSeeder extends Seeder
         }
 
         $factory->createSeededSuperAdmin();
+
+        if (app()->environment('local')) {
+            $factory->createSeededRoleTestAccounts();
+        }
     }
 }

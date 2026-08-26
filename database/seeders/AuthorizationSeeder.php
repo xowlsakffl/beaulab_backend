@@ -11,9 +11,17 @@ use Spatie\Permission\PermissionRegistrar;
 
 final class AuthorizationSeeder extends Seeder
 {
+    private const LEGACY_PERMISSION_NAMES_BY_GUARD = [
+        AccessPermissions::GUARD_STAFF => [
+            'beaulab.user.status.update',
+        ],
+    ];
+
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->deleteLegacyPermissions();
 
         /**
          * 1) Permissions: guard별로 생성
@@ -48,5 +56,15 @@ final class AuthorizationSeeder extends Seeder
 
         // 캐시 재정리
         app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    private function deleteLegacyPermissions(): void
+    {
+        foreach (self::LEGACY_PERMISSION_NAMES_BY_GUARD as $guard => $permissionNames) {
+            Permission::query()
+                ->where('guard_name', $guard)
+                ->whereIn('name', $permissionNames)
+                ->delete();
+        }
     }
 }

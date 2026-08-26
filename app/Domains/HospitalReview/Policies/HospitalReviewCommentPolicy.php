@@ -24,6 +24,12 @@ final class HospitalReviewCommentPolicy
         return $this->delegate($actor)->update($actor, $comment);
     }
 
+    public function updateStatus(mixed $actor, ?HospitalReviewComment $comment = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalReviewCommentForStaffPolicy::class)->updateStatus($actor, $comment);
+    }
+
     public function delete(mixed $actor, HospitalReviewComment $comment): bool
     {
         return $this->delegate($actor)->delete($actor, $comment);

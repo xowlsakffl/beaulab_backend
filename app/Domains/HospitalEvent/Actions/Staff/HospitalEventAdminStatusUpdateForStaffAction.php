@@ -27,7 +27,7 @@ final class HospitalEventAdminStatusUpdateForStaffAction
 
         $result = DB::transaction(function () use ($ids, $adminStatus, $payload): array {
             $events = $this->query->getForUpdate($ids);
-            $events->each(static fn (HospitalEvent $event): mixed => Gate::authorize('update', $event));
+            $events->each(static fn (HospitalEvent $event): mixed => Gate::authorize('updateStatus', $event));
 
             $existingIds = $events->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
             $updatedCount = $this->query->updateAdminStatus($existingIds, $adminStatus);

@@ -2,10 +2,10 @@
 
 namespace App\Domains\BeautyExpert\Actions\Staff;
 
-use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\BeautyExpert\Dto\Staff\BeautyExpertForStaffDetailDto;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\BeautyExpert\Queries\Staff\BeautyExpertUpdateForStaffQuery;
+use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -18,13 +18,16 @@ final class BeautyExpertUpdateForStaffAction
 {
     public function __construct(
         private readonly BeautyExpertUpdateForStaffQuery $query,
-        private readonly MediaAttachDeleteAction         $mediaAttachAction,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly BeautyExpertUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(BeautyExpert $expert, array $payload): array
     {
         Gate::authorize('update', $expert);
+        if (array_key_exists('status', $payload) || array_key_exists('allow_status', $payload)) {
+            Gate::authorize('updateStatus', $expert);
+        }
 
         $expert = DB::transaction(function () use ($expert, $payload) {
             $before = $this->historyRecordAction->capture($expert);
@@ -79,7 +82,7 @@ final class BeautyExpertUpdateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @param  array<int, int|string>  $categoryIds
      */
     private function syncCategories(BeautyExpert $expert, array $categoryIds): void
     {

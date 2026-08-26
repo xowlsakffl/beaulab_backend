@@ -32,6 +32,12 @@ final class FaqPolicy
         return $this->delegate($actor)->update($actor, $faq);
     }
 
+    public function updateStatus(mixed $actor, ?Faq $faq = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(FaqForStaffPolicy::class)->updateStatus($actor, $faq);
+    }
+
     public function delete(mixed $actor, Faq $faq): bool
     {
         return $this->delegate($actor)->delete($actor, $faq);
@@ -41,12 +47,32 @@ final class FaqPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff => app(FaqForStaffPolicy::class),
-            default => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, Faq $faq): bool { return false; }
-                public function create(mixed $actor): bool { return false; }
-                public function update(mixed $actor, Faq $faq): bool { return false; }
-                public function delete(mixed $actor, Faq $faq): bool { return false; }
+            default => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, Faq $faq): bool
+                {
+                    return false;
+                }
+
+                public function create(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, Faq $faq): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, Faq $faq): bool
+                {
+                    return false;
+                }
             },
         };
     }

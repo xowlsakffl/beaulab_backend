@@ -4,6 +4,7 @@ namespace App\Domains\HospitalEvent\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
@@ -24,20 +25,21 @@ final class HospitalEventDuplicateForStaffAction
         private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
-    public function execute(HospitalEvent $sourceEvent, array $payload): array
+    public function execute(AccountStaff $actor, HospitalEvent $sourceEvent, array $payload): array
     {
         Gate::authorize('view', $sourceEvent);
         Gate::authorize('create', HospitalEvent::class);
 
         $sourceEvent->load(['thumbnailImage', 'eventPageImage']);
 
-        $event = DB::transaction(function () use ($sourceEvent, $payload): HospitalEvent {
+        $event = DB::transaction(function () use ($actor, $sourceEvent, $payload): HospitalEvent {
             $data = $this->payloadResolver->normalizePersistPayload([
                 ...$payload,
                 'allow_status' => HospitalEvent::ALLOW_PENDING,
                 'hospital_status' => HospitalEvent::HOSPITAL_STATUS_PUBLIC,
                 'admin_status' => HospitalEvent::ADMIN_STATUS_NORMAL,
             ]);
+            $data['manager_staff_id'] = $payload['manager_staff_id'] ?? $actor->getKey();
             $categorySync = $this->payloadResolver->resolveCategorySyncPayload(
                 $payload['category_ids'] ?? [],
                 (int) ($payload['primary_category_id'] ?? 0),

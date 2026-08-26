@@ -27,7 +27,7 @@ final class HospitalEventDBStatusUpdateForStaffAction
 
         return DB::transaction(function () use ($ids, $status, $payload): array {
             $eventDBs = $this->query->getForUpdate($ids);
-            $eventDBs->each(static fn (HospitalEventDB $eventDB): mixed => Gate::authorize('update', $eventDB));
+            $eventDBs->each(static fn (HospitalEventDB $eventDB): mixed => Gate::authorize('updateStatus', $eventDB));
 
             if ($eventDBs->isEmpty()) {
                 return [

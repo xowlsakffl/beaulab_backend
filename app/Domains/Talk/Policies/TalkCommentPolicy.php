@@ -28,6 +28,12 @@ final class TalkCommentPolicy
         return $this->delegate($actor)->update($actor, $comment);
     }
 
+    public function updateStatus(mixed $actor, ?TalkComment $comment = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(TalkCommentForStaffPolicy::class)->updateStatus($actor, $comment);
+    }
+
     public function delete(mixed $actor, TalkComment $comment): bool
     {
         return $this->delegate($actor)->delete($actor, $comment);

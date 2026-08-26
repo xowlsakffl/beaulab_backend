@@ -94,6 +94,8 @@ final class AccessRoles
                     ...$staffCommon,
                     // 조회 중심
                     AccessPermissions::BEAULAB_HOSPITAL_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW,
@@ -122,6 +124,8 @@ final class AccessRoles
                 self::BEAULAB_DEV => self::unique([
                     ...$staffCommon,
                     AccessPermissions::BEAULAB_HOSPITAL_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW,

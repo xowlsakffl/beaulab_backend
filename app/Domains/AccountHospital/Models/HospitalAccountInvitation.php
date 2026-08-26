@@ -112,8 +112,8 @@ final class HospitalAccountInvitation extends Model
         return $this->belongsTo(AccountHospital::class, 'completed_account_hospital_id');
     }
 
-    public function identityVerifications(): HasMany
+    public function phoneVerifications(): HasMany
     {
-        return $this->hasMany(HospitalAccountIdentityVerification::class, 'hospital_account_invitation_id');
+        return $this->hasMany(HospitalAccountPhoneVerification::class, 'hospital_account_invitation_id');
     }
 }

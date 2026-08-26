@@ -105,6 +105,27 @@ final class RateLimitServiceProvider extends ServiceProvider
                 Limit::perMinute(15)->by("hospital-account-invitation-complete:ip:{$request->ip()}"),
             ];
         });
+
+        RateLimiter::for('hospital-account-phone-verification-send', function (Request $request) {
+            $tokenHash = hash('sha256', (string) $request->route('token'));
+            $phone = preg_replace('/\D+/', '', (string) $request->input('phone')) ?: 'unknown';
+
+            return [
+                Limit::perMinute(2)->by("hospital-account-phone-send:token:{$tokenHash}:{$phone}"),
+                Limit::perHour(5)->by("hospital-account-phone-send-hour:token:{$tokenHash}:{$phone}"),
+                Limit::perHour(20)->by("hospital-account-phone-send-hour:ip:{$request->ip()}"),
+            ];
+        });
+
+        RateLimiter::for('hospital-account-phone-verification-verify', function (Request $request) {
+            $tokenHash = hash('sha256', (string) $request->route('token'));
+            $verificationId = (string) $request->route('phoneVerification');
+
+            return [
+                Limit::perMinute(10)->by("hospital-account-phone-verify:token:{$tokenHash}:{$verificationId}"),
+                Limit::perMinute(30)->by("hospital-account-phone-verify:ip:{$request->ip()}"),
+            ];
+        });
     }
 
     private function actor(Request $request): string

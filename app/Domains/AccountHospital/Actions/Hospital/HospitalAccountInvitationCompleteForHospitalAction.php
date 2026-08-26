@@ -8,13 +8,13 @@ use App\Common\Authorization\AccessRoles;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
-use App\Domains\AccountHospital\Models\HospitalAccountIdentityVerification;
 use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
+use App\Domains\AccountHospital\Models\HospitalAccountPhoneVerification;
 use App\Domains\AccountHospital\Queries\Hospital\HospitalAccountInvitationForHospitalQuery;
 use App\Domains\AccountHospital\Support\AccountHospitalPhone;
-use App\Domains\AccountHospital\Support\HospitalAccountIdentityVerificationToken;
 use App\Domains\AccountHospital\Support\HospitalAccountInvitationGuard;
 use App\Domains\AccountHospital\Support\HospitalAccountInvitationToken;
+use App\Domains\AccountHospital\Support\HospitalAccountPhoneVerificationToken;
 use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
@@ -34,7 +34,7 @@ final class HospitalAccountInvitationCompleteForHospitalAction
     ) {}
 
     /**
-     * @param  array{nickname:string,password:string,identity_verification_token:string}  $payload
+     * @param  array{nickname:string,password:string,phone_verification_token:string}  $payload
      * @return array{account_hospital_id:int,hospital_id:int,message:string}
      */
     public function execute(string $invitationToken, array $payload): array
@@ -55,9 +55,9 @@ final class HospitalAccountInvitationCompleteForHospitalAction
                 )
             );
 
-            $verification = $this->verifiedIdentity(
+            $verification = $this->verifiedPhone(
                 $invitation,
-                (string) $payload['identity_verification_token'],
+                (string) $payload['phone_verification_token'],
             );
 
             if ($this->query->nicknameExists($nickname)) {
@@ -66,14 +66,14 @@ final class HospitalAccountInvitationCompleteForHospitalAction
 
             $hospital = $source instanceof Hospital
                 ? $this->existingHospital($invitation, $source)
-                : $this->convertHospitalEntry($invitation, $verification->verified_phone, $source);
+                : $this->convertHospitalEntry($invitation, $verification->phone, $source);
 
-            $verifiedPhone = AccountHospitalPhone::format((string) $verification->verified_phone);
+            $verifiedPhone = AccountHospitalPhone::format((string) $verification->phone);
             $this->query->updateReceptionPhone($hospital, $verifiedPhone);
 
             $accountHospital = $this->query->createAccountHospital([
                 'hospital_id' => $hospital->getKey(),
-                'name' => trim((string) $verification->verified_name),
+                'name' => (string) $hospital->name,
                 'nickname' => $nickname,
                 'phone' => $verifiedPhone,
                 'phone_verified_at' => $verification->verified_at,
@@ -82,7 +82,7 @@ final class HospitalAccountInvitationCompleteForHospitalAction
             ]);
             $accountHospital->syncRoles([AccessRoles::HOSPITAL_OWNER]);
 
-            $this->query->consumeIdentityVerification($verification);
+            $this->query->consumePhoneVerification($verification);
             $this->query->completeInvitation($invitation, $accountHospital);
 
             if ($source instanceof HospitalEntry) {
@@ -107,19 +107,19 @@ final class HospitalAccountInvitationCompleteForHospitalAction
         return $result;
     }
 
-    private function verifiedIdentity(
+    private function verifiedPhone(
         HospitalAccountInvitation $invitation,
-        string $identityVerificationToken,
-    ): HospitalAccountIdentityVerification {
-        $verification = $this->query->lockIdentityVerification(
+        string $phoneVerificationToken,
+    ): HospitalAccountPhoneVerification {
+        $verification = $this->query->lockPhoneVerification(
             $invitation,
-            HospitalAccountIdentityVerificationToken::hash($identityVerificationToken),
+            HospitalAccountPhoneVerificationToken::hash($phoneVerificationToken),
         );
 
-        if ($verification === null || ! $verification->isUsable()) {
+        if ($verification === null || ! $verification->isVerificationUsable()) {
             throw new CustomException(
                 ErrorCode::INVALID_REQUEST,
-                '휴대폰 본인인증이 유효하지 않거나 만료되었습니다. 다시 인증해 주세요.',
+                '휴대폰 인증이 유효하지 않거나 만료되었습니다. 다시 인증해 주세요.',
             );
         }
 

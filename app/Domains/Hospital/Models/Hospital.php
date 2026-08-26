@@ -126,6 +126,18 @@ final class Hospital extends Model
         return $this->hasMany(HospitalAccountInvitation::class, 'hospital_id');
     }
 
+    public function statusChangeRequests(): HasMany
+    {
+        return $this->hasMany(HospitalStatusChangeRequest::class, 'hospital_id');
+    }
+
+    public function pendingStatusChangeRequest(): HasOne
+    {
+        return $this->hasOne(HospitalStatusChangeRequest::class, 'hospital_id')
+            ->where('status', HospitalStatusChangeRequest::STATUS_PENDING)
+            ->latestOfMany('id');
+    }
+
     public function wallet(): HasOne
     {
         return $this->hasOne(HospitalWallet::class, 'hospital_id');

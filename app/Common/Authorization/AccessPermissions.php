@@ -26,6 +26,14 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_UPDATE = 'beaulab.hospital.update';
 
+    public const BEAULAB_HOSPITAL_STATUS_UPDATE = 'beaulab.hospital.status_update';
+
+    public const BEAULAB_HOSPITAL_STATUS_REQUEST_SHOW = 'beaulab.hospital_status_request.show';
+
+    public const BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE = 'beaulab.hospital_status_request.create';
+
+    public const BEAULAB_HOSPITAL_STATUS_REQUEST_PROCESS = 'beaulab.hospital_status_request.process';
+
     public const BEAULAB_HOSPITAL_DELETE = 'beaulab.hospital.delete';
 
     public const BEAULAB_HOSPITAL_WALLET_SHOW = 'beaulab.hospital_wallet.show';
@@ -50,6 +58,8 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_ENTRY_UPDATE = 'beaulab.hospital_entry.update';
 
+    public const BEAULAB_HOSPITAL_ENTRY_STATUS_UPDATE = 'beaulab.hospital_entry.status_update';
+
     public const BEAULAB_HOSPITAL_ACCOUNT_INVITATION_SHOW = 'beaulab.hospital_account_invitation.show';
 
     public const BEAULAB_HOSPITAL_ACCOUNT_INVITATION_UPDATE = 'beaulab.hospital_account_invitation.update';
@@ -72,7 +82,7 @@ final class AccessPermissions
 
     public const BEAULAB_USER_SHOW = 'beaulab.user.show';
 
-    public const BEAULAB_USER_STATUS_UPDATE = 'beaulab.user.status.update';
+    public const BEAULAB_USER_STATUS_UPDATE = 'beaulab.user.status_update';
 
     public const BEAULAB_STAFF_SHOW = 'beaulab.staff.show';
 
@@ -88,6 +98,8 @@ final class AccessPermissions
 
     public const BEAULAB_DOCTOR_UPDATE = 'beaulab.doctor.update';
 
+    public const BEAULAB_DOCTOR_STATUS_UPDATE = 'beaulab.doctor.status_update';
+
     public const BEAULAB_DOCTOR_DELETE = 'beaulab.doctor.delete';
 
     public const BEAULAB_EXPERT_SHOW = 'beaulab.expert.show';
@@ -95,6 +107,8 @@ final class AccessPermissions
     public const BEAULAB_EXPERT_CREATE = 'beaulab.expert.create';
 
     public const BEAULAB_EXPERT_UPDATE = 'beaulab.expert.update';
+
+    public const BEAULAB_EXPERT_STATUS_UPDATE = 'beaulab.expert.status_update';
 
     public const BEAULAB_EXPERT_DELETE = 'beaulab.expert.delete';
 
@@ -104,6 +118,8 @@ final class AccessPermissions
 
     public const BEAULAB_VIDEO_UPDATE = 'beaulab.video.update';
 
+    public const BEAULAB_VIDEO_STATUS_UPDATE = 'beaulab.video.status_update';
+
     public const BEAULAB_VIDEO_DELETE = 'beaulab.video.delete';
 
     public const BEAULAB_HOSPITAL_EVENT_SHOW = 'beaulab.hospital_event.show';
@@ -111,6 +127,8 @@ final class AccessPermissions
     public const BEAULAB_HOSPITAL_EVENT_CREATE = 'beaulab.hospital_event.create';
 
     public const BEAULAB_HOSPITAL_EVENT_UPDATE = 'beaulab.hospital_event.update';
+
+    public const BEAULAB_HOSPITAL_EVENT_STATUS_UPDATE = 'beaulab.hospital_event.status_update';
 
     public const BEAULAB_HOSPITAL_EVENT_DELETE = 'beaulab.hospital_event.delete';
 
@@ -120,53 +138,77 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_EVENT_AD_UPDATE = 'beaulab.hospital_event_ad.update';
 
+    public const BEAULAB_HOSPITAL_EVENT_AD_STATUS_UPDATE = 'beaulab.hospital_event_ad.status_update';
+
     public const BEAULAB_HOSPITAL_EVENT_AD_DELETE = 'beaulab.hospital_event_ad.delete';
 
     public const BEAULAB_HOSPITAL_EVENT_DB_SHOW = 'beaulab.hospital_event_db.show';
 
     public const BEAULAB_HOSPITAL_EVENT_DB_UPDATE = 'beaulab.hospital_event_db.update';
 
+    public const BEAULAB_HOSPITAL_EVENT_DB_STATUS_UPDATE = 'beaulab.hospital_event_db.status_update';
+
     public const BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_SHOW = 'beaulab.hospital_event_real_model_db.show';
 
     public const BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_UPDATE = 'beaulab.hospital_event_real_model_db.update';
+
+    public const BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_STATUS_UPDATE = 'beaulab.hospital_event_real_model_db.status_update';
 
     public const BEAULAB_HOSPITAL_REVIEW_SHOW = 'beaulab.hospital_review.show';
 
     public const BEAULAB_HOSPITAL_REVIEW_UPDATE = 'beaulab.hospital_review.update';
 
+    public const BEAULAB_HOSPITAL_REVIEW_STATUS_UPDATE = 'beaulab.hospital_review.status_update';
+
     public const BEAULAB_HOSPITAL_EVALUATION_SHOW = 'beaulab.hospital_evaluation.show';
 
     public const BEAULAB_HOSPITAL_EVALUATION_UPDATE = 'beaulab.hospital_evaluation.update';
+
+    public const BEAULAB_HOSPITAL_EVALUATION_STATUS_UPDATE = 'beaulab.hospital_evaluation.status_update';
 
     public const BEAULAB_TALK_SHOW = 'beaulab.talk.show';
 
     public const BEAULAB_TALK_UPDATE = 'beaulab.talk.update';
 
+    public const BEAULAB_TALK_STATUS_UPDATE = 'beaulab.talk.status_update';
+
     public const BEAULAB_REPORTED_TALK_SHOW = 'beaulab.reported_talk.show';
 
     public const BEAULAB_REPORTED_TALK_UPDATE = 'beaulab.reported_talk.update';
+
+    public const BEAULAB_REPORTED_TALK_STATUS_UPDATE = 'beaulab.reported_talk.status_update';
 
     public const BEAULAB_REPORTED_HOSPITAL_REVIEW_SHOW = 'beaulab.reported_hospital_review.show';
 
     public const BEAULAB_REPORTED_HOSPITAL_REVIEW_UPDATE = 'beaulab.reported_hospital_review.update';
 
+    public const BEAULAB_REPORTED_HOSPITAL_REVIEW_STATUS_UPDATE = 'beaulab.reported_hospital_review.status_update';
+
     public const BEAULAB_REPORTED_HOSPITAL_EVALUATION_SHOW = 'beaulab.reported_hospital_evaluation.show';
 
     public const BEAULAB_REPORTED_HOSPITAL_EVALUATION_UPDATE = 'beaulab.reported_hospital_evaluation.update';
+
+    public const BEAULAB_REPORTED_HOSPITAL_EVALUATION_STATUS_UPDATE = 'beaulab.reported_hospital_evaluation.status_update';
 
     public const BEAULAB_REPORTED_CHAT_MESSAGE_SHOW = 'beaulab.reported_chat_message.show';
 
     public const BEAULAB_REPORTED_CHAT_MESSAGE_UPDATE = 'beaulab.reported_chat_message.update';
 
+    public const BEAULAB_REPORTED_CHAT_MESSAGE_STATUS_UPDATE = 'beaulab.reported_chat_message.status_update';
+
     public const BEAULAB_REPORTED_VIDEO_SHOW = 'beaulab.reported_video.show';
 
     public const BEAULAB_REPORTED_VIDEO_UPDATE = 'beaulab.reported_video.update';
+
+    public const BEAULAB_REPORTED_VIDEO_STATUS_UPDATE = 'beaulab.reported_video.status_update';
 
     public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
 
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
 
     public const BEAULAB_NOTICE_UPDATE = 'beaulab.notice.update';
+
+    public const BEAULAB_NOTICE_STATUS_UPDATE = 'beaulab.notice.status_update';
 
     public const BEAULAB_NOTICE_DELETE = 'beaulab.notice.delete';
 
@@ -176,11 +218,17 @@ final class AccessPermissions
 
     public const BEAULAB_FAQ_UPDATE = 'beaulab.faq.update';
 
+    public const BEAULAB_FAQ_STATUS_UPDATE = 'beaulab.faq.status_update';
+
     public const BEAULAB_FAQ_DELETE = 'beaulab.faq.delete';
 
     public const BEAULAB_CATEGORY_MANAGE = 'beaulab.category.manage';
 
+    public const BEAULAB_CATEGORY_STATUS_UPDATE = 'beaulab.category.status_update';
+
     public const BEAULAB_HASHTAG_MANAGE = 'beaulab.hashtag.manage';
+
+    public const BEAULAB_HASHTAG_STATUS_UPDATE = 'beaulab.hashtag.status_update';
 
     // Hospital
     public const HOSPITAL_PROFILE_SHOW = 'hospital.profile.show';
@@ -277,6 +325,8 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_SHOW,
             self::BEAULAB_HOSPITAL_CREATE,
             self::BEAULAB_HOSPITAL_UPDATE,
+            self::BEAULAB_HOSPITAL_STATUS_REQUEST_SHOW,
+            self::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE,
             self::BEAULAB_HOSPITAL_DELETE,
             self::BEAULAB_HOSPITAL_WALLET_SHOW,
             self::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
@@ -302,7 +352,6 @@ final class AccessPermissions
             self::BEAULAB_AGENCY_DELETE,
 
             self::BEAULAB_USER_SHOW,
-            self::BEAULAB_USER_STATUS_UPDATE,
 
             self::BEAULAB_DOCTOR_SHOW,
             self::BEAULAB_DOCTOR_CREATE,
@@ -372,8 +421,29 @@ final class AccessPermissions
             self::BEAULAB_STAFF_UPDATE,
             self::BEAULAB_STAFF_DELETE,
             self::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS,
-            self::BEAULAB_CATEGORY_MANAGE,
-            self::BEAULAB_HASHTAG_MANAGE,
+            self::BEAULAB_HOSPITAL_STATUS_UPDATE,
+            self::BEAULAB_HOSPITAL_STATUS_REQUEST_PROCESS,
+            self::BEAULAB_HOSPITAL_ENTRY_STATUS_UPDATE,
+            self::BEAULAB_USER_STATUS_UPDATE,
+            self::BEAULAB_DOCTOR_STATUS_UPDATE,
+            self::BEAULAB_EXPERT_STATUS_UPDATE,
+            self::BEAULAB_VIDEO_STATUS_UPDATE,
+            self::BEAULAB_HOSPITAL_EVENT_STATUS_UPDATE,
+            self::BEAULAB_HOSPITAL_EVENT_AD_STATUS_UPDATE,
+            self::BEAULAB_HOSPITAL_EVENT_DB_STATUS_UPDATE,
+            self::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_STATUS_UPDATE,
+            self::BEAULAB_HOSPITAL_REVIEW_STATUS_UPDATE,
+            self::BEAULAB_HOSPITAL_EVALUATION_STATUS_UPDATE,
+            self::BEAULAB_TALK_STATUS_UPDATE,
+            self::BEAULAB_REPORTED_TALK_STATUS_UPDATE,
+            self::BEAULAB_REPORTED_HOSPITAL_REVIEW_STATUS_UPDATE,
+            self::BEAULAB_REPORTED_HOSPITAL_EVALUATION_STATUS_UPDATE,
+            self::BEAULAB_REPORTED_CHAT_MESSAGE_STATUS_UPDATE,
+            self::BEAULAB_REPORTED_VIDEO_STATUS_UPDATE,
+            self::BEAULAB_NOTICE_STATUS_UPDATE,
+            self::BEAULAB_FAQ_STATUS_UPDATE,
+            self::BEAULAB_CATEGORY_STATUS_UPDATE,
+            self::BEAULAB_HASHTAG_STATUS_UPDATE,
         ];
     }
 

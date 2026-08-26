@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\OperationHistory\Models;
 
+use App\Domains\AccountHospital\Models\AccountHospital;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -73,7 +74,10 @@ final class OperationHistory extends Model
 
     public function actor(): MorphTo
     {
-        return $this->morphTo('actor', 'actor_type', 'actor_id');
+        return $this->morphTo('actor', 'actor_type', 'actor_id')
+            ->morphWith([
+                AccountHospital::class => ['hospital:id,name'],
+            ]);
     }
 
     public function changes(): HasMany

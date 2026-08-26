@@ -28,6 +28,9 @@ final class NoticeCreateForStaffAction
     public function execute(array $payload): array
     {
         Gate::authorize('create', Notice::class);
+        if (array_key_exists('status', $payload)) {
+            Gate::authorize('updateStatus', Notice::class);
+        }
 
         $normalized = $this->normalizePayload($payload);
 
@@ -76,7 +79,7 @@ final class NoticeCreateForStaffAction
     }
 
     /**
-     * @param array<int, UploadedFile> $attachments
+     * @param  array<int, UploadedFile>  $attachments
      */
     private function attachFiles(Notice $notice, array $attachments): void
     {

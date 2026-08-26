@@ -33,7 +33,7 @@ final class HospitalEventAdAllowStatusUpdateForStaffAction
 
         $result = DB::transaction(function () use ($ids, $allowStatus, $payload): array {
             $ads = $this->query->getForUpdate($ids);
-            $ads->each(static fn (HospitalEventAd $ad): mixed => Gate::authorize('update', $ad));
+            $ads->each(static fn (HospitalEventAd $ad): mixed => Gate::authorize('updateStatus', $ad));
             $this->assertApprovalRequirements($ads, $allowStatus);
             $this->assertSlotsAvailableForAllowStatus($ads, $allowStatus);
 

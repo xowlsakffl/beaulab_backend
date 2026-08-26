@@ -27,6 +27,9 @@ final class CategoryUpdateForStaffAction
     public function execute(Category $category, array $payload): array
     {
         Gate::authorize('update', $category);
+        if (array_key_exists('status', $payload)) {
+            Gate::authorize('updateStatus', $category);
+        }
 
         $parent = $this->query->parent($category);
         $name = array_key_exists('name', $payload)

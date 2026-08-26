@@ -70,7 +70,6 @@ final class HospitalFactory extends Factory
                 $hospital,
                 $seedKey,
                 'owner',
-                '병원 소유주',
                 AccessRoles::HOSPITAL_OWNER,
                 1
             );
@@ -139,7 +138,6 @@ final class HospitalFactory extends Factory
         Hospital $hospital,
         string $seedKey,
         string $type,
-        string $nameLabel,
         string $role,
         int $index
     ): void {
@@ -150,13 +148,9 @@ final class HospitalFactory extends Factory
             ? "hospital_owner_{$seedKey}"
             : "hospital_{$type}_{$seedKey}_{$suffix}";
 
-        $name = $type === 'owner'
-            ? "{$nameLabel} {$seedKey}"
-            : "{$nameLabel} {$seedKey}-{$suffix}";
-
         $accountHospitalFactory = AccountHospital::factory()
             ->forHospital($hospital)
-            ->withIdentity($name, $nickname)
+            ->withNickname($nickname)
             ->withPhone((string) $hospital->ad_reception_phone_1)
             ->active();
 

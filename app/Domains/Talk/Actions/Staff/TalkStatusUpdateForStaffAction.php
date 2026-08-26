@@ -25,7 +25,7 @@ final class TalkStatusUpdateForStaffAction
 
     public function execute(array $payload): array
     {
-        Gate::authorize('update', Talk::class);
+        Gate::authorize('updateStatus', Talk::class);
 
         $ids = collect($payload['ids'] ?? [])
             ->map(static fn (int|string $id): int => (int) $id)

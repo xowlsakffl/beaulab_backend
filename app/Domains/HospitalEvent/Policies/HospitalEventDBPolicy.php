@@ -23,6 +23,12 @@ final class HospitalEventDBPolicy
         return $this->delegate($actor)->update($actor, $eventDB);
     }
 
+    public function updateStatus(mixed $actor, ?HospitalEventDB $eventDB = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalEventDBForStaffPolicy::class)->updateStatus($actor, $eventDB);
+    }
+
     private function delegate(mixed $actor): object
     {
         return match (true) {

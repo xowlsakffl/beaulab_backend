@@ -32,6 +32,11 @@ final class HospitalVideoForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_VIDEO_UPDATE);
     }
 
+    public function updateStatus(AccountStaff $actor, ?HospitalVideo $video = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_VIDEO_STATUS_UPDATE);
+    }
+
     public function delete(AccountStaff $actor, HospitalVideo $video): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_VIDEO_DELETE);

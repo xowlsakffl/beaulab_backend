@@ -23,6 +23,11 @@ final class HospitalReviewCommentForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_REVIEW_UPDATE);
     }
 
+    public function updateStatus(AccountStaff $actor, ?HospitalReviewComment $comment = null): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_REVIEW_STATUS_UPDATE);
+    }
+
     public function delete(AccountStaff $actor, HospitalReviewComment $comment): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_REVIEW_UPDATE);

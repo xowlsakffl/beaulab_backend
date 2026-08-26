@@ -27,7 +27,7 @@ final class HospitalVideoAdminStatusUpdateForStaffAction
 
         $result = DB::transaction(function () use ($ids, $adminStatus, $payload): array {
             $videos = $this->query->getForUpdate($ids);
-            $videos->each(static fn (HospitalVideo $video): mixed => Gate::authorize('update', $video));
+            $videos->each(static fn (HospitalVideo $video): mixed => Gate::authorize('updateStatus', $video));
 
             $existingIds = $videos->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
             $updatedCount = $this->query->updateAdminStatus($existingIds, $adminStatus);

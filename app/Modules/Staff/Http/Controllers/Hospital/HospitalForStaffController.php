@@ -14,16 +14,21 @@ use App\Domains\Hospital\Actions\Staff\HospitalDeleteForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalGetForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalListForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalOperationHistoriesForStaffAction;
+use App\Domains\Hospital\Actions\Staff\HospitalStatusChangeRequestCreateForStaffAction;
+use App\Domains\Hospital\Actions\Staff\HospitalStatusChangeRequestProcessForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalStatusUpdateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalSummaryForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalUpdateForStaffAction;
 use App\Domains\Hospital\Models\Hospital;
+use App\Domains\Hospital\Models\HospitalStatusChangeRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalAllowStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckBusinessNumberForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCheckNameForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalListForStaffRequest;
+use App\Modules\Staff\Http\Requests\Hospital\HospitalStatusChangeRequestCreateForStaffRequest;
+use App\Modules\Staff\Http\Requests\Hospital\HospitalStatusChangeRequestProcessForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalStatusUpdateForStaffRequest;
 use App\Modules\Staff\Http\Requests\Hospital\HospitalUpdateForStaffRequest;
 
@@ -144,6 +149,26 @@ final class HospitalForStaffController extends Controller
         $result = $action->execute($hospital, $request->validated());
 
         return ApiResponse::success($result['hospital']);
+    }
+
+    public function createHospitalStatusChangeRequestForStaff(
+        Hospital $hospital,
+        HospitalStatusChangeRequestCreateForStaffRequest $request,
+        HospitalStatusChangeRequestCreateForStaffAction $action,
+    ) {
+        $result = $action->execute($hospital, $request->validated());
+
+        return ApiResponse::success($result);
+    }
+
+    public function processHospitalStatusChangeRequestForStaff(
+        HospitalStatusChangeRequest $hospitalStatusChangeRequest,
+        HospitalStatusChangeRequestProcessForStaffRequest $request,
+        HospitalStatusChangeRequestProcessForStaffAction $action,
+    ) {
+        $result = $action->execute($hospitalStatusChangeRequest, $request->validated());
+
+        return ApiResponse::success($result);
     }
 
     /**

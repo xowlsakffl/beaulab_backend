@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id()->comment('병원 관리자 고유 ID');
             $table->foreignId('hospital_id')->comment('소속 병원 ID')->constrained('hospitals')->cascadeOnDelete();
 
-            $table->string('name')->comment('병원 관리자 실명');
+            $table->string('name')->comment('연결 병의원명 복제값');
             $table->string('nickname')->unique()->comment('병원 관리자 로그인 아이디');
             $table->string('phone', 50)->comment('인증된 전화번호');
             $table->timestamp('phone_verified_at')->nullable()->comment('전화번호 인증 완료 시각');

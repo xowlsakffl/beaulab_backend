@@ -17,6 +17,12 @@ return new class extends Migration
                 ->constrained('hospitals')
                 ->cascadeOnDelete();
 
+            $table->foreignId('manager_staff_id')
+                ->nullable()
+                ->comment('내부 담당 직원 ID')
+                ->constrained('account_staffs')
+                ->nullOnDelete();
+
             $table->string('event_type', 20)->comment('이벤트 유형(TEXT, IMAGE)');
             $table->boolean('is_male_targeted')->default(false)->comment('남자성형 이벤트 여부');
 

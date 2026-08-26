@@ -17,13 +17,16 @@ final class HospitalDoctorCreateForStaffAction
 {
     public function __construct(
         private readonly HospitalDoctorCreateForStaffQuery $query,
-        private readonly MediaAttachDeleteAction           $mediaAttachAction,
+        private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalDoctorUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
     public function execute(array $payload): array
     {
         Gate::authorize('create', HospitalDoctor::class);
+        if (array_key_exists('status', $payload) || array_key_exists('allow_status', $payload)) {
+            Gate::authorize('updateStatus', HospitalDoctor::class);
+        }
 
         $doctor = DB::transaction(function () use ($payload) {
             $doctor = $this->query->create($payload);
@@ -49,7 +52,7 @@ final class HospitalDoctorCreateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @param  array<int, int|string>  $categoryIds
      */
     private function syncCategories(HospitalDoctor $doctor, array $categoryIds): void
     {

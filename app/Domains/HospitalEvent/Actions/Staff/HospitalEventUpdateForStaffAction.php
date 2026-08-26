@@ -25,6 +25,9 @@ final class HospitalEventUpdateForStaffAction
     public function execute(HospitalEvent $event, array $payload): array
     {
         Gate::authorize('update', $event);
+        if (array_intersect(['allow_status', 'hospital_status', 'admin_status'], array_keys($payload)) !== []) {
+            Gate::authorize('updateStatus', $event);
+        }
 
         $event = DB::transaction(function () use ($event, $payload): HospitalEvent {
             $beforeHistory = $this->historyRecordAction->capture($event);

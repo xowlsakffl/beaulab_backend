@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domains\AccountHospital\Queries\Hospital;
 
 use App\Domains\AccountHospital\Models\AccountHospital;
-use App\Domains\AccountHospital\Models\HospitalAccountIdentityVerification;
 use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
+use App\Domains\AccountHospital\Models\HospitalAccountPhoneVerification;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalBusinessRegistration;
@@ -30,13 +30,13 @@ final class HospitalAccountInvitationForHospitalQuery
         return $query->first();
     }
 
-    public function lockIdentityVerification(
+    public function lockPhoneVerification(
         HospitalAccountInvitation $invitation,
         string $tokenHash,
-    ): ?HospitalAccountIdentityVerification {
-        return HospitalAccountIdentityVerification::query()
+    ): ?HospitalAccountPhoneVerification {
+        return HospitalAccountPhoneVerification::query()
             ->where('hospital_account_invitation_id', $invitation->getKey())
-            ->where('token_hash', $tokenHash)
+            ->where('verification_token_hash', $tokenHash)
             ->lockForUpdate()
             ->first();
     }
@@ -102,7 +102,7 @@ final class HospitalAccountInvitationForHospitalQuery
         ])->save();
     }
 
-    public function consumeIdentityVerification(HospitalAccountIdentityVerification $verification): void
+    public function consumePhoneVerification(HospitalAccountPhoneVerification $verification): void
     {
         $verification->forceFill(['consumed_at' => now()])->save();
     }

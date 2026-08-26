@@ -25,6 +25,9 @@ final class FaqCreateForStaffAction
     public function execute(array $payload): array
     {
         Gate::authorize('create', Faq::class);
+        if (array_key_exists('status', $payload)) {
+            Gate::authorize('updateStatus', Faq::class);
+        }
 
         $normalized = $this->normalizePayload($payload);
 

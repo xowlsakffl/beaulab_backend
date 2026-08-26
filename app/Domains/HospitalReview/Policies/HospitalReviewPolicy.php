@@ -24,6 +24,12 @@ final class HospitalReviewPolicy
         return $this->delegate($actor)->update($actor, $review);
     }
 
+    public function updateStatus(mixed $actor, ?HospitalReview $review = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalReviewForStaffPolicy::class)->updateStatus($actor, $review);
+    }
+
     private function delegate(mixed $actor): object
     {
         return match (true) {

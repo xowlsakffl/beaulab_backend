@@ -26,6 +26,9 @@ final class HashtagUpdateForStaffAction
     public function execute(Hashtag $hashtag, array $payload): array
     {
         Gate::authorize('update', $hashtag);
+        if (array_key_exists('status', $payload)) {
+            Gate::authorize('updateStatus', $hashtag);
+        }
 
         $name = array_key_exists('name', $payload)
             ? Hashtag::sanitizeName((string) $payload['name'])

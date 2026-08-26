@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\Common\Sms\Models;
 
+use App\Domains\AccountHospital\Models\AccountHospital;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -70,7 +71,10 @@ final class SmsBatch extends Model
 
     public function actor(): MorphTo
     {
-        return $this->morphTo('actor', 'actor_type', 'actor_id');
+        return $this->morphTo('actor', 'actor_type', 'actor_id')
+            ->morphWith([
+                AccountHospital::class => ['hospital:id,name'],
+            ]);
     }
 
     /**

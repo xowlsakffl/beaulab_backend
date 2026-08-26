@@ -34,6 +34,24 @@ final class HospitalPolicy
         return $this->delegate($actor)->update($actor, $hospital);
     }
 
+    public function updateStatus(mixed $actor, Hospital $hospital): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalForStaffPolicy::class)->updateStatus($actor, $hospital);
+    }
+
+    public function requestStatusChange(mixed $actor, Hospital $hospital): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalForStaffPolicy::class)->requestStatusChange($actor, $hospital);
+    }
+
+    public function processStatusChange(mixed $actor): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalForStaffPolicy::class)->processStatusChange($actor);
+    }
+
     public function delete(mixed $actor, Hospital $hospital): bool
     {
         return $this->delegate($actor)->delete($actor, $hospital);
@@ -42,15 +60,35 @@ final class HospitalPolicy
     private function delegate(mixed $actor): object
     {
         return match (true) {
-            $actor instanceof AccountStaff   => app(HospitalForStaffPolicy::class),
+            $actor instanceof AccountStaff => app(HospitalForStaffPolicy::class),
             $actor instanceof AccountHospital => app(HospitalForHospitalPolicy::class),
-            //$actor instanceof AccountUser    => app(HospitalForUserPolicy::class),
-            default => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, Hospital $hospital): bool { return false; }
-                public function create(mixed $actor): bool { return false; }
-                public function update(mixed $actor, Hospital $hospital): bool { return false; }
-                public function delete(mixed $actor, Hospital $hospital): bool { return false; }
+            // $actor instanceof AccountUser    => app(HospitalForUserPolicy::class),
+            default => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, Hospital $hospital): bool
+                {
+                    return false;
+                }
+
+                public function create(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, Hospital $hospital): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, Hospital $hospital): bool
+                {
+                    return false;
+                }
             },
         };
     }

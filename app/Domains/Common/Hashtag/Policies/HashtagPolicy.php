@@ -32,6 +32,12 @@ final class HashtagPolicy
         return $this->delegate($actor)->update($actor, $hashtag);
     }
 
+    public function updateStatus(mixed $actor, ?Hashtag $hashtag = null): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HashtagForStaffPolicy::class)->updateStatus($actor, $hashtag);
+    }
+
     public function delete(mixed $actor, Hashtag $hashtag): bool
     {
         return $this->delegate($actor)->delete($actor, $hashtag);

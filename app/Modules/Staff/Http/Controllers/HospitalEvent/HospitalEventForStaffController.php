@@ -4,6 +4,7 @@ namespace App\Modules\Staff\Http\Controllers\HospitalEvent;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventAdminStatusUpdateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventAllowStatusUpdateForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventCategoryFilterOptionsForStaffAction;
@@ -58,7 +59,9 @@ final class HospitalEventForStaffController extends Controller
         HospitalEventCreateForStaffRequest $request,
         HospitalEventCreateForStaffAction $action,
     ) {
-        $result = $action->execute($request->validated());
+        /** @var AccountStaff $actor */
+        $actor = $request->user();
+        $result = $action->execute($actor, $request->validated());
 
         return ApiResponse::success($result['event']);
     }
@@ -68,7 +71,9 @@ final class HospitalEventForStaffController extends Controller
         HospitalEventDuplicateForStaffRequest $request,
         HospitalEventDuplicateForStaffAction $action,
     ) {
-        $result = $action->execute($hospitalEvent, $request->validated());
+        /** @var AccountStaff $actor */
+        $actor = $request->user();
+        $result = $action->execute($actor, $hospitalEvent, $request->validated());
 
         return ApiResponse::success($result['event']);
     }

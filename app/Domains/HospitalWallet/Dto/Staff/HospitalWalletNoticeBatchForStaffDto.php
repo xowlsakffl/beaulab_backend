@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalWallet\Dto\Staff;
 
+use App\Common\Support\ActorDisplay;
 use App\Domains\Common\Sms\Models\SmsBatch;
 use App\Domains\Common\Sms\Models\SmsDelivery;
 use Illuminate\Database\Eloquent\Model;
@@ -59,10 +60,6 @@ final readonly class HospitalWalletNoticeBatchForStaffDto
             return null;
         }
 
-        return [
-            'id' => (int) $this->batch->actor->getKey(),
-            'name' => (string) ($this->batch->actor->name ?? $this->batch->actor->nickname ?? ''),
-            'email' => $this->batch->actor->email ?? null,
-        ];
+        return ActorDisplay::toArray($this->batch->actor);
     }
 }

@@ -13,11 +13,21 @@ final class NotificationInbox extends Model
 {
     public const RECIPIENT_USER = 'USER';
 
+    public const RECIPIENT_STAFF = 'STAFF';
+
     public const ACTOR_USER = 'USER';
+
+    public const ACTOR_STAFF = 'STAFF';
 
     public const EVENT_CHAT_MESSAGE_CREATED = 'chat.message.created';
 
+    public const EVENT_HOSPITAL_STATUS_CHANGE_REQUESTED = 'hospital.status_change.requested';
+
+    public const EVENT_HOSPITAL_STATUS_CHANGE_PROCESSED = 'hospital.status_change.processed';
+
     public const TARGET_CHAT = 'chat';
+
+    public const TARGET_HOSPITAL_STATUS_CHANGE_REQUEST = 'hospital_status_change_request';
 
     protected $table = 'notification_inboxes';
 

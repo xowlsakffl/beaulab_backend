@@ -32,6 +32,21 @@ final class HospitalForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_UPDATE);
     }
 
+    public function updateStatus(AccountStaff $actor, Hospital $hospital): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_STATUS_UPDATE);
+    }
+
+    public function requestStatusChange(AccountStaff $actor, Hospital $hospital): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE);
+    }
+
+    public function processStatusChange(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_PROCESS);
+    }
+
     public function delete(AccountStaff $actor, Hospital $hospital): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_DELETE);

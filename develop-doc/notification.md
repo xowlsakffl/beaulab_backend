@@ -2,7 +2,7 @@
 
 작성 기준: 2026-07-27
 
-이 문서는 현재 코드 기준의 공통 알림 도메인을 정리한다. 현재 구현 범위는 앱 사용자 `USER` 대상 인앱 알림, 실시간 Reverb broadcast, 모바일/웹 Push delivery, 사용자별 알림 수신 설정이다.
+이 문서는 현재 코드 기준의 공통 알림 도메인을 정리한다. 현재 구현 범위는 앱 사용자 `USER` 대상 인앱 알림, 실시간 Reverb broadcast, 모바일/웹 Push delivery, 사용자별 알림 수신 설정과 Staff 대상 알림 원장 생성이다.
 
 기준 파일:
 
@@ -27,11 +27,14 @@
 - 채팅 메시지 생성 시 상대 사용자 알림 생성
 - 인앱 알림 Reverb broadcast
 - Push delivery 생성 및 Redis queue 기반 FCM/APNs 발송
+- 병의원 운영상태 변경 신청/처리 시 Staff 대상 인앱 알림 원장 생성
+- 병의원 운영상태 변경 신청 알림은 활성 상태이면서 `beaulab.hospital_status_request.process` 권한을 보유한 Staff에게 생성
 
 현재 제한:
 
-- 수신자 타입은 현재 `USER`만 broadcast 대상으로 동작한다.
-- 기본 알림 이벤트는 `chat.message.created`만 정의되어 있다.
+- 수신자 타입은 `USER`, `STAFF`를 저장할 수 있지만 실시간 broadcast와 조회 API/UI는 `USER`만 지원한다.
+- Staff 운영상태 변경 알림은 `notification_inboxes`와 `notification_deliveries`에 저장되지만 Staff 알림함 UI에는 아직 노출되지 않는다.
+- 기본 알림 이벤트는 `chat.message.created`, `hospital.status_change.requested`, `hospital.status_change.processed`가 정의되어 있다.
 - 댓글, 좋아요, 후기 등 다른 도메인 알림은 아직 연결되어 있지 않다.
 - `EMAIL`, `WEB` 채널 상수와 DB 컬럼은 있으나 현재 생성 플로우에서는 지원 채널로 받지 않는다.
 - 알림 설정의 `email` 값은 저장만 가능하고 발송에는 아직 사용되지 않는다.

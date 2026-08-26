@@ -10,12 +10,15 @@
 - Provider 바인딩: `app/Providers/SmsServiceProvider.php`
 - 설정: `config/sms.php`
 - 충전금 안내 도메인: `app/Domains/HospitalWallet`
+- 병의원 계정 인증 도메인: `app/Domains/AccountHospital`
 - Staff API: `app/Modules/Staff/Http/Controllers/HospitalWallet/HospitalWalletForStaffController.php`
 - 스키마: `database/migrations/2026_04_10_110500_create_notification_tables.php`
 
 공통 `Sms` 도메인은 `sms_batches`, `sms_deliveries`, Provider 호출, 큐 등록, 재시도와 상태 집계를 소유한다. 충전금·이벤트·입점신청 같은 업무 도메인은 수신자 선정, 문구 치환, `purpose`와 업무별 권한만 관리한다.
 
 `sms_deliveries.reference_type/reference_id`는 문자와 관련된 업무 대상을, `recipient_type/recipient_id`는 실제 수신 계정을 폴리모픽으로 연결한다. 계정이 없는 번호도 발송할 수 있으므로 수신 계정은 nullable이다. 참조 대상이 변경되거나 삭제되어도 감사 이력을 보존할 수 있도록 대상명, 전화번호와 최종 발송 본문은 delivery에 스냅샷으로 저장한다.
+
+병의원 계정 생성 인증번호도 같은 공통 원장과 Redis `sms` 큐를 사용한다. 인증 도메인은 `hospital_account_phone_verifications`에 인증번호 해시와 만료·오입력·일회용 증표만 저장하고, Provider 상태와 발송 본문은 `sms_deliveries`가 소유한다.
 
 ## 2) 충전금 안내 수신자
 

@@ -73,7 +73,7 @@ Staff 프론트 메뉴 prefix와 API path는 반드시 같을 필요가 없다. 
 
 ## 5) 현재 주요 도메인
 
-- 계정: `AccountStaff`, `AccountHospital`, `HospitalAccountInvitation`, `HospitalAccountIdentityVerification`, `AccountBeauty`, `AccountUser`, `AccountUserAccessLog`, `AccountUserBlock`
+- 계정: `AccountStaff`, `AccountHospital`, `HospitalAccountInvitation`, `HospitalAccountPhoneVerification`, `AccountBeauty`, `AccountUser`, `AccountUserAccessLog`, `AccountUserBlock`
 - 파트너: `Hospital`, `HospitalEntry`, `Beauty`, `HospitalDoctor`, `BeautyExpert`, `HospitalFeature`
 - 병원 이벤트/광고/고객 DB: `HospitalEvent`, `HospitalEventAd`, `HospitalEventDB`, `HospitalEventRealModelDB`, `HospitalEventOption`, `HospitalEventDoctorAssignment`
 - 충전금: `HospitalWallet`, `HospitalWalletOperation`, `HospitalWalletTransaction`, `HospitalWalletTransactionEntry`, `HospitalWalletPayment`, `HospitalWalletRefund`
@@ -92,7 +92,7 @@ Staff 프론트 메뉴 prefix와 API path는 반드시 같을 필요가 없다. 
 
 - 직접 생성 병의원과 승인된 입점신청은 공통 `HospitalAccountInvitation` 흐름을 사용한다.
 - 초대 이메일은 계정 속성이 아니라 초대 이력이다. `AccountHospital`은 이메일 컬럼을 갖지 않는다.
-- 계정 생성 입력은 아이디/비밀번호와 서버가 검증한 휴대폰 본인확인 증표다.
+- 병의원 계정 생성 입력은 아이디/비밀번호와 서버가 검증한 휴대폰 문자 인증 증표다.
 - 입점신청 전환은 병의원, 사업자정보, 사업자등록증 미디어 소유권, 지갑, 계정 생성을 한 트랜잭션에서 처리한다. 의료진은 전환 이후 별도로 생성한다.
 - 상세 정책은 `hospital-account-invitation.md`를 따른다.
 

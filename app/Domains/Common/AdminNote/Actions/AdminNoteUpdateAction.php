@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\AdminNote\Actions;
 
+use App\Common\Authorization\AccessPermissions;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\AdminNote\Dto\AdminNoteDto;
@@ -33,7 +34,8 @@ final class AdminNoteUpdateAction
             throw new CustomException(ErrorCode::NOT_FOUND, '메모 대상 정보를 찾을 수 없습니다.');
         }
 
-        Gate::forUser($actor)->authorize('update', $note->target);
+        Gate::forUser($actor)->authorize('view', $note->target);
+        Gate::forUser($actor)->authorize(AccessPermissions::COMMON_ADMIN_NOTE_WRITE);
 
         $isInternal = AdminNoteActorRegistry::isPartnerActor($actor)
             ? (bool) ($payload['is_internal'] ?? false)

@@ -2,6 +2,7 @@
 
 namespace App\Domains\Common\AdminNote\Actions;
 
+use App\Common\Authorization\AccessPermissions;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\AdminNote\Dto\AdminNoteDto;
@@ -27,7 +28,8 @@ final class AdminNoteCreateAction
             (int) $payload['target_id'],
         );
 
-        Gate::forUser($actor)->authorize('update', $target);
+        Gate::forUser($actor)->authorize('view', $target);
+        Gate::forUser($actor)->authorize(AccessPermissions::COMMON_ADMIN_NOTE_WRITE);
 
         $isInternal = AdminNoteActorRegistry::isPartnerActor($actor)
             ? (bool) ($payload['is_internal'] ?? false)

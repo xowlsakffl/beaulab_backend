@@ -33,6 +33,32 @@ final class AccessRolesTest extends TestCase
         );
     }
 
+    public function test_admin_note_write_permission_is_limited_to_writable_roles(): void
+    {
+        $rolesByGuard = AccessRoles::mapByGuard();
+
+        self::assertContains(
+            AccessPermissions::COMMON_ADMIN_NOTE_WRITE,
+            $rolesByGuard[AccessPermissions::GUARD_STAFF][AccessRoles::BEAULAB_ADMIN],
+        );
+        self::assertNotContains(
+            AccessPermissions::COMMON_ADMIN_NOTE_WRITE,
+            $rolesByGuard[AccessPermissions::GUARD_STAFF][AccessRoles::BEAULAB_STAFF],
+        );
+        self::assertContains(
+            AccessPermissions::COMMON_ADMIN_NOTE_WRITE,
+            $rolesByGuard[AccessPermissions::GUARD_HOSPITAL][AccessRoles::HOSPITAL_OWNER],
+        );
+        self::assertContains(
+            AccessPermissions::COMMON_ADMIN_NOTE_WRITE,
+            $rolesByGuard[AccessPermissions::GUARD_BEAUTY][AccessRoles::BEAUTY_OWNER],
+        );
+        self::assertNotContains(
+            AccessPermissions::COMMON_ADMIN_NOTE_WRITE,
+            $rolesByGuard[AccessPermissions::GUARD_BEAUTY][AccessRoles::BEAUTY_STAFF],
+        );
+    }
+
     /**
      * @return list<string>
      */

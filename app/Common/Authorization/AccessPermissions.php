@@ -19,6 +19,8 @@ final class AccessPermissions
 
     public const COMMON_PROFILE_UPDATE = 'common.profile.update';
 
+    public const COMMON_ADMIN_NOTE_WRITE = 'common.admin_note.write';
+
     // Beaulab
     public const BEAULAB_HOSPITAL_SHOW = 'beaulab.hospital.show';
 
@@ -406,6 +408,7 @@ final class AccessPermissions
 
             self::BEAULAB_CATEGORY_MANAGE,
             self::BEAULAB_HASHTAG_MANAGE,
+            self::COMMON_ADMIN_NOTE_WRITE,
 
         ];
     }
@@ -458,6 +461,7 @@ final class AccessPermissions
             self::HOSPITAL_PROFILE_DELETE,
             self::HOSPITAL_VIDEO_SHOW,
             self::HOSPITAL_VIDEO_UPDATE,
+            self::COMMON_ADMIN_NOTE_WRITE,
         ];
     }
 
@@ -475,6 +479,7 @@ final class AccessPermissions
             self::BEAUTY_VIDEO_CREATE,
             self::BEAUTY_VIDEO_UPDATE,
             self::BEAUTY_VIDEO_CANCEL,
+            self::COMMON_ADMIN_NOTE_WRITE,
         ];
     }
 

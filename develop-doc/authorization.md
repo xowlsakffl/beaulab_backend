@@ -16,6 +16,8 @@ Staff 프론트 route 접근 제어는 아래 파일을 기준으로 한다.
 
 ## 1) Guard
 
+병의원 비밀번호 재설정 문자 발송은 `beaulab.hospital_account_password_reset.send`와 대상 병의원 조회 권한을 모두 요구한다. 기본 admin/super_admin 역할에 포함하고 조회 직원에는 부여하지 않는다. 일반 병의원 수정 및 상태 변경 권한과는 분리한다.
+
 - `staff`: 뷰랩 내부 직원
 - `hospital`: 병의원 파트너
 - `beauty`: 뷰티 파트너

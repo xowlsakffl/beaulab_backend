@@ -510,6 +510,23 @@ Table hospital_account_invitations {
   Note: '직접 생성 병의원과 입점신청이 공통으로 사용하는 계정 생성 초대 이력입니다.'
 }
 
+Table hospital_account_password_resets {
+  id bigint [pk, increment]
+  account_hospital_id bigint [not null]
+  token_hash char(64) [not null, unique]
+  credential_hash char(64) [not null, note: '발송 당시 비밀번호/휴대폰 인증 정보 지문']
+  expires_at timestamp [not null]
+  used_at timestamp [null]
+  revoked_at timestamp [null]
+  created_by_staff_id bigint [null]
+  created_at timestamp
+  updated_at timestamp
+  indexes {
+    (account_hospital_id, created_at)
+  }
+  Note: '인증된 휴대폰 번호로 보내는 1회용 비밀번호 재설정 링크'
+}
+
 Table hospital_account_identity_verifications {
   id bigint [pk, increment, note: '병의원 계정 본인확인 ID']
   hospital_account_invitation_id bigint [note: '병의원 계정 초대 ID']
@@ -766,6 +783,7 @@ Table sms_deliveries {
   phone_normalized varchar(30) [null, note: '숫자 정규화 전화번호']
   message_type varchar(10) [null, note: '문자 유형(SMS, LMS)']
   message_body text [null, note: '치환 완료 발송 문구']
+  encrypted_message_body text [null, note: '보안 문자 암호화 본문. 일반 본문에는 링크를 저장하지 않음']
   byte_length int [null, note: '발송 문구 바이트 수']
   status varchar(30) [note: '수신자별 발송 상태']
   provider varchar(50) [null, note: '문자 발송 업체']
@@ -1326,6 +1344,7 @@ TableGroup "Accounts & Auth" {
   account_staffs
   account_hospitals
   hospital_account_invitations
+  hospital_account_password_resets
   hospital_account_identity_verifications
   account_beauties
   personal_access_tokens
@@ -1438,6 +1457,8 @@ Ref: hospital_status_change_requests.hospital_id > hospitals.id
 Ref: hospital_status_change_requests.requested_by_staff_id > account_staffs.id
 Ref: hospital_status_change_requests.processed_by_staff_id > account_staffs.id
 Ref: hospital_account_invitations.hospital_id > hospitals.id
+Ref: hospital_account_password_resets.account_hospital_id > account_hospitals.id
+Ref: hospital_account_password_resets.created_by_staff_id > account_staffs.id
 Ref: hospital_account_invitations.hospital_entry_id > hospital_entries.id
 Ref: hospital_account_invitations.created_by_staff_id > account_staffs.id
 Ref: hospital_account_invitations.completed_account_hospital_id > account_hospitals.id

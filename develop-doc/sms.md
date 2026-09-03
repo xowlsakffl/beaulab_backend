@@ -22,6 +22,10 @@
 
 ## 2) 충전금 안내 수신자
 
+병의원 비밀번호 재설정 문자(`hospital_account_password_reset`)는 연결된 활성 계정의 인증된 휴대폰 번호만 사용한다. 아래 충전금 수신자 선택과는 별개다. 상세 정책은 `hospital-account-password-reset.md`를 따른다.
+
+보안 문자 발송 시 `SmsDeliveryData.encryptedMessageBody`를 전달하면 본문은 암호화된 `encrypted_message_body`에 저장한다. 일반 `message_body`에는 민감값 없는 안내만 넣는다. 워커는 발송 직전에 복호화하며 모델 JSON에는 암호화 본문을 노출하지 않는다. SMS Job은 트랜잭션 커밋 이후 큐에 적재한다.
+
 - 담당자: `hospitals.ad_reception_phone_1`
 - 대표자: `account_hospitals.phone` 중 `phone_verified_at`이 있는 번호
 - 담당자와 대표자 번호가 같으면 한 번만 발송하고 delivery의 `recipient_kinds`에 두 구분을 함께 기록한다.

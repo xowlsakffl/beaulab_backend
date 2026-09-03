@@ -25,6 +25,7 @@ final class SendSmsDeliveryJob implements ShouldQueue
     ) {
         $this->onConnection('redis');
         $this->onQueue((string) config('sms.queue', 'sms'));
+        $this->afterCommit();
     }
 
     /**

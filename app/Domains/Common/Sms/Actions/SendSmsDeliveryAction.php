@@ -45,7 +45,7 @@ final class SendSmsDeliveryAction
         try {
             $result = $this->provider->send(
                 (string) $delivery->phone_normalized,
-                (string) $delivery->message_body,
+                (string) ($delivery->encrypted_message_body ?? $delivery->message_body),
                 (string) $delivery->message_type,
                 "sms-delivery:{$delivery->id}",
             );

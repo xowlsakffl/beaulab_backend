@@ -33,6 +33,24 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE account_hospitals COMMENT = '병원 관리자 계정 테이블'");
+
+        Schema::create('hospital_account_password_resets', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('account_hospital_id')->comment('재설정 대상 계정');
+            $table->char('token_hash', 64)->unique('h_account_reset_token_unique');
+            $table->char('credential_hash', 64)->comment('발송 시 계정 인증 정보 지문');
+            $table->timestamp('expires_at');
+            $table->timestamp('used_at')->nullable();
+            $table->timestamp('revoked_at')->nullable();
+            $table->unsignedBigInteger('created_by_staff_id')->nullable();
+            $table->timestamps();
+
+            $table->foreign('account_hospital_id', 'h_account_reset_account_fk')
+                ->references('id')->on('account_hospitals')->cascadeOnDelete();
+            $table->foreign('created_by_staff_id', 'h_account_reset_staff_fk')
+                ->references('id')->on('account_staffs')->nullOnDelete();
+            $table->index(['account_hospital_id', 'created_at'], 'h_account_reset_account_created_idx');
+        });
     }
 
     /**
@@ -40,6 +58,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('hospital_account_password_resets');
         Schema::dropIfExists('account_hospitals');
     }
 };

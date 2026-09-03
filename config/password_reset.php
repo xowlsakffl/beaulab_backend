@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'hospital' => [
+        'url' => env('PASSWORD_RESET_HOSPITAL_URL', 'http://localhost:3002/password/reset'),
+        'expire_minutes' => (int) env('PASSWORD_RESET_HOSPITAL_EXPIRE_MINUTES', 60),
+        'resend_seconds' => (int) env('PASSWORD_RESET_HOSPITAL_RESEND_SECONDS', 60),
+    ],
+
     'mail' => [
         'connection' => env('PASSWORD_RESET_MAIL_QUEUE_CONNECTION', 'redis'),
         'queue' => env('PASSWORD_RESET_MAIL_QUEUE', 'mail'),

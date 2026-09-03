@@ -162,6 +162,7 @@ return new class extends Migration
             $table->string('phone_normalized', 30)->nullable()->comment('숫자 정규화 전화번호');
             $table->string('message_type', 10)->nullable()->comment('문자 유형(SMS, LMS)');
             $table->text('message_body')->nullable()->comment('치환 완료 발송 문구');
+            $table->text('encrypted_message_body')->nullable()->comment('보안 문자 암호화 본문');
             $table->unsignedInteger('byte_length')->nullable()->comment('발송 문구 바이트 수');
             $table->string('status', 30)->comment('수신자별 발송 상태');
             $table->string('provider', 50)->nullable()->comment('문자 발송 업체');

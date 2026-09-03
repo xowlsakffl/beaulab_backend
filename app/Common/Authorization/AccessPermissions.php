@@ -66,6 +66,8 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_ACCOUNT_INVITATION_UPDATE = 'beaulab.hospital_account_invitation.update';
 
+    public const BEAULAB_HOSPITAL_ACCOUNT_PASSWORD_RESET_SEND = 'beaulab.hospital_account_password_reset.send';
+
     public const BEAULAB_BEAUTY_SHOW = 'beaulab.beauty.show';
 
     public const BEAULAB_BEAUTY_CREATE = 'beaulab.beauty.create';
@@ -342,6 +344,7 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_ENTRY_UPDATE,
             self::BEAULAB_HOSPITAL_ACCOUNT_INVITATION_SHOW,
             self::BEAULAB_HOSPITAL_ACCOUNT_INVITATION_UPDATE,
+            self::BEAULAB_HOSPITAL_ACCOUNT_PASSWORD_RESET_SEND,
 
             self::BEAULAB_BEAUTY_SHOW,
             self::BEAULAB_BEAUTY_CREATE,

@@ -8,6 +8,7 @@
 use App\Common\Authorization\AccessPermissions;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Modules\Staff\Http\Controllers\AccountHospital\HospitalAccountInvitationForStaffController;
+use App\Modules\Staff\Http\Controllers\AccountHospital\HospitalAccountPasswordResetForStaffController;
 use App\Modules\Staff\Http\Controllers\AccountUser\AccountUserForStaffController;
 use App\Modules\Staff\Http\Controllers\AdminNote\AdminNoteForStaffController;
 use App\Modules\Staff\Http\Controllers\Auth\AuthForStaffController;
@@ -66,6 +67,10 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.Access
 
     Route::get('hospital-account-invitations', [HospitalAccountInvitationForStaffController::class, 'getHospitalAccountInvitationsForStaff'])
         ->name('hospital-account-invitations.getHospitalAccountInvitationsForStaff');
+    Route::post('hospitals/{hospital}/password-reset-link', [HospitalAccountPasswordResetForStaffController::class, 'sendHospitalAccountPasswordResetLinkForStaff'])
+        ->name('hospitals.sendHospitalAccountPasswordResetLinkForStaff')
+        ->whereNumber('hospital')
+        ->middleware('throttle:staff-sms-send');
     Route::post('hospital-account-invitations', [HospitalAccountInvitationForStaffController::class, 'sendHospitalAccountInvitationForStaff'])
         ->name('hospital-account-invitations.sendHospitalAccountInvitationForStaff')
         ->middleware('throttle:staff-hospital-account-invitation-send');

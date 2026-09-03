@@ -27,6 +27,7 @@ final readonly class SmsDeliveryData
         public string $status,
         public ?CarbonInterface $failedAt = null,
         public ?string $errorMessage = null,
+        public ?string $encryptedMessageBody = null,
     ) {}
 
     public function toArray(): array
@@ -43,6 +44,7 @@ final readonly class SmsDeliveryData
             'phone_normalized' => $this->phoneNormalized,
             'message_type' => $this->messageType,
             'message_body' => $this->messageBody,
+            'encrypted_message_body' => $this->encryptedMessageBody,
             'byte_length' => $this->byteLength,
             'status' => $this->status,
             'failed_at' => $this->failedAt,

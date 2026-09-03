@@ -40,6 +40,12 @@ final class HospitalPolicy
             && app(HospitalForStaffPolicy::class)->updateStatus($actor, $hospital);
     }
 
+    public function sendPasswordResetLink(mixed $actor, Hospital $hospital): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalForStaffPolicy::class)->sendPasswordResetLink($actor, $hospital);
+    }
+
     public function requestStatusChange(mixed $actor, Hospital $hospital): bool
     {
         return $actor instanceof AccountStaff

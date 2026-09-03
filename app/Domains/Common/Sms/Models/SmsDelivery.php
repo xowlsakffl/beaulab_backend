@@ -42,6 +42,7 @@ final class SmsDelivery extends Model
         'phone_normalized',
         'message_type',
         'message_body',
+        'encrypted_message_body',
         'byte_length',
         'status',
         'provider',
@@ -54,7 +55,10 @@ final class SmsDelivery extends Model
         'error_message',
     ];
 
+    protected $hidden = ['encrypted_message_body'];
+
     protected $casts = [
+        'encrypted_message_body' => 'encrypted',
         'reference_id' => 'integer',
         'recipient_id' => 'integer',
         'recipient_kinds' => 'array',

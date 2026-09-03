@@ -8,10 +8,15 @@
 use App\Modules\Hospital\Http\Controllers\AdminNote\AdminNoteForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\AuthForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountInvitationForHospitalController;
+use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountPasswordResetForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
+    Route::post('password-reset/verify', [HospitalAccountPasswordResetForHospitalController::class, 'verifyHospitalAccountPasswordReset'])
+        ->name('password-reset.verify')->middleware('throttle:password-reset-verify');
+    Route::post('password-reset', [HospitalAccountPasswordResetForHospitalController::class, 'resetHospitalAccountPassword'])
+        ->name('password-reset')->middleware('throttle:password-reset-submit');
     Route::post('login', [AuthForHospitalController::class, 'login'])->name('login')->middleware('throttle:auth-login');
     Route::get('account-invitations/{token}', [HospitalAccountInvitationForHospitalController::class, 'getHospitalAccountInvitationForHospital'])
         ->name('account-invitations.getHospitalAccountInvitationForHospital')

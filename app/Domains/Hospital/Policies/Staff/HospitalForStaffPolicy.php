@@ -37,6 +37,12 @@ final class HospitalForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_STATUS_UPDATE);
     }
 
+    public function sendPasswordResetLink(AccountStaff $actor, Hospital $hospital): bool
+    {
+        return $this->view($actor, $hospital)
+            && $actor->can(AccessPermissions::BEAULAB_HOSPITAL_ACCOUNT_PASSWORD_RESET_SEND);
+    }
+
     public function requestStatusChange(AccountStaff $actor, Hospital $hospital): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE);

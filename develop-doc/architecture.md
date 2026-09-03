@@ -96,6 +96,8 @@ Staff 프론트 메뉴 prefix와 API path는 반드시 같을 필요가 없다. 
 - 입점신청 전환은 병의원, 사업자정보, 사업자등록증 미디어 소유권, 지갑, 계정 생성을 한 트랜잭션에서 처리한다. 의료진은 전환 이후 별도로 생성한다.
 - 상세 정책은 `hospital-account-invitation.md`를 따른다.
 
+병의원 비밀번호 재설정은 `hospital-account-password-reset.md`를 따른다. Staff 전용 발송 권한으로 연결 계정의 인증된 번호에만 SMS 링크를 보내고, Hospital 공개 API에서 토큰 검증/소비를 처리한다.
+
 ## 5.1) Staff 메뉴 N 배지
 
 Staff 메뉴의 `N` 표시는 개인별 읽음/미읽음이 아니라 전역 처리대기 신호다.
@@ -272,6 +274,8 @@ DTO 응답 원칙:
 서비스 지급/회수처럼 잔액이 즉시 변경되는 흐름은 Action이 DB transaction을 열고 Query를 조합한다. 목록은 대기·취소도 보여야 하므로 Transaction이 아니라 Operation을 조회한다. 상세 규칙은 `./hospital-wallet.md`를 따른다.
 
 ## 8) API 응답 / 페이지네이션 원칙
+
+브라우저 API의 CORS 설정은 `config/cors.php`에서 관리한다. 기존 origin/header/method 허용 정책과 토큰 인증은 유지하며, `CORS_MAX_AGE`(기본 3600초)로 사전 요청 결과만 캐시한다. 업무 API 응답이나 인증 결과를 캐시하는 설정은 아니다.
 
 `LengthAwarePaginator` 기반 목록은 `App\Common\Support\PaginatedResponse`를 사용한다.
 

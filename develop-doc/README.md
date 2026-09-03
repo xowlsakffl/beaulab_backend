@@ -24,6 +24,7 @@
 - [문자 발송 설계](./sms.md)
 - [병의원 충전금 설계](./hospital-wallet.md)
 - [병의원 계정 초대와 생성](./hospital-account-invitation.md)
+- [병의원 계정 비밀번호 재설정](./hospital-account-password-reset.md)
 
 ## 현재 기준 핵심 요약
 

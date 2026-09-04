@@ -22,7 +22,7 @@
 
 ## 1) 목적
 
-Staff API 인증은 `staff` guard + Sanctum token 기준이다.
+Staff API 인증은 actor가 분리된 `staff_web` 세션 기준이다. 상세 정책은 `web-authentication.md`를 따른다.
 
 Horizon, Telescope, API Docs 같은 브라우저 기반 운영 도구는 토큰 인증보다 세션 인증이 맞으므로 내부도구 전용 웹 guard를 별도로 둔다.
 

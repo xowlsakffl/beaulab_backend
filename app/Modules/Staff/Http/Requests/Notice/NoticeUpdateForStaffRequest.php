@@ -21,12 +21,8 @@ final class NoticeUpdateForStaffRequest extends FormRequest
             'channel',
             'title',
             'content',
-            'publish_start_at',
-            'publish_end_at',
-            'is_publish_period_unlimited',
             'status',
             'is_pinned',
-            'is_important',
         ] as $nullableKey) {
             if (array_key_exists($nullableKey, $data) && $data[$nullableKey] === '') {
                 $data[$nullableKey] = null;
@@ -53,10 +49,6 @@ final class NoticeUpdateForStaffRequest extends FormRequest
             'content' => ['sometimes', 'string'],
             'status' => ['sometimes', 'string', Rule::in(Notice::statuses())],
             'is_pinned' => ['sometimes', 'nullable', 'boolean'],
-            'is_publish_period_unlimited' => ['sometimes', 'nullable', 'boolean'],
-            'publish_start_at' => ['sometimes', 'nullable', 'date'],
-            'publish_end_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:publish_start_at'],
-            'is_important' => ['sometimes', 'nullable', 'boolean'],
             'attachments' => ['sometimes', 'array', 'max:5'],
             'attachments.*' => ['file', 'max:20480'],
             'existing_attachment_ids' => ['sometimes', 'array', 'max:5'],
@@ -67,7 +59,7 @@ final class NoticeUpdateForStaffRequest extends FormRequest
     public function withValidator(\Illuminate\Validation\Validator $validator): void
     {
         $validator->after(function (\Illuminate\Validation\Validator $validator): void {
-            $keptAttachmentCount = count($this->input('existing_attachment_ids', []));
+            $keptAttachmentCount = count((array) $this->input('existing_attachment_ids', []));
             $newAttachmentCount = $this->countUploadedFiles($this->file('attachments'));
 
             if ($keptAttachmentCount + $newAttachmentCount > 5) {
@@ -85,12 +77,8 @@ final class NoticeUpdateForStaffRequest extends FormRequest
             'channel' => '공지 채널',
             'title' => '제목',
             'content' => '내용',
-            'status' => '운영 상태',
+            'status' => '공개여부',
             'is_pinned' => '상단 공지 여부',
-            'is_publish_period_unlimited' => '게시기간 무제한 여부',
-            'publish_start_at' => '게시 시작 일시',
-            'publish_end_at' => '게시 종료 일시',
-            'is_important' => '관리자 메인 팝업 여부',
             'attachments' => '첨부파일 목록',
             'attachments.*' => '첨부파일',
             'existing_attachment_ids' => '기존 첨부파일 목록',
@@ -109,12 +97,13 @@ final class NoticeUpdateForStaffRequest extends FormRequest
 
             if (! $notice instanceof Notice) {
                 $fail('공지사항 정보를 확인할 수 없습니다.');
+
                 return;
             }
 
             $exists = Media::query()
                 ->whereKey((int) $value)
-                ->where('model_type', Notice::class)
+                ->where('model_type', $notice->getMorphClass())
                 ->where('model_id', $notice->getKey())
                 ->where('collection', $collection)
                 ->exists();

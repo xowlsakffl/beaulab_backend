@@ -12,6 +12,7 @@ enum ErrorCode: string
     case NOT_FOUND = 'NOT_FOUND';
     case METHOD_NOT_ALLOWED = 'METHOD_NOT_ALLOWED';
     case TOKEN_ERROR = 'TOKEN_ERROR';
+    case CSRF_MISMATCH = 'CSRF_MISMATCH';
     case DB_ERROR = 'DB_ERROR';
     case USER_NOT_FOUND = 'USER_NOT_FOUND';
     case RATE_LIMITED = 'RATE_LIMITED';
@@ -27,6 +28,7 @@ enum ErrorCode: string
             self::METHOD_NOT_ALLOWED => 405,
             self::PAYLOAD_TOO_LARGE => 413,
             self::TOKEN_ERROR => 419,
+            self::CSRF_MISMATCH => 419,
             self::RATE_LIMITED => 429,
             self::DB_ERROR => 500,
             self::USER_NOT_FOUND => 404,
@@ -44,6 +46,7 @@ enum ErrorCode: string
             self::METHOD_NOT_ALLOWED => '허용되지 않는 HTTP 메서드입니다.',
             self::PAYLOAD_TOO_LARGE => '요청 용량이 초과되었습니다.',
             self::TOKEN_ERROR => '토큰이 유효하지 않습니다.',
+            self::CSRF_MISMATCH => '요청 인증 정보가 만료되었습니다. 다시 시도해 주세요.',
             self::RATE_LIMITED => '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
             self::DB_ERROR => '데이터베이스 오류가 발생했습니다.',
             self::USER_NOT_FOUND => '사용자를 찾을 수 없습니다.',

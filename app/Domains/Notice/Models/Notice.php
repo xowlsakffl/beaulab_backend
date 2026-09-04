@@ -6,7 +6,6 @@ use App\Common\Concerns\HasAuditLogs;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Concerns\HasOperationHistories;
-use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,18 +14,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Notice 역할 정의.
- * 공지사항 도메인의 Eloquent 모델로, 게시 대상과 노출 상태, 게시 기간을 관리한다.
+ * 공지사항 도메인의 Eloquent 모델로, 게시 대상과 공개여부, 상단공지를 관리한다.
  */
 final class Notice extends Model
 {
-    use SoftDeletes, HasAuditLogs, HasOperationHistories;
+    use HasAuditLogs, HasOperationHistories, SoftDeletes;
 
     public const CHANNEL_ALL = 'ALL';
+
     public const CHANNEL_APP_WEB = 'APP_WEB';
+
     public const CHANNEL_HOSPITAL = 'HOSPITAL';
+
     public const CHANNEL_BEAUTY = 'BEAUTY';
 
     public const STATUS_ACTIVE = 'ACTIVE';
+
     public const STATUS_INACTIVE = 'INACTIVE';
 
     protected $table = 'notices';
@@ -40,10 +43,6 @@ final class Notice extends Model
         'content',
         'status',
         'is_pinned',
-        'is_publish_period_unlimited',
-        'publish_start_at',
-        'publish_end_at',
-        'is_important',
         'view_count',
         'created_by_staff_id',
         'updated_by_staff_id',
@@ -51,10 +50,6 @@ final class Notice extends Model
 
     protected $casts = [
         'is_pinned' => 'boolean',
-        'is_publish_period_unlimited' => 'boolean',
-        'publish_start_at' => 'datetime',
-        'publish_end_at' => 'datetime',
-        'is_important' => 'boolean',
         'view_count' => 'integer',
         'created_by_staff_id' => 'integer',
         'updated_by_staff_id' => 'integer',
@@ -65,10 +60,8 @@ final class Notice extends Model
 
     protected $attributes = [
         'channel' => self::CHANNEL_ALL,
-        'status' => self::STATUS_ACTIVE,
+        'status' => self::STATUS_INACTIVE,
         'is_pinned' => false,
-        'is_publish_period_unlimited' => true,
-        'is_important' => false,
         'view_count' => 0,
     ];
 
@@ -96,23 +89,6 @@ final class Notice extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(AccountStaff::class, 'updated_by_staff_id');
-    }
-
-    public function scopePublishedAt(Builder $query, ?CarbonInterface $at = null): Builder
-    {
-        $at ??= now();
-
-        return $query
-            ->where('status', self::STATUS_ACTIVE)
-            ->where(function (Builder $q) use ($at): void {
-                $q->whereNull('publish_start_at')
-                    ->orWhere('publish_start_at', '<=', $at);
-            })
-            ->where(function (Builder $q) use ($at): void {
-                $q->where('is_publish_period_unlimited', true)
-                    ->orWhereNull('publish_end_at')
-                    ->orWhere('publish_end_at', '>=', $at);
-            });
     }
 
     public function scopeForAudience(Builder $query, string $channel): Builder

@@ -2,18 +2,18 @@
 
 namespace App\Domains\AccountBeauty\Actions\Beauty;
 
-use App\Domains\AccountBeauty\Queries\Beauty\LogoutForAccountBeautyQuery;
+use App\Common\Auth\ActorAuthentication;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
 /**
  * 뷰티 계정 로그아웃 유스케이스.
- * 현재 요청에 사용된 access token만 삭제한다.
+ * 현재 브라우저의 뷰티 세션을 폐기한다.
  */
 final class LogoutForAccountBeautyAction
 {
     public function __construct(
-        private readonly LogoutForAccountBeautyQuery $query,
+        private readonly ActorAuthentication $authentication,
     ) {}
 
     /**
@@ -21,7 +21,7 @@ final class LogoutForAccountBeautyAction
      */
     public function execute(?Authenticatable $actor): array
     {
-        $this->query->deleteCurrentToken($actor);
+        $this->authentication->logout($actor);
 
         Log::info('뷰티 로그아웃', [
             'actor_type' => $actor ? get_class($actor) : null,

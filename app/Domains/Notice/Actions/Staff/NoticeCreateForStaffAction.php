@@ -68,10 +68,6 @@ final class NoticeCreateForStaffAction
         $payload['title'] = trim((string) $payload['title']);
         $payload['content'] = $this->sanitizeEditorContent((string) $payload['content']);
 
-        if ((bool) ($payload['is_publish_period_unlimited'] ?? true)) {
-            $payload['publish_end_at'] = null;
-        }
-
         $payload['created_by_staff_id'] = $staffId;
         $payload['updated_by_staff_id'] = $staffId;
 

@@ -82,13 +82,6 @@ final class NoticeUpdateForStaffAction
             $payload['content'] = $this->sanitizeEditorContent((string) $payload['content']);
         }
 
-        if (
-            array_key_exists('is_publish_period_unlimited', $payload)
-            && (bool) $payload['is_publish_period_unlimited']
-        ) {
-            $payload['publish_end_at'] = null;
-        }
-
         $payload['updated_by_staff_id'] = $staffId;
 
         return $payload;

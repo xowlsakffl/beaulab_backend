@@ -36,6 +36,10 @@ return [
     */
 
     'guards' => [
+        'staff_web' => ['driver' => 'session', 'provider' => 'staff'],
+        'hospital_web' => ['driver' => 'session', 'provider' => 'hospitals'],
+        'beauty_web' => ['driver' => 'session', 'provider' => 'beauties'],
+        'user_web' => ['driver' => 'session', 'provider' => 'users'],
         /*
          * 'web' => [
             'driver' => 'session',
@@ -150,11 +154,6 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
-    ],
-
-    'staff_login_tokens' => [
-        'session_expire_minutes' => (int) env('STAFF_LOGIN_SESSION_TOKEN_EXPIRE_MINUTES', 720),
-        'remember_expire_minutes' => (int) env('STAFF_LOGIN_REMEMBER_TOKEN_EXPIRE_MINUTES', 43200),
     ],
 
     /*

@@ -17,7 +17,7 @@ Route::prefix('auth')->group(function () {
         ->name('password-reset.verify')->middleware('throttle:password-reset-verify');
     Route::post('password-reset', [HospitalAccountPasswordResetForHospitalController::class, 'resetHospitalAccountPassword'])
         ->name('password-reset')->middleware('throttle:password-reset-submit');
-    Route::post('login', [AuthForHospitalController::class, 'login'])->name('login')->middleware('throttle:auth-login');
+    Route::post('login', [AuthForHospitalController::class, 'login'])->name('login')->middleware(['web.session', 'throttle:auth-login']);
     Route::get('account-invitations/{token}', [HospitalAccountInvitationForHospitalController::class, 'getHospitalAccountInvitationForHospital'])
         ->name('account-invitations.getHospitalAccountInvitationForHospital')
         ->where('token', '[A-Za-z0-9]{64}')
@@ -37,7 +37,7 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:hospital-account-invitation-complete');
 });
 
-Route::middleware(['auth:sanctum', 'abilities:actor:hospital'])->group(function () {
+Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthForHospitalController::class, 'logout'])->name('logout');
     });

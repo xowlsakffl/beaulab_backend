@@ -10,7 +10,7 @@ use App\Modules\Beauty\Http\Controllers\Auth\AuthForBeautyController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthForBeautyController::class, 'login'])->name('login')->middleware('throttle:auth-login');
+    Route::post('login', [AuthForBeautyController::class, 'login'])->name('login')->middleware(['web.session', 'throttle:auth-login']);
     Route::post('password-reset-link', [AuthForBeautyController::class, 'sendPasswordResetLink'])
         ->name('password-reset-link')
         ->middleware('throttle:password-reset-link');
@@ -22,7 +22,7 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:password-reset-submit');
 });
 
-Route::middleware(['auth:sanctum', 'abilities:actor:beauty'])->group(function () {
+Route::middleware(['auth:sanctum', 'actor:beauty'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthForBeautyController::class, 'logout'])->name('logout');
     });

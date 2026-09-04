@@ -322,7 +322,6 @@ final class KoreanOpenApiDescriptions
             'token' => '인증 토큰',
             'token_type' => '토큰 타입',
             'expires_at' => '만료 일시',
-            'keep_logged_in' => '로그인 유지 여부',
             'available' => '사용 가능 여부',
             'exists' => '중복 존재 여부',
             'message' => '메시지',

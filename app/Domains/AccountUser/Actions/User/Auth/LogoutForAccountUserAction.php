@@ -2,18 +2,18 @@
 
 namespace App\Domains\AccountUser\Actions\User\Auth;
 
-use App\Domains\AccountUser\Queries\User\Auth\LogoutForAccountUserQuery;
+use App\Common\Auth\ActorAuthentication;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
 /**
- * 앱 사용자 로그아웃 유스케이스.
- * 현재 access token만 삭제해 다른 기기 세션은 유지한다.
+ * 사용자 로그아웃 유스케이스.
+ * 현재 웹 세션 또는 앱 토큰만 폐기해 다른 기기의 로그인을 유지한다.
  */
 final class LogoutForAccountUserAction
 {
     public function __construct(
-        private readonly LogoutForAccountUserQuery $query,
+        private readonly ActorAuthentication $authentication,
     ) {}
 
     /**
@@ -21,7 +21,7 @@ final class LogoutForAccountUserAction
      */
     public function execute(?Authenticatable $actor): array
     {
-        $this->query->deleteCurrentToken($actor);
+        $this->authentication->logout($actor);
 
         Log::info('앱 사용자 로그아웃', [
             'actor_type' => $actor ? get_class($actor) : null,

@@ -21,30 +21,26 @@ final class NoticeListForStaffQuery
                 'channel',
                 'title',
                 'status',
-                'is_pinned',
-                'is_publish_period_unlimited',
-                'publish_start_at',
-                'publish_end_at',
-                'is_important',
                 'view_count',
                 'created_by_staff_id',
-                'updated_by_staff_id',
                 'created_at',
-                'updated_at',
             ])
             ->with([
                 'creator:id,name,email',
-                'updater:id,name,email',
-            ])
-            ->withCount([
-                'attachments',
             ]);
 
-        if (! empty($filters['q'])) {
-            $q = (string) $filters['q'];
+        if (isset($filters['q']) && trim((string) $filters['q']) !== '') {
+            $q = trim((string) $filters['q']);
             $query->where(function (Builder $builder) use ($q): void {
                 $builder->where('title', 'like', "%{$q}%")
-                    ->orWhere('content', 'like', "%{$q}%");
+                    ->orWhereHas('creator', function (Builder $staffQuery) use ($q): void {
+                        $staffQuery->where('name', 'like', "%{$q}%")
+                            ->orWhere('nickname', 'like', "%{$q}%");
+                    });
+
+                if (ctype_digit($q)) {
+                    $builder->orWhere('id', $q);
+                }
             });
         }
 
@@ -57,16 +53,6 @@ final class NoticeListForStaffQuery
         }
 
         DateRangeFilter::apply($query, 'created_at', $filters['start_date'] ?? null, $filters['end_date'] ?? null);
-        DateRangeFilter::apply($query, 'updated_at', $filters['updated_start_date'] ?? null, $filters['updated_end_date'] ?? null);
-
-        if (array_key_exists('is_pinned', $filters) && $filters['is_pinned'] !== null) {
-            $query->where('is_pinned', (bool) $filters['is_pinned']);
-        }
-
-        if (array_key_exists('is_important', $filters) && $filters['is_important'] !== null) {
-            $query->where('is_important', (bool) $filters['is_important']);
-        }
-
         $sort = $filters['sort'] ?? null;
         $direction = $filters['direction'] ?? 'desc';
 
@@ -76,9 +62,7 @@ final class NoticeListForStaffQuery
                 $query->orderByDesc('id');
             }
         } else {
-            $query->orderByDesc('is_pinned')
-                ->orderByDesc('publish_start_at')
-                ->orderByDesc('id');
+            $query->orderByDesc('id');
         }
 
         return $query

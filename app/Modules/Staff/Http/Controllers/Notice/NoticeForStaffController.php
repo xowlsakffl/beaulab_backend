@@ -4,12 +4,14 @@ namespace App\Modules\Staff\Http\Controllers\Notice;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\Notice\Actions\Staff\NoticeAttachmentDownloadForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeCreateForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeDeleteForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeEditorImageCleanupForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeEditorImageUploadForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeGetForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeListForStaffAction;
+use App\Domains\Notice\Actions\Staff\NoticeOperationHistoriesForStaffAction;
 use App\Domains\Notice\Actions\Staff\NoticeUpdateForStaffAction;
 use App\Domains\Notice\Models\Notice;
 use App\Modules\Staff\Http\Requests\Notice\NoticeCreateForStaffRequest;
@@ -41,6 +43,24 @@ final class NoticeForStaffController extends Controller
         $result = $action->execute($notice);
 
         return ApiResponse::success($result['notice']);
+    }
+
+    public function getNoticeOperationHistoriesForStaff(
+        Notice $notice,
+        NoticeGetForStaffRequest $request,
+        NoticeOperationHistoriesForStaffAction $action,
+    ) {
+        $result = $action->execute($notice, $request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta']);
+    }
+
+    public function downloadNoticeAttachmentForStaff(
+        Notice $notice,
+        int $attachment,
+        NoticeAttachmentDownloadForStaffAction $action,
+    ) {
+        return $action->execute($notice, $attachment);
     }
 
     public function createNoticeForStaff(

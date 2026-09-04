@@ -96,6 +96,10 @@ final class AccessPermissions
 
     public const BEAULAB_STAFF_DELETE = 'beaulab.staff.delete';
 
+    public const BEAULAB_DB_PRICING_MANAGE = 'beaulab.db_pricing.manage';
+
+    public const BEAULAB_AD_PRICING_MANAGE = 'beaulab.ad_pricing.manage';
+
     public const BEAULAB_DOCTOR_SHOW = 'beaulab.doctor.show';
 
     public const BEAULAB_DOCTOR_CREATE = 'beaulab.doctor.create';
@@ -426,6 +430,8 @@ final class AccessPermissions
             self::BEAULAB_STAFF_CREATE,
             self::BEAULAB_STAFF_UPDATE,
             self::BEAULAB_STAFF_DELETE,
+            self::BEAULAB_DB_PRICING_MANAGE,
+            self::BEAULAB_AD_PRICING_MANAGE,
             self::BEAULAB_HOSPITAL_WALLET_REFUND_PROCESS,
             self::BEAULAB_HOSPITAL_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_STATUS_REQUEST_PROCESS,

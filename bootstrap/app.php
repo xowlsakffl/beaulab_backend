@@ -2,8 +2,10 @@
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Common\Http\Middleware\EnsureActor;
 use App\Common\Http\Middleware\EnsureInternalToolIpAllowed;
 use App\Common\Http\Middleware\RequestId;
+use App\Common\Http\Middleware\StartActorWebSession;
 use App\Common\Http\Responses\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -35,7 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withBroadcasting(
         __DIR__.'/../routes/channels.php',
-        ['middleware' => ['api', 'auth:sanctum', 'abilities:actor:user']]
+        ['middleware' => ['api', 'auth:sanctum', 'actor:user']]
     )
 
     /*
@@ -45,6 +47,8 @@ return Application::configure(basePath: dirname(__DIR__))
     */
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(RequestId::class);
+        $middleware->api(prepend: [StartActorWebSession::class]);
+        $middleware->prependToPriorityList(\Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class, StartActorWebSession::class);
 
         // 요청 주체(staff/hospital/beauty/user)에 따라 각 로그인 라우트로 리다이렉트한다.
         // 라우트가 정의되어 있지 않으면 null을 반환해 401 JSON 응답을 유지한다.
@@ -89,6 +93,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'internal_tool.ip' => EnsureInternalToolIpAllowed::class,
 
             'abilities' => CheckAbilities::class,
+            'actor' => EnsureActor::class,
+            'web.session' => \App\Common\Http\Middleware\RequireWebSession::class,
             'ability' => CheckForAnyAbility::class,
         ]);
     })
@@ -107,7 +113,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // console에서도 안전한 context
         $exceptions->context(function () {
-            if (!app()->bound('request')) {
+            if (! app()->bound('request')) {
                 return [];
             }
 
@@ -133,6 +139,10 @@ return Application::configure(basePath: dirname(__DIR__))
                     message: $e->getMessage() !== '' ? $e->getMessage() : null,
                     details: $e->details
                 );
+            }
+
+            if ($e instanceof \Illuminate\Session\TokenMismatchException || $e->getPrevious() instanceof \Illuminate\Session\TokenMismatchException) {
+                return ApiResponse::errorCode(ErrorCode::CSRF_MISMATCH);
             }
 
             // 422 Validation
@@ -181,7 +191,6 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($e instanceof PostTooLargeException) {
                 return ApiResponse::errorCode(ErrorCode::PAYLOAD_TOO_LARGE);
             }
-
 
             // abort(429), abort(419) 등 HTTP 예외
             if ($e instanceof HttpExceptionInterface) {

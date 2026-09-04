@@ -22,17 +22,17 @@ final class NoticeUpdateHistoryRecordAction
         $notice->loadMissing('attachments');
 
         return [
-            'channel' => $this->item('노출 대상', $notice->channel, $notice->channel),
+            'channel' => $this->item('채널', $notice->channel, match ($notice->channel) {
+                Notice::CHANNEL_ALL => '전체 채널',
+                Notice::CHANNEL_APP_WEB => '앱/웹',
+                Notice::CHANNEL_HOSPITAL => '병의원',
+                Notice::CHANNEL_BEAUTY => '뷰티',
+                default => $notice->channel,
+            }),
             'title' => $this->item('제목', $notice->title, $notice->title),
             'content' => $this->item('내용', $notice->content, $notice->content),
-            'status' => $this->item('공개여부', $notice->status, $notice->status),
-            'is_pinned' => $this->item('상단 고정', (bool) $notice->is_pinned, (bool) $notice->is_pinned ? '예' : '아니오'),
-            'is_important' => $this->item('중요 공지', (bool) $notice->is_important, (bool) $notice->is_important ? '예' : '아니오'),
-            'publish_period' => $this->item('게시기간', [
-                'is_unlimited' => (bool) $notice->is_publish_period_unlimited,
-                'start' => $notice->publish_start_at?->toDateString(),
-                'end' => $notice->publish_end_at?->toDateString(),
-            ], $this->periodLabel($notice)),
+            'status' => $this->item('공개여부', $notice->status, $notice->status === Notice::STATUS_ACTIVE ? '공개' : '비공개'),
+            'is_pinned' => $this->item('상단공지', (bool) $notice->is_pinned, (bool) $notice->is_pinned ? '예' : '아니오'),
             'attachments' => $this->item('첨부파일', $this->attachmentValue($notice), $this->attachmentDisplay($notice)),
         ];
     }
@@ -47,7 +47,13 @@ final class NoticeUpdateHistoryRecordAction
      */
     public function recordUpdated(Notice $notice, array $before): void
     {
-        $this->record($notice, OperationHistory::ACTION_UPDATED, 'staff.notice.update', OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($notice)));
+        $changes = collect(OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($notice)));
+        [$stateChanges, $contentChanges] = $changes->partition(
+            static fn (array $change): bool => $change['field_key'] === 'status',
+        );
+
+        $this->record($notice, OperationHistory::ACTION_UPDATED, 'staff.notice.update', $contentChanges->values()->all());
+        $this->record($notice, OperationHistory::ACTION_STATE_UPDATED, 'staff.notice.update', $stateChanges->values()->all());
     }
 
     /**
@@ -77,16 +83,6 @@ final class NoticeUpdateHistoryRecordAction
         return $this->lineList(collect($this->attachmentValue($notice))
             ->map(static fn (array $media): string => basename($media['path']))
             ->all());
-    }
-
-    private function periodLabel(Notice $notice): string
-    {
-        $startAt = $notice->publish_start_at?->format('y.m.d') ?? '-';
-        if ((bool) $notice->is_publish_period_unlimited) {
-            return "{$startAt} ~ 무기한";
-        }
-
-        return "{$startAt} ~ ".($notice->publish_end_at?->format('y.m.d') ?? '-');
     }
 
     /**

@@ -2,21 +2,23 @@
 
 namespace App\Domains\AccountStaff\Queries\Staff\Auth;
 
+use App\Common\Auth\LoginCredentials;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 /**
  * 스태프 로그인 Query.
- * nickname/password/계정 상태를 검증하고 Sanctum actor:staff 토큰을 발급한다.
+ * nickname/password/계정 상태를 검증한다.
  */
 final class LoginForStaffQuery
 {
+    public function __construct(private readonly LoginCredentials $credentials) {}
+
     /**
-     * @param  array{nickname:string,password:string,keep_logged_in?:bool}  $data
-     * @return array{token:string, staff: AccountStaff, roles: list<string>, permissions: list<string>}
+     * @param  array{nickname:string,password:string}  $data
+     * @return array{staff: AccountStaff, roles: list<string>, permissions: list<string>}
      */
     public function login(array $data): array
     {
@@ -24,8 +26,8 @@ final class LoginForStaffQuery
     }
 
     /**
-     * @param  array{nickname:string,password:string,keep_logged_in?:bool}  $data
-     * @return array{token:string, staff: AccountStaff, roles: list<string>, permissions: list<string>}
+     * @param  array{nickname:string,password:string}  $data
+     * @return array{staff: AccountStaff, roles: list<string>, permissions: list<string>}
      */
     private function loginInTransaction(array $data): array
     {
@@ -33,22 +35,8 @@ final class LoginForStaffQuery
             ->where('nickname', $data['nickname'])
             ->first();
 
-        // 아이디 없음
-        if (! $staff) {
-            throw new CustomException(
-                errorCode: ErrorCode::USER_NOT_FOUND
-            );
-        }
+        $this->credentials->validate($staff, $data['password']);
 
-        // 비밀번호 틀림
-        if (! Hash::check($data['password'], $staff->password)) {
-            throw new CustomException(
-                errorCode: ErrorCode::UNAUTHORIZED,
-                message: '아이디 또는 비밀번호가 일치하지 않습니다.'
-            );
-        }
-
-        // 계정 비활성
         if (! $staff->isActive()) {
             throw new CustomException(
                 errorCode: ErrorCode::FORBIDDEN,
@@ -60,26 +48,10 @@ final class LoginForStaffQuery
             'last_login_at' => now(),
         ])->save();
 
-        $tokenExpiresAt = now()->addMinutes($this->tokenExpireMinutes((bool) ($data['keep_logged_in'] ?? false)));
-
-        $token = $staff
-            ->createToken('staff-web', ['actor:staff'], $tokenExpiresAt)
-            ->plainTextToken;
-
         return [
-            'token' => $token,
             'staff' => $staff,
             'roles' => $staff->getRoleNames()->values()->all(),
             'permissions' => $staff->getAllPermissions()->pluck('name')->values()->all(),
         ];
-    }
-
-    private function tokenExpireMinutes(bool $keepLoggedIn): int
-    {
-        $configKey = $keepLoggedIn
-            ? 'auth.staff_login_tokens.remember_expire_minutes'
-            : 'auth.staff_login_tokens.session_expire_minutes';
-
-        return max(1, (int) config($configKey));
     }
 }

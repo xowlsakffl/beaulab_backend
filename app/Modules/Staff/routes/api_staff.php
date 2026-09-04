@@ -39,7 +39,7 @@ use App\Modules\Staff\Http\Controllers\TalkComment\TalkCommentForStaffController
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthForStaffController::class, 'login'])->name('login')->middleware('throttle:auth-login');
+    Route::post('login', [AuthForStaffController::class, 'login'])->name('login')->middleware(['web.session', 'throttle:auth-login']);
     Route::post('password-reset-link', [AuthForStaffController::class, 'sendPasswordResetLink'])
         ->name('password-reset-link')
         ->middleware('throttle:password-reset-link');
@@ -51,7 +51,7 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:password-reset-submit');
 });
 
-Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.AccessPermissions::COMMON_ACCESS])->group(function () {
+Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermissions::COMMON_ACCESS])->group(function () {
 
     // 인증
     Route::prefix('auth')->group(function () {
@@ -462,6 +462,11 @@ Route::middleware(['auth:sanctum', 'abilities:actor:staff', 'permission:'.Access
         ->name('notices.getNoticesForStaff');
     Route::get('notices/{notice}', [NoticeForStaffController::class, 'getNoticeForStaff'])
         ->name('notices.getNoticeForStaff');
+    Route::get('notices/{notice}/operation-histories', [NoticeForStaffController::class, 'getNoticeOperationHistoriesForStaff'])
+        ->name('notices.getNoticeOperationHistoriesForStaff');
+    Route::get('notices/{notice}/attachments/{attachment}/download', [NoticeForStaffController::class, 'downloadNoticeAttachmentForStaff'])
+        ->whereNumber('attachment')
+        ->name('notices.downloadNoticeAttachmentForStaff');
     Route::post('notices', [NoticeForStaffController::class, 'createNoticeForStaff'])
         ->name('notices.createNoticeForStaff');
     Route::post('notices/editor-images', [NoticeForStaffController::class, 'uploadEditorImageForStaff'])

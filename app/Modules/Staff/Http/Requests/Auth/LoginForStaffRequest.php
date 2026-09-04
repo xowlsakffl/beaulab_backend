@@ -20,8 +20,6 @@ final class LoginForStaffRequest extends FormRequest
         return [
             'nickname' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'max:255'],
-            'device_name' => ['nullable', 'string', 'max:255'],
-            'keep_logged_in' => ['nullable', 'boolean'],
         ];
     }
 
@@ -30,8 +28,6 @@ final class LoginForStaffRequest extends FormRequest
         return [
             'nickname' => '아이디',
             'password' => '비밀번호',
-            'device_name' => '디바이스명',
-            'keep_logged_in' => '로그인 유지',
         ];
     }
 
@@ -41,15 +37,6 @@ final class LoginForStaffRequest extends FormRequest
 
         $data['nickname'] = trim((string) $data['nickname']);
         $data['password'] = (string) $data['password'];
-
-        if (isset($data['device_name'])) {
-            $data['device_name'] = trim((string) $data['device_name']);
-            if ($data['device_name'] === '') {
-                $data['device_name'] = null;
-            }
-        }
-
-        $data['keep_logged_in'] = (bool) ($data['keep_logged_in'] ?? false);
 
         return $data;
     }

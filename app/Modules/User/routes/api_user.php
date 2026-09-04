@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 // 앱 사용자 API
 
-// 로그인은 토큰이 없는 상태에서 호출되므로 auth 미들웨어 밖에 둔다.
+// 로그인은 인증 전에 호출되므로 auth 미들웨어 밖에 둔다.
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthForUserController::class, 'login'])
         ->name('login')
@@ -34,8 +34,8 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:password-reset-submit');
 });
 
-// 아래 API는 Sanctum actor:user 토큰만 허용한다.
-Route::middleware(['auth:sanctum', 'abilities:actor:user', EnsureActiveUser::class])->group(function () {
+// 아래 API는 사용자 웹 세션 또는 actor:user 앱 토큰을 허용한다.
+Route::middleware(['auth:sanctum', 'actor:user', EnsureActiveUser::class])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthForUserController::class, 'logout'])
             ->name('logout');

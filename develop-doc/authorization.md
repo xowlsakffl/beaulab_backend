@@ -16,6 +16,8 @@ Staff 프론트 route 접근 제어는 아래 파일을 기준으로 한다.
 
 ## 1) Guard
 
+웹 세션/앱 토큰 인증, CSRF 및 만료 정책은 [web-authentication.md](web-authentication.md)를 따른다. `staff_web`, `hospital_web`, `beauty_web`, `user_web`은 세션 인증 전용 guard이며 Spatie 권한 guard 이름은 기존대로 유지한다.
+
 병의원 비밀번호 재설정 문자 발송은 `beaulab.hospital_account_password_reset.send`와 대상 병의원 조회 권한을 모두 요구한다. 기본 admin/super_admin 역할에 포함하고 조회 직원에는 부여하지 않는다. 일반 병의원 수정 및 상태 변경 권한과는 분리한다.
 
 - `staff`: 뷰랩 내부 직원
@@ -73,6 +75,7 @@ Spatie role/permission은 `staff`, `hospital`, `beauty` guard에만 생성한다
 - Agency: `beaulab.agency.show|create|update|delete`
 - User: `beaulab.user.show`, `beaulab.user.status_update`
 - Staff: `beaulab.staff.show|create|update|delete`
+- 운영 관리 설정: `beaulab.db_pricing.manage`, `beaulab.ad_pricing.manage`. 기본 역할 매핑에서는 최고관리자에게만 부여한다. 현재 프론트 설정 페이지는 placeholder이며 설정 변경 API는 아직 없다.
 - Doctor: `beaulab.doctor.show|create|update|delete`
 - Expert: `beaulab.expert.show|create|update|delete`
 - Video: `beaulab.video.show|create|update|delete`
@@ -224,10 +227,12 @@ Seeder는 현재 코드에 있는 role/permission을 생성하고 role별 permis
 
 현재 모듈별 공통 라우트 미들웨어는 아래와 같다.
 
-- Staff: `auth:sanctum`, `abilities:actor:staff`, `permission:common.access`
-- Hospital: `auth:sanctum`, `abilities:actor:hospital`
-- Beauty: `auth:sanctum`, `abilities:actor:beauty`
-- User: `auth:sanctum`, `abilities:actor:user`, `EnsureActiveUser`
+- Staff: `auth:sanctum`, `actor:staff`, `permission:common.access`
+- Hospital: `auth:sanctum`, `actor:hospital`
+- Beauty: `auth:sanctum`, `actor:beauty`
+- User: `auth:sanctum`, `actor:user`, `EnsureActiveUser`
+
+`actor:*`는 실제 계정 모델과 활성 상태를 검사한다. 웹은 해당 actor 세션만 허용하고, 사용자 앱은 `actor:user` 토큰을 허용한다. Sanctum 세션의 transient token ability를 계정 유형 검증에 사용하지 않는다.
 
 Staff 라우트에 도메인별 `permission:*` 미들웨어를 직접 붙이는 방식은 현재 기본 패턴이 아니다. Staff 라우트는 `common.access`로 공통 진입을 막고, 실제 도메인 권한은 Action 진입부의 `Gate::authorize()`와 Policy에서 검사한다.
 
@@ -295,7 +300,7 @@ Staff 프론트는 `route-permissions.ts`에서 route별 required permission을 
 - Telescope
 - Scramble/OpenAPI 문서
 
-내부 도구는 API용 `staff` 토큰 guard가 아니라 웹 세션 guard인 `tool_staff`를 사용한다.
+내부 도구는 관리자 API용 `staff_web`과 별개인 `tool_staff` 웹 세션 guard를 사용한다.
 
 공통 Gate:
 

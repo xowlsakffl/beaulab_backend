@@ -45,19 +45,21 @@ Staff 프론트 메뉴 prefix와 API path는 반드시 같을 필요가 없다. 
 
 ## 4) 인증/인가 흐름
 
+웹은 Redis 서버 세션, 네이티브 사용자 앱은 Sanctum 토큰을 사용한다. 공통 미들웨어, CSRF, actor 분리, 만료 정책은 `web-authentication.md`를 따른다.
+
 - Staff 보호 라우트
   - `auth:sanctum`
-  - `abilities:actor:staff`
+  - `actor:staff`
   - `permission:common.access`
 - Hospital 보호 라우트
   - `auth:sanctum`
-  - `abilities:actor:hospital`
+  - `actor:hospital`
 - Beauty 보호 라우트
   - `auth:sanctum`
-  - `abilities:actor:beauty`
+  - `actor:beauty`
 - User 보호 라우트
   - `auth:sanctum`
-  - `abilities:actor:user`
+  - `actor:user`
   - `EnsureActiveUser`
 
 비밀번호 재설정 API는 로그인 전에도 호출되어야 하므로 보호 라우트 밖에 둔다. 대신 `RateLimitServiceProvider`의 throttle key를 사용한다.
@@ -154,12 +156,15 @@ Staff 목록 상단 summary는 `StaffSummaryCache`를 통해 캐시한다.
 기능 범위:
 
 1. 공지 CRUD
-2. 채널/상태/상단고정/게시기간
-3. 첨부파일 업로드
+2. 채널/공개여부/상단공지
+3. 첨부파일 업로드 및 공지 조회 권한을 검사하는 다운로드 API (`GET /notices/{notice}/attachments/{attachment}/download`)
 4. 에디터 이미지 업로드/정리
-5. 관리자 메인 팝업(`is_important`)
+5. 공통 운영 히스토리 기록 및 페이지네이션 조회
 6. FAQ CRUD
 7. FAQ 에디터 이미지 업로드/정리
+
+공지사항 목록은 등록일 기간, 채널, 공개여부로 필터링하며 ID, 제목, 등록 직원 이름/아이디로 검색한다.
+게시기간, 무기한 게시, 메인 팝업 옵션은 공지사항 계약에서 제외한다. 기존 DB의 해당 컬럼은 참조하지 않으며 공개여부로 노출을 판정한다.
 
 ## 7) 병의원 게시물 운영 구조
 
@@ -275,7 +280,7 @@ DTO 응답 원칙:
 
 ## 8) API 응답 / 페이지네이션 원칙
 
-브라우저 API의 CORS 설정은 `config/cors.php`에서 관리한다. 기존 origin/header/method 허용 정책과 토큰 인증은 유지하며, `CORS_MAX_AGE`(기본 3600초)로 사전 요청 결과만 캐시한다. 업무 API 응답이나 인증 결과를 캐시하는 설정은 아니다.
+브라우저 API의 CORS 설정은 `config/cors.php`에서 관리한다. `config/web_auth.php`의 actor별 웹 origin만 허용하며 쿠키 전송을 지원한다. `CORS_MAX_AGE`(기본 3600초)는 사전 요청 결과만 캐시하며 업무 API 응답이나 인증 결과를 캐시하지 않는다.
 
 `LengthAwarePaginator` 기반 목록은 `App\Common\Support\PaginatedResponse`를 사용한다.
 

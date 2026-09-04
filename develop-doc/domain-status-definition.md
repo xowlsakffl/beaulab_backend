@@ -717,15 +717,18 @@ summary 필터:
 
 | 저장값 | 표시명 | 의미 |
 |---|---|---|
-| `ACTIVE` | 활성 | 게시 가능 |
-| `INACTIVE` | 비활성 | 게시 불가 |
+| `ACTIVE` | 공개 | 게시 가능 |
+| `INACTIVE` | 비공개 | 게시 불가 |
 
 기본값:
 
 - `channel`: `ALL`
-- `status`: `ACTIVE`
-- `is_publish_period_unlimited`: `true`
-- `is_pinned`, `is_important`: `false`
+- `status`: `INACTIVE` (신규 공지사항은 비공개로 생성)
+- `is_pinned`: `false` (상단공지)
+
+생성 요청에서 `status`를 생략해도 비공개로 저장한다. 기존 공지사항의 공개여부는 변경하지 않는다.
+
+공지 노출은 게시기간 없이 공개여부와 채널을 기준으로 판단한다.
 
 ### 11.2 `Faq`
 

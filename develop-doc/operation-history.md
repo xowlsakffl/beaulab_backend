@@ -290,6 +290,7 @@ $changes = OperationHistoryChangeSetBuilder::make()
 
 현재 별도 조회 Action이 있는 도메인:
 
+- `Notice` (`GET /api/v1/staff/notices/{notice}/operation-histories`, 공지 상세 조회 권한)
 - `Hospital`
 - `HospitalEvent`
 - `HospitalEventAd`

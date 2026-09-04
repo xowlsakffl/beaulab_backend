@@ -1078,7 +1078,7 @@ Table notices {
   channel varchar(20) [default: `'ALL'`, note: '공지 채널(ALL, APP_WEB, HOSPITAL, BEAUTY)']
   title varchar(255) [note: '공지 제목']
   content text [note: '에디터 HTML 본문']
-  status varchar(20) [default: `'ACTIVE'`, note: '운영 상태(ACTIVE, INACTIVE)']
+  status varchar(20) [default: `'INACTIVE'`, note: '공개여부(ACTIVE: 공개, INACTIVE: 비공개)']
   is_pinned boolean [default: `false`, note: '상단 공지 여부']
   is_publish_period_unlimited boolean [default: `true`, note: '게시기간 무제한 여부']
   publish_start_at timestamp [null, note: '게시 시작 일시']

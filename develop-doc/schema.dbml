@@ -266,6 +266,7 @@ Table chat_messages {
   updated_at timestamp
   deleted_at timestamp [null, note: '소프트 삭제 시각']
   Note: '채팅 메시지 본문과 답장 관계를 저장합니다.'
+  broadcast_pending boolean [default: `false`, note: '커밋 후 Reverb 발행 대기']
 }
 
 Table chat_participants {
@@ -1107,6 +1108,12 @@ Table notification_deliveries {
   created_at timestamp
   updated_at timestamp
   Note: '알림 채널별 발송 이력을 저장합니다.'
+  generation int [default: 0, note: '알림 집계 갱신 세대']
+  message_snapshot json [null, note: '발송 본문 스냅샷']
+  device_results json [null, note: '기기별 발송/재시도 결과']
+  lease_token varchar(36) [null, note: '현재 워커 임대 식별자']
+  processing_until timestamp [null, note: '워커 임대 만료']
+  next_attempt_at timestamp [null, note: '다음 시도 가능 시각']
 }
 
 Table notification_devices {
@@ -1561,3 +1568,19 @@ Ref: sessions.user_id > account_users.id
 Ref: chat_participants.last_read_message_id > chat_messages.id
 Ref: chat_participants.deleted_until_message_id > chat_messages.id
 Ref: chats.last_message_id > chat_messages.id
+
+
+Table hospital_event_ad_booking_locks {
+  id tinyint [pk, note: '구좌 쓰기 직렬화용 고정 행 1']
+}
+
+Table media_file_deletions {
+  id bigint [pk, increment]
+  disk varchar(100)
+  paths json
+  attempts int [default: 0]
+  available_at timestamp
+  last_error text [null]
+  created_at timestamp
+  updated_at timestamp
+}

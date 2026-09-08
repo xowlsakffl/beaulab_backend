@@ -34,7 +34,11 @@
 | `schedule-monitor:sync` | 매일 02:50 | Schedule Monitor 대상 동기화 |
 | `notice:cleanup-temp-editor-images --hours=24` | 매시간 | 공지 에디터 임시 이미지 정리 |
 | `horizon:snapshot` | 5분마다 | Horizon 메트릭 스냅샷 수집 |
-| `sms:dispatch-pending --limit=500` | 매분 | Redis 큐 미등록 문자 재큐잉 |
+| `sms:dispatch-pending --limit=500 --stale-minutes=5` | 매분 | 미등록/장기대기/중단 문자 복구 |
+| `notifications:send-pending-push --limit=500` | 매분 | 처리 임대가 없는 재시도 가능 Push 복구 |
+| `chat:dispatch-pending-broadcasts` | 매분 | 커밋 후 브로드캐스트 미완료 채팅 복구 |
+| `media:cleanup-files` | 5분마다 | 커밋된 파일 삭제 및 24시간 경과 고아 업로드 정리 |
+| `hospital-wallet:audit-integrity` | 매일 03:40 | 충전금 원장/잔액 불변 조건 확인 |
 | `queue:prune-batches --hours=72 --unfinished=72 --cancelled=168` | 매일 03:10 | 오래된 job batch 메타 정리 |
 | `queue:prune-failed --hours=168` | 매일 03:20 | 오래된 failed job 정리 |
 | `hospital-evaluations:refresh-hospital-ratings` | 매일 03:30 | 병원별 평가 수/평균 평점 집계 보정 |
@@ -46,8 +50,11 @@
 | 명령 | 용도 | 스케줄 등록 |
 |---|---|---:|
 | `notice:cleanup-temp-editor-images {--hours=24}` | 오래된 공지 에디터 임시 이미지 정리 | 예 |
-| `notifications:send-pending-push {--limit=100}` | 누락된 pending Push delivery 재큐잉 | 아니오 |
+| `notifications:send-pending-push {--limit=100}` | 누락된 pending Push delivery 재큐잉 | 예 |
 | `sms:dispatch-pending {--limit=100} {--stale-minutes=}` | 큐 미등록 문자 재큐잉, 옵션 지정 시 장기대기 포함 | 예 |
+| `media:privatize {--apply} {--limit=500}` | 민감 파일 비공개 이전, 기본 읽기 전용 | 아니오 |
+| `media:cleanup-files {--limit=500}` | 커밋된 파일 삭제/고아 업로드 정리 | 예 |
+| `chat:dispatch-pending-broadcasts {--limit=500}` | 채팅 미완료 브로드캐스트 재큐잉 | 예 |
 | `media:generate-variants {--force} {--limit=500}` | 기존 이미지 thumb/medium variant 백필 | 아니오 |
 | `hospital-evaluations:refresh-hospital-ratings {--hospital-id=*}` | 병원 평가 평균/집계 보정 | 예 |
 

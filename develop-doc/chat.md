@@ -31,7 +31,7 @@
 | 파일 첨부 | 공통 `Media` 폴리모픽 |
 | 신고 처리 | 공통 `ContentReport` 도메인 |
 
-메시지 저장과 브로드캐스트는 분리한다. 메시지는 DB 트랜잭션으로 먼저 저장하고, Reverb 이벤트는 `ShouldBroadcastNow`로 즉시 발행한다. Redis Queue는 채팅 메시지 저장 자체가 아니라 푸시 알림 발송 같은 후속 비동기 작업에 사용한다.
+메시지·첨부·알림함을 DB 트랜잭션으로 저장한다. `broadcast_pending`이 남은 메시지는 Redis `chat` 큐의 `BroadcastChatMessageJob`에서 `ShouldBroadcastNow` 이벤트를 발행한다. 브로드캐스트 장애는 메시지 저장 API를 실패시키지 않으며 Scheduler가 미완료 발행을 복구한다. 외부 전달은 중복될 수 있으므로 클라이언트는 메시지 ID로 중복을 처리한다.
 
 ## 3. 핵심 원칙
 

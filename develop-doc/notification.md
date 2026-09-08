@@ -305,7 +305,8 @@ Event:
 
 - 클래스: `NotificationInboxUpdated`
 - broadcast name: `notification.inbox.updated`
-- interface: `ShouldBroadcastNow`
+- interface: `ShouldBroadcast`, `ShouldDispatchAfterCommit`
+- queue: `redis` / `chat`
 - payload: `{ notification: NotificationInboxDto }`
 
 현재 제한:
@@ -430,3 +431,7 @@ recipient:{type}:{id}:event:{event_type}:target:{target_type}:{target_id}
 - 사용자가 읽음 처리한 알림 row는 다시 unread 묶음으로 열지 않는다.
 - 일반 도메인은 알림 저장 구조를 직접 만지지 말고 `CreateNotificationAction`을 호출한다.
 - 신규 채널을 추가할 때는 `notification_deliveries`의 상태 전이와 실패 기록을 먼저 정의한다.
+
+## Push 재시도 및 중단 복구
+
+`notification_deliveries`의 세대/본문 스냅샷/기기별 결과/처리 임대를 사용한다. 성공 기기는 재발송하지 않으며 일시 실패 기기만 최대 3회 시도한다. Scheduler는 pending이면서 임대와 재시도 시간이 지난 건을 재큐잉한다. 외부 수락 직후 워커가 종료되는 구간의 중복까지 제거하는 exactly-once 보장은 아니다. [배포 및 보장 범위](./backend-hardening.md)를 참고한다.

@@ -73,7 +73,7 @@
 5. Job은 `SmsProvider`를 호출하고 수신자별 성공/실패를 기록한다.
 6. delivery 변경 후 배치 성공·실패·제외 건수와 최종 상태를 다시 집계한다.
 
-Redis 장애로 최초 dispatch가 실패해 `queued_at`이 없는 delivery는 `sms:dispatch-pending` 명령이 다시 큐에 등록한다. Scheduler가 이 명령을 매분 실행한다. 장기대기 건은 자동 재등록 시 중복 발송 위험이 있으므로 운영자가 `--stale-minutes`를 명시한 경우에만 재큐잉한다. Provider에는 delivery ID 기반 멱등 키를 전달한다.
+Redis 장애로 최초 dispatch가 실패해 `queued_at`이 없는 delivery는 `sms:dispatch-pending` 명령이 다시 큐에 등록한다. Scheduler가 이 명령을 매분 실행한다. Scheduler는 `--stale-minutes=5`로 장기대기 건도 복구한다. `PROCESSING`이 5분을 넘으면 `SmsDeliveryRecoveryAction`이 업체의 `supportsIdempotentRetries()` 계약과 시도 횟수를 확인한다. 불명확한 비멱등 업체 발송은 자동 재전송하지 않고 실패로 남긴다. Provider에는 delivery ID 기반 멱등 키를 전달하며 최대 발송 시도는 5회다.
 
 `idempotency_key`는 모든 문자 배치에서 전역으로 유일하다. 공통 Action은 `purpose`, 템플릿, metadata와 대상 수의 `request_hash`를 저장한다. 동일 키를 같은 요청으로 다시 보내면 기존 배치를 반환하고 Job을 중복 등록하지 않으며, 다른 요청에 같은 키를 사용하면 거부한다.
 

@@ -26,7 +26,7 @@ final class PasswordResetAction
         $password = $payload['password'];
 
         return DB::transaction(function () use ($actor, $email, $token, $password): array {
-            $account = PasswordResetActor::findAccountByEmail($actor, $email);
+            $account = PasswordResetActor::findAccountByEmail($actor, $email, forUpdate: true);
 
             if (! $account || ! PasswordResetActor::canResetPassword($account)) {
                 Log::warning('비밀번호 재설정 실패', [
@@ -43,6 +43,7 @@ final class PasswordResetAction
                 email: $email,
                 token: $token,
                 expireMinutes: PasswordResetActor::expireMinutes($actor),
+                forUpdate: true,
             );
 
             if (! $isValidToken) {

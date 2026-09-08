@@ -8,7 +8,6 @@ use App\Domains\Beauty\Queries\Staff\BeautyBusinessRegistrationUpdateForStaffQue
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Common\Media\Models\Media;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * BeautyBusinessRegistrationUpdateForStaffAction 역할 정의.
@@ -63,7 +62,6 @@ final class BeautyBusinessRegistrationUpdateForStaffAction
             return;
         }
 
-        Storage::disk($existingCertificate->disk)->delete($existingCertificate->path);
-        $existingCertificate->delete();
+        $this->mediaAttachAction->delete($existingCertificate);
     }
 }

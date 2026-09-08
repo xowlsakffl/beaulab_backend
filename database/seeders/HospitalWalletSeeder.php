@@ -17,6 +17,10 @@ final class HospitalWalletSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing'])) {
+            throw new \LogicException('Demo wallet data is only available in local/testing environments.');
+        }
+
         $staff = AccountStaff::query()->orderBy('id')->first();
 
         Hospital::query()

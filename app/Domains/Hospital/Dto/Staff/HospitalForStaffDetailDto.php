@@ -213,10 +213,7 @@ final readonly class HospitalForStaffDetailDto
 
         $history = $hospital->operationHistories
             ->first(static function ($history) use ($hospital): bool {
-                $change = $history->changes->first();
-
-                return $change?->field_key === 'status'
-                    && (string) $change->after_value === (string) $hospital->status;
+                return $history->changes->contains(static fn ($change): bool => $change->field_key === 'status' && (string) $change->after_value === (string) $hospital->status);
             });
 
         return $history ? OperationHistoryDto::fromModel($history)->toArray() : null;
@@ -358,14 +355,14 @@ final readonly class HospitalForStaffDetailDto
             'id' => $media->id,
             'collection' => $media->collection,
             'disk' => $media->disk,
-            'path' => $media->path,
+            'path' => $media->publicPath(),
             'mime_type' => $media->mime_type,
             'size' => $media->size,
             'width' => $media->width,
             'height' => $media->height,
             'sort_order' => $media->sort_order,
             'is_primary' => (bool) $media->is_primary,
-            'metadata' => $media->metadata,
+            'metadata' => $media->publicMetadata(),
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];

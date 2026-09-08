@@ -5,6 +5,7 @@ namespace App\Domains\Common\PasswordReset\Actions;
 use App\Domains\Common\PasswordReset\Mail\PasswordResetLinkMail;
 use App\Domains\Common\PasswordReset\Queries\PasswordResetTokenQuery;
 use App\Domains\Common\PasswordReset\Support\PasswordResetActor;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -21,8 +22,13 @@ final class PasswordResetLinkSendAction
      */
     public function execute(string $actor, array $payload): array
     {
+        return DB::transaction(fn (): array => $this->issue($actor, $payload));
+    }
+
+    private function issue(string $actor, array $payload): array
+    {
         $email = $payload['email'];
-        $account = PasswordResetActor::findAccountByEmail($actor, $email);
+        $account = PasswordResetActor::findAccountByEmail($actor, $email, forUpdate: true);
         $message = $this->genericMessage();
 
         if (! $account || ! PasswordResetActor::canResetPassword($account)) {
@@ -56,7 +62,8 @@ final class PasswordResetLinkSendAction
             expireMinutes: $expireMinutes,
         ))
             ->onConnection((string) config('password_reset.mail.connection', 'redis'))
-            ->onQueue((string) config('password_reset.mail.queue', 'mail'));
+            ->onQueue((string) config('password_reset.mail.queue', 'mail'))
+            ->afterCommit();
 
         Mail::to($email)->queue($mail);
 

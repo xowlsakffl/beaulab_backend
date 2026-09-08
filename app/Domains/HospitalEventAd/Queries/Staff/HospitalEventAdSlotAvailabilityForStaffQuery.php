@@ -6,9 +6,19 @@ use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 final class HospitalEventAdSlotAvailabilityForStaffQuery
 {
+    public function lockBookings(): void
+    {
+        // All booking writers acquire this before their first consistent read.
+        $lock = DB::table('hospital_event_ad_booking_locks')->where('id', 1)->lockForUpdate()->first();
+        if ($lock === null) {
+            throw new \LogicException('The advertisement booking lock migration must be applied.');
+        }
+    }
+
     public function reservedCount(string $placement, ?int $categoryId, Carbon $startAt, ?int $excludeId = null): int
     {
         return $this->baseQuery($placement, $categoryId, $startAt, $excludeId)->count();

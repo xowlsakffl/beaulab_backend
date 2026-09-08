@@ -16,20 +16,10 @@ final class DatabaseSeeder extends Seeder
             AccountStaffSeeder::class,
             CategorySeeder::class,
             HospitalFeatureSeeder::class,
-            HospitalEntrySeeder::class,
-            HospitalSeeder::class,
-            HospitalDoctorSeeder::class,
-            HospitalVideoSeeder::class,
-            BeautySeeder::class,
-            BeautyExpertSeeder::class,
-            AccountUserSeeder::class,
-            TalkSeeder::class,
-            HospitalReviewSeeder::class,
-            HospitalEvaluationSeeder::class,
-            HospitalEventSeeder::class,
-            HospitalEventDBSeeder::class,
-            HospitalEventRealModelDBSeeder::class,
-            HospitalWalletSeeder::class,
         ]);
+
+        if (app()->environment(['local', 'testing'])) {
+            $this->call(DemoSeeder::class);
+        }
     }
 }

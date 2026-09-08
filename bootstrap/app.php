@@ -175,7 +175,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 405
             if ($e instanceof MethodNotAllowedHttpException) {
-                return ApiResponse::errorCode(ErrorCode::METHOD_NOT_ALLOWED);
+                return ApiResponse::errorCode(ErrorCode::METHOD_NOT_ALLOWED)->withHeaders($e->getHeaders());
             }
 
             // DB
@@ -196,7 +196,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($e instanceof HttpExceptionInterface) {
                 $status = $e->getStatusCode();
 
-                return match ($status) {
+                $response = match ($status) {
                     401 => ApiResponse::errorCode(ErrorCode::UNAUTHORIZED),
                     403 => ApiResponse::errorCode(ErrorCode::FORBIDDEN),
                     404 => ApiResponse::errorCode(ErrorCode::NOT_FOUND),
@@ -210,6 +210,8 @@ return Application::configure(basePath: dirname(__DIR__))
                         status: $status
                     ),
                 };
+
+                return $response->withHeaders($e->getHeaders());
             }
 
             // Fallback 500

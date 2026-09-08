@@ -80,9 +80,7 @@ final class FaqUpdateForStaffAction
 
     private function sanitizeEditorContent(string $content): string
     {
-        $content = trim($content);
-
-        return preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $content) ?? $content;
+        return \App\Domains\Common\Media\Support\EditorHtmlSanitizer::clean($content);
     }
 
     private function syncCategory(Faq $faq, int $categoryId): void

@@ -8,7 +8,6 @@ use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalBusinessRegistration;
 use App\Domains\Hospital\Queries\Staff\HospitalBusinessRegistrationUpdateForStaffQuery;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * HospitalBusinessRegistrationUpdateForStaffAction 역할 정의.
@@ -70,7 +69,6 @@ final class HospitalBusinessRegistrationUpdateForStaffAction
             return;
         }
 
-        Storage::disk($existingCertificate->disk)->delete($existingCertificate->path);
-        $existingCertificate->delete();
+        $this->mediaAttachAction->delete($existingCertificate);
     }
 }

@@ -132,6 +132,12 @@ final class NotificationCreateQuery
 
         $delivery->fill([
             'status' => NotificationDelivery::STATUS_PENDING,
+            'generation' => (int) $delivery->generation + 1,
+            'message_snapshot' => $notification->only(['id', 'recipient_type', 'recipient_id', 'event_type', 'title', 'body', 'target_type', 'target_id', 'payload']),
+            'device_results' => [],
+            'lease_token' => null,
+            'processing_until' => null,
+            'next_attempt_at' => null,
             'provider' => null,
             'attempted_at' => null,
             'delivered_at' => null,

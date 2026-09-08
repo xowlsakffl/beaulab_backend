@@ -24,6 +24,7 @@
         "spatie/laravel-query-builder": "^6.4",
         "spatie/laravel-schedule-monitor": "^4.1",
         "symfony/http-client": "^7.4",
+        "symfony/html-sanitizer": "^7.4",
         "symfony/mailgun-mailer": "^7.4"
     },
     "require-dev": {

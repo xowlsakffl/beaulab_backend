@@ -3,10 +3,13 @@
 namespace App\Domains\Common\Media\Models;
 
 use App\Common\Concerns\HasAuditLogs;
+use App\Domains\Common\Media\Services\MediaStorage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Media 역할 정의.
@@ -14,7 +17,41 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 final class Media extends Model
 {
-    use SoftDeletes, HasAuditLogs;
+    use HasAuditLogs, SoftDeletes;
+
+    public function isPrivate(): bool
+    {
+        return MediaStorage::isPrivateCollection((string) $this->model_type, (string) $this->collection);
+    }
+
+    public function publicPath(string $variant = 'original'): string
+    {
+        if ($this->isPrivate()) {
+            return URL::temporarySignedRoute('media.show', now()->addMinutes(5), ['media' => $this->id, 'variant' => $variant]);
+        }
+
+        return $variant === 'original' ? (string) $this->path : (string) ($this->metadata['variants'][$variant]['path'] ?? $this->path);
+    }
+
+    public function publicUrl(): string
+    {
+        return $this->isPrivate() ? $this->publicPath() : Storage::disk((string) $this->disk)->url((string) $this->path);
+    }
+
+    public function publicMetadata(): ?array
+    {
+        $metadata = $this->metadata;
+        if ($this->isPrivate() && is_array($metadata['variants'] ?? null)) {
+            foreach ($metadata['variants'] as $name => &$variant) {
+                if (is_array($variant)) {
+                    $variant['path'] = $this->publicPath((string) $name);
+                }
+            }
+            unset($variant);
+        }
+
+        return $metadata;
+    }
 
     protected $table = 'media';
 
@@ -134,12 +171,13 @@ final class Media extends Model
      * 대표 이미지 설정 (같은 owner+collection 내 기존 대표는 false 처리)
      * 이 미디어를 대표 이미지로 지정/해제
      *
-     * @param bool $state true면 대표 지정, false면 대표 해제
+     * @param  bool  $state  true면 대표 지정, false면 대표 해제
      */
     public function setPrimary(bool $state = true): void
     {
         if ($state === false) {
             $this->forceFill(['is_primary' => false])->save();
+
             return;
         }
 

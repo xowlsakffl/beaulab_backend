@@ -10,6 +10,9 @@ interface SmsProvider
 {
     public function name(): string;
 
+    /** Whether retrying the same key is safe after an unknown delivery result. */
+    public function supportsIdempotentRetries(): bool;
+
     public function send(
         string $phone,
         string $message,

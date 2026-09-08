@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Log;
 
 final class LogSmsProvider implements SmsProvider
 {
+    public function supportsIdempotentRetries(): bool
+    {
+        return true;
+    }
+
     public function name(): string
     {
         return 'LOG';

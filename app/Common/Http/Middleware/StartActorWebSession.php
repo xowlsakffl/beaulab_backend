@@ -18,7 +18,7 @@ final class StartActorWebSession
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->header('X-Beaulab-Client') !== 'web') {
+        if ($request->routeIs('media.show') || $request->header('X-Beaulab-Client') !== 'web') {
             return $next($request);
         }
 

@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Storage;
 final class NoticeEditorImageCleanupForStaffAction
 {
     /**
-     * @param array<int, string>|null $paths
-     * @param array<int, string>|null $urls
+     * @param  array<int, string>|null  $paths
+     * @param  array<int, string>|null  $urls
      * @return array<string, mixed>
      */
     public function execute(?array $paths = null, ?array $urls = null): array
@@ -41,8 +41,8 @@ final class NoticeEditorImageCleanupForStaffAction
     }
 
     /**
-     * @param array<int, string>|null $paths
-     * @param array<int, string>|null $urls
+     * @param  array<int, string>|null  $paths
+     * @param  array<int, string>|null  $urls
      * @return array<int, string>
      */
     private function normalizeTargetPaths(?array $paths, ?array $urls): array
@@ -73,23 +73,6 @@ final class NoticeEditorImageCleanupForStaffAction
 
     private function normalizeSinglePath(string $path): ?string
     {
-        $path = trim($path);
-        if ($path === '') {
-            return null;
-        }
-
-        if (str_starts_with($path, '/storage/')) {
-            $path = substr($path, 8);
-        } elseif (str_starts_with($path, 'storage/')) {
-            $path = substr($path, 7);
-        }
-
-        $path = ltrim($path, '/');
-
-        if (! str_starts_with($path, 'notice/editor-images/temp/')) {
-            return null;
-        }
-
-        return $path;
+        return \App\Domains\Common\Media\Support\EditorImagePath::temporary('notice', $path);
     }
 }

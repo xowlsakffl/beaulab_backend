@@ -10,6 +10,11 @@ use RuntimeException;
 
 final class DisabledSmsProvider implements SmsProvider
 {
+    public function supportsIdempotentRetries(): bool
+    {
+        return true;
+    }
+
     public function name(): string
     {
         return 'DISABLED';

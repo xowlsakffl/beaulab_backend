@@ -40,7 +40,7 @@ final readonly class NoticeForStaffDetailDto
             updater: self::updater($notice),
             createdAt: $notice->created_at?->toISOString(),
             updatedAt: $notice->updated_at?->toISOString(),
-            content: (string) $notice->content,
+            content: \App\Domains\Common\Media\Support\EditorHtmlSanitizer::clean((string) $notice->content),
             attachments: self::attachments($notice),
         );
     }
@@ -105,7 +105,7 @@ final readonly class NoticeForStaffDetailDto
                 'download_path' => "/notices/{$notice->id}/attachments/{$media->id}/download",
                 'collection' => (string) $media->collection,
                 'disk' => (string) $media->disk,
-                'path' => (string) $media->path,
+                'path' => $media->publicPath(),
                 'mime_type' => $media->mime_type,
                 'size' => $media->size,
                 'width' => $media->width,

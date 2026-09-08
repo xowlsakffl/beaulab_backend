@@ -50,10 +50,10 @@ final readonly class HospitalWalletRefundDocumentsForStaffDto
 
         return [
             'id' => (int) $media->id,
-            'path' => $media->path,
+            'path' => $media->publicPath(),
             'mime_type' => $media->mime_type,
             'size' => (int) $media->size,
-            'metadata' => $media->metadata,
+            'metadata' => $media->publicMetadata(),
             'download_path' => "/hospital-wallet-operations/{$operationId}/refund-documents/{$document}/download",
         ];
     }

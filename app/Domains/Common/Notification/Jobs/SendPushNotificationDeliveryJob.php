@@ -29,10 +29,19 @@ final class SendPushNotificationDeliveryJob implements ShouldQueue
     ) {
         $this->onConnection('redis');
         $this->onQueue((string) config('notification_push.queue', 'notifications'));
+        $this->afterCommit();
     }
 
     public function handle(SendPushNotificationDeliveryAction $action): void
     {
-        $action->execute($this->deliveryId);
+        $result = $action->execute($this->deliveryId);
+        if (isset($result['retry_after'])) {
+            self::dispatch($this->deliveryId)->delay(now()->addSeconds($result['retry_after']));
+        }
+    }
+
+    public function backoff(): array
+    {
+        return [10, 30, 60];
     }
 }

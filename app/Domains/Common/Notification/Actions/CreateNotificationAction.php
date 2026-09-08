@@ -30,15 +30,29 @@ final class CreateNotificationAction
         $data = $this->scopeOpenAggregationKeyByChannels($data);
         $notification = $this->query->create($data);
 
-        if (in_array(NotificationDelivery::CHANNEL_IN_APP, $data['channels'], true)) {
-            NotificationInboxUpdated::dispatch(
-                (int) $notification->id,
-                (string) $notification->recipient_type,
-                (int) $notification->recipient_id,
-            );
-        }
+        \Illuminate\Support\Facades\DB::afterCommit(function () use ($notification, $data): void {
+            if (in_array(NotificationDelivery::CHANNEL_IN_APP, $data['channels'], true)) {
+                try {
+                    NotificationInboxUpdated::dispatch(
+                        (int) $notification->id,
+                        (string) $notification->recipient_type,
+                        (int) $notification->recipient_id,
+                    );
+                } catch (\Throwable $exception) {
+                    \Illuminate\Support\Facades\Log::warning('Notification broadcast queue unavailable.', [
+                        'notification_id' => $notification->id, 'exception' => $exception::class,
+                    ]);
+                }
+            }
 
-        $this->dispatchPushDelivery($notification);
+            try {
+                $this->dispatchPushDelivery($notification);
+            } catch (\Throwable $exception) {
+                \Illuminate\Support\Facades\Log::warning('Push queue unavailable; pending delivery retained.', [
+                    'notification_id' => $notification->id, 'exception' => $exception::class,
+                ]);
+            }
+        });
 
         return $notification;
     }

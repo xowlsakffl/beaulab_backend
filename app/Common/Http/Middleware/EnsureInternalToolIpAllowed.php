@@ -26,7 +26,7 @@ final class EnsureInternalToolIpAllowed
      */
     private function allowedIps(): array
     {
-        $configured = (string) env('INTERNAL_TOOL_ALLOWED_IPS', '127.0.0.1,::1');
+        $configured = (string) config('internal_tool.allowed_ips', '127.0.0.1,::1');
 
         return array_values(array_filter(array_map(
             static fn (string $ip): string => trim($ip),

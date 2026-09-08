@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Laravel\Telescope\EntryType;
 use Laravel\Telescope\IncomingEntry;
 use Laravel\Telescope\Telescope;
 use Laravel\Telescope\TelescopeApplicationServiceProvider;
@@ -35,6 +36,14 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         $isLocal = $this->app->environment('local');
 
         Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
+            if ($entry->type === EntryType::MAIL || $entry->type === EntryType::CLIENT_REQUEST) {
+                return false;
+            }
+            if ($entry->type === EntryType::QUERY
+                && preg_match('/\\b(password|remember_token|token_hash|code_hash|encrypted_message_body|private_key)\\b/i', (string) ($entry->content['sql'] ?? ''))) {
+                return false;
+            }
+
             return $isLocal ||
                    $entry->isReportableException() ||
                    $entry->isFailedRequest() ||
@@ -49,13 +58,17 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     protected function hideSensitiveRequestDetails(): void
     {
-        Telescope::hideRequestParameters(['_token', 'token', 'password', 'password_confirmation', 'current_password']);
+        Telescope::hideRequestParameters(['_token', 'token', 'password', 'password_confirmation', 'current_password', 'code', 'phone_verification_token']);
+
+        Telescope::hideResponseParameters(['data.token', 'data.phone_verification_token', 'data.csrf_token']);
+        Telescope::hideRequestParameters(['web_auth', 'token', 'code']);
 
         Telescope::hideRequestHeaders([
             'authorization',
             'cookie',
             'x-csrf-token',
             'x-xsrf-token',
+            'set-cookie',
         ]);
     }
 

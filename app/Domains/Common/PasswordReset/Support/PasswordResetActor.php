@@ -55,7 +55,7 @@ final class PasswordResetActor
         return (int) config('auth.passwords.'.self::broker($actor).'.throttle', 60);
     }
 
-    public static function findAccountByEmail(string $actor, string $email): ?Model
+    public static function findAccountByEmail(string $actor, string $email, bool $forUpdate = false): ?Model
     {
         $modelClass = match ($actor) {
             self::USER => AccountUser::class,
@@ -65,6 +65,7 @@ final class PasswordResetActor
 
         $account = $modelClass::query()
             ->where('email', $email)
+            ->when($forUpdate, static fn ($query) => $query->lockForUpdate())
             ->first();
 
         return $account instanceof Model ? $account : null;

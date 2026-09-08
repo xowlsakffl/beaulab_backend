@@ -32,6 +32,7 @@ final class HospitalEventAdUpdateForStaffAction
         Gate::authorize('update', $ad);
 
         $ad = DB::transaction(function () use ($ad, $payload) {
+            $this->slotQuery->lockBookings();
             $locked = HospitalEventAd::query()
                 ->with(['categories:id,code,name,full_path,depth', 'adImage'])
                 ->whereKey($ad->id)

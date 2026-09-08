@@ -20,8 +20,8 @@ trait HasAuditLogs
         return LogOptions::defaults()
             ->useLogName('audit')
             ->logFillable()
+            ->logExcept(['password', 'remember_token', 'token', 'token_hash', 'code', 'code_hash', 'phone_verification_token'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
 }
-

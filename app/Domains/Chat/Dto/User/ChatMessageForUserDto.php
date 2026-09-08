@@ -5,7 +5,6 @@ namespace App\Domains\Chat\Dto\User;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\Media\Models\Media;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * 사용자별 채팅 메시지 응답 DTO.
@@ -101,14 +100,14 @@ final readonly class ChatMessageForUserDto
             'id' => (int) $media->id,
             'collection' => (string) $media->collection,
             'disk' => (string) $media->disk,
-            'path' => (string) $media->path,
-            'url' => Storage::disk((string) $media->disk)->url((string) $media->path),
+            'path' => $media->publicPath(),
+            'url' => $media->publicUrl(),
             'mime_type' => $media->mime_type,
             'size' => $media->size !== null ? (int) $media->size : null,
             'width' => $media->width !== null ? (int) $media->width : null,
             'height' => $media->height !== null ? (int) $media->height : null,
             'sort_order' => (int) $media->sort_order,
-            'metadata' => $media->metadata,
+            'metadata' => $media->publicMetadata(),
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];

@@ -221,6 +221,7 @@ final class ChatMessageSendForUserQuery
         }
 
         $message = ChatMessage::create([
+            'broadcast_pending' => true,
             'chat_id' => $lockedChat->id,
             'sender_user_id' => $user->id,
             'client_message_id' => $clientMessageId,

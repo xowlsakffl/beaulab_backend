@@ -52,7 +52,7 @@ class InternalToolServiceProvider extends ServiceProvider
      */
     private function allowedEmails(): array
     {
-        $configured = (string) env('INTERNAL_TOOL_ALLOWED_EMAILS', '');
+        $configured = (string) config('internal_tool.allowed_emails', '');
 
         if ($configured === '') {
             return [];

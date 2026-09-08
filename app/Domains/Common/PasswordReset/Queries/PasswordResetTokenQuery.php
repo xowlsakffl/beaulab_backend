@@ -38,11 +38,12 @@ final class PasswordResetTokenQuery
         );
     }
 
-    public function valid(string $actor, string $email, string $token, int $expireMinutes): bool
+    public function valid(string $actor, string $email, string $token, int $expireMinutes, bool $forUpdate = false): bool
     {
         $row = DB::table(self::TABLE)
             ->where('actor', $actor)
             ->where('email', $email)
+            ->when($forUpdate, static fn ($query) => $query->lockForUpdate())
             ->first(['token', 'created_at']);
 
         if (! $row || ! $row->created_at) {
@@ -50,8 +51,6 @@ final class PasswordResetTokenQuery
         }
 
         if (Carbon::parse($row->created_at)->lt(now()->subMinutes($expireMinutes))) {
-            $this->delete($actor, $email);
-
             return false;
         }
 

@@ -29,22 +29,27 @@ final class SyncFaqEditorImagesAction
         $sortOrder = 0;
 
         foreach ($paths as $path) {
-            if (! str_starts_with($path, 'faq/editor-images/temp/') && ! str_starts_with($path, $ownedPrefix)) {
+            if (! str_starts_with($path, \App\Domains\Common\Media\Support\EditorImagePath::temporaryPrefix('faq')) && ! str_starts_with($path, $ownedPrefix)) {
                 continue;
             }
 
             $finalPath = $path;
 
-            if (str_starts_with($path, 'faq/editor-images/temp/')) {
+            if (str_starts_with($path, \App\Domains\Common\Media\Support\EditorImagePath::temporaryPrefix('faq'))) {
                 if (! Storage::disk($disk)->exists($path)) {
                     continue;
                 }
 
                 $extension = pathinfo($path, PATHINFO_EXTENSION);
-                $filename = Str::uuid()->toString() . ($extension !== '' ? ".{$extension}" : '');
+                $filename = Str::uuid()->toString().($extension !== '' ? ".{$extension}" : '');
                 $finalPath = "{$ownedPrefix}{$filename}";
 
-                Storage::disk($disk)->move($path, $finalPath);
+                $files = app(\App\Domains\Common\Media\Services\MediaFileLifecycle::class);
+                $files->stage($disk, $finalPath);
+                if (! Storage::disk($disk)->copy($path, $finalPath)) {
+                    throw new \RuntimeException('Editor image promotion failed.');
+                }
+                $files->queueDeletion($disk, [$path]);
                 $content = $this->replaceStoragePathInContent($content, $path, $finalPath);
             }
 
@@ -87,8 +92,7 @@ final class SyncFaqEditorImagesAction
                     return;
                 }
 
-                Storage::disk((string) $media->disk)->delete((string) $media->path);
-                $media->delete();
+                app(\App\Domains\Common\Media\Actions\MediaAttachDeleteAction::class)->delete($media);
             });
 
         return $content;
@@ -122,27 +126,7 @@ final class SyncFaqEditorImagesAction
 
     private function normalizeStoragePath(string $src): ?string
     {
-        $parsedPath = parse_url($src, PHP_URL_PATH);
-        $candidate = is_string($parsedPath) ? $parsedPath : $src;
-        $candidate = trim($candidate);
-
-        if ($candidate === '') {
-            return null;
-        }
-
-        if (str_starts_with($candidate, '/storage/')) {
-            return ltrim(substr($candidate, 8), '/');
-        }
-
-        if (str_starts_with($candidate, 'storage/')) {
-            return ltrim(substr($candidate, 7), '/');
-        }
-
-        if (str_starts_with($candidate, 'faq/')) {
-            return ltrim($candidate, '/');
-        }
-
-        return null;
+        return \App\Domains\Common\Media\Support\EditorImagePath::normalize($src);
     }
 
     private function replaceStoragePathInContent(string $content, string $oldPath, string $newPath): string

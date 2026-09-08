@@ -4,7 +4,6 @@ namespace App\Domains\Chat\Actions\User;
 
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Dto\User\ChatMessageForUserDto;
-use App\Domains\Chat\Events\ChatMessageCreated;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Chat\Queries\User\ChatMessageSendForUserQuery;
@@ -29,22 +28,27 @@ final class ChatMessageSendForUserAction
 
     public function execute(AccountUser $user, array $payload, ?Chat $chat = null): array
     {
-        $result = $this->query->create($user, $payload, $chat);
+        $message = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $payload, $chat): ChatMessage {
+            $result = $this->query->create($user, $payload, $chat);
+            $message = $result['message'];
+            $attachmentsCreated = $this->createAttachments($message, $payload['attachments'] ?? []);
 
-        /** @var ChatMessage $message */
-        $message = $result['message'];
-        $attachmentsCreated = $this->createAttachments($message, $payload['attachments'] ?? []);
+            if ((bool) $result['created'] || $attachmentsCreated) {
+                $message->load(['sender:id,nickname,email', 'attachments']);
+                $this->createPeerNotifications($message, $user);
+            }
 
-        if ((bool) $result['created'] || $attachmentsCreated) {
-            $message->load(['sender:id,nickname,email', 'attachments']);
+            return $message;
+        });
 
-            ChatMessageCreated::dispatch(
-                (int) $message->id,
-                (int) $message->chat_id,
-                (int) $message->sender_user_id,
-            );
-
-            $this->createPeerNotifications($message, $user);
+        if ($message->broadcast_pending) {
+            try {
+                \App\Domains\Chat\Jobs\BroadcastChatMessageJob::dispatch((int) $message->id);
+            } catch (Throwable $exception) {
+                \Illuminate\Support\Facades\Log::warning('Chat broadcast queue unavailable; pending message retained.', [
+                    'message_id' => $message->id, 'exception' => $exception::class,
+                ]);
+            }
         }
 
         return [

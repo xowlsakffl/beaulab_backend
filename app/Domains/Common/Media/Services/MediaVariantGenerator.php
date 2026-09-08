@@ -69,7 +69,7 @@ final class MediaVariantGenerator
                 $stored = Storage::disk($disk)->put(
                     $variant['path'],
                     $variant['contents'],
-                    $this->mediaStorage->publicWriteOptions(),
+                    $this->mediaStorage->writeOptions($disk),
                 );
 
                 if (! $stored) {

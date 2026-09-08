@@ -15,7 +15,6 @@ use App\Domains\AccountHospital\Support\HospitalAccountInvitationToken;
 use App\Domains\Common\Sms\Models\SmsBatch;
 use App\Domains\Common\Sms\Models\SmsDelivery;
 use App\Domains\Hospital\Models\Hospital;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase;
@@ -28,8 +27,11 @@ final class HospitalAccountPhoneVerificationFlowTest extends TestCase
 
     public function createApplication(): Application
     {
-        $app = require dirname(__DIR__, 4).'/bootstrap/app.php';
-        $app->make(Kernel::class)->bootstrap();
+        $app = parent::createApplication();
+
+        if ($app->configurationIsCached() || config('database.connections.mysql.database') !== 'beaulab_testing') {
+            throw new \LogicException('Feature tests require uncached configuration and the beaulab_testing database.');
+        }
 
         return $app;
     }
@@ -63,7 +65,7 @@ final class HospitalAccountPhoneVerificationFlowTest extends TestCase
 
         $verification = HospitalAccountPhoneVerification::query()->findOrFail($sendResult['verification_id']);
         $delivery = SmsDelivery::query()->findOrFail($verification->sms_delivery_id);
-        preg_match('/\[(\d{6})\]/', (string) $delivery->message_body, $matches);
+        preg_match('/\[(\d{6})\]/', (string) ($delivery->encrypted_message_body ?? $delivery->message_body), $matches);
 
         self::assertSame(60, $sendResult['resend_after_seconds']);
         self::assertSame('hospital_account_phone_verification', SmsBatch::query()->findOrFail($delivery->sms_batch_id)->purpose);

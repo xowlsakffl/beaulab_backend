@@ -22,22 +22,13 @@ use App\Domains\AccountHospital\Support\HospitalAccountPhoneVerificationCode;
 use App\Domains\AccountHospital\Support\HospitalAccountPhoneVerificationToken;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
-use PHPUnit\Framework\TestCase;
 
 final class HospitalAccountInvitationTest extends TestCase
 {
-    public static function setUpBeforeClass(): void
-    {
-        parent::setUpBeforeClass();
-
-        $app = require dirname(__DIR__, 4).'/bootstrap/app.php';
-        $app->make(Kernel::class)->bootstrap();
-    }
-
     public function test_invitation_status_follows_usage_revocation_and_expiration(): void
     {
         $invitation = new HospitalAccountInvitation;

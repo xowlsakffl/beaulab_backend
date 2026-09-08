@@ -9,12 +9,10 @@ use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalStatusChangeRequest;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Support\Facades\Queue;
-use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Permission;
 
 final class HospitalStatusChangeRequestFlowTest extends TestCase
@@ -23,8 +21,11 @@ final class HospitalStatusChangeRequestFlowTest extends TestCase
 
     public function createApplication(): Application
     {
-        $app = require dirname(__DIR__, 4).'/bootstrap/app.php';
-        $app->make(Kernel::class)->bootstrap();
+        $app = parent::createApplication();
+
+        if ($app->configurationIsCached() || config('database.connections.mysql.database') !== 'beaulab_testing') {
+            throw new \LogicException('Feature tests require uncached configuration and the beaulab_testing database.');
+        }
 
         return $app;
     }
@@ -46,7 +47,7 @@ final class HospitalStatusChangeRequestFlowTest extends TestCase
             AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE,
         ]);
 
-        Sanctum::actingAs($requester, ['actor:staff']);
+        $this->loginStaff($requester);
 
         $this->patchJson("/api/v1/staff/hospitals/{$hospital->id}/status", [
             'status' => Hospital::STATUS_SUSPENDED,
@@ -71,7 +72,7 @@ final class HospitalStatusChangeRequestFlowTest extends TestCase
             AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_PROCESS,
         ]);
 
-        Sanctum::actingAs($approver, ['actor:staff']);
+        $this->loginStaff($approver);
 
         $this->patchJson("/api/v1/staff/hospital-status-change-requests/{$statusChangeRequestId}/decision", [
             'status' => HospitalStatusChangeRequest::STATUS_APPROVED,
@@ -82,10 +83,10 @@ final class HospitalStatusChangeRequestFlowTest extends TestCase
         self::assertSame(Hospital::STATUS_SUSPENDED, $hospital->refresh()->status);
         self::assertSame(AccountHospital::STATUS_ACTIVE, $accountHospital->refresh()->status);
 
+        $this->startWebSession('hospital', 'http://localhost:3002');
         $this->postJson('/api/v1/hospital/auth/login', [
             'nickname' => 'operation_stop_login_test',
             'password' => 'password1234',
-            'device_name' => 'feature-test',
         ])
             ->assertOk()
             ->assertJsonPath('data.actor', 'hospital');
@@ -102,7 +103,7 @@ final class HospitalStatusChangeRequestFlowTest extends TestCase
             AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE,
         ]);
 
-        Sanctum::actingAs($requester, ['actor:staff']);
+        $this->loginStaff($requester);
 
         $requestId = (int) $this->postJson("/api/v1/staff/hospitals/{$hospital->id}/status-change-requests", [
             'target_status' => Hospital::STATUS_SUSPENDED,
@@ -116,7 +117,7 @@ final class HospitalStatusChangeRequestFlowTest extends TestCase
             AccessPermissions::BEAULAB_HOSPITAL_STATUS_UPDATE,
         ]);
 
-        Sanctum::actingAs($superAdmin, ['actor:staff']);
+        $this->loginStaff($superAdmin);
 
         $this->patchJson("/api/v1/staff/hospitals/{$hospital->id}/status", [
             'status' => Hospital::STATUS_SUSPENDED,
@@ -131,6 +132,31 @@ final class HospitalStatusChangeRequestFlowTest extends TestCase
             HospitalStatusChangeRequest::STATUS_CANCELLED,
             HospitalStatusChangeRequest::query()->findOrFail($requestId)->status,
         );
+    }
+
+    private function startWebSession(string $actor, string $origin): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->withCredentials()->withHeaders([
+            'X-Beaulab-Client' => 'web',
+            'Origin' => $origin,
+        ]);
+        $response = $this->getJson("/api/v1/{$actor}/auth/csrf")->assertOk();
+        $this->withCookie("beaulab_{$actor}_session", $response->getCookie("beaulab_{$actor}_session")->getValue());
+        $this->withHeader('X-CSRF-TOKEN', $response->json('data.csrf_token'));
+        $this->app['auth']->forgetGuards();
+    }
+
+    private function loginStaff(AccountStaff $staff): void
+    {
+        $staff->forceFill(['password' => 'password1234'])->save();
+        $this->startWebSession('staff', 'http://localhost:3000');
+        $response = $this->postJson('/api/v1/staff/auth/login', [
+            'nickname' => $staff->nickname,
+            'password' => 'password1234',
+        ])->assertOk();
+        $this->withCookie('beaulab_staff_session', $response->getCookie('beaulab_staff_session')->getValue());
+        $this->app['auth']->forgetGuards();
     }
 
     /** @param list<string> $permissions */

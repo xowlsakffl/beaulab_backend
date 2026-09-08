@@ -120,6 +120,11 @@ return [
         'pulse*',
         '_boost*',
         '.well-known*',
+        'api/v1/*/auth/*',
+        'api/v1/*/account-invitations*',
+        'api/v1/*/hospital-account-invitations*',
+        'api/v1/*/password-reset*',
+        'api/v1/media/*',
     ],
 
     'ignore_commands' => [
@@ -141,13 +146,13 @@ return [
         Watchers\BatchWatcher::class => env('TELESCOPE_BATCH_WATCHER', true),
 
         Watchers\CacheWatcher::class => [
-            'enabled' => env('TELESCOPE_CACHE_WATCHER', true),
+            'enabled' => false,
             'hidden' => [],
             'ignore' => [],
         ],
 
         Watchers\ClientRequestWatcher::class => [
-            'enabled' => env('TELESCOPE_CLIENT_REQUEST_WATCHER', true),
+            'enabled' => false,
             'ignore_hosts' => [],
         ],
 
@@ -182,7 +187,7 @@ return [
             'level' => 'error',
         ],
 
-        Watchers\MailWatcher::class => env('TELESCOPE_MAIL_WATCHER', true),
+        Watchers\MailWatcher::class => false,
 
         Watchers\ModelWatcher::class => [
             'enabled' => env('TELESCOPE_MODEL_WATCHER', true),
@@ -199,7 +204,7 @@ return [
             'slow' => 100,
         ],
 
-        Watchers\RedisWatcher::class => env('TELESCOPE_REDIS_WATCHER', true),
+        Watchers\RedisWatcher::class => false,
 
         Watchers\RequestWatcher::class => [
             'enabled' => env('TELESCOPE_REQUEST_WATCHER', true),

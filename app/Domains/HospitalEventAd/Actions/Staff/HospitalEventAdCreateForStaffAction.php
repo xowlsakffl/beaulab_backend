@@ -34,6 +34,7 @@ final class HospitalEventAdCreateForStaffAction
         $normalized = $this->normalizePayload($payload);
 
         $ad = DB::transaction(function () use ($normalized) {
+            $this->slotQuery->lockBookings();
             $this->assertSlotAvailable($normalized);
 
             $ad = $this->query->create($normalized);

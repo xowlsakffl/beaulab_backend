@@ -12,10 +12,10 @@ use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 final readonly class HospitalDoctorForStaffDetailDto
 {
     /**
-     * @param array<int, mixed> $educations
-     * @param array<int, mixed> $careers
-     * @param array<int, mixed> $etcContents
-     * @param array<int, array<string, mixed>> $categories
+     * @param  array<int, mixed>  $educations
+     * @param  array<int, mixed>  $careers
+     * @param  array<int, mixed>  $etcContents
+     * @param  array<int, array<string, mixed>>  $categories
      */
     public function __construct(
         public int $id,
@@ -150,14 +150,14 @@ final readonly class HospitalDoctorForStaffDetailDto
             'id' => $media->id,
             'collection' => $media->collection,
             'disk' => $media->disk,
-            'path' => $media->path,
+            'path' => $media->publicPath(),
             'mime_type' => $media->mime_type,
             'size' => $media->size,
             'width' => $media->width,
             'height' => $media->height,
             'sort_order' => $media->sort_order,
             'is_primary' => (bool) $media->is_primary,
-            'metadata' => $media->metadata,
+            'metadata' => $media->publicMetadata(),
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];

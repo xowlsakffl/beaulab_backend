@@ -11,6 +11,19 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 trait HasOperationHistories
 {
+    public function loadLatestStatusHistory(): static
+    {
+        $histories = $this->operationHistories()
+            ->whereHas('changes', fn ($query) => $query
+                ->where('field_key', 'status')
+                ->where('after_value', json_encode((string) $this->status, JSON_THROW_ON_ERROR)))
+            ->with('actor')
+            ->limit(1)
+            ->get();
+
+        return $this->setRelation('operationHistories', $histories);
+    }
+
     public function operationHistories(): MorphMany
     {
         return $this->morphMany(OperationHistory::class, 'target', 'target_type', 'target_id')

@@ -48,9 +48,20 @@ final class NotificationDelivery extends Model
         'delivered_at',
         'failed_at',
         'error_message',
+        'generation',
+        'message_snapshot',
+        'device_results',
+        'lease_token',
+        'processing_until',
+        'next_attempt_at',
     ];
 
     protected $casts = [
+        'generation' => 'integer',
+        'message_snapshot' => 'array',
+        'device_results' => 'array',
+        'processing_until' => 'datetime',
+        'next_attempt_at' => 'datetime',
         'notification_inbox_id' => 'integer',
         'attempted_at' => 'datetime',
         'delivered_at' => 'datetime',

@@ -49,7 +49,7 @@ final class NoticeEditorImageUploadForStaffAction
         Gate::authorize('create', Notice::class);
 
         $disk = 'public';
-        $path = Storage::disk($disk)->putFile('notice/editor-images/temp', $image);
+        $path = Storage::disk($disk)->putFile(rtrim(\App\Domains\Common\Media\Support\EditorImagePath::temporaryPrefix('notice'), '/'), $image);
 
         return [
             'notice_id' => null,

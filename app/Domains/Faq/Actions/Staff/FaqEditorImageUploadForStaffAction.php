@@ -49,7 +49,7 @@ final class FaqEditorImageUploadForStaffAction
         Gate::authorize('create', Faq::class);
 
         $disk = 'public';
-        $path = Storage::disk($disk)->putFile('faq/editor-images/temp', $image);
+        $path = Storage::disk($disk)->putFile(rtrim(\App\Domains\Common\Media\Support\EditorImagePath::temporaryPrefix('faq'), '/'), $image);
 
         return [
             'faq_id' => null,

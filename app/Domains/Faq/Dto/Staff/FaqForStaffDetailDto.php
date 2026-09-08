@@ -41,7 +41,7 @@ final readonly class FaqForStaffDetailDto
             updatedByStaffId: $faq->updated_by_staff_id ? (int) $faq->updated_by_staff_id : null,
             createdAt: $faq->created_at?->toISOString(),
             updatedAt: $faq->updated_at?->toISOString(),
-            content: (string) $faq->content,
+            content: \App\Domains\Common\Media\Support\EditorHtmlSanitizer::clean((string) $faq->content),
             creator: self::creator($faq),
             updater: self::updater($faq),
         );

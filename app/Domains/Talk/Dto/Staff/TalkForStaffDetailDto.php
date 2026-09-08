@@ -159,7 +159,7 @@ final readonly class TalkForStaffDetailDto
                 'id' => (int) $media->id,
                 'collection' => (string) $media->collection,
                 'disk' => (string) $media->disk,
-                'path' => (string) $media->path,
+                'path' => $media->publicPath(),
                 'mime_type' => (string) $media->mime_type,
                 'size' => (int) $media->size,
                 'width' => $media->width !== null ? (int) $media->width : null,

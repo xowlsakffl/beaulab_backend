@@ -46,8 +46,7 @@ final readonly class AccountUserForStaffDetailDto
         array $activityInfo = [],
         array $reportedInfo = [],
         array $accessLogs = [],
-    ): self
-    {
+    ): self {
         return new self(
             id: $user->id,
             name: $user->name,
@@ -121,10 +120,7 @@ final readonly class AccountUserForStaffDetailDto
 
         $history = $user->operationHistories
             ->first(static function ($history) use ($user): bool {
-                $change = $history->changes->first();
-
-                return $change?->field_key === 'status'
-                    && (string) $change->after_value === (string) $user->status;
+                return $history->changes->contains(static fn ($change): bool => $change->field_key === 'status' && (string) $change->after_value === (string) $user->status);
             });
 
         return $history ? OperationHistoryDto::fromModel($history)->toArray() : null;

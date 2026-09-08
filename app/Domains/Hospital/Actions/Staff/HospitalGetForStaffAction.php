@@ -27,7 +27,6 @@ final class HospitalGetForStaffAction
             'galleryMedia',
             'categories.parent.parent',
             'features',
-            'operationHistories.actor',
             'pendingStatusChangeRequest.requester',
         ];
 
@@ -51,7 +50,7 @@ final class HospitalGetForStaffAction
 
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
-                $hospital->load($relations)->loadNewEventDBCount()
+                $hospital->load($relations)->loadLatestStatusHistory()->loadNewEventDBCount()
             )->toArray(),
         ];
     }

@@ -62,6 +62,23 @@ final class ContentReportCreateForUserAction
         $reportItems = $this->reportItems($target, $payload);
 
         DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload, $reportItems): void {
+            $state = $this->query->getStateForUpdate($targetType, $targetId);
+            if (! $state instanceof ContentReportState) {
+                try {
+                    $state = $this->query->createState($targetType, $targetId);
+                } catch (QueryException $exception) {
+                    if ((string) $exception->getCode() !== '23000') {
+                        throw $exception;
+                    }
+
+                    $state = $this->query->getStateForUpdate($targetType, $targetId);
+                }
+            }
+
+            if (! $state instanceof ContentReportState) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 상태를 생성할 수 없습니다.');
+            }
+
             if ($this->query->hasExistingReportItem($reporterUserId, $reportItems)) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 신고한 콘텐츠입니다.');
             }
@@ -88,25 +105,6 @@ final class ContentReportCreateForUserAction
 
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 신고한 콘텐츠입니다.');
             }
-
-            $state = $this->query->getStateForUpdate($targetType, $targetId);
-            if (! $state instanceof ContentReportState) {
-                try {
-                    $state = $this->query->createState($targetType, $targetId);
-                } catch (QueryException $exception) {
-                    if ((string) $exception->getCode() !== '23000') {
-                        throw $exception;
-                    }
-
-                    $state = $this->query->getStateForUpdate($targetType, $targetId);
-                }
-            }
-
-            if (! $state instanceof ContentReportState) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고 상태를 생성할 수 없습니다.');
-            }
-
-            $state->refresh();
 
             $now = now();
             $previousReportStatus = (string) $state->report_status;
@@ -157,7 +155,7 @@ final class ContentReportCreateForUserAction
             }
 
             $state->save();
-        });
+        }, 3);
 
         ContentReportSummaryCache::forgetForTarget($target);
     }

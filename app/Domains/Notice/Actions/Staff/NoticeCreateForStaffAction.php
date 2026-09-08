@@ -95,8 +95,6 @@ final class NoticeCreateForStaffAction
 
     private function sanitizeEditorContent(string $content): string
     {
-        $content = trim($content);
-
-        return preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $content) ?? $content;
+        return \App\Domains\Common\Media\Support\EditorHtmlSanitizer::clean($content);
     }
 }

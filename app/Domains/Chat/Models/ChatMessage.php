@@ -40,9 +40,11 @@ final class ChatMessage extends Model
         'reply_to_message_id',
         'metadata',
         'edited_at',
+        'broadcast_pending',
     ];
 
     protected $casts = [
+        'broadcast_pending' => 'boolean',
         'chat_id' => 'integer',
         'sender_user_id' => 'integer',
         'reply_to_message_id' => 'integer',

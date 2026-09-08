@@ -13,118 +13,119 @@ use Throwable;
 
 /**
  * PUSH delivery를 실제 FCM/APNs provider로 발송한다.
- * delivery row는 채널 단위라서 여러 디바이스 결과를 한 행에 요약해서 남긴다.
+ * 세대별 스냅샷과 기기별 결과를 유지하고, Job 하나가 기기 하나를 처리한다.
  */
 final class SendPushNotificationDeliveryAction
 {
     public function execute(int $deliveryId): array
     {
-        $delivery = NotificationDelivery::query()
-            ->with('inbox')
-            ->find($deliveryId);
+        $delivery = \Illuminate\Support\Facades\DB::transaction(function () use ($deliveryId): ?NotificationDelivery {
+            $delivery = NotificationDelivery::query()->lockForUpdate()->find($deliveryId);
+            if (! $delivery || $delivery->channel !== NotificationDelivery::CHANNEL_PUSH
+                || $delivery->status !== NotificationDelivery::STATUS_PENDING
+                || $delivery->processing_until?->isFuture()
+                || $delivery->next_attempt_at?->isFuture()) {
+                return null;
+            }
 
-        if (! $delivery instanceof NotificationDelivery || ! $delivery->inbox instanceof NotificationInbox) {
-            return ['sent' => 0, 'failed' => 0, 'skipped' => true];
+            $delivery->forceFill([
+                'lease_token' => (string) \Illuminate\Support\Str::uuid(),
+                'processing_until' => now()->addMinutes(5),
+                'attempted_at' => now(),
+            ])->save();
+
+            return $delivery;
+        });
+
+        if (! $delivery) {
+            return ['skipped' => true];
         }
 
-        if ($delivery->channel !== NotificationDelivery::CHANNEL_PUSH) {
-            return ['sent' => 0, 'failed' => 0, 'skipped' => true];
-        }
-
-        $devices = NotificationDevice::query()
-            ->where('owner_type', $delivery->inbox->recipient_type)
-            ->where('owner_id', $delivery->inbox->recipient_id)
+        $snapshot = $delivery->message_snapshot;
+        $inbox = is_array($snapshot)
+            ? (new NotificationInbox)->forceFill($snapshot)
+            : $delivery->inbox;
+        $results = $delivery->device_results ?? [];
+        $devices = $inbox ? NotificationDevice::query()
+            ->where('owner_type', $inbox->recipient_type)
+            ->where('owner_id', $inbox->recipient_id)
             ->whereNull('revoked_at')
-            ->get();
-
-        if ($devices->isEmpty()) {
-            $this->markFailed($delivery, '활성 푸시 디바이스가 없습니다.');
-
-            return ['sent' => 0, 'failed' => 0, 'skipped' => true];
-        }
+            ->orderBy('id')->get() : collect();
+        $pending = [];
+        $error = null;
 
         if (! (bool) config('notification_push.enabled', false)) {
-            $this->markFailed($delivery, 'PUSH_ENABLED 설정이 꺼져 있습니다.');
-
-            return ['sent' => 0, 'failed' => $devices->count(), 'skipped' => true];
-        }
-
-        $delivery->forceFill([
-            'status' => NotificationDelivery::STATUS_PENDING,
-            'attempted_at' => now(),
-            'failed_at' => null,
-            'error_message' => null,
-        ])->save();
-
-        $sent = 0;
-        $failed = 0;
-        $providers = [];
-        $firstProviderMessageId = null;
-        $errors = [];
-
-        foreach ($devices as $device) {
-            try {
-                $result = $this->sendToDevice($delivery->inbox, $device);
-            } catch (Throwable $exception) {
-                Log::warning('푸시 발송 중 예외 발생', [
-                    'delivery_id' => $delivery->id,
-                    'device_id' => $device->id,
-                    'exception' => get_class($exception),
-                    'message' => $exception->getMessage(),
-                ]);
-
-                $result = $this->failedResult('UNKNOWN', $exception->getMessage());
-            }
-
-            $providers[] = $result['provider'];
-
-            if ($result['success']) {
-                $sent++;
-                $firstProviderMessageId ??= $result['provider_message_id'];
-
-                continue;
-            }
-
-            $failed++;
-            $errors[] = sprintf(
-                'device:%d provider:%s error:%s',
-                (int) $device->id,
-                $result['provider'],
-                $result['error'] ?? 'unknown'
-            );
-
-            if ($result['invalid_token']) {
-                $device->forceFill(['revoked_at' => now()])->save();
-            }
-        }
-
-        $provider = $this->summarizeProvider($providers);
-
-        if ($sent > 0) {
-            $delivery->forceFill([
-                'status' => NotificationDelivery::STATUS_SENT,
-                'provider' => $provider,
-                'provider_message_id' => $firstProviderMessageId,
-                'delivered_at' => now(),
-                'failed_at' => null,
-                'error_message' => $errors === [] ? null : mb_strimwidth(implode(' | ', $errors), 0, 2000, '...'),
-            ])->save();
+            $error = 'PUSH_ENABLED 설정이 꺼져 있습니다.';
+        } elseif (! $inbox || $devices->isEmpty()) {
+            $error = '활성 푸시 디바이스가 없습니다.';
         } else {
-            $delivery->forceFill([
-                'status' => NotificationDelivery::STATUS_FAILED,
-                'provider' => $provider,
-                'provider_message_id' => null,
-                'delivered_at' => null,
-                'failed_at' => now(),
-                'error_message' => mb_strimwidth(implode(' | ', $errors), 0, 2000, '...'),
-            ])->save();
+            foreach ($devices as $device) {
+                $result = $results[(string) $device->id] ?? null;
+                if ($result === null || $result['status'] === NotificationDelivery::STATUS_PENDING) {
+                    $pending[] = $device;
+                }
+            }
+
+            // One device per job bounds network time and preserves successful devices.
+            $device = collect($pending)->first(fn ($device): bool => (int) ($results[(string) $device->id]['next_attempt_at'] ?? 0) <= now()->timestamp);
+            if ($device) {
+                $key = (string) $device->id;
+                $attempts = (int) ($results[$key]['attempts'] ?? 0) + 1;
+                try {
+                    $result = $this->sendToDevice($inbox, $device);
+                } catch (Throwable $exception) {
+                    Log::warning('Push transport failure.', ['delivery_id' => $deliveryId, 'device_id' => $device->id, 'exception' => $exception::class]);
+                    $result = $this->failedResult('UNKNOWN', 'Push transport failed.', retryable: true);
+                }
+
+                $retry = ! $result['success'] && ($result['retryable'] ?? false) && $attempts < 3;
+                $results[$key] = [
+                    'status' => $result['success'] ? NotificationDelivery::STATUS_SENT
+                        : ($retry ? NotificationDelivery::STATUS_PENDING : NotificationDelivery::STATUS_FAILED),
+                    'attempts' => $attempts,
+                    'next_attempt_at' => $retry ? now()->addSeconds($attempts * 30)->timestamp : null,
+                    'provider' => $result['provider'],
+                    'provider_message_id' => $result['provider_message_id'],
+                    'error' => $result['success'] ? null : mb_substr((string) ($result['error'] ?? 'Push failed.'), 0, 1000),
+                ];
+                if ($result['invalid_token']) {
+                    NotificationDevice::query()->whereKey($device->id)
+                        ->where('push_token', $device->push_token)->update(['revoked_at' => now()]);
+                }
+            }
         }
 
-        return [
-            'sent' => $sent,
-            'failed' => $failed,
-            'skipped' => false,
-        ];
+        $nextAttempts = [];
+        foreach ($devices as $device) {
+            $result = $results[(string) $device->id] ?? null;
+            if ($error === null && ($result === null || $result['status'] === NotificationDelivery::STATUS_PENDING)) {
+                $nextAttempts[] = (int) ($result['next_attempt_at'] ?? now()->timestamp);
+            }
+        }
+        $waiting = $nextAttempts !== [];
+        $failed = $error !== null || collect($results)->contains(fn ($result): bool => $result['status'] === NotificationDelivery::STATUS_FAILED);
+        $status = $waiting ? NotificationDelivery::STATUS_PENDING
+            : ($failed ? NotificationDelivery::STATUS_FAILED : NotificationDelivery::STATUS_SENT);
+        $delay = $waiting ? max(1, min($nextAttempts) - now()->timestamp) : null;
+
+        $saved = NotificationDelivery::query()->whereKey($delivery->id)
+            ->where('generation', $delivery->generation)->where('lease_token', $delivery->lease_token)
+            ->update([
+                'status' => $status,
+                'provider' => $this->summarizeProvider(array_column($results, 'provider')),
+                'provider_message_id' => collect($results)->first(fn ($result): bool => $result['status'] === NotificationDelivery::STATUS_SENT)['provider_message_id'] ?? null,
+                'device_results' => json_encode($results, JSON_THROW_ON_ERROR),
+                'message_snapshot' => json_encode($snapshot ?? $inbox?->only(['id', 'recipient_type', 'recipient_id', 'event_type', 'title', 'body', 'target_type', 'target_id', 'payload']), JSON_THROW_ON_ERROR),
+                'lease_token' => null,
+                'processing_until' => null,
+                'next_attempt_at' => $waiting ? now()->addSeconds($delay) : null,
+                'delivered_at' => $status === NotificationDelivery::STATUS_SENT ? now() : null,
+                'failed_at' => $status === NotificationDelivery::STATUS_FAILED ? now() : null,
+                'error_message' => $error ?? ($failed ? 'One or more push devices failed; see device_results.' : null),
+                'updated_at' => now(),
+            ]);
+
+        return $saved && $waiting ? ['retry_after' => $delay] : ['skipped' => false];
     }
 
     /**
@@ -159,11 +160,11 @@ final class SendPushNotificationDeliveryAction
 
         $accessToken = $this->fcmAccessToken($account);
         if ($accessToken === null) {
-            return $this->failedResult(NotificationDelivery::PROVIDER_FCM, 'FCM access token 발급에 실패했습니다.');
+            return $this->failedResult(NotificationDelivery::PROVIDER_FCM, 'FCM access token 발급에 실패했습니다.', retryable: true);
         }
 
         $projectId = (string) $account['project_id'];
-        $response = Http::timeout((int) config('notification_push.timeout', 10))
+        $response = Http::connectTimeout(5)->timeout(min(10, max(1, (int) config('notification_push.timeout', 10))))
             ->withToken($accessToken)
             ->post("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send", [
                 'message' => [
@@ -212,7 +213,8 @@ final class SendPushNotificationDeliveryAction
         return $this->failedResult(
             NotificationDelivery::PROVIDER_FCM,
             json_encode($error, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: 'FCM 발송 실패',
-            $invalidToken
+            $invalidToken,
+            $response->status() === 429 || $response->serverError(),
         );
     }
 
@@ -236,7 +238,7 @@ final class SendPushNotificationDeliveryAction
             ? 'https://api.sandbox.push.apple.com'
             : 'https://api.push.apple.com';
 
-        $response = Http::timeout((int) config('notification_push.timeout', 10))
+        $response = Http::connectTimeout(5)->timeout(min(10, max(1, (int) config('notification_push.timeout', 10))))
             ->withOptions(['version' => 2.0])
             ->withToken($token)
             ->withHeaders([
@@ -279,25 +281,15 @@ final class SendPushNotificationDeliveryAction
         return $this->failedResult(
             NotificationDelivery::PROVIDER_APNS,
             $reason !== '' ? $reason : 'APNs 발송 실패',
-            $invalidToken
+            $invalidToken,
+            $response->status() === 429 || $response->serverError(),
         );
-    }
-
-    private function markFailed(NotificationDelivery $delivery, string $message): void
-    {
-        $delivery->forceFill([
-            'status' => NotificationDelivery::STATUS_FAILED,
-            'attempted_at' => now(),
-            'delivered_at' => null,
-            'failed_at' => now(),
-            'error_message' => $message,
-        ])->save();
     }
 
     /**
      * @return array{provider:string, success:bool, provider_message_id:?string, error:?string, invalid_token:bool}
      */
-    private function failedResult(string $provider, string $error, bool $invalidToken = false): array
+    private function failedResult(string $provider, string $error, bool $invalidToken = false, bool $retryable = false): array
     {
         return [
             'provider' => $provider,
@@ -305,6 +297,7 @@ final class SendPushNotificationDeliveryAction
             'provider_message_id' => null,
             'error' => $error,
             'invalid_token' => $invalidToken,
+            'retryable' => $retryable,
         ];
     }
 
@@ -360,7 +353,7 @@ final class SendPushNotificationDeliveryAction
             ], $account['private_key'], 'RS256');
 
             $response = Http::asForm()
-                ->timeout((int) config('notification_push.timeout', 10))
+                ->connectTimeout(5)->timeout(min(10, max(1, (int) config('notification_push.timeout', 10))))
                 ->post($account['token_uri'], [
                     'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
                     'assertion' => $jwt,
@@ -369,7 +362,7 @@ final class SendPushNotificationDeliveryAction
             if (! $response->successful()) {
                 Log::warning('FCM access token 발급 실패', [
                     'status' => $response->status(),
-                    'body' => $response->body(),
+                    'error' => $response->json('error'),
                 ]);
 
                 return null;
@@ -406,10 +399,6 @@ final class SendPushNotificationDeliveryAction
 
     private function isFcmInvalidToken(array $error): bool
     {
-        if (($error['status'] ?? null) === 'NOT_FOUND') {
-            return true;
-        }
-
         $details = $error['details'] ?? [];
         $details = is_array($details) ? $details : [];
 

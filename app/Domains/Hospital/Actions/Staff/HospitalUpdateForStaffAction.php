@@ -11,7 +11,6 @@ use App\Domains\Hospital\Queries\Staff\HospitalUpdateForStaffQuery;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * HospitalUpdateForStaffAction 역할 정의.
@@ -121,8 +120,7 @@ final class HospitalUpdateForStaffAction
                 ->whereIn('id', $deletedMediaIds->all())
                 ->get()
                 ->each(function (Media $media): void {
-                    Storage::disk($media->disk)->delete($media->path);
-                    $media->delete();
+                    app(\App\Domains\Common\Media\Actions\MediaAttachDeleteAction::class)->delete($media);
                 });
         }
 
@@ -218,8 +216,7 @@ final class HospitalUpdateForStaffAction
                 ->whereIn('id', $deletedMediaIds->all())
                 ->get()
                 ->each(function (Media $media): void {
-                    Storage::disk($media->disk)->delete($media->path);
-                    $media->delete();
+                    app(\App\Domains\Common\Media\Actions\MediaAttachDeleteAction::class)->delete($media);
                 });
         }
 

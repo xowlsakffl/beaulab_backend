@@ -8,7 +8,6 @@ use App\Domains\Common\ContentReport\Models\ContentReportItem;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\Media\Models\Media;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 final readonly class ContentReportStateForStaffDto
 {
@@ -218,14 +217,14 @@ final readonly class ContentReportStateForStaffDto
                 'id' => (int) $media->id,
                 'collection' => (string) $media->collection,
                 'disk' => (string) $media->disk,
-                'path' => (string) $media->path,
-                'url' => Storage::disk((string) $media->disk)->url((string) $media->path),
+                'path' => $media->publicPath(),
+                'url' => $media->publicUrl(),
                 'mime_type' => $media->mime_type,
                 'size' => $media->size !== null ? (int) $media->size : null,
                 'width' => $media->width !== null ? (int) $media->width : null,
                 'height' => $media->height !== null ? (int) $media->height : null,
                 'sort_order' => (int) $media->sort_order,
-                'metadata' => $media->metadata,
+                'metadata' => $media->publicMetadata(),
                 'created_at' => $media->created_at?->toISOString(),
                 'updated_at' => $media->updated_at?->toISOString(),
             ])

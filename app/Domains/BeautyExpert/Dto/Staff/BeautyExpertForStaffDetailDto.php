@@ -2,9 +2,9 @@
 
 namespace App\Domains\BeautyExpert\Dto\Staff;
 
+use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Models\Media;
-use App\Domains\BeautyExpert\Models\BeautyExpert;
 
 /**
  * BeautyExpertForStaffDetailDto DTO.
@@ -12,12 +12,12 @@ use App\Domains\BeautyExpert\Models\BeautyExpert;
 final readonly class BeautyExpertForStaffDetailDto
 {
     /**
-     * @param array<int, mixed> $educations
-     * @param array<int, mixed> $careers
-     * @param array<int, mixed> $etcContents
-     * @param array<int, array<string, mixed>> $educationCertificateImage
-     * @param array<int, array<string, mixed>> $etcCertificateImage
-     * @param array<int, array<string, mixed>> $categories
+     * @param  array<int, mixed>  $educations
+     * @param  array<int, mixed>  $careers
+     * @param  array<int, mixed>  $etcContents
+     * @param  array<int, array<string, mixed>>  $educationCertificateImage
+     * @param  array<int, array<string, mixed>>  $etcCertificateImage
+     * @param  array<int, array<string, mixed>>  $categories
      */
     public function __construct(
         public int $id,
@@ -133,21 +133,21 @@ final readonly class BeautyExpertForStaffDetailDto
             'id' => $media->id,
             'collection' => $media->collection,
             'disk' => $media->disk,
-            'path' => $media->path,
+            'path' => $media->publicPath(),
             'mime_type' => $media->mime_type,
             'size' => $media->size,
             'width' => $media->width,
             'height' => $media->height,
             'sort_order' => $media->sort_order,
             'is_primary' => (bool) $media->is_primary,
-            'metadata' => $media->metadata,
+            'metadata' => $media->publicMetadata(),
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];
     }
 
     /**
-     * @param iterable<int, Media> $mediaList
+     * @param  iterable<int, Media>  $mediaList
      * @return array<int, array<string, mixed>>
      */
     private static function mediaList(iterable $mediaList): array

@@ -5,7 +5,8 @@ namespace App\Domains\Common\Notification\Events;
 use App\Domains\Common\Notification\Models\NotificationInbox;
 use App\Domains\Common\Notification\Queries\NotificationInboxBroadcastPayloadQuery;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -13,10 +14,14 @@ use Illuminate\Queue\SerializesModels;
  * 사용자별 private 채널로 알림함 변경을 전달하는 Reverb 이벤트.
  * 현재는 USER 수신자만 broadcast 대상으로 허용한다.
  */
-final class NotificationInboxUpdated implements ShouldBroadcastNow
+final class NotificationInboxUpdated implements ShouldBroadcast, ShouldDispatchAfterCommit
 {
     use Dispatchable;
     use SerializesModels;
+
+    public string $connection = 'redis';
+
+    public string $queue = 'chat';
 
     public function __construct(
         public readonly int $notificationId,

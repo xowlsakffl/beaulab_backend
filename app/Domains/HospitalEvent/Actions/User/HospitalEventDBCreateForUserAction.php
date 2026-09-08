@@ -27,6 +27,13 @@ final class HospitalEventDBCreateForUserAction
         }
 
         DB::transaction(function () use ($user, $event, $payload): void {
+            $event = HospitalEvent::query()->whereKey($event->id)->lockForUpdate()->firstOrFail();
+            $this->assertEventCanBeApplied($event);
+            if (! empty($payload['hospital_doctor_id'])
+                && ! $this->query->doctorBelongsToEvent($event, (int) $payload['hospital_doctor_id'])) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '선택한 의료진이 이벤트에 등록되어 있지 않습니다.');
+            }
+
             $isDuplicate = $this->query->existsDuplicate(
                 $event,
                 (string) $payload['name'],

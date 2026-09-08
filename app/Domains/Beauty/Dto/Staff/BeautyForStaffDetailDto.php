@@ -15,11 +15,11 @@ use App\Domains\Common\Media\Models\Media;
 final readonly class BeautyForStaffDetailDto
 {
     /**
-     * @param array<int, array<string, mixed>> $gallery
-     * @param array<int, array<string, mixed>> $categories
-     * @param array<string, mixed>|null $accountBeauty
-     * @param array<int, array<string, mixed>>|null $experts
-     * @param array<string, mixed>|null $businessRegistration
+     * @param  array<int, array<string, mixed>>  $gallery
+     * @param  array<int, array<string, mixed>>  $categories
+     * @param  array<string, mixed>|null  $accountBeauty
+     * @param  array<int, array<string, mixed>>|null  $experts
+     * @param  array<string, mixed>|null  $businessRegistration
      */
     public function __construct(
         public int $id,
@@ -235,14 +235,14 @@ final readonly class BeautyForStaffDetailDto
             'id' => $media->id,
             'collection' => $media->collection,
             'disk' => $media->disk,
-            'path' => $media->path,
+            'path' => $media->publicPath(),
             'mime_type' => $media->mime_type,
             'size' => $media->size,
             'width' => $media->width,
             'height' => $media->height,
             'sort_order' => $media->sort_order,
             'is_primary' => (bool) $media->is_primary,
-            'metadata' => $media->metadata,
+            'metadata' => $media->publicMetadata(),
             'created_at' => $media->created_at?->toISOString(),
             'updated_at' => $media->updated_at?->toISOString(),
         ];

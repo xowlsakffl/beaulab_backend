@@ -126,7 +126,14 @@ final class HospitalEventDuplicateForStaffAction
         Storage::disk($disk)->makeDirectory($targetDir);
 
         $targetPath = $this->targetPath($targetDir, $sourceMedia->path);
-        Storage::disk($disk)->copy($sourceMedia->path, $targetPath);
+        app(\App\Domains\Common\Media\Services\MediaFileLifecycle::class)->stage(
+            $disk,
+            $targetPath,
+            array_map(fn (string $path): string => $this->targetPath($targetDir, $path), $sourceMedia->variantPaths()),
+        );
+        if (! Storage::disk($disk)->copy($sourceMedia->path, $targetPath)) {
+            throw new \RuntimeException('Event media copy failed.');
+        }
 
         $metadata = $sourceMedia->metadata ?? [];
         $metadata['variants'] = $this->copyVariants($disk, $targetDir, $metadata['variants'] ?? []);
@@ -169,7 +176,9 @@ final class HospitalEventDuplicateForStaffAction
             }
 
             $targetPath = $this->targetPath($targetDir, $variant['path']);
-            Storage::disk($disk)->copy($variant['path'], $targetPath);
+            if (! Storage::disk($disk)->copy($variant['path'], $targetPath)) {
+                throw new \RuntimeException('Event media variant copy failed.');
+            }
 
             $copied[$name] = [
                 ...$variant,

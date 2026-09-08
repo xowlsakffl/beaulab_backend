@@ -34,6 +34,8 @@ Artisan::command('notifications:send-pending-push {--limit=100}', function () {
     $ids = NotificationDelivery::query()
         ->where('channel', NotificationDelivery::CHANNEL_PUSH)
         ->where('status', NotificationDelivery::STATUS_PENDING)
+        ->where(fn ($query) => $query->whereNull('processing_until')->orWhere('processing_until', '<=', now()))
+        ->where(fn ($query) => $query->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', now()))
         ->orderBy('id')
         ->limit($limit)
         ->pluck('id');
@@ -46,10 +48,20 @@ Artisan::command('notifications:send-pending-push {--limit=100}', function () {
 })->purpose('Queue pending push notification deliveries');
 
 // Redis 장애 등으로 큐 등록이 누락되거나 장기 대기 중인 문자를 재큐잉한다.
+Artisan::command('chat:dispatch-pending-broadcasts {--limit=500}', function () {
+    $ids = \App\Domains\Chat\Models\ChatMessage::query()->where('broadcast_pending', true)
+        ->orderBy('id')->limit(max(1, min((int) $this->option('limit'), 1000)))->pluck('id');
+    foreach ($ids as $id) {
+        \App\Domains\Chat\Jobs\BroadcastChatMessageJob::dispatch((int) $id);
+    }
+    $this->info('Queued pending chat broadcasts: '.$ids->count());
+})->purpose('Recover committed chat messages whose broadcast was not completed');
+
 Artisan::command('sms:dispatch-pending {--limit=100} {--stale-minutes=}', function () {
     $limit = max(1, min((int) $this->option('limit'), 1000));
     $staleMinutes = $this->option('stale-minutes');
     $staleMinutes = is_numeric($staleMinutes) ? max(1, (int) $staleMinutes) : null;
+    app(\App\Domains\Common\Sms\Actions\SmsDeliveryRecoveryAction::class)->execute($limit);
     $queuedCount = app(SmsPendingDispatchAction::class)->execute(
         limit: $limit,
         staleMinutes: $staleMinutes,
@@ -59,6 +71,33 @@ Artisan::command('sms:dispatch-pending {--limit=100} {--stale-minutes=}', functi
 })->purpose('Queue pending SMS deliveries');
 
 // 기존 업로드 이미지에 thumb/medium variant를 생성한다.
+Artisan::command('media:cleanup-files {--limit=500}', function () {
+    $limit = max(1, min((int) $this->option('limit'), 1000));
+    $files = app(\App\Domains\Common\Media\Services\MediaFileLifecycle::class);
+    $this->info('Deleted file tasks: '.$files->purge($limit));
+    $this->info('Pruned staging manifests: '.$files->pruneStaging($limit));
+})->purpose('Delete committed media removals and stale unreferenced uploads');
+
+Artisan::command('media:privatize {--apply} {--limit=500}', function () {
+    $apply = (bool) $this->option('apply');
+    $limit = max(1, min((int) $this->option('limit'), 1000));
+    $count = 0;
+    $query = Media::query()->where('disk', '!=', (string) config('media.private_disk', 'private_media'))
+        ->where(function ($query): void {
+            foreach (config('media.private_collections', []) as $owner => $collections) {
+                $query->orWhere(fn ($query) => $query->where('model_type', $owner)->whereIn('collection', $collections));
+            }
+        })->orderBy('id')->limit($limit);
+    foreach ($query->get() as $media) {
+        $this->line(($apply ? 'Migrate ' : 'Would migrate ').'media ID '.$media->id);
+        if ($apply) {
+            app(\App\Domains\Common\Media\Actions\PrivatizeMediaAction::class)->execute((int) $media->id);
+        }
+        $count++;
+    }
+    $this->info(($apply ? 'Processed: ' : 'Dry run candidates: ').$count);
+})->purpose('Copy sensitive media to private storage; --apply enables changes');
+
 Artisan::command('media:generate-variants {--force} {--limit=500}', function () {
     $force = (bool) $this->option('force');
     $limit = max(1, min((int) $this->option('limit'), 1000));
@@ -176,8 +215,13 @@ Schedule::command('notice:cleanup-temp-editor-images --hours=24')->hourly();
 // Horizon 메트릭 스냅샷 수집 (대시보드 그래프 데이터 유지)
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
 
+Schedule::command('media:cleanup-files')->everyFiveMinutes()->withoutOverlapping();
+
+Schedule::command('notifications:send-pending-push --limit=500')->everyMinute()->withoutOverlapping();
+Schedule::command('chat:dispatch-pending-broadcasts')->everyMinute()->withoutOverlapping();
+
 // 문자 원장 생성 후 Redis 큐 등록 자체가 누락된 건만 자동 복구한다.
-Schedule::command('sms:dispatch-pending --limit=500')
+Schedule::command('sms:dispatch-pending --limit=500 --stale-minutes=5')
     ->everyMinute()
     ->withoutOverlapping();
 

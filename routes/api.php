@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
 
+    Route::get('media/{media}/{variant?}', \App\Common\Http\Controllers\MediaFileController::class)
+        ->middleware('signed')->whereNumber('media')->name('media.show');
+
     foreach (\App\Common\Auth\AuthActor::cases() as $actor) {
         Route::prefix($actor->value.'/auth')->middleware('web.session')->group(function () use ($actor) {
             Route::get('csrf', [\App\Common\Http\Controllers\WebSessionController::class, 'csrf']);

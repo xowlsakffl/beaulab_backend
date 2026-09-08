@@ -19,7 +19,7 @@ final class SmsServiceProvider extends ServiceProvider
             }
 
             return match (mb_strtolower((string) config('sms.provider', 'log'))) {
-                'log' => new LogSmsProvider,
+                'log' => app()->environment(['local', 'testing']) ? new LogSmsProvider : new DisabledSmsProvider,
                 default => new DisabledSmsProvider,
             };
         });

@@ -12,7 +12,6 @@ use App\Domains\Notice\Queries\Staff\NoticeUpdateForStaffQuery;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * NoticeUpdateForStaffAction 역할 정의.
@@ -122,8 +121,7 @@ final class NoticeUpdateForStaffAction
                 ->whereIn('id', $deletedMediaIds->all())
                 ->get()
                 ->each(function (Media $media): void {
-                    Storage::disk($media->disk)->delete($media->path);
-                    $media->delete();
+                    app(\App\Domains\Common\Media\Actions\MediaAttachDeleteAction::class)->delete($media);
                 });
         }
 
@@ -153,8 +151,6 @@ final class NoticeUpdateForStaffAction
 
     private function sanitizeEditorContent(string $content): string
     {
-        $content = trim($content);
-
-        return preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $content) ?? $content;
+        return \App\Domains\Common\Media\Support\EditorHtmlSanitizer::clean($content);
     }
 }

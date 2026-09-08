@@ -58,10 +58,10 @@ final readonly class HospitalWalletRefundForStaffDto
             'id' => (int) $media->id,
             'collection' => $media->collection,
             'disk' => $media->disk,
-            'path' => $media->path,
+            'path' => $media->publicPath(),
             'mime_type' => $media->mime_type,
             'size' => (int) $media->size,
-            'metadata' => $media->metadata,
+            'metadata' => $media->publicMetadata(),
             'created_at' => $media->created_at?->toISOString(),
         ];
     }

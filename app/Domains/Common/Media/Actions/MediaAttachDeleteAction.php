@@ -4,10 +4,12 @@ namespace App\Domains\Common\Media\Actions;
 
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\Media\Queries\MediaAttachDeleteQuery;
+use App\Domains\Common\Media\Services\MediaFileLifecycle;
 use App\Domains\Common\Media\Services\MediaStorage;
 use App\Domains\Common\Media\Services\MediaVariantGenerator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -20,6 +22,7 @@ final class MediaAttachDeleteAction
         private readonly MediaAttachDeleteQuery $query,
         private readonly MediaVariantGenerator $variantGenerator,
         private readonly MediaStorage $mediaStorage,
+        private readonly MediaFileLifecycle $files,
     ) {}
 
     public function attachOne(
@@ -96,11 +99,10 @@ final class MediaAttachDeleteAction
 
     public function delete(Media $media): void
     {
-        Storage::disk($media->disk)->delete([
-            $media->path,
-            ...$media->variantPaths(),
-        ]);
-        $this->query->delete($media);
+        DB::transaction(function () use ($media): void {
+            $this->files->queueDeletion((string) $media->disk, [$media->path, ...$media->variantPaths()]);
+            $this->query->delete($media);
+        });
     }
 
     private function createOne(
@@ -111,8 +113,10 @@ final class MediaAttachDeleteAction
         bool $isPrimary,
         int $sortOrder,
     ): Media {
-        $disk = $this->mediaStorage->uploadDisk();
-        $path = Storage::disk($disk)->putFile($dir, $file, $this->mediaStorage->publicWriteOptions());
+        $disk = $this->mediaStorage->uploadDisk($owner::class, $collection);
+        $path = $file->hashName($dir);
+        $this->files->stage($disk, $path);
+        $path = Storage::disk($disk)->putFileAs($dir, $file, basename($path), $this->mediaStorage->writeOptions($disk));
 
         if (! is_string($path) || $path === '') {
             throw new \RuntimeException('Media upload failed.');

@@ -30,9 +30,11 @@ Queue 표준 런타임은 Redis + Horizon이다.
 | 비밀번호 재설정 메일 | `PasswordResetLinkMail` | `PASSWORD_RESET_MAIL_QUEUE_CONNECTION` 기본 `redis` | `PASSWORD_RESET_MAIL_QUEUE` 기본 `mail` | 재설정 링크 메일 발송 |
 | 병의원 계정 초대 메일 | `HospitalAccountInvitationMail` | `HOSPITAL_ACCOUNT_INVITATION_MAIL_QUEUE_CONNECTION` 기본 `redis` | `HOSPITAL_ACCOUNT_INVITATION_MAIL_QUEUE` 기본 `mail` | 병의원 계정 생성 링크 발송 |
 | Push 발송 | `SendPushNotificationDeliveryJob` | `redis` | `PUSH_QUEUE` 기본 `notifications` | FCM/APNs 외부 발송 |
+| 채팅 메시지 브로드캐스트 | `BroadcastChatMessageJob` | `redis` | `chat` | 커밋된 메시지 Reverb 발행 및 재처리 |
+| 인앱 알림 갱신 | `NotificationInboxUpdated` | `redis` | `chat` | 알림함 변경 Reverb 발행 |
 | 공통 문자 발송 | `SendSmsDeliveryJob` | `redis` | `SMS_QUEUE` 기본 `sms` | 수신자별 SMS/LMS 발송 및 이력 갱신 |
 
-비밀번호 재설정 메일과 병의원 계정 초대 메일은 `Mail::queue()`로 발행한다. 초대 메일은 원문 토큰이 Redis payload에 노출되지 않도록 `ShouldBeEncrypted`를 적용한다. 초대 메일의 본문과 큐 설정은 `HospitalAccountInvitationSendForStaffAction`, `HospitalAccountInvitationMail`, `config/hospital_account_invitation.php`를 기준으로 한다.
+비밀번호 재설정 메일과 병의원 계정 초대 메일은 `Mail::queue()`로 발행한다. 두 메일 모두 원문 토큰이 Redis payload에 노출되지 않도록 `ShouldBeEncrypted`를 적용한다. 초대 메일의 본문과 큐 설정은 `HospitalAccountInvitationSendForStaffAction`, `HospitalAccountInvitationMail`, `config/hospital_account_invitation.php`를 기준으로 한다.
 
 Push 발송은 `CreateNotificationAction`에서 `PUSH` delivery가 pending이면 `SendPushNotificationDeliveryJob`을 발행한다. 실제 외부 provider 호출은 `SendPushNotificationDeliveryAction`이 처리한다.
 
@@ -47,7 +49,7 @@ Horizon에는 현재와 향후 확장을 고려해 아래 레인을 표준으로
 | `critical` | 예약 | 사용자 영향도가 큰 고우선 작업 | 10초 |
 | `mail` | 사용 | 메일 발송 | 30초 |
 | `sms` | 사용 | 문자 발송 | 30초 |
-| `chat` | 예약 | 채팅 비동기 처리 | 15초 |
+| `chat` | 사용 | 채팅/인앱 브로드캐스트 | 15초 |
 | `notifications` | 사용 | Push/알림 외부 발송 | 15초 |
 | `default` | 예약 | 일반 비동기 작업 | 60초 |
 | `maintenance` | 예약 | 정리, 백필, 유지보수 작업 | 180초 |
@@ -142,7 +144,7 @@ php artisan notifications:send-pending-push --limit=100
 php artisan sms:dispatch-pending --limit=100
 ```
 
-장기대기 건을 운영 판단으로 강제 재큐잉할 때만 `--stale-minutes=30`처럼 기준 시간을 명시한다.
+Scheduler는 5분 경과 미완료 발송을 복구한다. SMS의 불명확한 업체 결과는 멱등 재시도 지원 여부를 확인하고 처리한다. Push는 기기별 결과와 발송 세대/임대를 기준으로 복구한다. 자세한 제한과 배포 순서는 [backend-hardening.md](./backend-hardening.md)를 따른다.
 
 ## 8) 배포 체크리스트
 

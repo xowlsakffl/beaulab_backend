@@ -27,6 +27,7 @@ final class HospitalEventCreateForStaffRequest extends FormRequest
             'options',
             'procedure_targets',
             'procedure_benefits',
+            'before_after_photos',
         ] as $key) {
             if (array_key_exists($key, $data)) {
                 $data[$key] = $this->normalizeJsonArray($data[$key]);
@@ -138,6 +139,13 @@ final class HospitalEventCreateForStaffRequest extends FormRequest
             'procedure_benefits' => ['required_if:event_type,TEXT', 'array', 'min:1', 'max:6'],
             'procedure_benefits.*' => ['string', 'max:90'],
 
+            'before_after_photos' => ['sometimes', 'array', 'max:'.HospitalEvent::MAX_BEFORE_AFTER_PHOTOS],
+            'before_after_photos.*' => ['array:before_image,after_image,before_media_id,after_media_id'],
+            'before_after_photos.*.before_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'before_after_photos.*.after_image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'before_after_photos.*.before_media_id' => ['nullable', 'integer', 'min:1', 'distinct'],
+            'before_after_photos.*.after_media_id' => ['nullable', 'integer', 'min:1', 'distinct'],
+
             'thumbnail_image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'event_page_image' => ['required_if:event_type,IMAGE', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ];
@@ -183,6 +191,9 @@ final class HospitalEventCreateForStaffRequest extends FormRequest
             'options' => '이벤트 옵션 목록',
             'procedure_targets' => '시술 대상',
             'procedure_benefits' => '시술 장점',
+            'before_after_photos' => '전후사진',
+            'before_after_photos.*.before_image' => '시술 전 사진',
+            'before_after_photos.*.after_image' => '시술 후 사진',
             'thumbnail_image' => '썸네일',
             'event_page_image' => '이벤트 페이지',
         ];

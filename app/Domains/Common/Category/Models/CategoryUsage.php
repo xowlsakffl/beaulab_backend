@@ -17,6 +17,8 @@ final class CategoryUsage extends Model
 
     public const USAGE_HOSPITAL_EVENT_TREATMENT = 'HOSPITAL_EVENT_TREATMENT';
 
+    public const USAGE_HOSPITAL_EVENT_PROMOTION = 'HOSPITAL_EVENT_PROMOTION';
+
     public const USAGE_HOSPITAL_VIDEO_CATEGORY = 'HOSPITAL_VIDEO_CATEGORY';
 
     public const USAGE_HOSPITAL_EVENT_AD_SURGERY = 'HOSPITAL_EVENT_AD_SURGERY';
@@ -62,9 +64,22 @@ final class CategoryUsage extends Model
             self::USAGE_HOSPITAL_REVIEW_TREATMENT,
             self::USAGE_HOSPITAL_EVENT_SURGERY,
             self::USAGE_HOSPITAL_EVENT_TREATMENT,
+            self::USAGE_HOSPITAL_EVENT_PROMOTION,
             self::USAGE_HOSPITAL_VIDEO_CATEGORY,
             self::USAGE_HOSPITAL_EVENT_AD_SURGERY,
             self::USAGE_HOSPITAL_EVENT_AD_TREATMENT,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function hospitalEventUsages(): array
+    {
+        return [
+            self::USAGE_HOSPITAL_EVENT_SURGERY,
+            self::USAGE_HOSPITAL_EVENT_TREATMENT,
+            self::USAGE_HOSPITAL_EVENT_PROMOTION,
         ];
     }
 

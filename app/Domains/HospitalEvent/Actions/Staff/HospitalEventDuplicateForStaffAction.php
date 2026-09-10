@@ -22,6 +22,7 @@ final class HospitalEventDuplicateForStaffAction
         private readonly HospitalEventCreateForStaffQuery $query,
         private readonly HospitalEventPayloadResolver $payloadResolver,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly HospitalEventBeforeAfterPhotosSyncAction $beforeAfterPhotosAction,
         private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
@@ -30,9 +31,9 @@ final class HospitalEventDuplicateForStaffAction
         Gate::authorize('view', $sourceEvent);
         Gate::authorize('create', HospitalEvent::class);
 
-        $sourceEvent->load(['thumbnailImage', 'eventPageImage']);
-
         $event = DB::transaction(function () use ($actor, $sourceEvent, $payload): HospitalEvent {
+            $sourceEvent = HospitalEvent::query()->lockForUpdate()->findOrFail($sourceEvent->getKey());
+            $sourceEvent->load(['thumbnailImage', 'eventPageImage', 'beforeAfterPhotos']);
             $data = $this->payloadResolver->normalizePersistPayload([
                 ...$payload,
                 'allow_status' => HospitalEvent::ALLOW_PENDING,
@@ -56,6 +57,7 @@ final class HospitalEventDuplicateForStaffAction
             $event->categories()->sync($categorySync['payload']);
             $this->payloadResolver->syncDoctorAssignments($event, $doctorAssignments);
             $this->payloadResolver->syncOptions($event, $options);
+            $this->copyBeforeAfterPhotos($sourceEvent, $event, $payload);
 
             if (isset($payload['thumbnail_image'])) {
                 $this->mediaAttachAction->attachOne($event, $payload['thumbnail_image'], HospitalEvent::COLLECTION_THUMBNAIL_IMAGE, 'hospital-event', 'thumbnail-image', true);
@@ -90,6 +92,7 @@ final class HospitalEventDuplicateForStaffAction
                 'options',
                 'thumbnailImage',
                 'eventPageImage',
+                'beforeAfterPhotos',
             ]);
 
             $this->historyRecordAction->recordCreated($event);
@@ -107,11 +110,35 @@ final class HospitalEventDuplicateForStaffAction
                 'options',
                 'thumbnailImage',
                 'eventPageImage',
+                'beforeAfterPhotos',
             ]))->toArray(),
         ];
     }
 
-    private function copyMedia(?Media $sourceMedia, HospitalEvent $event, string $collection, string $dirName, string $missingMessage): void
+    private function copyBeforeAfterPhotos(HospitalEvent $source, HospitalEvent $event, array $payload): void
+    {
+        if ($event->event_type !== HospitalEvent::TYPE_TEXT) {
+            $this->beforeAfterPhotosAction->execute($event, $payload);
+
+            return;
+        }
+        $pairs = $payload['before_after_photos'] ?? $source->beforeAfterPhotos->groupBy('sort_order')->map(static fn ($photos): array => [
+            'before_media_id' => $photos->firstWhere('collection', HospitalEvent::COLLECTION_BEFORE_PHOTO)?->id,
+            'after_media_id' => $photos->firstWhere('collection', HospitalEvent::COLLECTION_AFTER_PHOTO)?->id,
+        ])->values()->all();
+        foreach ($this->beforeAfterPhotosAction->resolve($source, $pairs) as $index => $pair) {
+            foreach ($pair as $side => $photo) {
+                $collection = $side === 'before' ? HospitalEvent::COLLECTION_BEFORE_PHOTO : HospitalEvent::COLLECTION_AFTER_PHOTO;
+                if ($photo instanceof Media) {
+                    $this->copyMedia($photo, $event, $collection, 'before-after-photos/'.$side, '복제할 전후사진을 찾을 수 없습니다.', $index);
+                } else {
+                    $this->mediaAttachAction->attachOne($event, $photo, $collection, 'hospital-event', 'before-after-photos/'.$side, false, $index);
+                }
+            }
+        }
+    }
+
+    private function copyMedia(?Media $sourceMedia, HospitalEvent $event, string $collection, string $dirName, string $missingMessage, ?int $sortOrder = null): void
     {
         if (! $sourceMedia) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, $missingMessage);
@@ -148,7 +175,7 @@ final class HospitalEventDuplicateForStaffAction
             'size' => $sourceMedia->size,
             'width' => $sourceMedia->width,
             'height' => $sourceMedia->height,
-            'sort_order' => (int) $sourceMedia->sort_order,
+            'sort_order' => $sortOrder ?? (int) $sourceMedia->sort_order,
             'is_primary' => (bool) $sourceMedia->is_primary,
             'metadata' => $metadata,
         ]);

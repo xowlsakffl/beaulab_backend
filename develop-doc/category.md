@@ -1,6 +1,6 @@
 # 카테고리 설계
 
-- 작성 기준: 2026-07-24
+- 작성 기준: 2026-09-09
 - 기준 코드: `categories`, `category_assignments`, `category_usages`, `CategoryDefinitions`, `CategoryFactory`, `CategorySeeder`
 
 ## 1. 설계 원칙
@@ -51,14 +51,21 @@ HOSPITAL_MEDICAL
 - 부인과
 - 안과
 - 한방
+- 리얼모델
+- 수능이벤트
+- 제모
+- 첫만남 이벤트
 ```
 
-`성형`, `쁘띠`는 카테고리 노드로 저장하지 않는다. 이 둘은 `categories.group_code`로만 구분한다.
+`성형`, `쁘띠`, `기획전`은 카테고리 노드로 저장하지 않는다. 이 셋은 `categories.group_code`로 구분한다.
 
 | group_code | 표시명 | 의미 |
 |---|---|---|
 | `SURGERY` | 성형 | 눈, 코, 지방흡입 / 이식, 가슴, 거상, 안면윤곽 / 양악, 모발이식, 기타 |
 | `TREATMENT` | 쁘띠 | 리프팅, 필러, 보톡스, 지방분해주사, 피부, 제모/탈모, 치과, 부인과, 안과, 한방 |
+| `PROMOTION` | 기획전 | 리얼모델, 수능이벤트, 제모, 첫만남 이벤트 (현재 모두 자식 없는 대분류) |
+
+기획전의 `제모`는 쁘띠의 `제모/탈모`와 다른 카테고리 code를 사용한다. 기획전 4개는 이벤트 전용 usage에만 연결하며 병의원/의료진 진료과목, 후기, 동영상, 카테고리별 광고 배너 usage에는 추가하지 않는다.
 
 시더에서는 최상위 카테고리에 `group_code`를 정의하고, 하위 카테고리는 부모의 `group_code`를 상속한다. 운영 화면에서 하위 카테고리를 생성하거나 수정할 때도 부모와 다른 `group_code`는 허용하지 않는다. 부모 카테고리의 `group_code`를 바꾸면 하위 카테고리의 `group_code`도 동기화한다.
 
@@ -96,6 +103,7 @@ app/Domains/Common/Category/Definitions/data/usages/hospital_doctor_subject.php
 | `HOSPITAL_REVIEW_TREATMENT` | 쁘띠 | 10개 | 시술후기 게시판 구분/검증 |
 | `HOSPITAL_EVENT_SURGERY` | 성형 | 8개 | 이벤트 카테고리 루트 검증 |
 | `HOSPITAL_EVENT_TREATMENT` | 쁘띠 | 10개 | 이벤트 카테고리 루트 검증 |
+| `HOSPITAL_EVENT_PROMOTION` | 기획전 | 4개 | 이벤트 등록/수정, 목록 필터 |
 | `HOSPITAL_VIDEO_CATEGORY` | 성형 + 쁘띠 | 18개 | 동영상 카테고리 |
 | `HOSPITAL_EVENT_AD_SURGERY` | 성형 | 8개 | 성형 카테고리별 광고 배너 |
 | `HOSPITAL_EVENT_AD_TREATMENT` | 쁘띠 | 10개 | 쁘띠 카테고리별 광고 배너 |
@@ -126,7 +134,7 @@ usage 파일은 “해당 화면에서 처음 보여줄 수 있는 선택 루트
 |---|---|---|
 | 병의원 진료과목 | `HOSPITAL_DOCTOR_SUBJECT` active usage에 속한 카테고리 | 최대 5개 |
 | 의료진 진료분야 | `HOSPITAL_DOCTOR_SUBJECT` active usage에 속한 카테고리 | 최대 5개 |
-| 이벤트 등록/수정 | active `HOSPITAL_MEDICAL` leaf 카테고리 | 최대 3개, 선택 카테고리는 성형/쁘띠를 섞을 수 없음 |
+| 이벤트 등록/수정 | active `HOSPITAL_MEDICAL` leaf 카테고리 | 성형/쁘띠 최대 3개, 기획전 1개(선택 항목이 대표), 서로 다른 분류를 섞을 수 없음 |
 | 이벤트 대표 카테고리 | active `HOSPITAL_MEDICAL` leaf 카테고리 | `category_ids` 안에 포함되어야 함 |
 | 동영상 등록/수정 | `HOSPITAL_VIDEO_CATEGORY` active usage에 속한 카테고리 | 성형/쁘띠 구분은 `group_code` 기준 |
 | 광고 카테고리별 배너 | `HOSPITAL_EVENT_AD_SURGERY` 또는 `HOSPITAL_EVENT_AD_TREATMENT` active usage | 카테고리별 배너 placement에서만 필수 |
@@ -152,6 +160,7 @@ app/Domains/Common/Category/
             ├── hospital_review_treatment.php
             ├── hospital_event_surgery.php
             ├── hospital_event_treatment.php
+            ├── hospital_event_promotion.php
             ├── hospital_video_category.php
             ├── hospital_event_ad_surgery.php
             └── hospital_event_ad_treatment.php
@@ -162,6 +171,7 @@ app/Domains/Common/Category/
 - `CategoryDefinitions`: 카테고리 트리와 usage 정의 파일의 app 기준 진입점
 - `CategoryFactory`: `CategoryDefinitions`에서 정의를 읽어 `categories`, `category_usages`에 반영
 - `CategorySeeder`: `CategoryFactory::seed...()` 메서드를 호출하는 얇은 Seeder
+- `HospitalEventPromotionCategorySeeder`: 기획전 정의 4개와 전용 usage만 추가/동기화한다. 다른 카테고리를 비활성화하거나 삭제하지 않는다.
 
 동기화 순서:
 
@@ -201,7 +211,7 @@ usage 파일은 DB id를 직접 쓰지 않고 `code`로 참조한다. 동기화 
 |---|---|
 | `domain` | 카테고리 원본 도메인 |
 | `usage` | 사용처별 노출 목록 필터 |
-| `group_code` | 성형/쁘띠 그룹 필터(`SURGERY`, `TREATMENT`) |
+| `group_code` | 성형/쁘띠/기획전 그룹 필터(`SURGERY`, `TREATMENT`, `PROMOTION`) |
 | `parent_id` | 특정 부모 id의 자식 조회 |
 | `parent_code` | 특정 부모 code의 자식 조회 |
 | `q` | 이름/code/full_path 검색 |
@@ -242,7 +252,7 @@ selector/list 응답은 `group_code`, `group_label`을 내려준다. 프론트�
 - 공통 상수는 `apps/staff-web/lib/common/category.ts`에 둔다.
 - 병원 의료 카테고리의 성형/쁘띠 섹션 분리는 `groupMedicalCategorySelectorItems()`로 처리한다.
 - 병의원/의료진/동영상 폼은 같은 `HOSPITAL_MEDICAL` 도메인을 쓰되, 표시 섹션은 `group_code` 기준으로 나눈다.
-- 이벤트 등록/수정은 성형/쁘띠 탭별 usage를 사용하지만, 저장되는 category id는 공통 `categories.id`다.
+- 이벤트 등록/수정은 성형/쁘띠/기획전 탭별 usage를 사용하지만, 저장되는 category id는 공통 `categories.id`다. 모든 탭에서 대·중·소 카테고리 영역을 표시하며 가격 옵션은 쁘띠에서만 사용한다.
 - 새 usage가 추가될 때는 백엔드 `CategoryUsage`, `CategoryDefinitions`, usage data 파일, 프론트 `CATEGORY_USAGES`를 같이 추가한다.
 - 새 domain이 추가될 때는 백엔드 `Category`, `CategoryDefinitions`, tree data 파일, 프론트 `CATEGORY_DOMAINS`를 같이 추가한다.
 
@@ -256,6 +266,8 @@ selector/list 응답은 `group_code`, `group_label`을 내려준다. 프론트�
 4. 프론트 상수와 selector section 정의를 맞춘다.
 5. `php artisan db:seed --class=CategorySeeder`로 DB를 동기화한다.
 6. usage 파일이 없는 code를 참조하지 않는지, 성형/쁘띠 group이 섞이지 않는지 확인한다.
+
+기존 DB에 기획전만 추가할 때는 `php artisan db:seed --class=HospitalEventPromotionCategorySeeder`를 사용한다. 신규 설치의 `CategorySeeder`도 같은 정의를 읽는다. 테이블/컬럼 변경은 없다.
 
 ## 12. 금지 기준
 

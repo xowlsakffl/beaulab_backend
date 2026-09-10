@@ -20,6 +20,7 @@ final class HospitalEventGetForStaffAction
                 'options',
                 'thumbnailImage',
                 'eventPageImage',
+                'beforeAfterPhotos',
             ]))->toArray(),
         ];
     }

@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -52,6 +53,12 @@ final class HospitalEvent extends Model
     public const COLLECTION_THUMBNAIL_IMAGE = 'thumbnail_image';
 
     public const COLLECTION_EVENT_PAGE_IMAGE = 'event_page_image';
+
+    public const COLLECTION_BEFORE_PHOTO = 'before_photo';
+
+    public const COLLECTION_AFTER_PHOTO = 'after_photo';
+
+    public const MAX_BEFORE_AFTER_PHOTOS = 4;
 
     public const MAX_CATEGORY_COUNT = 3;
 
@@ -193,6 +200,13 @@ final class HospitalEvent extends Model
     {
         return $this->morphOne(Media::class, 'model')
             ->where('collection', self::COLLECTION_EVENT_PAGE_IMAGE);
+    }
+
+    public function beforeAfterPhotos(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'model')
+            ->whereIn('collection', [self::COLLECTION_BEFORE_PHOTO, self::COLLECTION_AFTER_PHOTO])
+            ->orderBy('sort_order')->orderBy('id');
     }
 
     /**

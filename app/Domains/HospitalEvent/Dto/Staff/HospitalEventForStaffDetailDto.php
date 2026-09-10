@@ -52,6 +52,7 @@ final readonly class HospitalEventForStaffDetailDto
             'options' => $this->options(),
             'thumbnail_image' => $this->thumbnailImage(),
             'event_page_image' => $this->eventPageImage(),
+            'before_after_photos' => $this->beforeAfterPhotos(),
             'created_at' => $this->event->created_at?->toISOString(),
             'updated_at' => $this->event->updated_at?->toISOString(),
             'deleted_at' => $this->event->deleted_at?->toISOString(),
@@ -176,14 +177,23 @@ final readonly class HospitalEventForStaffDetailDto
         ];
     }
 
+    private function beforeAfterPhotos(): array
+    {
+        if ($this->event->event_type !== HospitalEvent::TYPE_TEXT || ! $this->event->relationLoaded('beforeAfterPhotos')) {
+            return [];
+        }
+
+        return $this->event->beforeAfterPhotos->groupBy('sort_order')->map(fn ($photos): array => [
+            'before_image' => $this->media($photos->firstWhere('collection', HospitalEvent::COLLECTION_BEFORE_PHOTO)),
+            'after_image' => $this->media($photos->firstWhere('collection', HospitalEvent::COLLECTION_AFTER_PHOTO)),
+        ])->values()->all();
+    }
+
     private static function categoryUsage(Category $category): ?string
     {
         static $pathsByUsage = null;
 
-        $pathsByUsage ??= CategoryUsage::activeCategoryFullPathsByUsage([
-            CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY,
-            CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT,
-        ]);
+        $pathsByUsage ??= CategoryUsage::activeCategoryFullPathsByUsage(CategoryUsage::hospitalEventUsages());
 
         $fullPath = trim((string) ($category->full_path ?? ''));
         if ($fullPath === '') {

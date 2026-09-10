@@ -564,4 +564,24 @@ return [
             ['name' => '튼살치료', 'code' => 'HT_ORIENTAL_STRETCH_MARK'],
         ],
     ],
+    [
+        'name' => '리얼모델',
+        'code' => 'HP_REAL_MODEL',
+        'group_code' => 'PROMOTION',
+    ],
+    [
+        'name' => '수능이벤트',
+        'code' => 'HP_CSAT_EVENT',
+        'group_code' => 'PROMOTION',
+    ],
+    [
+        'name' => '제모',
+        'code' => 'HP_HAIR_REMOVAL',
+        'group_code' => 'PROMOTION',
+    ],
+    [
+        'name' => '첫만남 이벤트',
+        'code' => 'HP_FIRST_VISIT_EVENT',
+        'group_code' => 'PROMOTION',
+    ],
 ];

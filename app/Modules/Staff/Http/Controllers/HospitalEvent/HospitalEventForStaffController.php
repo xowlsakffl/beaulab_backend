@@ -15,6 +15,7 @@ use App\Domains\HospitalEvent\Actions\Staff\HospitalEventGetForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventListForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventOperationHistoriesForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventPeriodUpdateForStaffAction;
+use App\Domains\HospitalEvent\Actions\Staff\HospitalEventPreviewContextForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventSummaryForStaffAction;
 use App\Domains\HospitalEvent\Actions\Staff\HospitalEventUpdateForStaffAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
@@ -25,10 +26,18 @@ use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventDuplicateForStaff
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventGetForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventPeriodUpdateForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventPreviewContextForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalEvent\HospitalEventUpdateForStaffRequest;
 
 final class HospitalEventForStaffController extends Controller
 {
+    public function getHospitalEventPreviewContextForStaff(
+        HospitalEventPreviewContextForStaffRequest $request,
+        HospitalEventPreviewContextForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($request->validated()));
+    }
+
     public function getHospitalEventsForStaff(
         HospitalEventListForStaffRequest $request,
         HospitalEventListForStaffAction $action,

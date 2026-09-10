@@ -23,6 +23,7 @@ final class CategoryDefinitions
         CategoryUsage::USAGE_HOSPITAL_REVIEW_TREATMENT => 'hospital_review_treatment',
         CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY => 'hospital_event_surgery',
         CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT => 'hospital_event_treatment',
+        CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION => 'hospital_event_promotion',
         CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY => 'hospital_video_category',
         CategoryUsage::USAGE_HOSPITAL_EVENT_AD_SURGERY => 'hospital_event_ad_surgery',
         CategoryUsage::USAGE_HOSPITAL_EVENT_AD_TREATMENT => 'hospital_event_ad_treatment',

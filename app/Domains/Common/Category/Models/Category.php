@@ -38,6 +38,8 @@ final class Category extends Model
 
     public const GROUP_TREATMENT = 'TREATMENT';
 
+    public const GROUP_PROMOTION = 'PROMOTION';
+
     public const STATUS_ACTIVE = 'ACTIVE';
 
     public const STATUS_INACTIVE = 'INACTIVE';
@@ -132,6 +134,7 @@ final class Category extends Model
         return [
             self::GROUP_SURGERY,
             self::GROUP_TREATMENT,
+            self::GROUP_PROMOTION,
         ];
     }
 
@@ -140,6 +143,7 @@ final class Category extends Model
         return match ($groupCode) {
             self::GROUP_SURGERY => '성형',
             self::GROUP_TREATMENT => '쁘띠',
+            self::GROUP_PROMOTION => '기획전',
             default => null,
         };
     }

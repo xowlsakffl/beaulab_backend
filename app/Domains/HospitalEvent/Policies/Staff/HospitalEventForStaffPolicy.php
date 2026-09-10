@@ -8,6 +8,15 @@ use App\Domains\HospitalEvent\Models\HospitalEvent;
 
 final class HospitalEventForStaffPolicy
 {
+    public function preview(AccountStaff $actor): bool
+    {
+        return $actor->canAny([
+            AccessPermissions::BEAULAB_HOSPITAL_EVENT_SHOW,
+            AccessPermissions::BEAULAB_HOSPITAL_EVENT_CREATE,
+            AccessPermissions::BEAULAB_HOSPITAL_EVENT_UPDATE,
+        ]);
+    }
+
     public function viewAny(AccountStaff $actor): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVENT_SHOW);

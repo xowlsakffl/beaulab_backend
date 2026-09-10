@@ -30,16 +30,15 @@ final class HospitalEventSeeder extends Seeder
             $eventCount = $hospitalIndex < 3 ? 6 : 3;
 
             for ($index = 0; $index < $eventCount; $index++) {
-                $usage = $index % 2 === 0
-                    ? CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY
-                    : CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT;
+                $usages = CategoryUsage::hospitalEventUsages();
+                $usage = $usages[$index % count($usages)];
 
                 if (empty($categoryIdsByUsage[$usage])) {
                     $usage = array_key_first($categoryIdsByUsage);
                 }
 
                 $event = $this->createEvent($hospitalId, $usage, $index);
-                $this->syncCategories($event, $categoryIdsByUsage[$usage]);
+                $this->syncCategories($event, $categoryIdsByUsage[$usage], $usage);
                 $this->syncDoctors($event, $hospitalId);
             }
         }
@@ -116,10 +115,7 @@ final class HospitalEventSeeder extends Seeder
      */
     private function categoryIdsByUsage(): array
     {
-        $pathsByUsage = CategoryUsage::activeCategoryFullPathsByUsage([
-            CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY,
-            CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT,
-        ]);
+        $pathsByUsage = CategoryUsage::activeCategoryFullPathsByUsage(CategoryUsage::hospitalEventUsages());
 
         $out = [];
         foreach ($pathsByUsage as $usage => $rootPaths) {
@@ -132,7 +128,7 @@ final class HospitalEventSeeder extends Seeder
                             ->orWhere('full_path', 'like', $rootPath.' > %');
                     }
                 })
-                ->where('depth', 3)
+                ->where(static fn ($query) => Category::constrainActiveLeafHospitalMedicalCategory($query))
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)
                 ->values()
@@ -145,11 +141,12 @@ final class HospitalEventSeeder extends Seeder
     /**
      * @param  array<int, int>  $categoryIds
      */
-    private function syncCategories(HospitalEvent $event, array $categoryIds): void
+    private function syncCategories(HospitalEvent $event, array $categoryIds, string $usage): void
     {
+        $maxCount = $usage === CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION ? 1 : HospitalEvent::MAX_CATEGORY_COUNT;
         $selectedIds = collect($categoryIds)
             ->shuffle()
-            ->take(random_int(1, min(3, count($categoryIds))))
+            ->take(random_int(1, min($maxCount, count($categoryIds))))
             ->values();
 
         $event->categories()->sync(

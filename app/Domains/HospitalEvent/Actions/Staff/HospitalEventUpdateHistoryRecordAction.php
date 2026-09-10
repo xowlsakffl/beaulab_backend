@@ -2,6 +2,7 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
+use App\Domains\Common\Media\Models\Media;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
@@ -27,6 +28,7 @@ final class HospitalEventUpdateHistoryRecordAction
             'options',
             'thumbnailImage',
             'eventPageImage',
+            'beforeAfterPhotos',
         ]);
 
         return $this->snapshot($event);
@@ -55,6 +57,7 @@ final class HospitalEventUpdateHistoryRecordAction
             'options',
             'thumbnailImage',
             'eventPageImage',
+            'beforeAfterPhotos',
         ]);
 
         $changes = $this->changes($before, $this->snapshot($event));
@@ -144,6 +147,9 @@ final class HospitalEventUpdateHistoryRecordAction
             'side_effect_notice' => $this->item('부작용안내', $event->side_effect_notice, $event->side_effect_notice),
             'thumbnail_image' => $this->item('썸네일', $event->thumbnailImage?->path, $this->mediaLabel($event->thumbnailImage?->path)),
             'event_page_image' => $this->item('이벤트 페이지', $event->eventPageImage?->path, $this->mediaLabel($event->eventPageImage?->path)),
+            'before_after_photos' => $this->item('전후사진', $event->beforeAfterPhotos->map(static fn ($media): array => [
+                'id' => $media->id, 'collection' => $media->collection, 'sort_order' => $media->sort_order,
+            ])->all(), $this->beforeAfterPhotosDisplay($event)),
         ];
     }
 
@@ -201,6 +207,26 @@ final class HospitalEventUpdateHistoryRecordAction
         }
 
         return basename($path);
+    }
+
+    private function beforeAfterPhotosDisplay(HospitalEvent $event): string
+    {
+        if ($event->beforeAfterPhotos->isEmpty()) {
+            return '-';
+        }
+
+        return $event->beforeAfterPhotos->groupBy('sort_order')->values()
+            ->map(fn ($photos, int $index): string => ($index + 1)."세트\n전: "
+                .$this->photoFileName($photos->firstWhere('collection', HospitalEvent::COLLECTION_BEFORE_PHOTO))
+                ."\n후: ".$this->photoFileName($photos->firstWhere('collection', HospitalEvent::COLLECTION_AFTER_PHOTO)))
+            ->implode("\n\n");
+    }
+
+    private function photoFileName(?Media $media): string
+    {
+        $name = trim((string) ($media?->metadata['original_name'] ?? ''));
+
+        return $name !== '' ? $name : ($this->mediaLabel($media?->path) ?? '-');
     }
 
     /**

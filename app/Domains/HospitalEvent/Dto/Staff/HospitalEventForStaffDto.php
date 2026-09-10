@@ -214,10 +214,7 @@ final readonly class HospitalEventForStaffDto
     {
         static $pathsByUsage = null;
 
-        $pathsByUsage ??= CategoryUsage::activeCategoryFullPathsByUsage([
-            CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY,
-            CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT,
-        ]);
+        $pathsByUsage ??= CategoryUsage::activeCategoryFullPathsByUsage(CategoryUsage::hospitalEventUsages());
 
         $fullPath = trim((string) ($category->full_path ?? ''));
         if ($fullPath === '') {

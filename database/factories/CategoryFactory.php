@@ -56,6 +56,32 @@ final class CategoryFactory extends Factory
         });
     }
 
+    public static function seedHospitalEventPromotionCategories(): void
+    {
+        DB::transaction(function (): void {
+            $tree = CategoryDefinitions::tree(Category::DOMAIN_HOSPITAL_MEDICAL);
+
+            foreach ($tree as $index => $node) {
+                if (($node['group_code'] ?? null) !== Category::GROUP_PROMOTION) {
+                    continue;
+                }
+
+                self::upsertNode(
+                    domain: Category::DOMAIN_HOSPITAL_MEDICAL,
+                    node: $node,
+                    parent: null,
+                    depth: 1,
+                    sortOrder: $index + 1,
+                );
+            }
+
+            self::seedCategoryUsage(
+                CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION,
+                CategoryDefinitions::usageItems(CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION),
+            );
+        });
+    }
+
     public static function seedHospitalEvaluationCategories(): void
     {
         DB::transaction(function (): void {

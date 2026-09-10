@@ -60,7 +60,7 @@ final class HospitalEventPayloadResolver
             'procedure_benefits' => $eventType === HospitalEvent::TYPE_TEXT
                 ? $this->normalizeTextItems($payload['procedure_benefits'] ?? $event?->procedure_benefits ?? [], HospitalEvent::MAX_PROCEDURE_BENEFIT_ITEMS)
                 : null,
-            'side_effect_notice' => $payload['side_effect_notice'] ?? $event?->side_effect_notice,
+            'side_effect_notice' => array_key_exists('side_effect_notice', $payload) ? $payload['side_effect_notice'] : $event?->side_effect_notice,
             'allow_status' => $payload['allow_status'] ?? $event?->allow_status ?? HospitalEvent::ALLOW_PENDING,
             'hospital_status' => $payload['hospital_status'] ?? $event?->hospital_status ?? HospitalEvent::HOSPITAL_STATUS_PUBLIC,
             'admin_status' => $payload['admin_status'] ?? $event?->admin_status ?? HospitalEvent::ADMIN_STATUS_NORMAL,
@@ -115,6 +115,10 @@ final class HospitalEventPayloadResolver
         }
 
         $usage = $this->resolveSingleCategoryUsage($categories);
+
+        if ($usage === CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION && count($categoryIds) !== 1) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '기획전 카테고리는 1개만 선택해 주세요.');
+        }
 
         $payload = collect($categoryIds)
             ->mapWithKeys(static fn (int $categoryId): array => [
@@ -264,10 +268,7 @@ final class HospitalEventPayloadResolver
      */
     private function resolveSingleCategoryUsage($categories): string
     {
-        $pathsByUsage = CategoryUsage::activeCategoryFullPathsByUsage([
-            CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY,
-            CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT,
-        ]);
+        $pathsByUsage = CategoryUsage::activeCategoryFullPathsByUsage(CategoryUsage::hospitalEventUsages());
 
         $matchedUsages = [];
         foreach ($categories as $category) {
@@ -284,7 +285,7 @@ final class HospitalEventPayloadResolver
             }
 
             if (count($matchedForCategory) !== 1) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 성형 또는 쁘띠 카테고리 중 하나에만 속해야 합니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 성형, 쁘띠, 기획전 중 하나에만 속해야 합니다.');
             }
 
             $matchedUsages[] = $matchedForCategory[0];
@@ -292,7 +293,7 @@ final class HospitalEventPayloadResolver
 
         $uniqueUsages = array_values(array_unique($matchedUsages));
         if (count($uniqueUsages) !== 1) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '성형 카테고리와 쁘띠 카테고리는 섞어서 선택할 수 없습니다.');
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '성형, 쁘띠, 기획전 카테고리는 섞어서 선택할 수 없습니다.');
         }
 
         return $uniqueUsages[0];

@@ -9,6 +9,12 @@ use App\Domains\HospitalEvent\Policies\Staff\HospitalEventForStaffPolicy;
 
 final class HospitalEventPolicy
 {
+    public function preview(mixed $actor): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalEventForStaffPolicy::class)->preview($actor);
+    }
+
     public function viewAny(mixed $actor): bool
     {
         return $this->delegate($actor)->viewAny($actor);

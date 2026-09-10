@@ -18,7 +18,7 @@ final class HospitalEventCategoryFilterOptionsForStaffQuery
             ->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('categories.status', Category::STATUS_ACTIVE)
             ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
-            ->whereIn('category_usages.usage', $this->eventCategoryUsages())
+            ->whereIn('category_usages.usage', CategoryUsage::hospitalEventUsages())
             ->select([
                 'categories.id',
                 'categories.domain',
@@ -73,17 +73,6 @@ final class HospitalEventCategoryFilterOptionsForStaffQuery
             ->get();
     }
 
-    /**
-     * @return list<string>
-     */
-    private function eventCategoryUsages(): array
-    {
-        return [
-            CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY,
-            CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT,
-        ];
-    }
-
     private function hasChildrenSelect(): string
     {
         return 'EXISTS(
@@ -100,6 +89,7 @@ final class HospitalEventCategoryFilterOptionsForStaffQuery
         return "CASE category_usages.usage
             WHEN '".CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY."' THEN 1
             WHEN '".CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT."' THEN 2
+            WHEN '".CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION."' THEN 3
             ELSE 99
         END";
     }

@@ -19,6 +19,7 @@ final class HospitalEventUpdateForStaffAction
         private readonly HospitalEventUpdateForStaffQuery $query,
         private readonly HospitalEventPayloadResolver $payloadResolver,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly HospitalEventBeforeAfterPhotosSyncAction $beforeAfterPhotosAction,
         private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
@@ -30,9 +31,19 @@ final class HospitalEventUpdateForStaffAction
         }
 
         $event = DB::transaction(function () use ($event, $payload): HospitalEvent {
+            $event = HospitalEvent::query()->lockForUpdate()->findOrFail($event->getKey());
             $beforeHistory = $this->historyRecordAction->capture($event);
 
             $data = $this->payloadResolver->normalizePersistPayload($payload, $event);
+
+            if ((int) $data['hospital_id'] !== (int) $event->hospital_id
+                && ! array_key_exists('doctor_assignments', $payload)
+                && ! array_key_exists('doctor_ids', $payload)) {
+                $this->payloadResolver->resolveDoctorAssignments(
+                    ['doctor_ids' => $event->doctors->modelKeys()],
+                    (int) $data['hospital_id'],
+                );
+            }
 
             $categorySync = null;
             if (array_key_exists('category_ids', $payload)) {
@@ -47,7 +58,7 @@ final class HospitalEventUpdateForStaffAction
             $optionsPayloadExists = array_key_exists('options', $payload) || array_key_exists('has_options', $payload);
             $options = null;
 
-            if ($categoryUsage === CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY) {
+            if ($categoryUsage !== CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT) {
                 $options = [];
                 $data['has_options'] = false;
             } elseif ($optionsPayloadExists) {
@@ -59,6 +70,7 @@ final class HospitalEventUpdateForStaffAction
             }
 
             $event = $this->query->update($event, $data);
+            $this->beforeAfterPhotosAction->execute($event, $payload);
 
             if ($categorySync !== null) {
                 $event->categories()->sync($categorySync['payload']);
@@ -111,6 +123,7 @@ final class HospitalEventUpdateForStaffAction
                 'options',
                 'thumbnailImage',
                 'eventPageImage',
+                'beforeAfterPhotos',
             ]))->toArray(),
         ];
     }

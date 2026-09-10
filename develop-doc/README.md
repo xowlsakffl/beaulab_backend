@@ -18,6 +18,7 @@
 - [Scheduler 운영 가이드](./scheduler.md)
 - [도메인 & 상태 정의서](./domain-status-definition.md)
 - [카테고리 설계](./category.md)
+- [이벤트 전후사진](./hospital-event-media.md)
 - [운영 히스토리 설계](./operation-history.md)
 - [콘텐츠 신고 / 신고게시물 관리](./content-report.md)
 - [성능 / 인덱스 / 쿼리 규칙](./performance.md)

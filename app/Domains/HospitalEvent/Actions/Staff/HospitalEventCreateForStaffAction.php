@@ -18,6 +18,7 @@ final class HospitalEventCreateForStaffAction
         private readonly HospitalEventCreateForStaffQuery $query,
         private readonly HospitalEventPayloadResolver $payloadResolver,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly HospitalEventBeforeAfterPhotosSyncAction $beforeAfterPhotosAction,
         private readonly HospitalEventUpdateHistoryRecordAction $historyRecordAction,
     ) {}
 
@@ -47,6 +48,7 @@ final class HospitalEventCreateForStaffAction
             $event->categories()->sync($categorySync['payload']);
             $this->payloadResolver->syncDoctorAssignments($event, $doctorAssignments);
             $this->payloadResolver->syncOptions($event, $options);
+            $this->beforeAfterPhotosAction->execute($event, $payload);
 
             $this->mediaAttachAction->attachOne($event, $payload['thumbnail_image'] ?? null, HospitalEvent::COLLECTION_THUMBNAIL_IMAGE, 'hospital-event', 'thumbnail-image', true);
 
@@ -61,6 +63,7 @@ final class HospitalEventCreateForStaffAction
                 'options',
                 'thumbnailImage',
                 'eventPageImage',
+                'beforeAfterPhotos',
             ]);
 
             $this->historyRecordAction->recordCreated($event);
@@ -78,6 +81,7 @@ final class HospitalEventCreateForStaffAction
                 'options',
                 'thumbnailImage',
                 'eventPageImage',
+                'beforeAfterPhotos',
             ]))->toArray(),
         ];
     }

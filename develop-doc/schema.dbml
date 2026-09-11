@@ -33,10 +33,12 @@ Table account_beauties {
 Table account_hospitals {
   id bigint [pk, increment, note: '병원 관리자 고유 ID']
   hospital_id bigint [note: '소속 병원 ID']
-  name varchar [note: '병원 관리자 실명']
+  name varchar [note: '호환용 병의원명; 표시에는 연결 병의원명 사용']
   nickname varchar [unique, note: '병원 관리자 로그인 아이디']
-  phone varchar(50) [note: '인증된 전화번호']
-  phone_verified_at timestamp [null, note: '전화번호 인증 완료 시각']
+  email varchar(254) [null, unique, note: '인증 이메일; 기존 계정 전환 전에는 null']
+  email_verified_at timestamp [null, note: '이메일 인증 완료 시각']
+  phone varchar(50) [null, note: '전환 기간 보존용; 입력/출력/인증에서 사용하지 않음']
+  phone_verified_at timestamp [null, note: '과거 인증 시각; 신규 인증에서 사용하지 않음']
   password varchar [note: '암호화된 비밀번호']
   status varchar [default: `'SUSPENDED'`, note: '계정 상태(ACTIVE, SUSPENDED, BLOCKED, WITHDRAWN)']
   last_login_at timestamp [null, note: '마지막 로그인 시각']
@@ -514,8 +516,9 @@ Table hospital_account_invitations {
 Table hospital_account_password_resets {
   id bigint [pk, increment]
   account_hospital_id bigint [not null]
+  recipient_email varchar(254) [null, note: '실제 발송 주소; 기존 기록은 NULL']
   token_hash char(64) [not null, unique]
-  credential_hash char(64) [not null, note: '발송 당시 비밀번호/휴대폰 인증 정보 지문']
+  credential_hash char(64) [not null, note: '발송 당시 비밀번호/이메일 인증 정보 지문']
   expires_at timestamp [not null]
   used_at timestamp [null]
   revoked_at timestamp [null]
@@ -525,28 +528,45 @@ Table hospital_account_password_resets {
   indexes {
     (account_hospital_id, created_at)
   }
-  Note: '인증된 휴대폰 번호로 보내는 1회용 비밀번호 재설정 링크'
+  Note: '일회용 비밀번호 재설정 링크; 관리자만 별도 수신 주소 지정 가능'
 }
 
-Table hospital_account_identity_verifications {
-  id bigint [pk, increment, note: '병의원 계정 본인확인 ID']
+Table hospital_account_phone_verifications {
+  id bigint [pk, increment, note: '과거 병의원 계정 문자 인증 ID']
   hospital_account_invitation_id bigint [note: '병의원 계정 초대 ID']
-  provider varchar(30) [note: '본인확인 제공자']
-  provider_reference_hash char(64) [note: '제공자 인증 식별값 해시']
-  token_hash char(64) [unique, note: '본인확인 증명 토큰 SHA-256 해시']
-  verified_name varchar(100) [note: '본인확인 실명']
-  verified_phone varchar(30) [note: '본인확인 휴대폰 번호']
-  ci_hash char(64) [null, note: '연계정보(CI) SHA-256 해시']
-  verified_at timestamp [note: '본인확인 완료 시각']
-  expires_at timestamp [note: '본인확인 증명 만료 시각']
-  consumed_at timestamp [null, note: '본인확인 증명 사용 시각']
+  sms_delivery_id bigint [null]
+  phone varchar(30)
+  code_hash varchar
+  verification_token_hash char(64) [null, unique]
+  failed_attempt_count tinyint [default: `0`]
+  code_expires_at timestamp
+  verified_at timestamp [null]
+  verification_expires_at timestamp [null]
+  consumed_at timestamp [null]
+  invalidated_at timestamp [null]
   created_at timestamp
   updated_at timestamp
+  Note: '과거 SMS 이력 조회를 위해서만 유지하며 신규 인증에는 사용하지 않습니다.'
+}
 
+Table hospital_account_email_verifications {
+  id bigint [pk, increment]
+  hospital_account_invitation_id bigint [not null, note: '가입 인증 대상 초대']
+  email varchar(254)
+  code_hash varchar
+  verification_token_hash char(64) [null, unique]
+  failed_attempt_count tinyint [default: `0`]
+  code_expires_at timestamp
+  verified_at timestamp [null]
+  verification_expires_at timestamp [null]
+  consumed_at timestamp [null]
+  invalidated_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
   Indexes {
-    (provider, provider_reference_hash) [unique]
+    (hospital_account_invitation_id, id)
   }
-  Note: '병의원 계정 생성에만 사용할 수 있는 단기 일회용 휴대폰 본인확인 증명입니다.'
+  Note: '초대에 귀속된 이메일 인증번호와 일회용 가입 증표입니다.'
 }
 
 Table hospital_event_dbs {
@@ -939,7 +959,7 @@ Table hospitals {
   latitude varchar [null, note: '위도']
   longitude varchar [null, note: '경도']
   tel varchar [null, note: '대표 번호']
-  ad_reception_phone_1 varchar(50) [note: '광고 안내 수신 접수 전화번호 1']
+  ad_reception_phone_1 varchar(50) [null, note: '광고 안내 수신번호; 미신청 단계에서만 미등록 허용']
   ad_reception_phone_2 varchar(50) [null, note: '광고 수신 접수 전화번호 2']
   ad_reception_phone_3 varchar(50) [null, note: '광고 수신 접수 전화번호 3']
   consulting_hours text [null, note: '진료 시간']
@@ -1352,7 +1372,8 @@ TableGroup "Accounts & Auth" {
   account_hospitals
   hospital_account_invitations
   hospital_account_password_resets
-  hospital_account_identity_verifications
+  hospital_account_phone_verifications
+  hospital_account_email_verifications
   account_beauties
   personal_access_tokens
   password_reset_tokens
@@ -1469,7 +1490,9 @@ Ref: hospital_account_password_resets.created_by_staff_id > account_staffs.id
 Ref: hospital_account_invitations.hospital_entry_id > hospital_entries.id
 Ref: hospital_account_invitations.created_by_staff_id > account_staffs.id
 Ref: hospital_account_invitations.completed_account_hospital_id > account_hospitals.id
-Ref: hospital_account_identity_verifications.hospital_account_invitation_id > hospital_account_invitations.id
+Ref: hospital_account_phone_verifications.hospital_account_invitation_id > hospital_account_invitations.id
+Ref: hospital_account_phone_verifications.sms_delivery_id > sms_deliveries.id
+Ref: hospital_account_email_verifications.hospital_account_invitation_id > hospital_account_invitations.id
 Ref: hospital_entries.hospital_id > hospitals.id
 Ref: account_beauties.beauty_id > beauties.id
 Ref: beauty_business_registrations.beauty_id > beauties.id

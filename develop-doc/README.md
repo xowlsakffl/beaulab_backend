@@ -1,59 +1,76 @@
-# Beaulab 개발 문서
+# 백엔드 개발 시작
 
-이 폴더는 Beaulab 프로젝트의 구조, 권한, 운영 규칙을 정리한 문서 모음이다.  
-실제 코드 변화(도메인 추가, 권한 확장, 라우트 변경, 운영 정책 변경)를 기준으로 지속 업데이트한다.
+현재 구현을 찾고 로컬에서 안전하게 실행하기 위한 안내입니다. 문서에 없는 필드와 API는 소스가 기준이며, 과거 작업 완료 보고를 현재 검증 결과로 취급하지 않습니다.
 
-## 문서 목록
+## 읽는 순서
 
-- [백엔드 보완 및 배포 점검](./backend-hardening.md)
+| 작업                                   | 문서                                |
+| -------------------------------------- | ----------------------------------- |
+| 처음 합류, 새 API 개발                 | [구조와 개발 기준](architecture.md) |
+| 프론트 연동, 로그인, 권한, 병원 계정   | [API·인증](api.md)                  |
+| 검수·노출, 이벤트, 신고, 운영 히스토리 | [도메인 규칙](domain-rules.md)      |
+| 충전·소진·환불·현황                    | [충전금](hospital-wallet.md)        |
+| 채팅, 알림, SMS                        | [메시징](messaging.md)              |
+| 배포, 장애 확인, 큐, 파일 이전         | [운영 절차](operations.md)          |
 
-- [아키텍처 & 흐름](./architecture.md)
-- [API 응답 / 페이지네이션 규칙](./api-response.md)
-- [에러 / 예외 처리](./error-handling.md)
-- [권한 / 메뉴 설계 (Staff / Hospital / Beauty / User)](./authorization.md)
-- [내부도구 허브 운영 가이드](./internal-tools.md)
-- [로깅 전략 (감사로그 / 운영로그)](./logging.md)
-- [Queue 운영 가이드](./queue.md)
-- [Cache / Redis 적용 규칙](./cache.md)
-- [Scheduler 운영 가이드](./scheduler.md)
-- [도메인 & 상태 정의서](./domain-status-definition.md)
-- [카테고리 설계](./category.md)
-- [이벤트 전후사진](./hospital-event-media.md)
-- [운영 히스토리 설계](./operation-history.md)
-- [콘텐츠 신고 / 신고게시물 관리](./content-report.md)
-- [성능 / 인덱스 / 쿼리 규칙](./performance.md)
-- [채팅 설계](./chat.md)
-- [알림 설계](./notification.md)
-- [문자 발송 설계](./sms.md)
-- [병의원 충전금 설계](./hospital-wallet.md)
-- [병의원 계정 초대와 생성](./hospital-account-invitation.md)
-- [병의원 계정 비밀번호 재설정](./hospital-account-password-reset.md)
+[DB 관계도](schema.dbml)는 탐색용입니다. 실제 제약과 컬럼은 [마이그레이션](../database/migrations)과 각 Model을 확인하세요.
 
-## 현재 기준 핵심 요약
+## 필요한 환경
 
-- API 엔드포인트는 Actor 기준(`staff`, `hospital`, `beauty`, `user`)으로 분리한다.
-- 비즈니스 로직은 `app/Domains/*`, API 진입점은 `app/Modules/*`에 둔다.
-- Staff API는 대시보드, 병원/입점신청/뷰티/회원/의료진/전문가, 카테고리/해시태그, 병원 이벤트/이벤트 DB/리얼모델 DB, 동영상, 토크/후기/평가/신고, 공지/FAQ 운영을 담당한다.
-- Hospital API는 병원 계정 초대 검증/생성, 인증/프로필/비밀번호/관리자 메모와 병원 동영상 운영 기능을 제공한다.
-- Beauty API는 현재 뷰티 계정 인증/프로필/비밀번호/관리자 메모를 제공한다.
-- User API는 앱 사용자 인증/프로필, 채팅, 토크/후기 작성, 신고, 병원 이벤트 DB/리얼모델 DB 신청, 사용자 차단, 알림을 담당한다.
-- 공지사항/FAQ 도메인은 현재 Staff API 기준으로 CRUD와 에디터 이미지를 지원한다.
-- FAQ 카테고리는 전용 테이블이 아니라 공통 `Category` 도메인의 `FAQ` 분류를 사용한다.
-- 병원/의료진/후기/영상 의료 카테고리는 `HOSPITAL_MEDICAL` 트리를 공유하고, 성형/쁘띠 구분은 `categories.group_code`, 화면별 노출 목록은 `category_usages`로 분리한다.
-- 병원/의료진은 신규 생성 시 `NOT_APPLIED`(미신청)를 사용하고, 검수 흐름 진입 후 `PENDING`/`REVIEWING`/`APPROVED`/`REJECTED`를 사용한다.
-- 입점신청은 Staff 목록/상세/summary/승인상태 변경 API를 제공하며, 승인상태 변경은 `OperationHistory`에 기록한다.
-- 토크/병의원 후기/병의원 평가는 Staff 운영 API와 User 작성 API를 Actor 기준으로 분리한다.
-- 병의원 후기는 `HospitalReview`, 댓글은 `HospitalReviewComment`, 병의원 평가는 `HospitalEvaluation` 도메인이 소유한다.
-- 신고 기능은 건별 로그(`ContentReport`)와 대상별 현재 상태(`ContentReportState`)를 분리한다.
-- 관리자 화면 처리 이력은 `operation_histories` 부모 이력과 `operation_history_changes` 변경 상세로 분리한다.
-- LengthAware pagination 목록은 `PaginatedResponse`를 사용하고, 채팅 메시지처럼 cursor 방식인 목록만 예외로 둔다.
-- 권한 단일 소스는 `AccessPermissions` / `AccessRoles`이며 Seeder로 동기화한다.
-- 신고게시물, 이벤트 DB, 리얼모델 DB, 입점신청처럼 같은 메뉴 그룹에 있어도 업무 책임이 다른 리소스는 별도 권한으로 분리한다.
-- Queue 표준 런타임은 Redis + Horizon이며, 현재 실제 사용 큐는 비밀번호 재설정/병의원 계정 초대 메일(`mail`), Push 발송(`notifications`), 공통 문자 발송(`sms`), 채팅/인앱 브로드캐스트(`chat`)이다.
-- Scheduler는 OS crontab이 매분 `schedule:run`을 실행하고, Laravel Scheduler와 Spatie Schedule Monitor로 관리한다.
-- Staff summary count는 `StaffSummaryCache`를 통해 Redis 캐시를 사용하고, 원본 데이터 변경 후 관련 캐시를 무효화한다.
-- 모든 예외 응답은 공통 예외 핸들러/응답 포맷 규칙을 따른다.
-- 충전금은 업무 상태(`HospitalWalletOperation`)와 완료 원장(`HospitalWalletTransaction`)을 분리한다.
-- 목록/summary/selector 성능 규칙과 인덱스 기준은 `performance.md`를 따른다.
+- PHP 8.3 이상, Composer. 확장과 라이브러리는 [composer.json](../composer.json)이 기준입니다.
+- MySQL 8 계열, Redis. CI도 MySQL·Redis를 사용하므로 SQLite만으로 동작을 검증하지 않습니다.
+- API 프로세스 외에 메일·알림 처리용 큐 워커가 필요합니다. Reverb와 Scheduler는 해당 기능을 개발할 때 별도로 실행합니다.
+- 프론트는 별도 저장소입니다. 로컬 포트는 staff 3000, user 3001, hospital 3002, beauty 3003 기준입니다.
 
-작성 기준: 2026-08-12
+## 로컬 설정
+
+1. `composer install`로 잠금 파일의 의존성을 설치합니다.
+2. 신규 환경에서만 [환경 예시](../.env.example)를 `.env`로 복사합니다. 기존 설정을 덮어쓰지 않습니다.
+3. 프로젝트 전용 MySQL DB와 Redis DB/키 접두사를 지정합니다. 운영·공유 개발 DB를 연결하지 않습니다.
+4. 새 환경의 빈 `APP_KEY`만 생성합니다. 기존 키를 변경하면 암호화 계좌·인증 데이터 등을 읽지 못할 수 있습니다.
+5. 연결 대상을 확인하고 필요한 마이그레이션을 적용합니다. 샘플 데이터는 필요할 때 개발용 Seeder의 실행 범위를 먼저 확인합니다.
+
+`.env.example`에는 아직 Laravel 기본 `DB_CONNECTION=sqlite`, `MAIL_MAILER=log` 등이 남아 있습니다.
+그대로 실행 가능한 완성 설정이 아니며, 아래 항목을 개발 환경에 맞게 바꿔야 합니다.
+
+| 설정                              | 확인 사항                                                         |
+| --------------------------------- | ----------------------------------------------------------------- |
+| `APP_URL`                         | 실제 API 주소. 서명 파일 URL을 생성하므로 호스트·스킴이 맞아야 함 |
+| `DB_*`                            | MySQL 연결과 전용 개발 DB                                         |
+| `REDIS_*`, `QUEUE_CONNECTION`     | 전용 Redis 연결, 큐는 Redis                                       |
+| `*_WEB_ORIGINS`                   | 브라우저 Origin 허용 목록. 운영에는 기본 허용 주소가 없음         |
+| `HOSPITAL_ACCOUNT_INVITATION_URL` | 로컬 기본 `http://localhost:3002/account/create`                  |
+| `PASSWORD_RESET_HOSPITAL_URL`     | 로컬 기본 `http://localhost:3002/password/reset`                  |
+| `MAIL_*`                          | 로컬 SMTP 수신함 또는 승인된 메일 환경                            |
+| `SMS_ENABLED`, `PUSH_ENABLED`     | 실제 발송을 확인하기 전에는 false 유지                            |
+| `MEDIA_*`                         | 공개/비공개 디스크를 구분하고 저장 경로 권한 확인                 |
+
+병원 인증 메일은 인증번호와 링크의 로그 유출을 막기 위해 `log` transport를 거부합니다.
+로컬에서는 Mailpit 같은 SMTP 수신함을 사용할 수 있습니다. 예를 들어 SMTP 1025, 수신함 UI 8025로 실행했다면 해당 주소를 설정합니다. 이는 프로젝트가 자동 설치·실행하는 서비스가 아닙니다.
+그 밖의 Actor 재설정 URL도 배포한 웹 주소에 맞춰 확인합니다.
+
+## 실행
+
+기존 서버의 포트와 연결 환경을 확인한 뒤 API를 실행합니다.
+
+```sh
+php artisan serve --host=127.0.0.1 --port=8000
+```
+
+메일·알림이 필요한 경우 별도 터미널에서 Horizon을 실행합니다.
+
+```sh
+php artisan horizon
+```
+
+Horizon 실행만으로 대기 중인 작업이 실제 발송될 수 있습니다. 안전한 로컬 메일 설정과 전용 Redis인지 먼저 확인하세요.
+Reverb는 실시간 기능에, Scheduler는 예약·복구 작업에 필요합니다. 실행 및 부작용은 [운영 절차](operations.md)를 따릅니다.
+
+`composer setup`은 설치만 하는 명령이 아닙니다. 키 생성과 `migrate --force`도 포함하므로 기존 환경에 무심코 실행하지 않습니다.
+`migrate:fresh`, 전체 Seeder, 큐 재시도 역시 시작 안내의 필수 단계가 아닙니다.
+
+## 문서 관리
+
+- 폴더별 전체 API·필드·enum을 문서에 복제하지 않습니다. 바뀌기 쉬운 값은 Request·Model·config로 연결합니다.
+- 계약, 예외적인 업무 규칙, 실패 복구 절차가 바뀌면 해당 주제 문서를 함께 수정합니다.
+- 임시 점검 결과와 작업 보고는 커밋·PR에 남깁니다. 같은 내용을 별도 설계서·완료 보고서로 늘리지 않습니다.

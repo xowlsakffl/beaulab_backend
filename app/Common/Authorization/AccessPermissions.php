@@ -210,6 +210,14 @@ final class AccessPermissions
 
     public const BEAULAB_REPORTED_VIDEO_STATUS_UPDATE = 'beaulab.reported_video.status_update';
 
+    public const BEAULAB_HOSPITAL_PROMOTION_SHOW = 'beaulab.hospital_promotion.show';
+
+    public const BEAULAB_HOSPITAL_PROMOTION_CREATE = 'beaulab.hospital_promotion.create';
+
+    public const BEAULAB_HOSPITAL_PROMOTION_UPDATE = 'beaulab.hospital_promotion.update';
+
+    public const BEAULAB_HOSPITAL_PROMOTION_STATUS_UPDATE = 'beaulab.hospital_promotion.status_update';
+
     public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
 
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
@@ -404,6 +412,9 @@ final class AccessPermissions
             self::BEAULAB_REPORTED_CHAT_MESSAGE_UPDATE,
             self::BEAULAB_REPORTED_VIDEO_SHOW,
             self::BEAULAB_REPORTED_VIDEO_UPDATE,
+            self::BEAULAB_HOSPITAL_PROMOTION_SHOW,
+            self::BEAULAB_HOSPITAL_PROMOTION_CREATE,
+            self::BEAULAB_HOSPITAL_PROMOTION_UPDATE,
             self::BEAULAB_NOTICE_SHOW,
             self::BEAULAB_NOTICE_CREATE,
             self::BEAULAB_NOTICE_UPDATE,
@@ -452,6 +463,7 @@ final class AccessPermissions
             self::BEAULAB_REPORTED_HOSPITAL_EVALUATION_STATUS_UPDATE,
             self::BEAULAB_REPORTED_CHAT_MESSAGE_STATUS_UPDATE,
             self::BEAULAB_REPORTED_VIDEO_STATUS_UPDATE,
+            self::BEAULAB_HOSPITAL_PROMOTION_STATUS_UPDATE,
             self::BEAULAB_NOTICE_STATUS_UPDATE,
             self::BEAULAB_FAQ_STATUS_UPDATE,
             self::BEAULAB_CATEGORY_STATUS_UPDATE,

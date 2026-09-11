@@ -23,8 +23,8 @@ final class HospitalAccountPasswordResetToken
     {
         return hash('sha256', implode('|', [
             $account->getAuthPassword(),
-            AccountHospitalPhone::normalize((string) $account->verifiedPhone()),
-            $account->phone_verified_at?->toISOString() ?? '',
+            AccountHospitalEmail::normalize((string) $account->verifiedEmail()),
+            $account->email_verified_at?->toISOString() ?? '',
             (string) $account->hospital_id,
         ]));
     }

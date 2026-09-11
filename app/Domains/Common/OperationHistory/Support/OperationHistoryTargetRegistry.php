@@ -19,6 +19,7 @@ use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
+use App\Domains\HospitalPromotion\Models\HospitalPromotion;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
@@ -40,6 +41,8 @@ final class OperationHistoryTargetRegistry
     public const string ALIAS_HOSPITAL_VIDEO = 'hospital_video';
 
     public const string ALIAS_NOTICE = 'notice';
+
+    public const string ALIAS_HOSPITAL_PROMOTION = 'hospital_promotion';
 
     public const string ALIAS_FAQ = 'faq';
 
@@ -82,6 +85,7 @@ final class OperationHistoryTargetRegistry
         self::ALIAS_BEAUTY_EXPERT => BeautyExpert::class,
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
         self::ALIAS_NOTICE => Notice::class,
+        self::ALIAS_HOSPITAL_PROMOTION => HospitalPromotion::class,
         self::ALIAS_FAQ => Faq::class,
         self::ALIAS_CATEGORY => Category::class,
         self::ALIAS_HASHTAG => Hashtag::class,

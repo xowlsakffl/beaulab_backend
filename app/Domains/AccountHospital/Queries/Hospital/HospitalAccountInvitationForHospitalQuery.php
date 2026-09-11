@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Domains\AccountHospital\Queries\Hospital;
 
+use App\Common\Exceptions\CustomException;
+use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\AccountHospital\Models\HospitalAccountEmailVerification;
 use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
-use App\Domains\AccountHospital\Models\HospitalAccountPhoneVerification;
 use App\Domains\Common\Media\Models\Media;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalBusinessRegistration;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 final class HospitalAccountInvitationForHospitalQuery
 {
@@ -30,11 +33,11 @@ final class HospitalAccountInvitationForHospitalQuery
         return $query->first();
     }
 
-    public function lockPhoneVerification(
+    public function lockEmailVerification(
         HospitalAccountInvitation $invitation,
         string $tokenHash,
-    ): ?HospitalAccountPhoneVerification {
-        return HospitalAccountPhoneVerification::query()
+    ): ?HospitalAccountEmailVerification {
+        return HospitalAccountEmailVerification::query()
             ->where('hospital_account_invitation_id', $invitation->getKey())
             ->where('verification_token_hash', $tokenHash)
             ->lockForUpdate()
@@ -71,7 +74,7 @@ final class HospitalAccountInvitationForHospitalQuery
 
     public function nicknameExists(string $nickname): bool
     {
-        return AccountHospital::query()->where('nickname', $nickname)->exists();
+        return AccountHospital::withTrashed()->where('nickname', $nickname)->exists();
     }
 
     public function createHospital(array $attributes): Hospital
@@ -86,12 +89,11 @@ final class HospitalAccountInvitationForHospitalQuery
 
     public function createAccountHospital(array $attributes): AccountHospital
     {
-        return AccountHospital::query()->create($attributes);
-    }
-
-    public function updateReceptionPhone(Hospital $hospital, string $phone): void
-    {
-        $hospital->forceFill(['ad_reception_phone_1' => $phone])->save();
+        try {
+            return AccountHospital::query()->create($attributes);
+        } catch (UniqueConstraintViolationException) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 사용 중인 아이디 또는 이메일이거나, 계정이 연결된 병의원입니다.');
+        }
     }
 
     public function completeHospitalEntry(HospitalEntry $entry, Hospital $hospital): void
@@ -102,7 +104,7 @@ final class HospitalAccountInvitationForHospitalQuery
         ])->save();
     }
 
-    public function consumePhoneVerification(HospitalAccountPhoneVerification $verification): void
+    public function consumeEmailVerification(HospitalAccountEmailVerification $verification): void
     {
         $verification->forceFill(['consumed_at' => now()])->save();
     }

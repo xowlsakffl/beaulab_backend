@@ -30,6 +30,17 @@ final class SendSmsDeliveryAction
                 return null;
             }
 
+            if (in_array($delivery->batch?->purpose, config('sms.disabled_purposes', []), true)) {
+                $delivery->forceFill([
+                    'status' => SmsDelivery::STATUS_SKIPPED,
+                    'failed_at' => now(),
+                    'error_message' => '중단된 발송 정책입니다.',
+                    'encrypted_message_body' => null,
+                ])->save();
+
+                return $delivery;
+            }
+
             if ((int) $delivery->attempt_count >= self::MAX_ATTEMPTS) {
                 $delivery->forceFill(['status' => SmsDelivery::STATUS_FAILED, 'failed_at' => now()])->save();
 
@@ -51,7 +62,7 @@ final class SendSmsDeliveryAction
             return;
         }
 
-        if ($delivery->status === SmsDelivery::STATUS_FAILED) {
+        if (in_array($delivery->status, [SmsDelivery::STATUS_FAILED, SmsDelivery::STATUS_SKIPPED], true)) {
             $this->syncBatchSafely((int) $delivery->sms_batch_id);
 
             return;

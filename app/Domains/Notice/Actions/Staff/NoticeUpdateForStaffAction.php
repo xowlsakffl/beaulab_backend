@@ -36,6 +36,7 @@ final class NoticeUpdateForStaffAction
         $normalized = $this->normalizePayload($payload);
 
         $updated = DB::transaction(function () use ($notice, $normalized) {
+            $notice = Notice::query()->lockForUpdate()->findOrFail($notice->getKey());
             $before = $this->historyRecordAction->capture($notice);
             $saved = $this->query->update($notice, $normalized);
 

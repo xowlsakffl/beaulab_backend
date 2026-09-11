@@ -108,8 +108,8 @@ final class OperationHistoryCreateAction
 
     private function normalizeDisplayValue(mixed $value): ?string
     {
-        if ($value === null) {
-            return null;
+        if ($value === null || $value === [] || $value === '') {
+            return '-';
         }
 
         if (is_bool($value)) {

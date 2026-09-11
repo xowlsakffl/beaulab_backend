@@ -5,6 +5,7 @@ namespace App\Domains\HospitalEventAd\Actions\Staff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use Illuminate\Database\Eloquent\Model;
 
@@ -98,7 +99,7 @@ final class HospitalEventAdUpdateHistoryRecordAction
                 'start_at' => $ad->start_at?->toISOString(),
                 'end_at' => $ad->end_at?->toISOString(),
             ], $this->periodLabel($ad)),
-            'ad_image' => $this->item('광고 이미지', $ad->adImage?->path, $this->mediaLabel($ad->adImage?->path)),
+            'ad_image' => $this->item('광고 이미지', $ad->adImage?->path, OperationHistoryDisplayValue::fileName($ad->adImage?->path)),
         ];
     }
 
@@ -118,11 +119,6 @@ final class HospitalEventAdUpdateHistoryRecordAction
     private function periodLabel(HospitalEventAd $ad): string
     {
         return ($ad->start_at?->format('y.m.d H:i') ?? '-').' ~ '.($ad->end_at?->format('y.m.d H:i') ?? '-');
-    }
-
-    private function mediaLabel(?string $path): ?string
-    {
-        return $path ? basename($path) : null;
     }
 
     /**

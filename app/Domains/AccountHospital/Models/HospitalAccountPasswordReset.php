@@ -12,10 +12,10 @@ final class HospitalAccountPasswordReset extends Model
 
     protected $fillable = [
         'account_hospital_id', 'token_hash', 'credential_hash', 'expires_at',
-        'used_at', 'revoked_at', 'created_by_staff_id',
+        'used_at', 'revoked_at', 'created_by_staff_id', 'recipient_email',
     ];
 
-    protected $hidden = ['token_hash', 'credential_hash'];
+    protected $hidden = ['token_hash', 'credential_hash', 'recipient_email'];
 
     protected function casts(): array
     {

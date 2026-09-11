@@ -2,6 +2,8 @@
 
 namespace App\Domains\Common\OperationHistory\Support;
 
+use App\Domains\Common\OperationHistory\Models\OperationHistory;
+
 /**
  * OperationHistoryChangeSetBuilder 역할 정의.
  * 도메인별 변경 전/후 값을 표준 operation_history_changes payload로 변환한다.
@@ -19,8 +21,8 @@ final class OperationHistoryChangeSetBuilder
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
-     * @param array<string, array{label:string,value:mixed,display:?string}> $after
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $after
      * @return array<int, array<string, mixed>>
      */
     public static function fromSnapshots(array $before, array $after): array
@@ -68,6 +70,26 @@ final class OperationHistoryChangeSetBuilder
                 afterDisplay: $afterDisplay,
             )
             ->toArray();
+    }
+
+    /**
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $after
+     * @param  list<string>  $stateFields
+     * @return array<string, list<array<string, mixed>>>
+     */
+    public static function groupedFromSnapshots(array $before, array $after, array $stateFields): array
+    {
+        $groups = [OperationHistory::ACTION_UPDATED => [], OperationHistory::ACTION_STATE_UPDATED => []];
+
+        foreach (self::fromSnapshots($before, $after) as $change) {
+            $action = in_array($change['field_key'], $stateFields, true)
+                ? OperationHistory::ACTION_STATE_UPDATED
+                : OperationHistory::ACTION_UPDATED;
+            $groups[$action][] = $change;
+        }
+
+        return array_filter($groups, static fn (array $changes): bool => $changes !== []);
     }
 
     public function compare(

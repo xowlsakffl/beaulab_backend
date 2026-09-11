@@ -5,6 +5,7 @@ namespace App\Domains\Hospital\Actions\Staff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use App\Domains\Hospital\Models\Hospital;
 use Illuminate\Database\Eloquent\Model;
 
@@ -58,23 +59,20 @@ final class HospitalUpdateHistoryRecordAction
             'features',
         ]);
 
-        $changes = $this->changes($before, $this->snapshot($hospital));
-        if ($changes === []) {
-            return;
-        }
-
         $actor = auth()->user();
 
-        $this->historyCreateAction->execute(
-            target: $hospital,
-            action: OperationHistory::ACTION_UPDATED,
-            actor: $actor instanceof Model ? $actor : null,
-            reason: null,
-            metadata: [
-                'source' => 'staff.hospital.update',
-            ],
-            changes: $changes,
-        );
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->snapshot($hospital), ['allow_status', 'status']) as $action => $changes) {
+            $this->historyCreateAction->execute(
+                target: $hospital,
+                action: $action,
+                actor: $actor instanceof Model ? $actor : null,
+                reason: null,
+                metadata: [
+                    'source' => 'staff.hospital.update',
+                ],
+                changes: $changes,
+            );
+        }
     }
 
     public function recordStatusUpdated(
@@ -167,7 +165,7 @@ final class HospitalUpdateHistoryRecordAction
                 $hospital->ad_reception_phone_1,
                 $hospital->ad_reception_phone_2,
                 $hospital->ad_reception_phone_3,
-            ], $this->lineList([
+            ], OperationHistoryDisplayValue::lines([
                 $hospital->ad_reception_phone_1 ? '[필수] '.$hospital->ad_reception_phone_1 : null,
                 $hospital->ad_reception_phone_2 ? '[선택] '.$hospital->ad_reception_phone_2 : null,
                 $hospital->ad_reception_phone_3 ? '[선택] '.$hospital->ad_reception_phone_3 : null,
@@ -177,7 +175,7 @@ final class HospitalUpdateHistoryRecordAction
             'direction' => $this->item('오시는 길', $hospital->direction, $hospital->direction),
             'categories' => $this->item('진료과목', $this->categoryValue($hospital), $this->categoryDisplay($hospital)),
             'features' => $this->item('병원정보', $this->featureValue($hospital), $this->featureDisplay($hospital)),
-            'logo' => $this->item('로고 이미지', $hospital->logoMedia?->path, $this->mediaLabel($hospital->logoMedia?->path)),
+            'logo' => $this->item('로고 이미지', $hospital->logoMedia?->path, OperationHistoryDisplayValue::fileName($hospital->logoMedia?->path)),
             'gallery' => $this->item('병의원 이미지', $this->galleryValue($hospital), $this->galleryDisplay($hospital)),
             'business_number' => $this->item('사업자등록번호', $businessRegistration?->business_number, $businessRegistration?->business_number),
             'company_name' => $this->item('상호', $businessRegistration?->company_name, $businessRegistration?->company_name),
@@ -193,7 +191,7 @@ final class HospitalUpdateHistoryRecordAction
             'business_registration_file' => $this->item(
                 '사업자등록증',
                 $businessRegistration?->certificateMedia?->path,
-                $this->mediaLabel($businessRegistration?->certificateMedia?->path),
+                OperationHistoryDisplayValue::fileName($businessRegistration?->certificateMedia?->path),
             ),
             'allow_status' => $this->item('검수상태', $hospital->allow_status, Hospital::allowStatusLabel((string) $hospital->allow_status)),
             'status' => $this->item('병의원상태', $hospital->status, Hospital::statusLabel((string) $hospital->status)),
@@ -208,33 +206,9 @@ final class HospitalUpdateHistoryRecordAction
         return compact('label', 'value', 'display');
     }
 
-    /**
-     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
-     * @param  array<string, array{label:string,value:mixed,display:?string}>  $after
-     * @return array<int, array<string, mixed>>
-     */
-    private function changes(array $before, array $after): array
-    {
-        $builder = OperationHistoryChangeSetBuilder::make();
-
-        foreach ($after as $key => $afterItem) {
-            $beforeItem = $before[$key] ?? $this->item($afterItem['label'], null, null);
-            $builder->compare(
-                key: $key,
-                label: $afterItem['label'],
-                before: $beforeItem['value'],
-                after: $afterItem['value'],
-                beforeDisplay: $beforeItem['display'],
-                afterDisplay: $afterItem['display'],
-            );
-        }
-
-        return $builder->toArray();
-    }
-
     private function addressLabel(?string $address, ?string $detail): ?string
     {
-        return $this->lineList([$address, $detail]);
+        return OperationHistoryDisplayValue::lines([$address, $detail]);
     }
 
     private function settlementAccountLabel(mixed $businessRegistration): ?string
@@ -243,7 +217,7 @@ final class HospitalUpdateHistoryRecordAction
             return null;
         }
 
-        return $this->lineList([
+        return OperationHistoryDisplayValue::lines([
             $businessRegistration->settlement_bank_name,
             $businessRegistration->settlement_account_number,
             $businessRegistration->settlement_account_holder,
@@ -284,21 +258,12 @@ final class HospitalUpdateHistoryRecordAction
             $lines[] = sprintf('%s %s ~ %s', $label, $start !== '' ? $start : '-', $end !== '' ? $end : '-');
         }
 
-        return $this->lineList($lines);
+        return OperationHistoryDisplayValue::lines($lines);
     }
 
     private function isOperationDayClosed(mixed $value): bool
     {
         return in_array($value, [true, 1, '1', 'true', 'TRUE'], true);
-    }
-
-    private function mediaLabel(?string $path): ?string
-    {
-        if ($path === null || trim($path) === '') {
-            return null;
-        }
-
-        return basename($path);
     }
 
     /**
@@ -318,7 +283,7 @@ final class HospitalUpdateHistoryRecordAction
 
     private function categoryDisplay(Hospital $hospital): ?string
     {
-        return $this->lineList(collect($this->categoryValue($hospital))
+        return OperationHistoryDisplayValue::lines(collect($this->categoryValue($hospital))
             ->pluck('path')
             ->all());
     }
@@ -340,7 +305,7 @@ final class HospitalUpdateHistoryRecordAction
 
     private function featureDisplay(Hospital $hospital): ?string
     {
-        return $this->lineList(collect($this->featureValue($hospital))
+        return OperationHistoryDisplayValue::lines(collect($this->featureValue($hospital))
             ->pluck('name')
             ->all());
     }
@@ -364,22 +329,8 @@ final class HospitalUpdateHistoryRecordAction
 
     private function galleryDisplay(Hospital $hospital): ?string
     {
-        return $this->lineList(collect($this->galleryValue($hospital))
-            ->map(fn (array $media): string => ($media['is_primary'] ? '[대표] ' : '').$this->mediaLabel($media['path']))
+        return OperationHistoryDisplayValue::lines(collect($this->galleryValue($hospital))
+            ->map(fn (array $media): string => ($media['is_primary'] ? '[대표] ' : '').OperationHistoryDisplayValue::fileName($media['path']))
             ->all());
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     */
-    private function lineList(array $items): ?string
-    {
-        $items = collect($items)
-            ->map(static fn (mixed $item): string => trim((string) $item))
-            ->filter(static fn (string $item): bool => $item !== '')
-            ->values()
-            ->all();
-
-        return $items === [] ? null : implode("\n", $items);
     }
 }

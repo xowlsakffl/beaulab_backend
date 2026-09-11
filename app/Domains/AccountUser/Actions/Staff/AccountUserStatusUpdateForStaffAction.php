@@ -26,9 +26,9 @@ final class AccountUserStatusUpdateForStaffAction
     {
         Gate::authorize('updateStatus', $user);
 
-        $beforeStatus = (string) $user->status;
-
-        $updated = DB::transaction(function () use ($user, $payload, $beforeStatus): AccountUser {
+        $updated = DB::transaction(function () use ($user, $payload): AccountUser {
+            $user = AccountUser::query()->lockForUpdate()->findOrFail($user->getKey());
+            $beforeStatus = (string) $user->status;
             $updatedUser = $this->query->update($user, $payload['status']);
             $this->historyRecordAction->recordStatusUpdated(
                 $updatedUser,
@@ -44,7 +44,7 @@ final class AccountUserStatusUpdateForStaffAction
 
         return [
             'user' => AccountUserForStaffDetailDto::fromModel(
-                $updated->load('operationHistories.actor')
+                $updated->loadLatestStatusHistory()
             )->toArray(),
         ];
     }

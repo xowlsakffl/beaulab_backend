@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('longitude')->nullable()->comment('경도');
 
             $table->string('tel')->nullable()->comment('대표 번호');
-            $table->string('ad_reception_phone_1', 50)->comment('광고 안내 수신 접수 전화번호 1');
+            $table->string('ad_reception_phone_1', 50)->nullable()->comment('광고 안내 수신 접수 전화번호 1');
             $table->string('ad_reception_phone_2', 50)->nullable()->comment('광고 안내 수신 접수 전화번호 2');
             $table->string('ad_reception_phone_3', 50)->nullable()->comment('광고 안내 수신 접수 전화번호 3');
             $table->text('consulting_hours')->nullable()->comment('진료 시간');

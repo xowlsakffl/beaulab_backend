@@ -52,7 +52,8 @@ final class HospitalCreateForStaffAction
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
                 $hospital
-                    ->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features', 'operationHistories.actor'])
+                    ->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features'])
+                    ->loadLatestStatusHistory()
                     ->loadNewEventDBCount()
             )->toArray(),
         ];

@@ -11,6 +11,7 @@ use App\Domains\AccountHospital\Mail\HospitalAccountInvitationMail;
 use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
 use App\Domains\AccountHospital\Queries\Staff\HospitalAccountInvitationForStaffQuery;
 use App\Domains\AccountHospital\Support\HospitalAccountInvitationToken;
+use App\Domains\AccountHospital\Support\HospitalAccountMail;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalBusinessRegistration;
@@ -19,7 +20,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 final class HospitalAccountInvitationSendForStaffAction
@@ -32,6 +32,7 @@ final class HospitalAccountInvitationSendForStaffAction
     public function execute(AccountStaff $actor, array $payload): array
     {
         Gate::authorize('create', HospitalAccountInvitation::class);
+        HospitalAccountMail::assertConfigured();
 
         $sourceType = (string) $payload['source_type'];
         $sourceId = (int) $payload['source_id'];
@@ -66,15 +67,11 @@ final class HospitalAccountInvitationSendForStaffAction
         });
 
         try {
-            $mail = (new HospitalAccountInvitationMail(
+            HospitalAccountMail::queue($recipientEmail, new HospitalAccountInvitationMail(
                 hospitalName: $hospitalName,
                 invitationUrl: HospitalAccountInvitationToken::url($token),
                 expireHours: (int) config('hospital_account_invitation.expire_hours', 72),
-            ))
-                ->onConnection((string) config('hospital_account_invitation.mail.connection', 'redis'))
-                ->onQueue((string) config('hospital_account_invitation.mail.queue', 'mail'));
-
-            Mail::to($recipientEmail)->queue($mail);
+            ));
             $invitation->forceFill(['sent_at' => now()])->save();
         } catch (Throwable $exception) {
             DB::transaction(function () use (

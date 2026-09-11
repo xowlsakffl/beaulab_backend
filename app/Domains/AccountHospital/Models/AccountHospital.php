@@ -51,11 +51,11 @@ class AccountHospital extends Authenticatable
     protected $fillable = [
         'name',
         'nickname',
-        'phone',
+        'email',
         'password',
         'status',
         'hospital_id',
-        'phone_verified_at',
+        'email_verified_at',
         'last_login_at',
     ];
 
@@ -66,6 +66,8 @@ class AccountHospital extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'phone',
+        'phone_verified_at',
     ];
 
     /**
@@ -76,7 +78,7 @@ class AccountHospital extends Authenticatable
     protected function casts(): array
     {
         return [
-            'phone_verified_at' => 'datetime',
+            'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
         ];
@@ -97,15 +99,15 @@ class AccountHospital extends Authenticatable
         return $this->hasMany(HospitalAccountInvitation::class, 'completed_account_hospital_id');
     }
 
-    public function verifiedPhone(): ?string
+    public function verifiedEmail(): ?string
     {
-        if ($this->phone_verified_at === null) {
+        if ($this->email_verified_at === null) {
             return null;
         }
 
-        $phone = trim((string) $this->phone);
+        $email = trim((string) $this->email);
 
-        return $phone !== '' ? $phone : null;
+        return $email !== '' ? $email : null;
     }
 
     /**

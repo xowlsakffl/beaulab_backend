@@ -5,6 +5,7 @@ namespace App\Domains\Faq\Actions\Staff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use App\Domains\Faq\Models\Faq;
 use Illuminate\Database\Eloquent\Model;
 
@@ -41,7 +42,9 @@ final class FaqUpdateHistoryRecordAction
      */
     public function recordUpdated(Faq $faq, array $before): void
     {
-        $this->record($faq, OperationHistory::ACTION_UPDATED, 'staff.faq.update', OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($faq)));
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->capture($faq), ['status']) as $action => $changes) {
+            $this->record($faq, $action, 'staff.faq.update', $changes);
+        }
     }
 
     /**
@@ -70,23 +73,9 @@ final class FaqUpdateHistoryRecordAction
 
     private function categoryDisplay(Faq $faq): ?string
     {
-        return $this->lineList(collect($this->categoryValue($faq))
+        return OperationHistoryDisplayValue::lines(collect($this->categoryValue($faq))
             ->map(static fn (array $category): string => ($category['is_primary'] ? '[대표] ' : '').$category['path'])
             ->all());
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     */
-    private function lineList(array $items): ?string
-    {
-        $items = collect($items)
-            ->map(static fn (mixed $item): string => trim((string) $item))
-            ->filter(static fn (string $item): bool => $item !== '')
-            ->values()
-            ->all();
-
-        return $items === [] ? null : implode("\n", $items);
     }
 
     /**

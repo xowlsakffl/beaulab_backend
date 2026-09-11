@@ -6,13 +6,13 @@ namespace App\Modules\Hospital\Http\Controllers\Auth;
 
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountEmailVerificationSendAction;
+use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountEmailVerificationVerifyAction;
 use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountInvitationCompleteForHospitalAction;
 use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountInvitationGetForHospitalAction;
-use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountPhoneVerificationSendAction;
-use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountPhoneVerificationVerifyAction;
 use App\Modules\Hospital\Http\Requests\Auth\CompleteHospitalAccountInvitationRequest;
-use App\Modules\Hospital\Http\Requests\Auth\SendHospitalAccountPhoneVerificationRequest;
-use App\Modules\Hospital\Http\Requests\Auth\VerifyHospitalAccountPhoneVerificationRequest;
+use App\Modules\Hospital\Http\Requests\Auth\SendHospitalAccountEmailVerificationRequest;
+use App\Modules\Hospital\Http\Requests\Auth\VerifyHospitalAccountEmailVerificationRequest;
 
 final class HospitalAccountInvitationForHospitalController extends Controller
 {
@@ -26,7 +26,7 @@ final class HospitalAccountInvitationForHospitalController extends Controller
         return ApiResponse::success($result['invitation']);
     }
 
-    /** 휴대폰 문자 인증 증표를 사용해 병의원 계정 생성을 완료합니다. */
+    /** 이메일 인증 증표를 사용해 병의원 계정 생성을 완료합니다. */
     public function completeHospitalAccountInvitationForHospital(
         CompleteHospitalAccountInvitationRequest $request,
         string $token,
@@ -35,25 +35,25 @@ final class HospitalAccountInvitationForHospitalController extends Controller
         return ApiResponse::success($action->execute($token, $request->validated()));
     }
 
-    /** 계정 생성에 사용할 휴대폰 인증번호를 발송합니다. */
-    public function sendHospitalAccountPhoneVerificationForHospital(
-        SendHospitalAccountPhoneVerificationRequest $request,
+    /** 계정 생성에 사용할 이메일 인증번호를 발송합니다. */
+    public function sendHospitalAccountEmailVerificationForHospital(
+        SendHospitalAccountEmailVerificationRequest $request,
         string $token,
-        HospitalAccountPhoneVerificationSendAction $action,
+        HospitalAccountEmailVerificationSendAction $action,
     ) {
-        return ApiResponse::success($action->execute($token, (string) $request->validated('phone')));
+        return ApiResponse::success($action->execute($token, (string) $request->validated('email')));
     }
 
-    /** 휴대폰 인증번호를 확인하고 일회용 계정 생성 증표를 발급합니다. */
-    public function verifyHospitalAccountPhoneVerificationForHospital(
-        VerifyHospitalAccountPhoneVerificationRequest $request,
+    /** 이메일 인증번호를 확인하고 일회용 계정 생성 증표를 발급합니다. */
+    public function verifyHospitalAccountEmailVerificationForHospital(
+        VerifyHospitalAccountEmailVerificationRequest $request,
         string $token,
-        int $phoneVerification,
-        HospitalAccountPhoneVerificationVerifyAction $action,
+        int $emailVerification,
+        HospitalAccountEmailVerificationVerifyAction $action,
     ) {
         return ApiResponse::success($action->execute(
             $token,
-            $phoneVerification,
+            $emailVerification,
             (string) $request->validated('code'),
         ));
     }

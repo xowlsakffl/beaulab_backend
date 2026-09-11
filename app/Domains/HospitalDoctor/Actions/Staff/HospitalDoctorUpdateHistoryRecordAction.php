@@ -5,6 +5,7 @@ namespace App\Domains\HospitalDoctor\Actions\Staff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use Illuminate\Database\Eloquent\Model;
 
@@ -46,7 +47,7 @@ final class HospitalDoctorUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(HospitalDoctor $doctor, array $before, ?string $reason = null): void
     {
@@ -58,23 +59,20 @@ final class HospitalDoctorUpdateHistoryRecordAction
             'categories',
         ]);
 
-        $changes = $this->changes($before, $this->snapshot($doctor));
-        if ($changes === []) {
-            return;
-        }
-
         $actor = auth()->user();
 
-        $this->historyCreateAction->execute(
-            target: $doctor,
-            action: OperationHistory::ACTION_UPDATED,
-            actor: $actor instanceof Model ? $actor : null,
-            reason: $reason,
-            metadata: [
-                'source' => 'staff.hospital_doctor.update',
-            ],
-            changes: $changes,
-        );
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->snapshot($doctor), ['allow_status', 'status']) as $action => $changes) {
+            $this->historyCreateAction->execute(
+                target: $doctor,
+                action: $action,
+                actor: $actor instanceof Model ? $actor : null,
+                reason: $action === OperationHistory::ACTION_STATE_UPDATED ? $reason : null,
+                metadata: [
+                    'source' => 'staff.hospital_doctor.update',
+                ],
+                changes: $changes,
+            );
+        }
     }
 
     /**
@@ -85,6 +83,7 @@ final class HospitalDoctorUpdateHistoryRecordAction
         return [
             'hospital' => $this->item('병의원', (int) $doctor->hospital_id, $doctor->hospital?->name ?? (string) $doctor->hospital_id),
             'name' => $this->item('의료진명', $doctor->name, $doctor->name),
+            'sort_order' => $this->item('정렬순서', (int) $doctor->sort_order, (string) (int) $doctor->sort_order),
             'position' => $this->item('직책', $doctor->position, $doctor->position),
             'gender' => $this->item('성별', $doctor->gender, $doctor->gender),
             'career_started_at' => $this->item('경력기간', $doctor->career_started_at?->toDateString(), $doctor->career_started_at?->toDateString()),
@@ -98,8 +97,8 @@ final class HospitalDoctorUpdateHistoryRecordAction
             'careers' => $this->item('경력사항', $doctor->careers ?? [], $this->arrayDisplay($doctor->careers)),
             'etc_contents' => $this->item('활동사항', $doctor->etc_contents ?? [], $this->arrayDisplay($doctor->etc_contents)),
             'educations' => $this->item('학력사항', $doctor->educations ?? [], $this->arrayDisplay($doctor->educations)),
-            'profile_image' => $this->item('프로필 사진', $doctor->profileImage?->path, $this->mediaLabel($doctor->profileImage?->path)),
-            'license_image' => $this->item('의사면허증', $doctor->licenseImage?->path, $this->mediaLabel($doctor->licenseImage?->path)),
+            'profile_image' => $this->item('프로필 사진', $doctor->profileImage?->path, OperationHistoryDisplayValue::fileName($doctor->profileImage?->path)),
+            'license_image' => $this->item('의사면허증', $doctor->licenseImage?->path, OperationHistoryDisplayValue::fileName($doctor->licenseImage?->path)),
             'specialist_certificate_image' => $this->item(
                 '전문의 증명서',
                 $this->certificateValue($doctor),
@@ -116,30 +115,6 @@ final class HospitalDoctorUpdateHistoryRecordAction
     private function item(string $label, mixed $value, ?string $display): array
     {
         return compact('label', 'value', 'display');
-    }
-
-    /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
-     * @param array<string, array{label:string,value:mixed,display:?string}> $after
-     * @return array<int, array<string, mixed>>
-     */
-    private function changes(array $before, array $after): array
-    {
-        $builder = OperationHistoryChangeSetBuilder::make();
-
-        foreach ($after as $key => $afterItem) {
-            $beforeItem = $before[$key] ?? $this->item($afterItem['label'], null, null);
-            $builder->compare(
-                key: $key,
-                label: $afterItem['label'],
-                before: $beforeItem['value'],
-                after: $afterItem['value'],
-                beforeDisplay: $beforeItem['display'],
-                afterDisplay: $afterItem['display'],
-            );
-        }
-
-        return $builder->toArray();
     }
 
     /**
@@ -160,7 +135,7 @@ final class HospitalDoctorUpdateHistoryRecordAction
 
     private function categoryDisplay(HospitalDoctor $doctor): ?string
     {
-        return $this->lineList(collect($this->categoryValue($doctor))
+        return OperationHistoryDisplayValue::lines(collect($this->categoryValue($doctor))
             ->map(static fn (array $category): string => ($category['is_primary'] ? '[대표] ' : '').$category['path'])
             ->all());
     }
@@ -190,21 +165,12 @@ final class HospitalDoctorUpdateHistoryRecordAction
 
         $normalized = $this->normalizedList($items);
         if ($normalized !== []) {
-            return $this->lineList($normalized);
+            return OperationHistoryDisplayValue::lines($normalized);
         }
 
         $encoded = json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         return $encoded === false ? null : $encoded;
-    }
-
-    private function mediaLabel(?string $path): ?string
-    {
-        if ($path === null || trim($path) === '') {
-            return null;
-        }
-
-        return basename($path);
     }
 
     /**
@@ -225,22 +191,8 @@ final class HospitalDoctorUpdateHistoryRecordAction
 
     private function certificateDisplay(HospitalDoctor $doctor): ?string
     {
-        return $this->lineList(collect($this->certificateValue($doctor))
-            ->map(fn (array $media): ?string => $this->mediaLabel($media['path']))
+        return OperationHistoryDisplayValue::lines(collect($this->certificateValue($doctor))
+            ->map(fn (array $media): ?string => OperationHistoryDisplayValue::fileName($media['path']))
             ->all());
-    }
-
-    /**
-     * @param array<int, mixed> $items
-     */
-    private function lineList(array $items): ?string
-    {
-        $items = collect($items)
-            ->map(static fn (mixed $item): string => trim((string) $item))
-            ->filter(static fn (string $item): bool => $item !== '')
-            ->values()
-            ->all();
-
-        return $items === [] ? null : implode("\n", $items);
     }
 }

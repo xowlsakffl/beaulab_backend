@@ -35,14 +35,11 @@ final class HospitalUpdateForStaffAction
             Gate::authorize('updateStatus', $hospital);
         }
 
-        $beforeHistory = $this->historyRecordAction->capture($hospital);
-
-        $updated = DB::transaction(function () use (
-            $hospital,
-            $payload,
-            $beforeHistory,
-        ) {
+        $updated = DB::transaction(function () use ($hospital, $payload) {
+            $hospital = Hospital::query()->lockForUpdate()->findOrFail($hospital->getKey());
+            $beforeHistory = $this->historyRecordAction->capture($hospital);
             $updatedHospital = $this->query->update($hospital, $payload);
+            \App\Domains\Hospital\Support\HospitalReviewRequirements::assertReceptionPhone($updatedHospital, (string) $updatedHospital->allow_status);
 
             $this->replaceMedia($updatedHospital, $payload);
             $this->businessRegistrationUpdateAction->execute($updatedHospital, $payload);
@@ -64,7 +61,8 @@ final class HospitalUpdateForStaffAction
         return [
             'hospital' => HospitalForStaffDetailDto::fromModel(
                 $updated
-                    ->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features', 'operationHistories.actor'])
+                    ->load(['businessRegistration.certificateMedia', 'logoMedia', 'galleryMedia', 'categories', 'features'])
+                    ->loadLatestStatusHistory()
                     ->loadNewEventDBCount()
             )->toArray(),
         ];

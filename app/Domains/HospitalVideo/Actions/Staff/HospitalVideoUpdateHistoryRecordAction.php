@@ -5,6 +5,7 @@ namespace App\Domains\HospitalVideo\Actions\Staff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Database\Eloquent\Model;
 
@@ -33,7 +34,7 @@ final class HospitalVideoUpdateHistoryRecordAction
             'admin_status' => $this->item('강제중지', $video->admin_status, HospitalVideo::adminStatusLabel((string) $video->admin_status)),
             'categories' => $this->item('카테고리', $this->categoryValue($video), $this->categoryDisplay($video)),
             'hashtags' => $this->item('해시태그', $this->hashtagValue($video), $this->hashtagDisplay($video)),
-            'thumbnail' => $this->item('썸네일', $video->thumbnailMedia?->path, $this->mediaLabel($video->thumbnailMedia?->path)),
+            'thumbnail' => $this->item('썸네일', $video->thumbnailMedia?->path, OperationHistoryDisplayValue::fileName($video->thumbnailMedia?->path)),
         ];
     }
 
@@ -52,17 +53,9 @@ final class HospitalVideoUpdateHistoryRecordAction
      */
     public function recordUpdated(HospitalVideo $video, array $before): void
     {
-        $changes = OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($video));
-        if ($changes === []) {
-            return;
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->capture($video), ['hospital_status', 'admin_status']) as $action => $changes) {
+            $this->record($video, $action, 'staff.hospital_video.update', $changes);
         }
-
-        $this->record(
-            video: $video,
-            action: OperationHistory::ACTION_UPDATED,
-            source: 'staff.hospital_video.update',
-            changes: $changes,
-        );
     }
 
     public function recordHospitalStatusUpdated(
@@ -136,7 +129,7 @@ final class HospitalVideoUpdateHistoryRecordAction
 
     private function categoryDisplay(HospitalVideo $video): ?string
     {
-        return $this->lineList(collect($this->categoryValue($video))
+        return OperationHistoryDisplayValue::lines(collect($this->categoryValue($video))
             ->map(static fn (array $category): string => $category['path'])
             ->all());
     }
@@ -159,14 +152,9 @@ final class HospitalVideoUpdateHistoryRecordAction
 
     private function hashtagDisplay(HospitalVideo $video): ?string
     {
-        return $this->lineList(collect($this->hashtagValue($video))
+        return OperationHistoryDisplayValue::lines(collect($this->hashtagValue($video))
             ->map(static fn (array $hashtag): string => '#'.$hashtag['name'])
             ->all());
-    }
-
-    private function mediaLabel(?string $path): ?string
-    {
-        return $path ? basename($path) : null;
     }
 
     private function durationLabel(int $seconds): string
@@ -181,20 +169,6 @@ final class HospitalVideoUpdateHistoryRecordAction
         }
 
         return sprintf('%02d:%02d', $minutes, $remainingSeconds);
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     */
-    private function lineList(array $items): ?string
-    {
-        $items = collect($items)
-            ->map(static fn (mixed $item): string => trim((string) $item))
-            ->filter(static fn (string $item): bool => $item !== '')
-            ->values()
-            ->all();
-
-        return $items === [] ? null : implode("\n", $items);
     }
 
     /**

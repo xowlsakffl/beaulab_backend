@@ -29,10 +29,10 @@ final class HospitalDoctorUpdateForStaffAction
             Gate::authorize('updateStatus', $doctor);
         }
 
-        $beforeHistory = $this->historyRecordAction->capture($doctor);
-        $historyReason = $this->historyReason($doctor, $payload);
-
-        $doctor = DB::transaction(function () use ($doctor, $payload, $beforeHistory, $historyReason) {
+        $doctor = DB::transaction(function () use ($doctor, $payload) {
+            $doctor = HospitalDoctor::query()->lockForUpdate()->findOrFail($doctor->getKey());
+            $beforeHistory = $this->historyRecordAction->capture($doctor);
+            $historyReason = $this->historyReason($doctor, $payload);
             $updated = $this->query->update($doctor, $payload);
             $this->replaceMedia($updated, $payload);
             if (array_key_exists('category_ids', $payload) && is_array($payload['category_ids'])) {

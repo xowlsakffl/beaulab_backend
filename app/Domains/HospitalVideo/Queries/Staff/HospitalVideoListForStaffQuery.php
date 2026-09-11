@@ -52,9 +52,10 @@ final class HospitalVideoListForStaffQuery
             $builder->where('hospital_id', (int) $filters['hospital_id']);
         }
 
-        if (! empty($filters['category_id'])) {
+        $categoryIds = $filters['category_ids'] ?? ($filters['category_id'] ?? null);
+        if (! empty($categoryIds)) {
             $builder->whereHas('categories', fn (Builder $query) => $query
-                ->where('categories.id', (int) $filters['category_id']));
+                ->whereIn('categories.id', (array) $categoryIds));
         }
 
         if (! empty($filters['q'])) {

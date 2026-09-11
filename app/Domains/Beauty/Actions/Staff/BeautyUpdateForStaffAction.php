@@ -31,6 +31,7 @@ final class BeautyUpdateForStaffAction
         Gate::authorize('update', $beauty);
 
         $updated = DB::transaction(function () use ($beauty, $payload) {
+            $beauty = Beauty::query()->lockForUpdate()->findOrFail($beauty->getKey());
             $before = $this->historyRecordAction->capture($beauty);
             $updatedBeauty = $this->query->update($beauty, $payload);
 
@@ -74,7 +75,7 @@ final class BeautyUpdateForStaffAction
     }
 
     /**
-     * @param array<int, int|string> $categoryIds
+     * @param  array<int, int|string>  $categoryIds
      */
     private function syncCategories(Beauty $beauty, array $categoryIds): void
     {

@@ -47,7 +47,7 @@ final class HospitalWalletNoticeCreateForStaffRequest extends FormRequest
             'message_parts.*.text' => ['nullable', 'string', 'max:2000'],
             'message_parts.*.key' => ['nullable', 'string', Rule::in(HospitalWalletSms::VARIABLE_KEYS)],
             'send_to_manager' => ['required', 'boolean'],
-            'send_to_representative' => ['required', 'boolean'],
+            'send_to_representative' => ['sometimes', 'boolean', Rule::in([false, 0, '0'])],
             'idempotency_key' => ['required', 'uuid'],
         ];
     }
@@ -56,8 +56,8 @@ final class HospitalWalletNoticeCreateForStaffRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if (! $this->boolean('send_to_manager') && ! $this->boolean('send_to_representative')) {
-                    $validator->errors()->add('send_to_manager', '담당자 또는 대표자 중 한 명 이상을 선택해 주세요.');
+                if (! $this->boolean('send_to_manager')) {
+                    $validator->errors()->add('send_to_manager', '담당자 수신번호를 선택해 주세요.');
                 }
 
                 $parts = $this->input('message_parts', []);

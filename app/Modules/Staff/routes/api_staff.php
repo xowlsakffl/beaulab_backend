@@ -28,6 +28,7 @@ use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventForStaffContro
 use App\Modules\Staff\Http\Controllers\HospitalEvent\HospitalEventRealModelDBForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEventAd\HospitalEventAdForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalFeature\HospitalFeatureForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalPromotion\HospitalPromotionForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReview\HospitalReviewForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalReviewComment\HospitalReviewCommentForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalVideo\HospitalVideoForStaffController;
@@ -456,6 +457,21 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('talk-comments.updateTalkCommentStatusForStaff');
     Route::get('talk-comments/{comment}/operation-histories', [TalkCommentForStaffController::class, 'getTalkCommentOperationHistoriesForStaff'])
         ->name('talk-comments.getTalkCommentOperationHistoriesForStaff');
+
+    /**
+     * 병원 프로모션
+     **/
+    Route::prefix('hospital-promotions')->name('hospital-promotions.')->group(function (): void {
+        Route::get('board', [HospitalPromotionForStaffController::class, 'board'])->name('board');
+        Route::get('availability', [HospitalPromotionForStaffController::class, 'availability'])->name('availability');
+        Route::post('editor-images', [HospitalPromotionForStaffController::class, 'uploadEditorImage'])->name('editor-images.upload');
+        Route::delete('editor-images', [HospitalPromotionForStaffController::class, 'cleanupEditorImages'])->name('editor-images.cleanup');
+        Route::get('', [HospitalPromotionForStaffController::class, 'index'])->name('index');
+        Route::post('', [HospitalPromotionForStaffController::class, 'store'])->name('store');
+        Route::get('{promotion}/operation-histories', [HospitalPromotionForStaffController::class, 'histories'])->whereNumber('promotion')->name('histories');
+        Route::get('{promotion}', [HospitalPromotionForStaffController::class, 'show'])->whereNumber('promotion')->name('show');
+        Route::patch('{promotion}', [HospitalPromotionForStaffController::class, 'update'])->whereNumber('promotion')->name('update');
+    });
 
     /**
      * 공지사항

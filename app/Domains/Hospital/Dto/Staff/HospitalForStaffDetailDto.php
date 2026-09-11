@@ -193,7 +193,7 @@ final readonly class HospitalForStaffDetailDto
         return [
             'id' => $accountHospital->id,
             'nickname' => $accountHospital->nickname,
-            'phone' => $accountHospital->verifiedPhone(),
+            'email' => $accountHospital->verifiedEmail(),
             'status' => $accountHospital->status,
             'roles' => $accountHospital->getRoleNames()->values()->all(),
             'last_login_at' => $accountHospital->last_login_at?->toISOString(),

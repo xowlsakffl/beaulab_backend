@@ -74,6 +74,7 @@ Artisan::command('sms:dispatch-pending {--limit=100} {--stale-minutes=}', functi
 Artisan::command('media:cleanup-files {--limit=500}', function () {
     $limit = max(1, min((int) $this->option('limit'), 1000));
     $files = app(\App\Domains\Common\Media\Services\MediaFileLifecycle::class);
+    $this->info('Expired promotion editor uploads: '.app(\App\Domains\HospitalPromotion\Actions\Common\HospitalPromotionEditorImagesAction::class)->pruneExpired($limit));
     $this->info('Deleted file tasks: '.$files->purge($limit));
     $this->info('Pruned staging manifests: '.$files->pruneStaging($limit));
 })->purpose('Delete committed media removals and stale unreferenced uploads');

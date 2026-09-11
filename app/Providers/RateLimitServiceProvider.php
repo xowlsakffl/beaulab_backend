@@ -11,6 +11,16 @@ final class RateLimitServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        RateLimiter::for('hospital-promotion-click', function (Request $request) {
+            $account = $request->user()?->getAuthIdentifier() ?? $request->ip();
+            $promotion = (string) $request->route('promotion');
+
+            return [
+                Limit::perMinute(1)->by("hospital-promotion-click:{$account}:{$promotion}"),
+                Limit::perMinute(30)->by("hospital-promotion-clicks:{$account}"),
+            ];
+        });
+
         RateLimiter::for('auth-login', function (Request $request) {
             $actor = $this->actor($request);
             $identifier = $this->loginIdentifier($request);
@@ -106,24 +116,23 @@ final class RateLimitServiceProvider extends ServiceProvider
             ];
         });
 
-        RateLimiter::for('hospital-account-phone-verification-send', function (Request $request) {
-            $tokenHash = hash('sha256', (string) $request->route('token'));
-            $phone = preg_replace('/\D+/', '', (string) $request->input('phone')) ?: 'unknown';
+        RateLimiter::for('hospital-account-email-verification-send', function (Request $request) {
+            $subject = hash('sha256', (string) $request->route('token'));
+            $email = hash('sha256', $this->email($request));
 
             return [
-                Limit::perMinute(2)->by("hospital-account-phone-send:token:{$tokenHash}:{$phone}"),
-                Limit::perHour(5)->by("hospital-account-phone-send-hour:token:{$tokenHash}:{$phone}"),
-                Limit::perHour(20)->by("hospital-account-phone-send-hour:ip:{$request->ip()}"),
+                Limit::perMinute(2)->by("hospital-email-send:subject:{$subject}"),
+                Limit::perHour(10)->by("hospital-email-send-hour:subject:{$subject}"),
+                Limit::perHour(5)->by("hospital-email-send-hour:email:{$email}"),
+                Limit::perHour(20)->by("hospital-email-send-hour:ip:{$request->ip()}"),
             ];
         });
-
-        RateLimiter::for('hospital-account-phone-verification-verify', function (Request $request) {
-            $tokenHash = hash('sha256', (string) $request->route('token'));
-            $verificationId = (string) $request->route('phoneVerification');
+        RateLimiter::for('hospital-account-email-verification-verify', function (Request $request) {
+            $subject = hash('sha256', (string) $request->route('token'));
 
             return [
-                Limit::perMinute(10)->by("hospital-account-phone-verify:token:{$tokenHash}:{$verificationId}"),
-                Limit::perMinute(30)->by("hospital-account-phone-verify:ip:{$request->ip()}"),
+                Limit::perMinute(10)->by("hospital-email-verify:subject:{$subject}"),
+                Limit::perMinute(30)->by("hospital-email-verify:ip:{$request->ip()}"),
             ];
         });
     }

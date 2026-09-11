@@ -47,6 +47,8 @@ return new class extends Migration
                 ->nullable()
                 ->comment('수정 시각');
 
+            $table->boolean('broadcast_pending')->default(false)->index()->comment('실시간 메시지 발행 대기 여부');
+
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 시각');
 

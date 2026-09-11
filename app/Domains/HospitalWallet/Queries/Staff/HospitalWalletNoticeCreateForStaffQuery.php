@@ -17,7 +17,7 @@ final class HospitalWalletNoticeCreateForStaffQuery
     {
         return HospitalWallet::query()
             ->whereIn('hospital_id', $hospitalIds)
-            ->with(['hospital.accountHospital'])
+            ->with(['hospital'])
             ->orderBy('hospital_id')
             ->lockForUpdate()
             ->get();

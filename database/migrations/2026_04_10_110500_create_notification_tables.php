@@ -67,6 +67,13 @@ return new class extends Migration
             $table->timestamp('failed_at')->nullable()->comment('발송 실패 시각');
             $table->text('error_message')->nullable()->comment('마지막 실패 사유');
 
+            $table->unsignedInteger('generation')->default(0);
+            $table->json('message_snapshot')->nullable();
+            $table->json('device_results')->nullable();
+            $table->uuid('lease_token')->nullable();
+            $table->timestamp('processing_until')->nullable();
+            $table->timestamp('next_attempt_at')->nullable();
+
             $table->timestamps();
 
             $table->index(['channel', 'status', 'attempted_at'], 'notification_deliveries_channel_status_idx');

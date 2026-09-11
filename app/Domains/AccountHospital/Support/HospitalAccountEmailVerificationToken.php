@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\AccountHospital\Support;
 
-final class HospitalAccountPhoneVerificationToken
+final class HospitalAccountEmailVerificationToken
 {
     public static function make(): string
     {

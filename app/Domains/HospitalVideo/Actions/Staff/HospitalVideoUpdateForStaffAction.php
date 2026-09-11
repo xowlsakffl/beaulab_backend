@@ -27,9 +27,9 @@ final class HospitalVideoUpdateForStaffAction
     {
         Gate::authorize('update', $video);
 
-        $normalized = $this->normalizePayload($video, $payload);
-
-        $video = DB::transaction(function () use ($video, $normalized) {
+        $video = DB::transaction(function () use ($video, $payload) {
+            $video = HospitalVideo::query()->lockForUpdate()->findOrFail($video->getKey());
+            $normalized = $this->normalizePayload($video, $payload);
             $before = $this->historyRecordAction->capture($video);
             $updated = $this->query->update($video, $normalized);
 
@@ -64,7 +64,7 @@ final class HospitalVideoUpdateForStaffAction
             return $updated;
         });
 
-        if ($this->shouldForgetSummary($normalized)) {
+        if ($this->shouldForgetSummary($payload)) {
             StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL_VIDEO);
         }
 

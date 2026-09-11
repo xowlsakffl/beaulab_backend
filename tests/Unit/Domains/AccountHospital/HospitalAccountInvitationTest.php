@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace Tests\Unit\Domains\AccountHospital;
 
 use App\Common\Support\ActorDisplay;
+use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountEmailVerificationSendAction;
+use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountEmailVerificationVerifyAction;
 use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountInvitationCompleteForHospitalAction;
 use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountInvitationGetForHospitalAction;
-use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountPhoneVerificationSendAction;
-use App\Domains\AccountHospital\Actions\Hospital\HospitalAccountPhoneVerificationVerifyAction;
 use App\Domains\AccountHospital\Actions\Staff\HospitalAccountInvitationListForStaffAction;
 use App\Domains\AccountHospital\Actions\Staff\HospitalAccountInvitationSendForStaffAction;
 use App\Domains\AccountHospital\Mail\HospitalAccountInvitationMail;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\AccountHospital\Models\HospitalAccountEmailVerification;
 use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
-use App\Domains\AccountHospital\Models\HospitalAccountPhoneVerification;
 use App\Domains\AccountHospital\Policies\HospitalAccountInvitationPolicy;
-use App\Domains\AccountHospital\Support\AccountHospitalPhone;
+use App\Domains\AccountHospital\Support\AccountHospitalEmail;
+use App\Domains\AccountHospital\Support\HospitalAccountEmailVerificationCode;
+use App\Domains\AccountHospital\Support\HospitalAccountEmailVerificationToken;
 use App\Domains\AccountHospital\Support\HospitalAccountInvitationToken;
-use App\Domains\AccountHospital\Support\HospitalAccountPhoneVerificationCode;
-use App\Domains\AccountHospital\Support\HospitalAccountPhoneVerificationToken;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
@@ -70,18 +70,18 @@ final class HospitalAccountInvitationTest extends TestCase
     public function test_tokens_are_stored_as_sha256_hashes(): void
     {
         $invitationToken = HospitalAccountInvitationToken::make();
-        $phoneVerificationToken = HospitalAccountPhoneVerificationToken::make();
+        $emailVerificationToken = HospitalAccountEmailVerificationToken::make();
 
         self::assertSame(64, strlen($invitationToken));
-        self::assertSame(64, strlen($phoneVerificationToken));
+        self::assertSame(64, strlen($emailVerificationToken));
         self::assertSame(hash('sha256', $invitationToken), HospitalAccountInvitationToken::hash($invitationToken));
-        self::assertSame(hash('sha256', $phoneVerificationToken), HospitalAccountPhoneVerificationToken::hash($phoneVerificationToken));
-        self::assertNotSame($phoneVerificationToken, HospitalAccountPhoneVerificationToken::hash($phoneVerificationToken));
+        self::assertSame(hash('sha256', $emailVerificationToken), HospitalAccountEmailVerificationToken::hash($emailVerificationToken));
+        self::assertNotSame($emailVerificationToken, HospitalAccountEmailVerificationToken::hash($emailVerificationToken));
     }
 
-    public function test_phone_verification_is_short_lived_and_single_use(): void
+    public function test_email_verification_is_short_lived_and_single_use(): void
     {
-        $verification = new HospitalAccountPhoneVerification;
+        $verification = new HospitalAccountEmailVerification;
         $verification->setRawAttributes([
             'verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
             'verification_expires_at' => Carbon::now()->addMinutes(15)->format('Y-m-d H:i:s'),
@@ -96,9 +96,9 @@ final class HospitalAccountInvitationTest extends TestCase
         self::assertFalse($verification->isVerificationUsable());
     }
 
-    public function test_verified_phone_code_cannot_be_reused(): void
+    public function test_verified_email_code_cannot_be_reused(): void
     {
-        $verification = new HospitalAccountPhoneVerification;
+        $verification = new HospitalAccountEmailVerification;
         $verification->setRawAttributes([
             'code_expires_at' => Carbon::now()->addMinutes(5)->format('Y-m-d H:i:s'),
             'verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
@@ -107,33 +107,33 @@ final class HospitalAccountInvitationTest extends TestCase
         self::assertFalse($verification->isCodeUsable());
     }
 
-    public function test_phone_verification_code_is_six_digits_and_hashed(): void
+    public function test_email_verification_code_is_six_digits_and_hashed(): void
     {
-        $code = HospitalAccountPhoneVerificationCode::make();
-        $hash = HospitalAccountPhoneVerificationCode::hash($code);
+        $code = HospitalAccountEmailVerificationCode::make();
+        $hash = HospitalAccountEmailVerificationCode::hash($code);
 
         self::assertMatchesRegularExpression('/^\d{6}$/', $code);
         self::assertNotSame($code, $hash);
-        self::assertTrue(HospitalAccountPhoneVerificationCode::verify($code, $hash));
-        self::assertFalse(HospitalAccountPhoneVerificationCode::verify('not-code', $hash));
+        self::assertTrue(HospitalAccountEmailVerificationCode::verify($code, $hash));
+        self::assertFalse(HospitalAccountEmailVerificationCode::verify('not-code', $hash));
     }
 
-    public function test_verified_phone_is_normalized_for_account_storage(): void
+    public function test_verified_email_is_normalized_for_account_storage(): void
     {
-        self::assertTrue(AccountHospitalPhone::isValid('01012345678'));
-        self::assertSame('010-1234-5678', AccountHospitalPhone::format('01012345678'));
-        self::assertFalse(AccountHospitalPhone::isValid('02-123-4567'));
+        self::assertTrue(AccountHospitalEmail::isValid('owner@example.com'));
+        self::assertSame('owner@example.com', AccountHospitalEmail::normalize(' Owner@Example.COM '));
+        self::assertFalse(AccountHospitalEmail::isValid('02-123-4567'));
     }
 
-    public function test_account_exposes_only_a_verified_phone(): void
+    public function test_account_exposes_only_a_verified_email(): void
     {
-        $account = new AccountHospital(['phone' => '010-1234-5678']);
+        $account = new AccountHospital(['email' => 'owner@example.com']);
 
-        self::assertNull($account->verifiedPhone());
+        self::assertNull($account->verifiedEmail());
 
-        $account->phone_verified_at = now();
+        $account->email_verified_at = now();
 
-        self::assertSame('010-1234-5678', $account->verifiedPhone());
+        self::assertSame('owner@example.com', $account->verifiedEmail());
     }
 
     public function test_hospital_account_actor_uses_hospital_name_instead_of_account_name(): void
@@ -156,8 +156,8 @@ final class HospitalAccountInvitationTest extends TestCase
     {
         self::assertInstanceOf(HospitalAccountInvitationGetForHospitalAction::class, app(HospitalAccountInvitationGetForHospitalAction::class));
         self::assertInstanceOf(HospitalAccountInvitationCompleteForHospitalAction::class, app(HospitalAccountInvitationCompleteForHospitalAction::class));
-        self::assertInstanceOf(HospitalAccountPhoneVerificationSendAction::class, app(HospitalAccountPhoneVerificationSendAction::class));
-        self::assertInstanceOf(HospitalAccountPhoneVerificationVerifyAction::class, app(HospitalAccountPhoneVerificationVerifyAction::class));
+        self::assertInstanceOf(HospitalAccountEmailVerificationSendAction::class, app(HospitalAccountEmailVerificationSendAction::class));
+        self::assertInstanceOf(HospitalAccountEmailVerificationVerifyAction::class, app(HospitalAccountEmailVerificationVerifyAction::class));
         self::assertInstanceOf(HospitalAccountInvitationListForStaffAction::class, app(HospitalAccountInvitationListForStaffAction::class));
         self::assertInstanceOf(HospitalAccountInvitationSendForStaffAction::class, app(HospitalAccountInvitationSendForStaffAction::class));
     }

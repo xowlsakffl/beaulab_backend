@@ -38,12 +38,14 @@ final class HospitalWalletNoticeCreateForStaffAction
         $hospitalIds = $this->hospitalIds($payload['hospital_ids'] ?? []);
         $messageParts = HospitalWalletSms::normalizeMessageParts($payload['message_parts'] ?? []);
         $sendToManager = (bool) $payload['send_to_manager'];
-        $sendToRepresentative = (bool) $payload['send_to_representative'];
+        if ((bool) ($payload['send_to_representative'] ?? false)) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '계정 연락처 문자 발송은 지원하지 않습니다. 담당자 수신번호를 선택해 주세요.');
+        }
         $metadata = [
             'hospital_ids' => $hospitalIds,
             'message_parts' => $messageParts,
             'send_to_manager' => $sendToManager,
-            'send_to_representative' => $sendToRepresentative,
+            'send_to_representative' => false,
         ];
 
         $result = $this->createSmsBatch->execute(
@@ -57,7 +59,6 @@ final class HospitalWalletNoticeCreateForStaffAction
                 $hospitalIds,
                 $messageParts,
                 $sendToManager,
-                $sendToRepresentative,
             ): array {
                 $wallets = $this->query->getWalletsForUpdate($hospitalIds);
                 $this->assertAllWalletsExist($wallets, $hospitalIds);
@@ -67,7 +68,6 @@ final class HospitalWalletNoticeCreateForStaffAction
                         $wallet,
                         $messageParts,
                         $sendToManager,
-                        $sendToRepresentative,
                     ))
                     ->values()
                     ->all();
@@ -87,7 +87,6 @@ final class HospitalWalletNoticeCreateForStaffAction
         HospitalWallet $wallet,
         array $messageParts,
         bool $sendToManager,
-        bool $sendToRepresentative,
     ): array {
         $hospital = $wallet->hospital;
         if (! $hospital) {
@@ -104,19 +103,6 @@ final class HospitalWalletNoticeCreateForStaffAction
                 HospitalWalletSms::RECIPIENT_MANAGER,
                 $hospital->ad_reception_phone_1,
                 '담당자 광고 안내 수신번호가 없습니다.',
-            );
-        }
-
-        if ($sendToRepresentative) {
-            $account = $hospital->accountHospital;
-            $phone = $account?->phone_verified_at ? $account->phone : null;
-            $this->appendTarget(
-                $targets,
-                $skipped,
-                HospitalWalletSms::RECIPIENT_REPRESENTATIVE,
-                $phone,
-                '인증된 대표자 전화번호가 없습니다.',
-                $account,
             );
         }
 

@@ -31,28 +31,29 @@ final class CategoryUpdateForStaffAction
             Gate::authorize('updateStatus', $category);
         }
 
-        $parent = $this->query->parent($category);
-        $name = array_key_exists('name', $payload)
-            ? trim((string) $payload['name'])
-            : (string) $category->name;
+        $updated = DB::transaction(function () use ($category, $payload) {
+            $category = Category::query()->lockForUpdate()->findOrFail($category->getKey());
+            $parent = $this->query->parent($category);
+            $name = array_key_exists('name', $payload)
+                ? trim((string) $payload['name'])
+                : (string) $category->name;
 
-        $exists = $this->query->existsSiblingName($category, $name);
+            $exists = $this->query->existsSiblingName($category, $name);
 
-        if ($exists) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 상위 카테고리 아래 동일한 이름이 이미 존재합니다.');
-        }
+            if ($exists) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 상위 카테고리 아래 동일한 이름이 이미 존재합니다.');
+            }
 
-        $parentPath = $parent ? trim((string) ($parent->full_path ?: $parent->name)) : null;
-        $newFullPath = $parentPath ? "{$parentPath} > {$name}" : $name;
-        $oldFullPath = (string) ($category->full_path ?: $category->name);
-        $oldGroupCode = $category->group_code !== null ? (string) $category->group_code : null;
-        $groupCode = $this->resolveGroupCode($payload, $parent, $oldGroupCode);
+            $parentPath = $parent ? trim((string) ($parent->full_path ?: $parent->name)) : null;
+            $newFullPath = $parentPath ? "{$parentPath} > {$name}" : $name;
+            $oldFullPath = (string) ($category->full_path ?: $category->name);
+            $oldGroupCode = $category->group_code !== null ? (string) $category->group_code : null;
+            $groupCode = $this->resolveGroupCode($payload, $parent, $oldGroupCode);
 
-        $normalizedCode = array_key_exists('code', $payload)
-            ? (trim((string) ($payload['code'] ?? '')) ?: null)
-            : $category->code;
+            $normalizedCode = array_key_exists('code', $payload)
+                ? (trim((string) ($payload['code'] ?? '')) ?: null)
+                : $category->code;
 
-        $updated = DB::transaction(function () use ($category, $payload, $name, $newFullPath, $oldFullPath, $oldGroupCode, $groupCode, $normalizedCode) {
             $before = $this->historyRecordAction->capture($category);
             $updatedCategory = $this->query->update($category, [
                 'name' => $name,

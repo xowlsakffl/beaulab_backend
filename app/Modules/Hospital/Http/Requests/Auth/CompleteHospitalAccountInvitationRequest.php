@@ -10,6 +10,9 @@ final class CompleteHospitalAccountInvitationRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => \App\Domains\AccountHospital\Support\AccountHospitalEmail::normalize($this->input('email'))]);
+        }
         if (is_string($this->input('nickname'))) {
             $this->merge(['nickname' => trim((string) $this->input('nickname'))]);
         }
@@ -31,7 +34,8 @@ final class CompleteHospitalAccountInvitationRequest extends FormRequest
                 'regex:/^[A-Za-z0-9._-]+$/',
             ],
             'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
-            'phone_verification_token' => ['required', 'string', 'size:64', 'alpha_num:ascii'],
+            'email' => ['required', 'string', 'email:rfc', 'max:254'],
+            'email_verification_token' => ['required', 'string', 'size:64', 'alpha_num:ascii'],
         ];
     }
 
@@ -48,7 +52,8 @@ final class CompleteHospitalAccountInvitationRequest extends FormRequest
             'nickname' => '아이디',
             'password' => '비밀번호',
             'password_confirmation' => '비밀번호 확인',
-            'phone_verification_token' => '휴대폰 인증',
+            'email_verification_token' => '이메일 인증',
+            'email' => '이메일',
         ];
     }
 }

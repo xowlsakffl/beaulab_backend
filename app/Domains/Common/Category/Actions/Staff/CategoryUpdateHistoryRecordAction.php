@@ -6,6 +6,7 @@ use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use Illuminate\Database\Eloquent\Model;
 
 final class CategoryUpdateHistoryRecordAction
@@ -32,7 +33,7 @@ final class CategoryUpdateHistoryRecordAction
             'sort_order' => $this->item('정렬순서', (int) $category->sort_order, (string) (int) $category->sort_order),
             'status' => $this->item('상태', $category->status, $category->status),
             'is_menu_visible' => $this->item('메뉴 노출', (bool) $category->is_menu_visible, (bool) $category->is_menu_visible ? '예' : '아니오'),
-            'icon' => $this->item('아이콘', $category->iconMedia?->path, $category->iconMedia?->path ? basename($category->iconMedia->path) : null),
+            'icon' => $this->item('아이콘', $category->iconMedia?->path, OperationHistoryDisplayValue::fileName($category->iconMedia?->path)),
         ];
     }
 
@@ -46,7 +47,9 @@ final class CategoryUpdateHistoryRecordAction
      */
     public function recordUpdated(Category $category, array $before): void
     {
-        $this->record($category, OperationHistory::ACTION_UPDATED, 'staff.category.update', OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($category)));
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->capture($category), ['status']) as $action => $changes) {
+            $this->record($category, $action, 'staff.category.update', $changes);
+        }
     }
 
     /**

@@ -25,9 +25,9 @@ final class HospitalEntryUpdateForStaffAction
     {
         Gate::authorize('update', $entry);
 
-        $beforeHistory = $this->historyRecordAction->capture($entry);
-
-        $updated = DB::transaction(function () use ($entry, $payload, $beforeHistory): HospitalEntry {
+        $updated = DB::transaction(function () use ($entry, $payload): HospitalEntry {
+            $entry = HospitalEntry::query()->lockForUpdate()->findOrFail($entry->getKey());
+            $beforeHistory = $this->historyRecordAction->capture($entry);
             $updated = $this->query->update($entry, $payload);
             $this->replaceMedia($updated, $payload);
             $this->historyRecordAction->recordUpdated($updated, $beforeHistory);

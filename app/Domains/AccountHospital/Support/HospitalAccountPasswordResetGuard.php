@@ -43,7 +43,7 @@ final class HospitalAccountPasswordResetGuard
     public static function canReset(?AccountHospital $account): bool
     {
         return $account !== null && $account->isActive() && $account->hospital !== null
-            && $account->verifiedPhone() !== null && AccountHospitalPhone::isValid($account->verifiedPhone());
+            && $account->verifiedEmail() !== null && AccountHospitalEmail::isValid($account->verifiedEmail());
     }
 
     private static function invalidToken(): CustomException

@@ -12,7 +12,19 @@ final class HospitalVideoListForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
+        $categoryIds = $this->input('category_ids', $this->input('category_id'));
+        if (is_string($categoryIds)) {
+            $value = trim($categoryIds);
+            $decoded = json_decode($value, true);
+            $categoryIds = $value === '' ? null : (is_array($decoded) && array_is_list($decoded) ? $decoded : explode(',', $value));
+        } elseif (is_int($categoryIds)) {
+            $categoryIds = [$categoryIds];
+        }
+        if (is_array($categoryIds)) {
+            $categoryIds = array_map(static fn ($value) => is_string($value) ? trim($value) : $value, $categoryIds);
+        }
         $this->merge([
+            'category_ids' => $categoryIds,
             'hospital_status' => $this->normalizeToArray($this->input('hospital_status')),
             'admin_status' => $this->normalizeToArray($this->input('admin_status')),
             'report_status' => $this->normalizeToArray($this->input('report_status')),
@@ -28,9 +40,12 @@ final class HospitalVideoListForStaffRequest extends FormRequest
     {
         return [
             'hospital_id' => ['nullable', 'integer', 'exists:hospitals,id'],
-            'category_id' => [
-                'nullable',
+            'category_ids' => ['nullable', 'array', 'max:100'],
+            'category_ids.*' => [
+                'required',
                 'integer',
+                'min:1',
+                'distinct',
                 Rule::exists('categories', 'id')->where(static function ($query): void {
                     CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY);
                 }),
@@ -63,7 +78,7 @@ final class HospitalVideoListForStaffRequest extends FormRequest
 
         return [
             'hospital_id' => $validated['hospital_id'] ?? null,
-            'category_id' => $validated['category_id'] ?? null,
+            'category_ids' => $validated['category_ids'] ?? null,
             'q' => $validated['q'] ?? null,
             'summary_filter' => $validated['summary_filter'] ?? null,
             'hospital_status' => $validated['hospital_status'] ?? null,
@@ -90,7 +105,8 @@ final class HospitalVideoListForStaffRequest extends FormRequest
     {
         return [
             'hospital_id' => '병의원',
-            'category_id' => '카테고리',
+            'category_ids' => '카테고리 목록',
+            'category_ids.*' => '카테고리',
             'q' => '검색어',
             'summary_filter' => '요약 필터',
             'hospital_status' => '공개여부',

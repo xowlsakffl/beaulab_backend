@@ -30,26 +30,27 @@ final class HashtagUpdateForStaffAction
             Gate::authorize('updateStatus', $hashtag);
         }
 
-        $name = array_key_exists('name', $payload)
-            ? Hashtag::sanitizeName((string) $payload['name'])
-            : (string) $hashtag->name;
-        $normalizedName = Hashtag::normalizeName($name);
-        $status = array_key_exists('status', $payload)
-            ? Hashtag::normalizeStatus((string) $payload['status'])
-            : $hashtag->resolveStatus();
-        $exists = $this->query->existsNormalizedName($hashtag, $normalizedName);
+        $updated = DB::transaction(function () use ($hashtag, $payload) {
+            $hashtag = Hashtag::query()->lockForUpdate()->findOrFail($hashtag->getKey());
+            $name = array_key_exists('name', $payload)
+                ? Hashtag::sanitizeName((string) $payload['name'])
+                : (string) $hashtag->name;
+            $normalizedName = Hashtag::normalizeName($name);
+            $status = array_key_exists('status', $payload)
+                ? Hashtag::normalizeStatus((string) $payload['status'])
+                : $hashtag->resolveStatus();
+            $exists = $this->query->existsNormalizedName($hashtag, $normalizedName);
 
-        if ($exists) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '동일한 해시태그가 이미 존재합니다.');
-        }
+            if ($exists) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '동일한 해시태그가 이미 존재합니다.');
+            }
 
-        $updateData = [
-            'name' => $name,
-            'normalized_name' => $normalizedName,
-            'status' => $status,
-        ];
+            $updateData = [
+                'name' => $name,
+                'normalized_name' => $normalizedName,
+                'status' => $status,
+            ];
 
-        $updated = DB::transaction(function () use ($hashtag, $updateData) {
             $before = $this->historyRecordAction->capture($hashtag);
             $updated = $this->query->update($hashtag, $updateData);
             $this->historyRecordAction->recordUpdated($updated, $before);

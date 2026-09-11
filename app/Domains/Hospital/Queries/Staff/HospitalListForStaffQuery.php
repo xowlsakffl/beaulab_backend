@@ -56,7 +56,7 @@ final class HospitalListForStaffQuery
         $builder
             ->with([
                 'logoMedia',
-                'accountHospital:id,hospital_id,nickname,phone,phone_verified_at,status,last_login_at',
+                'accountHospital:id,hospital_id,nickname,email,email_verified_at,status,last_login_at',
             ])
             ->withCount([
                 'hospitalEvents as event_count',

@@ -6,7 +6,7 @@ namespace App\Modules\Hospital\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class VerifyHospitalAccountPhoneVerificationRequest extends FormRequest
+final class VerifyHospitalAccountEmailVerificationRequest extends FormRequest
 {
     public function authorize(): bool
     {

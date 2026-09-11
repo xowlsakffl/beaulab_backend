@@ -39,21 +39,18 @@ final class AccountUserUpdateHistoryRecordAction
      */
     public function recordUpdated(AccountUser $user, array $before): void
     {
-        $changes = OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($user));
-        if ($changes === []) {
-            return;
-        }
-
         $actor = auth()->user();
 
-        $this->historyCreateAction->execute(
-            target: $user,
-            action: OperationHistory::ACTION_UPDATED,
-            actor: $actor instanceof Model ? $actor : null,
-            reason: null,
-            metadata: ['source' => 'staff.account_user.update'],
-            changes: $changes,
-        );
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->capture($user), ['status']) as $action => $changes) {
+            $this->historyCreateAction->execute(
+                target: $user,
+                action: $action,
+                actor: $actor instanceof Model ? $actor : null,
+                reason: null,
+                metadata: ['source' => 'staff.account_user.update'],
+                changes: $changes,
+            );
+        }
     }
 
     public function recordStatusUpdated(

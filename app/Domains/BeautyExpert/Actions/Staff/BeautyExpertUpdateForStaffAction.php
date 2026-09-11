@@ -30,6 +30,7 @@ final class BeautyExpertUpdateForStaffAction
         }
 
         $expert = DB::transaction(function () use ($expert, $payload) {
+            $expert = BeautyExpert::query()->lockForUpdate()->findOrFail($expert->getKey());
             $before = $this->historyRecordAction->capture($expert);
             $updated = $this->query->update($expert, $payload);
             $this->replaceMedia($updated, $payload);

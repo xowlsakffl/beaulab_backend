@@ -6,6 +6,7 @@ use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use Illuminate\Database\Eloquent\Model;
 
 final class BeautyExpertUpdateHistoryRecordAction
@@ -34,13 +35,13 @@ final class BeautyExpertUpdateHistoryRecordAction
             'gender' => $this->item('성별', $expert->gender, $expert->gender),
             'position' => $this->item('직책', $expert->position, $expert->position),
             'career_started_at' => $this->item('경력 시작일', $expert->career_started_at?->toDateString(), $expert->career_started_at?->toDateString()),
-            'educations' => $this->item('학력사항', $expert->educations ?? [], $this->lineList($expert->educations ?? [])),
-            'careers' => $this->item('경력사항', $expert->careers ?? [], $this->lineList($expert->careers ?? [])),
-            'etc_contents' => $this->item('활동사항', $expert->etc_contents ?? [], $this->lineList($expert->etc_contents ?? [])),
+            'educations' => $this->item('학력사항', $expert->educations ?? [], OperationHistoryDisplayValue::lines($expert->educations ?? [])),
+            'careers' => $this->item('경력사항', $expert->careers ?? [], OperationHistoryDisplayValue::lines($expert->careers ?? [])),
+            'etc_contents' => $this->item('활동사항', $expert->etc_contents ?? [], OperationHistoryDisplayValue::lines($expert->etc_contents ?? [])),
             'status' => $this->item('상태', $expert->status, $expert->status),
             'allow_status' => $this->item('검수상태', $expert->allow_status, $expert->allow_status),
             'categories' => $this->item('카테고리', $this->categoryValue($expert), $this->categoryDisplay($expert)),
-            'profile_image' => $this->item('프로필 이미지', $expert->profileImage?->path, $this->mediaLabel($expert->profileImage?->path)),
+            'profile_image' => $this->item('프로필 이미지', $expert->profileImage?->path, OperationHistoryDisplayValue::fileName($expert->profileImage?->path)),
             'education_certificate_images' => $this->item('학력 증명서', $this->mediaList($expert->educationCertificateImages), $this->mediaListDisplay($expert->educationCertificateImages)),
             'etc_certificate_images' => $this->item('활동 증명서', $this->mediaList($expert->etcCertificateImages), $this->mediaListDisplay($expert->etcCertificateImages)),
         ];
@@ -52,11 +53,13 @@ final class BeautyExpertUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(BeautyExpert $expert, array $before): void
     {
-        $this->record($expert, OperationHistory::ACTION_UPDATED, 'staff.beauty_expert.update', OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($expert)));
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->capture($expert), ['allow_status', 'status']) as $action => $changes) {
+            $this->record($expert, $action, 'staff.beauty_expert.update', $changes);
+        }
     }
 
     /**
@@ -85,7 +88,7 @@ final class BeautyExpertUpdateHistoryRecordAction
 
     private function categoryDisplay(BeautyExpert $expert): ?string
     {
-        return $this->lineList(collect($this->categoryValue($expert))
+        return OperationHistoryDisplayValue::lines(collect($this->categoryValue($expert))
             ->map(static fn (array $category): string => ($category['is_primary'] ? '[대표] ' : '').$category['path'])
             ->all());
     }
@@ -106,32 +109,13 @@ final class BeautyExpertUpdateHistoryRecordAction
 
     private function mediaListDisplay($media): ?string
     {
-        return $this->lineList(collect($this->mediaList($media))
-            ->map(static fn (array $item): string => basename($item['path']))
+        return OperationHistoryDisplayValue::lines(collect($this->mediaList($media))
+            ->map(static fn (array $item): string => OperationHistoryDisplayValue::fileName($item['path']))
             ->all());
     }
 
-    private function mediaLabel(?string $path): ?string
-    {
-        return $path ? basename($path) : null;
-    }
-
     /**
-     * @param array<int, mixed> $items
-     */
-    private function lineList(array $items): ?string
-    {
-        $items = collect($items)
-            ->map(static fn (mixed $item): string => trim((string) $item))
-            ->filter(static fn (string $item): bool => $item !== '')
-            ->values()
-            ->all();
-
-        return $items === [] ? null : implode("\n", $items);
-    }
-
-    /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      */
     private function record(BeautyExpert $expert, string $action, string $source, array $changes): void
     {

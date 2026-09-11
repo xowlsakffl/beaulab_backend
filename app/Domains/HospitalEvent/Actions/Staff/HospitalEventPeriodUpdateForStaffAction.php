@@ -21,7 +21,8 @@ final class HospitalEventPeriodUpdateForStaffAction
         Gate::authorize('update', $event);
 
         $event = DB::transaction(function () use ($event, $payload): HospitalEvent {
-            $before = $this->historyRecordAction->capture($event);
+            $event = HospitalEvent::query()->lockForUpdate()->findOrFail($event->getKey());
+            $before = $this->historyRecordAction->capturePeriod($event);
             $isUnlimited = (bool) $payload['is_event_period_unlimited'];
 
             $event = $this->query->update($event, [
@@ -31,7 +32,7 @@ final class HospitalEventPeriodUpdateForStaffAction
             ]);
 
             $event->refresh();
-            $this->historyRecordAction->recordUpdated($event, $before);
+            $this->historyRecordAction->recordPeriodUpdated($event, $before);
 
             return $event;
         });

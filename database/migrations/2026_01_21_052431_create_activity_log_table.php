@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class CreateActivityLogTable extends Migration
 {
@@ -22,11 +22,19 @@ class CreateActivityLogTable extends Migration
 
                 $table->nullableMorphs('subject', 'subject');
 
+                $table->string('event')
+                    ->nullable()
+                    ->comment('행위 이벤트 타입 (created, updated, deleted 등)');
+
                 $table->nullableMorphs('causer', 'causer');
 
                 $table->json('properties')
                     ->nullable()
                     ->comment('추가 메타 데이터(JSON)');
+
+                $table->uuid('batch_uuid')
+                    ->nullable()
+                    ->comment('여러 Activity Log를 하나의 작업 단위(batch)로 묶기 위한 UUID');
 
                 $table->timestamps();
 
@@ -34,7 +42,7 @@ class CreateActivityLogTable extends Migration
             });
 
         DB::statement(
-            "ALTER TABLE " . config('activitylog.table_name') . " COMMENT = '[시스템]시스템/관리자/사용자 액티비티 로그 테이블'"
+            'ALTER TABLE '.config('activitylog.table_name')." COMMENT = '[시스템]시스템/관리자/사용자 액티비티 로그 테이블'"
         );
     }
 

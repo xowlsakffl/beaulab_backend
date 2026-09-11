@@ -31,6 +31,9 @@ final class HospitalAllowStatusUpdateForStaffAction
             $hospitals = $this->query->getForUpdate($ids);
             $hospitals->each(static fn (Hospital $hospital): mixed => Gate::authorize('updateStatus', $hospital));
 
+            foreach ($hospitals as $hospital) {
+                \App\Domains\Hospital\Support\HospitalReviewRequirements::assertReceptionPhone($hospital, $allowStatus);
+            }
             $existingIds = $hospitals->pluck('id')->map(static fn ($id): int => (int) $id)->values()->all();
             $updatedCount = $this->query->updateAllowStatus($existingIds, $allowStatus);
 

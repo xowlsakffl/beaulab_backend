@@ -32,6 +32,7 @@ final class FaqUpdateForStaffAction
         $normalized = $this->normalizePayload($payload);
 
         $updated = DB::transaction(function () use ($faq, $normalized) {
+            $faq = Faq::query()->lockForUpdate()->findOrFail($faq->getKey());
             $before = $this->historyRecordAction->capture($faq);
             $saved = $this->query->update($faq, $normalized);
 

@@ -8,13 +8,13 @@ use App\Common\Authorization\AccessRoles;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\AccountHospital\Models\HospitalAccountEmailVerification;
 use App\Domains\AccountHospital\Models\HospitalAccountInvitation;
-use App\Domains\AccountHospital\Models\HospitalAccountPhoneVerification;
 use App\Domains\AccountHospital\Queries\Hospital\HospitalAccountInvitationForHospitalQuery;
-use App\Domains\AccountHospital\Support\AccountHospitalPhone;
+use App\Domains\AccountHospital\Support\AccountHospitalEmail;
+use App\Domains\AccountHospital\Support\HospitalAccountEmailVerificationToken;
 use App\Domains\AccountHospital\Support\HospitalAccountInvitationGuard;
 use App\Domains\AccountHospital\Support\HospitalAccountInvitationToken;
-use App\Domains\AccountHospital\Support\HospitalAccountPhoneVerificationToken;
 use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
@@ -34,7 +34,7 @@ final class HospitalAccountInvitationCompleteForHospitalAction
     ) {}
 
     /**
-     * @param  array{nickname:string,password:string,phone_verification_token:string}  $payload
+     * @param  array{nickname:string,password:string,email_verification_token:string,email:string}  $payload
      * @return array{account_hospital_id:int,hospital_id:int,message:string}
      */
     public function execute(string $invitationToken, array $payload): array
@@ -55,10 +55,14 @@ final class HospitalAccountInvitationCompleteForHospitalAction
                 )
             );
 
-            $verification = $this->verifiedPhone(
+            $verification = $this->verifiedEmail(
                 $invitation,
-                (string) $payload['phone_verification_token'],
+                (string) $payload['email_verification_token'],
             );
+
+            if ($verification->email !== AccountHospitalEmail::normalize((string) $payload['email'])) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '인증한 이메일과 가입 이메일이 일치하지 않습니다.');
+            }
 
             if ($this->query->nicknameExists($nickname)) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 사용 중인 아이디입니다.');
@@ -66,23 +70,22 @@ final class HospitalAccountInvitationCompleteForHospitalAction
 
             $hospital = $source instanceof Hospital
                 ? $this->existingHospital($invitation, $source)
-                : $this->convertHospitalEntry($invitation, $verification->phone, $source);
+                : $this->convertHospitalEntry($invitation, $source);
 
-            $verifiedPhone = AccountHospitalPhone::format((string) $verification->phone);
-            $this->query->updateReceptionPhone($hospital, $verifiedPhone);
+            AccountHospitalEmail::assertAvailable((string) $verification->email);
 
             $accountHospital = $this->query->createAccountHospital([
                 'hospital_id' => $hospital->getKey(),
                 'name' => (string) $hospital->name,
                 'nickname' => $nickname,
-                'phone' => $verifiedPhone,
-                'phone_verified_at' => $verification->verified_at,
+                'email' => $verification->email,
+                'email_verified_at' => $verification->verified_at,
                 'password' => (string) $payload['password'],
                 'status' => AccountHospital::STATUS_ACTIVE,
             ]);
             $accountHospital->syncRoles([AccessRoles::HOSPITAL_OWNER]);
 
-            $this->query->consumePhoneVerification($verification);
+            $this->query->consumeEmailVerification($verification);
             $this->query->completeInvitation($invitation, $accountHospital);
 
             if ($source instanceof HospitalEntry) {
@@ -107,19 +110,19 @@ final class HospitalAccountInvitationCompleteForHospitalAction
         return $result;
     }
 
-    private function verifiedPhone(
+    private function verifiedEmail(
         HospitalAccountInvitation $invitation,
-        string $phoneVerificationToken,
-    ): HospitalAccountPhoneVerification {
-        $verification = $this->query->lockPhoneVerification(
+        string $emailVerificationToken,
+    ): HospitalAccountEmailVerification {
+        $verification = $this->query->lockEmailVerification(
             $invitation,
-            HospitalAccountPhoneVerificationToken::hash($phoneVerificationToken),
+            HospitalAccountEmailVerificationToken::hash($emailVerificationToken),
         );
 
         if ($verification === null || ! $verification->isVerificationUsable()) {
             throw new CustomException(
                 ErrorCode::INVALID_REQUEST,
-                '휴대폰 인증이 유효하지 않거나 만료되었습니다. 다시 인증해 주세요.',
+                '이메일 인증이 유효하지 않거나 만료되었습니다. 다시 인증해 주세요.',
             );
         }
 
@@ -155,7 +158,6 @@ final class HospitalAccountInvitationCompleteForHospitalAction
 
     private function convertHospitalEntry(
         HospitalAccountInvitation $invitation,
-        string $verifiedPhone,
         HospitalEntry $entry,
     ): Hospital {
         if ((int) $invitation->hospital_entry_id !== (int) $entry->getKey()) {
@@ -170,7 +172,7 @@ final class HospitalAccountInvitationCompleteForHospitalAction
             'address' => $entry->address,
             'address_detail' => $entry->address_detail,
             'tel' => $entry->hospital_phone,
-            'ad_reception_phone_1' => AccountHospitalPhone::format($verifiedPhone),
+            'ad_reception_phone_1' => null,
             'allow_status' => Hospital::ALLOW_NOT_APPLIED,
             'status' => Hospital::STATUS_ACTIVE,
         ]);

@@ -17,8 +17,10 @@ return new class extends Migration
 
             $table->string('name')->comment('연결 병의원명 복제값');
             $table->string('nickname')->unique()->comment('병원 관리자 로그인 아이디');
-            $table->string('phone', 50)->comment('인증된 전화번호');
-            $table->timestamp('phone_verified_at')->nullable()->comment('전화번호 인증 완료 시각');
+            $table->string('email', 254)->nullable()->unique('h_account_email_unique')->comment('인증된 계정 이메일');
+            $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
+            $table->string('phone', 50)->nullable()->comment('과거 연락처 보존용; 신규 인증에서 사용하지 않음');
+            $table->timestamp('phone_verified_at')->nullable()->comment('과거 전화번호 인증 시각');
 
             $table->string('password')->comment('암호화된 비밀번호');
 
@@ -39,6 +41,7 @@ return new class extends Migration
             $table->unsignedBigInteger('account_hospital_id')->comment('재설정 대상 계정');
             $table->char('token_hash', 64)->unique('h_account_reset_token_unique');
             $table->char('credential_hash', 64)->comment('발송 시 계정 인증 정보 지문');
+            $table->string('recipient_email', 254)->nullable()->comment('재설정 링크 수신 이메일');
             $table->timestamp('expires_at');
             $table->timestamp('used_at')->nullable();
             $table->timestamp('revoked_at')->nullable();

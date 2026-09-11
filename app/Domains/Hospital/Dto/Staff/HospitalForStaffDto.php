@@ -104,7 +104,7 @@ final readonly class HospitalForStaffDto
         return [
             'id' => (int) $account->getKey(),
             'nickname' => (string) $account->nickname,
-            'phone' => $account->verifiedPhone(),
+            'email' => $account->verifiedEmail(),
             'status' => (string) $account->status,
             'last_login_at' => $account->last_login_at?->toISOString(),
         ];

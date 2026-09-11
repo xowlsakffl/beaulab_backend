@@ -151,7 +151,7 @@ final class HospitalFactory extends Factory
         $accountHospitalFactory = AccountHospital::factory()
             ->forHospital($hospital)
             ->withNickname($nickname)
-            ->withPhone((string) $hospital->ad_reception_phone_1)
+            ->withEmail("{$nickname}@example.com")
             ->active();
 
         if ($rawPassword !== '') {

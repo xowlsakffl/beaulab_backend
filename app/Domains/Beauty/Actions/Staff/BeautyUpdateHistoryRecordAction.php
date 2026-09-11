@@ -6,6 +6,7 @@ use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use Illuminate\Database\Eloquent\Model;
 
 final class BeautyUpdateHistoryRecordAction
@@ -36,7 +37,7 @@ final class BeautyUpdateHistoryRecordAction
             'status' => $this->item('업체상태', $beauty->status, $beauty->status),
             'categories' => $this->item('카테고리', $this->categoryValue($beauty), $this->categoryDisplay($beauty)),
             'business_registration' => $this->item('사업자등록정보', $this->businessValue($beauty), $this->businessDisplay($beauty)),
-            'logo' => $this->item('로고', $beauty->logoMedia?->path, $beauty->logoMedia?->path ? basename($beauty->logoMedia->path) : null),
+            'logo' => $this->item('로고', $beauty->logoMedia?->path, OperationHistoryDisplayValue::fileName($beauty->logoMedia?->path)),
             'gallery' => $this->item('업체 이미지', $this->galleryValue($beauty), $this->galleryDisplay($beauty)),
         ];
     }
@@ -47,11 +48,13 @@ final class BeautyUpdateHistoryRecordAction
     }
 
     /**
-     * @param array<string, array{label:string,value:mixed,display:?string}> $before
+     * @param  array<string, array{label:string,value:mixed,display:?string}>  $before
      */
     public function recordUpdated(Beauty $beauty, array $before): void
     {
-        $this->record($beauty, OperationHistory::ACTION_UPDATED, 'staff.beauty.update', OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($beauty)));
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->capture($beauty), ['allow_status', 'status']) as $action => $changes) {
+            $this->record($beauty, $action, 'staff.beauty.update', $changes);
+        }
     }
 
     /**
@@ -80,7 +83,7 @@ final class BeautyUpdateHistoryRecordAction
 
     private function categoryDisplay(Beauty $beauty): ?string
     {
-        return $this->lineList(collect($this->categoryValue($beauty))
+        return OperationHistoryDisplayValue::lines(collect($this->categoryValue($beauty))
             ->map(static fn (array $category): string => ($category['is_primary'] ? '[대표] ' : '').$category['path'])
             ->all());
     }
@@ -116,7 +119,7 @@ final class BeautyUpdateHistoryRecordAction
             return null;
         }
 
-        return $this->lineList([
+        return OperationHistoryDisplayValue::lines([
             $business['company_name'] ?? null,
             $business['business_number'] ?? null,
             $business['ceo_name'] ?? null,
@@ -139,27 +142,13 @@ final class BeautyUpdateHistoryRecordAction
 
     private function galleryDisplay(Beauty $beauty): ?string
     {
-        return $this->lineList(collect($this->galleryValue($beauty))
-            ->map(static fn (array $media): string => basename($media['path']))
+        return OperationHistoryDisplayValue::lines(collect($this->galleryValue($beauty))
+            ->map(static fn (array $media): string => OperationHistoryDisplayValue::fileName($media['path']))
             ->all());
     }
 
     /**
-     * @param array<int, mixed> $items
-     */
-    private function lineList(array $items): ?string
-    {
-        $items = collect($items)
-            ->map(static fn (mixed $item): string => trim((string) $item))
-            ->filter(static fn (string $item): bool => $item !== '')
-            ->values()
-            ->all();
-
-        return $items === [] ? null : implode("\n", $items);
-    }
-
-    /**
-     * @param array<int, array<string, mixed>> $changes
+     * @param  array<int, array<string, mixed>>  $changes
      */
     private function record(Beauty $beauty, string $action, string $source, array $changes): void
     {

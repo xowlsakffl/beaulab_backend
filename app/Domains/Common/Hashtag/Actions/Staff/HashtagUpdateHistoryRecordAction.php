@@ -39,7 +39,9 @@ final class HashtagUpdateHistoryRecordAction
      */
     public function recordUpdated(Hashtag $hashtag, array $before): void
     {
-        $this->record($hashtag, OperationHistory::ACTION_UPDATED, 'staff.hashtag.update', OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($hashtag)));
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->capture($hashtag), ['status']) as $action => $changes) {
+            $this->record($hashtag, $action, 'staff.hashtag.update', $changes);
+        }
     }
 
     /**

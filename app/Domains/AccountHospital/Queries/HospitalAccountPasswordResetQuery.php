@@ -28,7 +28,7 @@ final class HospitalAccountPasswordResetQuery
 
     public function latest(int $accountId): ?HospitalAccountPasswordReset
     {
-        return HospitalAccountPasswordReset::query()->where('account_hospital_id', $accountId)->latest('id')->first();
+        return HospitalAccountPasswordReset::query()->where('account_hospital_id', $accountId)->whereNull('revoked_at')->latest('id')->first();
     }
 
     public function revokePending(int $accountId): void

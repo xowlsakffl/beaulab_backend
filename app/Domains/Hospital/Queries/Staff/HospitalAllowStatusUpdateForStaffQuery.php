@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 final class HospitalAllowStatusUpdateForStaffQuery
 {
     /**
-     * @param array<int, int> $ids
+     * @param  array<int, int>  $ids
      * @return Collection<int, Hospital>
      */
     public function getForUpdate(array $ids): Collection
@@ -22,11 +22,11 @@ final class HospitalAllowStatusUpdateForStaffQuery
         return Hospital::query()
             ->whereIn('id', $ids)
             ->lockForUpdate()
-            ->get(['id', 'allow_status']);
+            ->get(['id', 'allow_status', 'ad_reception_phone_1']);
     }
 
     /**
-     * @param array<int, int> $ids
+     * @param  array<int, int>  $ids
      */
     public function updateAllowStatus(array $ids, string $allowStatus): int
     {

@@ -36,11 +36,14 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         $isLocal = $this->app->environment('local');
 
         Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
+            if ($entry->type === EntryType::REQUEST && str_contains((string) ($entry->content['uri'] ?? ''), '/hospital/auth/')) {
+                return false;
+            }
             if ($entry->type === EntryType::MAIL || $entry->type === EntryType::CLIENT_REQUEST) {
                 return false;
             }
             if ($entry->type === EntryType::QUERY
-                && preg_match('/\\b(password|remember_token|token_hash|code_hash|encrypted_message_body|private_key)\\b/i', (string) ($entry->content['sql'] ?? ''))) {
+                && preg_match('/\\b(password|remember_token|token_hash|verification_token_hash|credential_hash|code_hash|encrypted_message_body|private_key)\\b/i', (string) ($entry->content['sql'] ?? ''))) {
                 return false;
             }
 
@@ -58,9 +61,9 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     protected function hideSensitiveRequestDetails(): void
     {
-        Telescope::hideRequestParameters(['_token', 'token', 'password', 'password_confirmation', 'current_password', 'code', 'phone_verification_token']);
+        Telescope::hideRequestParameters(['_token', 'token', 'password', 'password_confirmation', 'current_password', 'code', 'phone_verification_token', 'email_verification_token']);
 
-        Telescope::hideResponseParameters(['data.token', 'data.phone_verification_token', 'data.csrf_token']);
+        Telescope::hideResponseParameters(['data.token', 'data.phone_verification_token', 'data.email_verification_token', 'data.csrf_token']);
         Telescope::hideRequestParameters(['web_auth', 'token', 'code']);
 
         Telescope::hideRequestHeaders([

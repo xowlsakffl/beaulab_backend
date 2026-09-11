@@ -5,6 +5,7 @@ namespace App\Domains\Notice\Actions\Staff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
+use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use App\Domains\Notice\Models\Notice;
 use Illuminate\Database\Eloquent\Model;
 
@@ -47,13 +48,9 @@ final class NoticeUpdateHistoryRecordAction
      */
     public function recordUpdated(Notice $notice, array $before): void
     {
-        $changes = collect(OperationHistoryChangeSetBuilder::fromSnapshots($before, $this->capture($notice)));
-        [$stateChanges, $contentChanges] = $changes->partition(
-            static fn (array $change): bool => $change['field_key'] === 'status',
-        );
-
-        $this->record($notice, OperationHistory::ACTION_UPDATED, 'staff.notice.update', $contentChanges->values()->all());
-        $this->record($notice, OperationHistory::ACTION_STATE_UPDATED, 'staff.notice.update', $stateChanges->values()->all());
+        foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->capture($notice), ['status']) as $action => $changes) {
+            $this->record($notice, $action, 'staff.notice.update', $changes);
+        }
     }
 
     /**
@@ -80,23 +77,9 @@ final class NoticeUpdateHistoryRecordAction
 
     private function attachmentDisplay(Notice $notice): ?string
     {
-        return $this->lineList(collect($this->attachmentValue($notice))
-            ->map(static fn (array $media): string => basename($media['path']))
+        return OperationHistoryDisplayValue::lines(collect($this->attachmentValue($notice))
+            ->map(static fn (array $media): string => OperationHistoryDisplayValue::fileName($media['path']))
             ->all());
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     */
-    private function lineList(array $items): ?string
-    {
-        $items = collect($items)
-            ->map(static fn (mixed $item): string => trim((string) $item))
-            ->filter(static fn (string $item): bool => $item !== '')
-            ->values()
-            ->all();
-
-        return $items === [] ? null : implode("\n", $items);
     }
 
     /**

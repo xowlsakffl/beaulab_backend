@@ -6,7 +6,7 @@ namespace App\Domains\AccountHospital\Support;
 
 use Illuminate\Support\Facades\Hash;
 
-final class HospitalAccountPhoneVerificationCode
+final class HospitalAccountEmailVerificationCode
 {
     public static function make(): string
     {

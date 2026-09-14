@@ -5,6 +5,7 @@ namespace App\Modules\Staff\Http\Controllers\HospitalVideo;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoAdminStatusUpdateForStaffAction;
+use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoConsentListForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoCreateForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoDeleteForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoDoctorOptionListForStaffAction;
@@ -16,6 +17,7 @@ use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoSummaryForStaffAction;
 use App\Domains\HospitalVideo\Actions\Staff\HospitalVideoUpdateForStaffAction;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoAdminStatusUpdateForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoConsentListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoDoctorOptionListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoGetForStaffRequest;
@@ -29,6 +31,15 @@ use App\Modules\Staff\Http\Requests\HospitalVideo\HospitalVideoUpdateForStaffReq
  */
 final class HospitalVideoForStaffController extends Controller
 {
+    public function getVideoConsentsForStaff(
+        HospitalVideoConsentListForStaffRequest $request,
+        HospitalVideoConsentListForStaffAction $action,
+    ) {
+        $result = $action->execute($request->validated());
+
+        return ApiResponse::success($result['items'], $result['meta'] ?? null);
+    }
+
     public function getVideoHospitalOptionsForStaff(
         HospitalVideoHospitalOptionListForStaffRequest $request,
         HospitalVideoHospitalOptionListForStaffAction $action,

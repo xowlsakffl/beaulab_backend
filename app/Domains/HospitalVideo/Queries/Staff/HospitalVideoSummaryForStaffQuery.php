@@ -74,16 +74,8 @@ final class HospitalVideoSummaryForStaffQuery
         $builder
             ->where('hospital_status', HospitalVideo::HOSPITAL_STATUS_PUBLIC)
             ->where('admin_status', HospitalVideo::ADMIN_STATUS_NORMAL)
-            ->where(function (Builder $query): void {
-                $query
-                    ->whereDoesntHave('contentReportState')
-                    ->orWhereHas('contentReportState', fn (Builder $stateQuery) => $stateQuery
-                        ->whereNotIn('report_status', [
-                            ContentReportState::STATUS_REPORTED,
-                            ContentReportState::STATUS_AUTO_BLOCKED,
-                            ContentReportState::STATUS_ADMIN_HIDDEN,
-                        ]));
-            });
+            ->whereDoesntHave('contentReportState', fn (Builder $query) => $query
+                ->where('report_status', ContentReportState::STATUS_ADMIN_HIDDEN));
     }
 
     private function applyLimitedFilter(Builder $builder): void

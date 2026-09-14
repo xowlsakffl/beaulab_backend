@@ -17,6 +17,7 @@ return new class extends Migration
 
             $table->text('description')->nullable()->comment('병원 소개');
             $table->string('youtube_link', 500)->nullable()->comment('유튜브 링크');
+            $table->dateTime('video_consented_at')->nullable()->comment('영상 이용 허용일시');
 
             $table->string('address')->nullable()->comment('병원 주소');
             $table->string('address_detail')->nullable()->comment('병원 상세 주소');
@@ -55,6 +56,7 @@ return new class extends Migration
             $table->index(['deleted_at', 'status', 'id'], 'hospitals_deleted_status_id_idx');
             $table->index(['deleted_at', 'allow_status', 'id'], 'hospitals_deleted_allow_status_id_idx');
             $table->index(['deleted_at', 'department', 'id'], 'hospitals_deleted_department_id_idx');
+            $table->index(['deleted_at', 'video_consented_at', 'id'], 'hospitals_deleted_video_consent_id_idx');
         });
 
         DB::statement("ALTER TABLE hospitals COMMENT = '병원 테이블'");

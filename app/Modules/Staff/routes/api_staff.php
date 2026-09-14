@@ -380,6 +380,8 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('videos.getVideoHospitalOptionsForStaff');
     Route::get('videos/doctor-options', [HospitalVideoForStaffController::class, 'getVideoDoctorOptionsForStaff'])
         ->name('videos.getVideoDoctorOptionsForStaff');
+    Route::get('videos/consents', [HospitalVideoForStaffController::class, 'getVideoConsentsForStaff'])
+        ->name('videos.getVideoConsentsForStaff');
     Route::get('videos', [HospitalVideoForStaffController::class, 'getVideosForStaff'])
         ->name('videos.getVideosForStaff');
     Route::get('videos/summary', [HospitalVideoForStaffController::class, 'getVideoSummaryForStaff'])

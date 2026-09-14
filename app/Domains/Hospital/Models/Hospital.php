@@ -98,6 +98,7 @@ final class Hospital extends Model
     ];
 
     protected $casts = [
+        'video_consented_at' => 'datetime',
         'view_count' => 'integer',
         'evaluation_count' => 'integer',
         'evaluation_average_rating' => 'float',

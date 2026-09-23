@@ -189,6 +189,16 @@ Artisan::command('hospital-evaluations:refresh-hospital-ratings {--hospital-id=*
     $this->info("Refreshed hospital evaluation ratings: {$refreshedCount} hospitals");
 })->purpose('Refresh denormalized hospital evaluation rating aggregates');
 
+// 상담원이 아무도 잡지 않은 대기 상담을 자동으로 취소한다(PRD D-07).
+Artisan::command('hospital-chatbot:expire-waiting-consultations {--limit=500}', function () {
+    $minutes = max(1, (int) config('hospital_chatbot.waiting_timeout_minutes', 30));
+    $limit = max(1, min((int) $this->option('limit'), 1000));
+    $expired = app(\App\Domains\HospitalChatBot\Actions\System\HospitalChatBotConsultationExpireWaitingAction::class)
+        ->execute($minutes, $limit);
+
+    $this->info("Expired waiting consultations: {$expired}");
+})->purpose('Cancel chatbot consultations left waiting past the configured timeout');
+
 Artisan::command('hospital-wallet:audit-integrity', function () {
     $counts = app(HospitalWalletIntegrityAuditQuery::class)->counts();
     $violations = collect($counts)->filter(static fn (int $count): bool => $count > 0);
@@ -234,6 +244,11 @@ Schedule::command('queue:prune-failed --hours=168')->dailyAt('03:20');
 
 // 병원별 평가 평점 집계 정합성 보정
 Schedule::command('hospital-evaluations:refresh-hospital-ratings')->dailyAt('03:30');
+
+// 대기 상담 자동 만료 (기본 30분)
+Schedule::command('hospital-chatbot:expire-waiting-consultations')
+    ->everyMinute()
+    ->withoutOverlapping();
 
 Schedule::command('hospital-wallet:audit-integrity')
     ->dailyAt('03:40')

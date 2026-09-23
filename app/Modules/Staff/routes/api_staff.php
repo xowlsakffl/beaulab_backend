@@ -20,6 +20,7 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotConsultationForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotOperatingHoursForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
@@ -519,6 +520,14 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('faqs.deleteFaqForStaff');
 
     Route::prefix('hospital-chatbot')->name('hospital-chatbot.')->group(function () {
+        Route::get('consultations', [HospitalChatBotConsultationForStaffController::class, 'index'])
+            ->name('consultations.index');
+        Route::get('consultations/{consultation}', [HospitalChatBotConsultationForStaffController::class, 'show'])
+            ->whereNumber('consultation')->name('consultations.show');
+        Route::post('consultations/{consultation}/claim', [HospitalChatBotConsultationForStaffController::class, 'claim'])
+            ->whereNumber('consultation')->name('consultations.claim');
+        Route::post('consultations/{consultation}/end', [HospitalChatBotConsultationForStaffController::class, 'end'])
+            ->whereNumber('consultation')->name('consultations.end');
         Route::get('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'show'])
             ->name('operating-hours.show');
         Route::put('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'update'])

@@ -12,6 +12,7 @@ use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationTransition;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 final class HospitalChatBotConsultationForHospitalQuery
 {
@@ -65,19 +66,32 @@ final class HospitalChatBotConsultationForHospitalQuery
         $now = CarbonImmutable::now();
 
         try {
-            $consultation = HospitalChatBotConsultation::query()->create([
-                'hospital_id' => $hospitalId,
-                'hospital_name_snapshot' => $account->hospital?->name,
-                'requested_by_account_hospital_id' => (int) $account->id,
-                'requester_name_snapshot' => $account->name,
-                'status' => HospitalChatBotConsultationStatus::WAITING,
-                'active_hospital_id' => $hospitalId,
-                'requested_at' => $now,
-                'last_message_sequence' => 0,
-                'source_application' => $sourceApplication,
-                'source_page_path' => $sourcePagePath,
-                'version' => 0,
-            ]);
+            // 상담과 최초 상태 이력은 함께 커밋한다. 이력만 실패하면 전이 기록이 없는 상담이 남는다.
+            $consultation = DB::transaction(function () use (
+                $account,
+                $hospitalId,
+                $now,
+                $sourceApplication,
+                $sourcePagePath,
+            ): HospitalChatBotConsultation {
+                $created = HospitalChatBotConsultation::query()->create([
+                    'hospital_id' => $hospitalId,
+                    'hospital_name_snapshot' => $account->hospital?->name,
+                    'requested_by_account_hospital_id' => (int) $account->id,
+                    'requester_name_snapshot' => $account->name,
+                    'status' => HospitalChatBotConsultationStatus::WAITING,
+                    'active_hospital_id' => $hospitalId,
+                    'requested_at' => $now,
+                    'last_message_sequence' => 0,
+                    'source_application' => $sourceApplication,
+                    'source_page_path' => $sourcePagePath,
+                    'version' => 0,
+                ]);
+
+                $this->transition->recordOpened($created, (int) $account->id);
+
+                return $created;
+            });
         } catch (QueryException $exception) {
             // active_hospital_id 유니크 위반. 동시 요청이 먼저 상담을 열었다는 뜻이므로 그 상담을 돌려준다.
             if (! $this->isUniqueViolation($exception)) {
@@ -91,8 +105,6 @@ final class HospitalChatBotConsultationForHospitalQuery
 
             return $concurrent;
         }
-
-        $this->transition->recordOpened($consultation, (int) $account->id);
 
         return $consultation->fresh(['assignedStaff:id,name']) ?? $consultation;
     }

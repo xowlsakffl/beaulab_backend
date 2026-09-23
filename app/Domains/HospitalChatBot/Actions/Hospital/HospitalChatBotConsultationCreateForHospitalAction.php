@@ -7,6 +7,7 @@ namespace App\Domains\HospitalChatBot\Actions\Hospital;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\HospitalChatBot\Dto\Hospital\HospitalChatBotConsultationForHospitalDto;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Queries\Hospital\HospitalChatBotConsultationForHospitalQuery;
 
 final class HospitalChatBotConsultationCreateForHospitalAction
@@ -25,14 +26,17 @@ final class HospitalChatBotConsultationCreateForHospitalAction
         $account = HospitalChatBotConsultationActiveForHospitalAction::account();
         $hospitalId = (int) $account->hospital_id;
 
+        // 운영시간은 요청당 한 번만 판정한다. 두 번 읽으면 그사이 마감 시각을 넘겼을 때
+        // 상담은 만들어졌는데 응답의 availability는 닫힘으로 나가는 상태가 생긴다.
+        $availability = $this->availability->execute();
+
         // 이미 대기·연결 중이면 운영시간과 무관하게 그 상담을 그대로 돌려준다.
         // 운영시간이 끝난 뒤에도 진행 중인 상담은 이어갈 수 있어야 한다.
         $existing = $this->query->active($hospitalId);
         if ($existing !== null) {
-            return $this->payload($existing);
+            return $this->payload($existing, $availability);
         }
 
-        $availability = $this->availability->execute();
         if ($availability['is_available'] !== true) {
             throw new CustomException(
                 ErrorCode::CONSULTATION_UNAVAILABLE,
@@ -47,14 +51,17 @@ final class HospitalChatBotConsultationCreateForHospitalAction
             sourcePagePath: $payload['source_page_path'] ?? null,
         );
 
-        return $this->payload($consultation);
+        return $this->payload($consultation, $availability);
     }
 
-    /** @return array<string, mixed> */
-    private function payload(\App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation $consultation): array
+    /**
+     * @param  array<string, mixed>  $availability
+     * @return array<string, mixed>
+     */
+    private function payload(HospitalChatBotConsultation $consultation, array $availability): array
     {
         return [
-            'availability' => $this->availability->execute(),
+            'availability' => $availability,
             'consultation' => HospitalChatBotConsultationForHospitalDto::fromModel($consultation),
         ];
     }

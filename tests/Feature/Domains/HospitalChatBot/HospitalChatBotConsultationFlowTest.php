@@ -131,6 +131,74 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
         );
     }
 
+    public function test_ending_checks_the_assignment_inside_the_update_not_on_a_stale_read(): void
+    {
+        $owner = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $other = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+
+        $this->login('staff', $owner, 'http://localhost:3000');
+        $this->openOperatingHours();
+
+        $account = $this->hospitalAccount();
+        $this->login('hospital', $account, 'http://localhost:3002');
+        $consultationId = (int) $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
+            ->assertOk()->json('data.consultation.id');
+
+        $this->login('staff', $owner, 'http://localhost:3000');
+        $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/claim")->assertOk();
+
+        // 담당이 아닌 상담원의 종료는 조건부 UPDATE 단계에서 막힌다.
+        $this->login('staff', $other, 'http://localhost:3000');
+        $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/end")
+            ->assertStatus(403);
+
+        self::assertSame(
+            HospitalChatBotConsultationStatus::CONNECTED,
+            HospitalChatBotConsultation::query()->whereKey($consultationId)->value('status'),
+        );
+
+        // 담당 상담원은 그대로 종료할 수 있다.
+        $this->login('staff', $owner, 'http://localhost:3000');
+        $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/end")
+            ->assertOk()
+            ->assertJsonPath('data.status', HospitalChatBotConsultationStatus::ENDED);
+
+        // 종료된 뒤에도 남의 상담을 건드릴 수 없다.
+        $this->login('staff', $other, 'http://localhost:3000');
+        $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/end")
+            ->assertStatus(403);
+    }
+
+    public function test_an_empty_status_filter_still_hides_finished_consultations(): void
+    {
+        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->openOperatingHours();
+
+        $account = $this->hospitalAccount();
+        $this->login('hospital', $account, 'http://localhost:3002');
+        $canceledId = (int) $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
+            ->assertOk()->json('data.consultation.id');
+        $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$canceledId}/cancel")->assertOk();
+
+        $waitingId = (int) $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
+            ->assertOk()->json('data.consultation.id');
+
+        $this->login('staff', $staff, 'http://localhost:3000');
+
+        // `?status=` 는 필터를 주지 않은 것과 같아야 한다. 빈 배열을 그대로 넘기면 취소 건까지 나온다.
+        $this->getJson('/api/v1/staff/hospital-chatbot/consultations?status=')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $waitingId);
+
+        // 명시적으로 요청하면 취소 건도 볼 수 있다.
+        $this->getJson('/api/v1/staff/hospital-chatbot/consultations?status=CANCELED')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $canceledId);
+    }
+
     public function test_user_can_cancel_while_waiting_but_not_after_an_agent_connects(): void
     {
         $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);

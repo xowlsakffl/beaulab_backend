@@ -45,9 +45,13 @@ final class HospitalChatBotConsultationListForStaffRequest extends FormRequest
     {
         $validated = $this->validated();
 
+        // 값이 비어 있으면(`?status=`) 필터를 주지 않은 것으로 본다.
+        // 빈 배열을 그대로 넘기면 whereIn이 빠져 종료·취소까지 전부 나온다.
+        $status = $validated['status'] ?? [];
+
         return [
             // 필터를 주지 않으면 대기·진행 중인 상담만 보여준다. 기록 조회는 Phase 5에서 다룬다.
-            'status' => $validated['status'] ?? HospitalChatBotConsultationStatus::active(),
+            'status' => $status !== [] ? $status : HospitalChatBotConsultationStatus::active(),
             'assigned_staff_id' => isset($validated['assigned_staff_id'])
                 ? (int) $validated['assigned_staff_id']
                 : null,

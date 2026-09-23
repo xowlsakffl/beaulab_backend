@@ -68,6 +68,9 @@ final class HospitalChatBotConsultationTransition
 
     /**
      * 연결된 상담을 종료한다.
+     *
+     * 담당 상담원 조건을 UPDATE의 WHERE에 함께 건다. 호출자가 먼저 읽어 둔 행으로만 판단하면
+     * "읽을 때는 WAITING이었는데 그사이 다른 상담원이 연결한" 경우에 남의 상담을 종료할 수 있다.
      */
     public function end(int $consultationId, int $staffId): bool
     {
@@ -86,6 +89,7 @@ final class HospitalChatBotConsultationTransition
             actorId: $staffId,
             reason: HospitalChatBotConsultationStatus::REASON_AGENT_COMPLETED,
             occurredAt: $now,
+            conditions: ['assigned_staff_id' => $staffId],
         );
     }
 
@@ -105,7 +109,10 @@ final class HospitalChatBotConsultationTransition
         );
     }
 
-    /** @param  array<string, mixed>  $values */
+    /**
+     * @param  array<string, mixed>  $values
+     * @param  array<string, mixed>  $conditions  상태 외에 UPDATE의 WHERE에 함께 걸 조건
+     */
     private function transition(
         int $consultationId,
         string $fromStatus,
@@ -115,6 +122,7 @@ final class HospitalChatBotConsultationTransition
         ?int $actorId,
         ?string $reason,
         CarbonImmutable $occurredAt,
+        array $conditions = [],
     ): bool {
         return DB::transaction(function () use (
             $consultationId,
@@ -125,10 +133,12 @@ final class HospitalChatBotConsultationTransition
             $actorId,
             $reason,
             $occurredAt,
+            $conditions,
         ): bool {
             $affected = HospitalChatBotConsultation::query()
                 ->where('id', $consultationId)
                 ->where('status', $fromStatus)
+                ->where($conditions)
                 ->update(array_merge($values, [
                     'status' => $toStatus,
                     'version' => DB::raw('version + 1'),

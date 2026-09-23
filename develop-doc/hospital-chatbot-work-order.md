@@ -234,9 +234,11 @@ apps/staff-web/
 | 기존 계정 관계 | `account_hospitals.hospital_id` → `hospitals.id`, 병원과 계정 1:1. 직원은 `account_staffs` 모델의 실제 테이블 매핑을 확인 |
 | 기존 채팅      | 일반 사용자 간 `Chat` 모델·관련 테이블은 참고용. 병원 상담 데이터와 분리                                                  |
 | Redis          | 세션·큐·캐시용. 개발자별 전용 인스턴스 또는 승인된 DB 번호·접두사 사용                                                    |
-| 로컬 주소      | API `http://localhost:8000`, 직원 `http://localhost:3010`, 병원 `http://localhost:3002`                                   |
+| 로컬 주소      | API `http://localhost:8000`, 직원 `http://localhost:3000`, 병원 `http://localhost:3002`                                   |
 | 실시간 주소    | Reverb 사용 시 로컬 예시 `ws://localhost:8080`, 공용 환경에서는 승인된 WSS 주소                                           |
 | 개발 데이터    | [로컬 설치](local-setup.md), [개발 데이터](development-data.md), [.env.frontend.example](../.env.frontend.example) 참고   |
+
+위 포트는 각 앱의 `dev` 스크립트에 지정된 기본값이다. 개발자 PC에서 해당 포트가 이미 사용 중이면 다른 포트로 실행하고, 그 Origin을 `.env`의 `STAFF_WEB_ORIGINS`·`HOSPITAL_WEB_ORIGINS`와 재설정 URL에 함께 추가한다. 저장소의 기본 포트를 개인 환경에 맞춰 바꾸지 않는다.
 
 계정·병원·권한 등 기존 FK 대상을 임의 복제하지 않는다. 신규 상담 테이블의 상세 컬럼·관계·인덱스와 API 계약은 첫 구조 검토 때 제출한다. 실제 배포 DB는 마이그레이션 파일과 다를 수 있으므로 적용 전 대조한다.
 
@@ -272,7 +274,7 @@ WEB_SESSION_REVOCATION_STORE=redis
 QUEUE_CONNECTION=redis
 HORIZON_PREFIX=beaulab-chatbot-local-horizon:
 
-STAFF_WEB_ORIGINS=http://localhost:3010
+STAFF_WEB_ORIGINS=http://localhost:3000
 HOSPITAL_WEB_ORIGINS=http://localhost:3002
 
 # Reverb 사용 시 적용. 비밀 값은 로컬 전용으로 생성한다.

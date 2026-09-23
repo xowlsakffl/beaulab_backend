@@ -26,7 +26,9 @@
 - 저장소: `/Users/sunny/Desktop/부업/beaulab/worktrees/backend-operating-hours`
 - 브랜치: `feat/hospital-chatbot-operating-hours`
 - 원격 기준 브랜치: `feat/hospital-chatbot`
-- 변경사항은 아직 커밋하지 않았다.
+- 기능 커밋: `2b6e589 feat(chatbot): 상담 운영시간 설정 API 추가`
+- Draft WIP PR #87: https://github.com/beaulab/beaulab_new_dev/pull/87
+- Backend 구현·최소 검증·푸시·Draft PR 생성까지 완료했다.
 
 ### 구현 정책
 
@@ -52,20 +54,18 @@
 
 ### 다음 순서
 
-1. 변경 PHP 파일에 Pint 검사 실행
-2. `HospitalChatBotAvailabilityResolverTest`만 실행
-3. 챗봇 라우트 3개 등록 확인 및 `git diff --check`
-4. 실패 시 변경 범위 내 수정
-5. `feat(chatbot): 상담 운영시간 설정 API 추가`로 커밋
-6. 브랜치 푸시
-7. base `feat/hospital-chatbot`으로 Ready PR 생성하고 상세 `Test plan` 작성
-8. Frontend 운영시간 브랜치를 최신 `feat/hospital-chatbot-qna`로 fast-forward한 뒤 Staff 설정 UI와 SDK 상태 처리를 구현
+1. PR #87 리뷰/CI 상태를 확인한다. 현재 사용자 요청에 따라 Draft + WIP 상태를 유지한다.
+2. Frontend 운영시간 브랜치를 최신 `feat/hospital-chatbot-qna`로 fast-forward한다.
+3. Staff 운영시간 설정 UI와 SDK 상태 처리를 구현한다.
+4. 로컬 DB를 준비한 뒤 필요 범위에서 마이그레이션/API 연동을 확인한다. 원격 DB는 사용하지 않는다.
+5. 프론트 연동까지 완료된 시점에 PR #87을 Ready로 전환할지 사용자 지시에 따른다.
 
 ## 검증 관련 주의
 
 - Backend Q&A HTTP 테스트는 로컬 MySQL의 `beaulab_testing` 권한 부재로 실행하지 못했으며, 이 문제 때문에 과도한 환경 수정은 하지 않는다.
 - 운영시간 작업에서도 원격/공용 DB에는 절대 마이그레이션하지 않는다.
 - Backend 운영시간 worktree에는 `composer install`이 완료되어 `vendor/`가 있다(ignored).
+- Backend 운영시간 검증 결과: resolver 단위 테스트 3개/12 assertions 통과, 변경 PHP 17개 Pint 통과, 신규 라우트 3개 등록 확인, `git diff --check` 통과.
 
 ## 로컬 실행 상태
 

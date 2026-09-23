@@ -25,8 +25,6 @@ final class HospitalReviewListForStaffQuery
                 'cost',
                 'rating',
                 'status',
-                'is_main_featured',
-                'is_sub_featured',
                 'view_count',
                 'comment_count',
                 'like_count',
@@ -125,14 +123,6 @@ final class HospitalReviewListForStaffQuery
             } else {
                 $builder->whereIn('rating', $normalizedRatings);
             }
-        }
-
-        if ($filters['is_main_featured'] !== null) {
-            $builder->where('is_main_featured', (bool) $filters['is_main_featured']);
-        }
-
-        if ($filters['is_sub_featured'] !== null) {
-            $builder->where('is_sub_featured', (bool) $filters['is_sub_featured']);
         }
 
         $metricColumns = [

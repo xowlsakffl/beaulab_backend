@@ -60,8 +60,6 @@ final class HospitalReview extends Model
         'cost',
         'rating',
         'status',
-        'is_main_featured',
-        'is_sub_featured',
         'view_count',
         'comment_count',
         'like_count',
@@ -74,8 +72,6 @@ final class HospitalReview extends Model
         'doctor_id' => 'integer',
         'cost' => 'integer',
         'rating' => 'integer',
-        'is_main_featured' => 'boolean',
-        'is_sub_featured' => 'boolean',
         'view_count' => 'integer',
         'comment_count' => 'integer',
         'like_count' => 'integer',
@@ -87,8 +83,6 @@ final class HospitalReview extends Model
 
     protected $attributes = [
         'status' => self::STATUS_ACTIVE,
-        'is_main_featured' => false,
-        'is_sub_featured' => false,
         'view_count' => 0,
         'comment_count' => 0,
         'like_count' => 0,

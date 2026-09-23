@@ -33,8 +33,6 @@ final class HospitalReviewFactory extends Factory
             'cost' => $this->faker->numberBetween(20, 1500),
             'rating' => $this->faker->numberBetween(1, 5),
             'status' => HospitalReview::STATUS_ACTIVE,
-            'is_main_featured' => $this->faker->boolean(8),
-            'is_sub_featured' => $this->faker->boolean(12),
             'view_count' => $this->faker->numberBetween(0, 20000),
             'comment_count' => 0,
             'like_count' => $this->faker->numberBetween(0, 500),

@@ -907,8 +907,6 @@ Table hospital_reviews {
   cost int [default: `0`, note: '시술/수술 비용(만원 단위)']
   rating tinyint [note: '평점(1~5)']
   status varchar(20) [default: `'ACTIVE'`, note: '노출상태(ACTIVE, INACTIVE)']
-  is_main_featured boolean [default: `false`, note: '후기 전체 상단 노출 여부']
-  is_sub_featured boolean [default: `false`, note: '후기 카테고리 상단 노출 여부']
   view_count bigint [default: `0`, note: '조회수']
   comment_count int [default: `0`, note: '댓글수']
   like_count int [default: `0`, note: '좋아요수']

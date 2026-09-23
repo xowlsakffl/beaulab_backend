@@ -43,8 +43,6 @@ final class HospitalReviewCreateForUserQuery
             'cost' => (int) $payload['cost'],
             'rating' => (int) $payload['rating'],
             'status' => HospitalReview::STATUS_ACTIVE,
-            'is_main_featured' => false,
-            'is_sub_featured' => false,
             'view_count' => 0,
             'comment_count' => 0,
             'like_count' => 0,

@@ -39,9 +39,6 @@ return new class extends Migration
 
             $table->string('status', 20)->default('ACTIVE')->comment('노출상태(ACTIVE, INACTIVE)');
 
-            $table->boolean('is_main_featured')->default(false)->comment('후기 전체 상단 노출 여부');
-            $table->boolean('is_sub_featured')->default(false)->comment('후기 카테고리 상단 노출 여부');
-
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');
             $table->unsignedInteger('comment_count')->default(0)->comment('댓글수');
             $table->unsignedInteger('like_count')->default(0)->comment('좋아요수');
@@ -58,8 +55,6 @@ return new class extends Migration
             $table->index(['doctor_id', 'deleted_at'], 'h_reviews_doctor_deleted_idx');
             $table->index(['category_domain', 'created_at'], 'h_reviews_domain_created_idx');
             $table->index(['category_domain', 'status', 'created_at'], 'h_reviews_domain_status_created_idx');
-            $table->index(['category_domain', 'is_main_featured', 'created_at'], 'h_reviews_domain_main_featured_created_idx');
-            $table->index(['category_domain', 'is_sub_featured', 'created_at'], 'h_reviews_domain_sub_featured_created_idx');
             $table->index(['rating', 'created_at'], 'h_reviews_rating_created_idx');
             $table->index(['cost', 'created_at'], 'h_reviews_cost_created_idx');
             $table->index(['deleted_at', 'id'], 'h_reviews_deleted_id_idx');

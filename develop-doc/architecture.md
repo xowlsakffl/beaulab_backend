@@ -50,7 +50,7 @@ Queries에는 기존 저장 메서드도 있으므로 폴더명만으로 읽기 
 | 병의원·뷰티·입점 | [Hospital](../app/Domains/Hospital), [HospitalDoctor](../app/Domains/HospitalDoctor), [HospitalEntry](../app/Domains/HospitalEntry), [Beauty](../app/Domains/Beauty), [BeautyExpert](../app/Domains/BeautyExpert) |
 | 이벤트·광고·영상 | [HospitalEvent](../app/Domains/HospitalEvent), [HospitalEventAd](../app/Domains/HospitalEventAd), [HospitalVideo](../app/Domains/HospitalVideo)                                                                   |
 | 게시물           | [Talk](../app/Domains/Talk), [HospitalReview](../app/Domains/HospitalReview), [HospitalEvaluation](../app/Domains/HospitalEvaluation), [Notice](../app/Domains/Notice), [Faq](../app/Domains/Faq)                 |
-| 금액·대화        | [HospitalWallet](../app/Domains/HospitalWallet), [Chat](../app/Domains/Chat)                                                                                                                                      |
+| 금액·대화        | [HospitalWallet](../app/Domains/HospitalWallet), [Chat](../app/Domains/Chat), [HospitalChatBot](../app/Domains/HospitalChatBot)                                                                                    |
 | 공통 업무        | [Category, Media, AdminNote, OperationHistory, ContentReport, Notification, Sms 등](../app/Domains/Common)                                                                                                        |
 
 병원 계정과 병원은 1:1입니다. `account_hospitals.hospital_id`의 unique 제약을 유지하며, 뷰티 계정도 같은 관계입니다.

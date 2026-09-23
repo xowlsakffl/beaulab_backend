@@ -48,6 +48,14 @@
 
 직원 `GET /api/v1/staff/videos`의 카테고리는 `category_ids` CSV/배열로 다중선택합니다. 선택한 활성 동영상 카테고리 중 하나라도 연결된 영상을 중복 없이 반환하며 최대 100개를 검증합니다. 기존 단일 `category_id`도 입력 별칭으로 지원하고, 미선택/빈 배열은 전체입니다.
 
+## 병원 챗봇 Q&A API
+
+- 직원 API `/api/v1/staff/hospital-chatbot/qnas`는 목록·등록을 제공하고 `/{qna}`에서 조회·수정·삭제합니다. 목록은 `q`, `category`, `status`, `sort`, `direction`, `per_page`를 지원하며 일반 페이지 meta를 반환합니다.
+- 병원 API `GET /api/v1/hospital/hospital-chatbot/qnas`는 로그인한 병원에 활성 Q&A 전건을 `sort_order`, `id` 순으로 반환합니다. 응답에는 `id`, `category`, `question`, `answer`, `sort_order`만 포함하고 직원·상태 정보는 노출하지 않습니다.
+- 질문은 공백·대소문자를 정규화한 키를 기준으로 활성 Q&A끼리 중복될 수 없습니다. 삭제된 Q&A는 초기 데이터 Seeder를 다시 실행해도 복원하거나 같은 질문을 재등록하지 않습니다.
+- 질문과 답변은 HTML이 아닌 일반 텍스트 계약입니다. 클라이언트는 DOM `textContent`와 동등한 방식으로 렌더링하며 서버 값을 HTML로 실행하지 않습니다.
+- 초기 70건은 `HospitalChatBotQnaSeeder`를 대상으로 지정해 한 번 적재합니다. 전체 `DatabaseSeeder`에서는 자동 실행하지 않으며, 공유·운영 DB에는 적용 전 기존 키와 삭제 이력을 확인합니다.
+
 ## 병원 프로모션 API
 
 Staff 접두사는 `/api/v1/staff/hospital-promotions`입니다. `GET /board`는 일반 ApiResponse data에 `{today,left,right}`를 반환합니다. 양쪽은 `current: [{slot,promotion,filtered_out}]` 3개와 `upcoming: {items,meta}`입니다. 예약 자체가 없으면 null/false, 필터에 제외된 현재 예약은 내용 없이 null/true입니다. `GET /`는 ENDED만 data 배열과 최상위 meta로 반환하고 종료일·ID 내림차순입니다. `q`는 제목·등록 직원 이름/닉네임·숫자 ID 검색, 목록의 `status`는 ACTIVE/INACTIVE CSV 또는 배열의 다중선택이며 기존 단일 값도 받습니다. 미선택은 전체, 여러 값은 OR 조건이고 저장 폼의 단일 status와 구분합니다. 날짜 필터는 게시 구간과 교집합입니다. 예정 목록은 시작일·슬롯·ID 오름차순이며 `left_page`/`right_page`는 독립적입니다. 모든 목록은 15개 고정입니다.

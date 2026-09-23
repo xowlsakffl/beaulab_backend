@@ -41,7 +41,7 @@ final class HospitalChatBotQnaSeeder extends Seeder
                 throw new RuntimeException('초기 챗봇 Q&A에 빈 분류·질문·답변이 있습니다.');
             }
 
-            HospitalChatBotQna::query()->firstOrCreate(
+            HospitalChatBotQna::withTrashed()->firstOrCreate(
                 ['question_key' => HospitalChatBotQna::questionKey($question)],
                 [
                     'category' => $category,

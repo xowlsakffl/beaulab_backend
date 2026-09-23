@@ -17,7 +17,7 @@ final class HospitalChatBotQnaListForStaffRequest extends FormRequest
             $status = array_values(array_filter(array_map('trim', explode(',', $status))));
         }
 
-        $this->merge(['status' => $status === '' ? null : $status]);
+        $this->merge(['status' => $status]);
     }
 
     public function authorize(): bool

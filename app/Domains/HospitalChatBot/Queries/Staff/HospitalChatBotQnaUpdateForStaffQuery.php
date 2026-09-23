@@ -15,6 +15,6 @@ final class HospitalChatBotQnaUpdateForStaffQuery
             $qna->save();
         }
 
-        return $qna->fresh();
+        return $qna->refresh();
     }
 }

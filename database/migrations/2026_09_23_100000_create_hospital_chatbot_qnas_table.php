@@ -29,9 +29,14 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->timestamps();
             $table->softDeletes()->comment('소프트 삭제 일시');
+            $table->char('active_question_key', 64)
+                ->nullable()
+                ->storedAs('IF(deleted_at IS NULL, question_key, NULL)')
+                ->comment('활성 Q&A 질문 중복 방지용 생성 키');
 
             $table->index(['status', 'sort_order', 'id'], 'hospital_chatbot_qnas_status_sort_idx');
             $table->index(['question_key', 'deleted_at'], 'hospital_chatbot_qnas_question_deleted_idx');
+            $table->unique('active_question_key', 'hospital_chatbot_qnas_active_question_unique');
             $table->index(['category', 'status', 'sort_order', 'id'], 'hospital_chatbot_qnas_category_status_sort_idx');
         });
 

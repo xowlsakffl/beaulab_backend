@@ -16,7 +16,6 @@ final class DatabaseSeeder extends Seeder
             AccountStaffSeeder::class,
             CategorySeeder::class,
             HospitalFeatureSeeder::class,
-            HospitalChatBotQnaSeeder::class,
         ]);
 
         if (app()->environment(['local', 'testing'])) {

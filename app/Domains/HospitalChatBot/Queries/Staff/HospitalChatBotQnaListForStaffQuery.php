@@ -15,7 +15,7 @@ final class HospitalChatBotQnaListForStaffQuery
         $query = HospitalChatBotQna::query();
 
         if (! empty($filters['q'])) {
-            $keyword = (string) $filters['q'];
+            $keyword = addcslashes((string) $filters['q'], '\\%_');
             $query->where(static function (Builder $builder) use ($keyword): void {
                 $builder->where('question', 'like', "%{$keyword}%")
                     ->orWhere('answer', 'like', "%{$keyword}%");

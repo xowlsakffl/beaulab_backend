@@ -17,8 +17,8 @@ final readonly class HospitalChatBotQnaForStaffDto
             'answer' => (string) $qna->answer,
             'status' => (string) $qna->status,
             'sort_order' => (int) $qna->sort_order,
-            'created_by_staff_id' => $qna->created_by_staff_id ? (int) $qna->created_by_staff_id : null,
-            'updated_by_staff_id' => $qna->updated_by_staff_id ? (int) $qna->updated_by_staff_id : null,
+            'created_by_staff_id' => $qna->created_by_staff_id !== null ? (int) $qna->created_by_staff_id : null,
+            'updated_by_staff_id' => $qna->updated_by_staff_id !== null ? (int) $qna->updated_by_staff_id : null,
             'created_at' => $qna->created_at?->toISOString(),
             'updated_at' => $qna->updated_at?->toISOString(),
         ];

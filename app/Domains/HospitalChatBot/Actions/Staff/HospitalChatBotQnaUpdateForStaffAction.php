@@ -9,6 +9,7 @@ use App\Domains\HospitalChatBot\Dto\Staff\HospitalChatBotQnaForStaffDto;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaDuplicateForStaffQuery;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaUpdateForStaffQuery;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -24,16 +25,20 @@ final class HospitalChatBotQnaUpdateForStaffAction
         $actor = auth()->user();
         $staffId = $actor instanceof AccountStaff ? (int) $actor->id : null;
 
-        $updated = DB::transaction(function () use ($qna, $payload, $staffId): HospitalChatBotQna {
-            $locked = HospitalChatBotQna::query()->lockForUpdate()->findOrFail($qna->getKey());
-            $normalized = $this->normalizePayload($payload, $locked, $staffId);
+        try {
+            $updated = DB::transaction(function () use ($qna, $payload, $staffId): HospitalChatBotQna {
+                $locked = HospitalChatBotQna::query()->lockForUpdate()->findOrFail($qna->getKey());
+                $normalized = $this->normalizePayload($payload, $locked, $staffId);
 
-            if ($this->duplicateQuery->exists((string) $normalized['question_key'], (int) $locked->id)) {
-                throw ValidationException::withMessages(['question' => '동일한 질문이 이미 등록되어 있습니다.']);
-            }
+                if ($this->duplicateQuery->exists((string) $normalized['question_key'], (int) $locked->id)) {
+                    throw ValidationException::withMessages(['question' => '동일한 질문이 이미 등록되어 있습니다.']);
+                }
 
-            return $this->query->update($locked, $normalized);
-        });
+                return $this->query->update($locked, $normalized);
+            });
+        } catch (UniqueConstraintViolationException) {
+            throw ValidationException::withMessages(['question' => '동일한 질문이 이미 등록되어 있습니다.']);
+        }
 
         return HospitalChatBotQnaForStaffDto::fromModel($updated);
     }

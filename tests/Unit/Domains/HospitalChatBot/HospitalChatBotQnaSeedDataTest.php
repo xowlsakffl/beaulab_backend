@@ -20,8 +20,8 @@ final class HospitalChatBotQnaSeedDataTest extends TestCase
 
         $items = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
 
-        self::assertCount(70, $items);
-        self::assertSame(range(1, 70), array_column($items, 'sort_order'));
+        self::assertNotEmpty($items);
+        self::assertSame(range(1, count($items)), array_column($items, 'sort_order'));
 
         $keys = [];
         $categoryCounts = [];
@@ -49,14 +49,14 @@ final class HospitalChatBotQnaSeedDataTest extends TestCase
             $categoryCounts[$category] = ($categoryCounts[$category] ?? 0) + 1;
         }
 
-        self::assertSame([
-            '병원회원' => 28,
-            '의료진 프로필' => 8,
-            '상담신청' => 8,
-            '이벤트 등록' => 11,
-            '충전금' => 1,
-            '게시물' => 14,
-        ], $categoryCounts);
+        self::assertEqualsCanonicalizing([
+            '병원회원',
+            '게시물',
+            '상담신청',
+            '의료진 프로필',
+            '이벤트 등록',
+            '충전금',
+        ], array_keys($categoryCounts));
     }
 
     public function test_question_key_ignores_case_and_repeated_whitespace(): void

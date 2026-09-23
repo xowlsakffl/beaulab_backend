@@ -232,6 +232,80 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
             ->assertJsonPath('error.code', 'CONSULTATION_ALREADY_CLAIMED');
     }
 
+    public function test_hospital_user_can_end_their_own_connected_consultation(): void
+    {
+        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->openOperatingHours();
+
+        $account = $this->hospitalAccount();
+        $this->login('hospital', $account, 'http://localhost:3002');
+        $consultationId = (int) $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
+            ->assertOk()->json('data.consultation.id');
+
+        // 대기 중에는 종료가 아니라 취소를 써야 한다.
+        $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/end")
+            ->assertStatus(409)
+            ->assertJsonPath('error.code', 'CONSULTATION_NOT_ACTIVE');
+
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/claim")->assertOk();
+
+        $this->login('hospital', $account, 'http://localhost:3002');
+        $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/end")
+            ->assertOk()
+            ->assertJsonPath('data.consultation.status', HospitalChatBotConsultationStatus::ENDED)
+            ->assertJsonPath('data.consultation.close_reason', HospitalChatBotConsultationStatus::REASON_USER_ENDED);
+
+        // 다시 눌러도 같은 결과를 돌려준다.
+        $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/end")
+            ->assertOk()
+            ->assertJsonPath('data.consultation.status', HospitalChatBotConsultationStatus::ENDED);
+
+        // 활성 상담이 비었으므로 새 상담을 열 수 있다.
+        $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
+            ->assertOk()
+            ->assertJsonPath('data.consultation.status', HospitalChatBotConsultationStatus::WAITING);
+
+        $ended = HospitalChatBotConsultation::query()->whereKey($consultationId)->firstOrFail();
+        self::assertNull($ended->active_hospital_id);
+
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $histories = $this->getJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}")
+            ->assertOk()->json('data.status_histories');
+
+        // 마지막 전이의 주체가 병원 사용자로 남아야 상담원 종료와 구분된다.
+        $last = end($histories);
+        self::assertSame(HospitalChatBotConsultationStatus::ACTOR_HOSPITAL_USER, $last['actor_type']);
+        self::assertSame(HospitalChatBotConsultationStatus::REASON_USER_ENDED, $last['reason']);
+    }
+
+    public function test_hospital_user_cannot_end_another_hospitals_consultation(): void
+    {
+        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->openOperatingHours();
+
+        $owner = $this->hospitalAccount();
+        $other = $this->hospitalAccount();
+
+        $this->login('hospital', $owner, 'http://localhost:3002');
+        $consultationId = (int) $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
+            ->assertOk()->json('data.consultation.id');
+
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/claim")->assertOk();
+
+        $this->login('hospital', $other, 'http://localhost:3002');
+        $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/end")
+            ->assertStatus(404);
+
+        self::assertSame(
+            HospitalChatBotConsultationStatus::CONNECTED,
+            HospitalChatBotConsultation::query()->whereKey($consultationId)->value('status'),
+        );
+    }
+
     public function test_requesting_outside_operating_hours_is_rejected(): void
     {
         $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);

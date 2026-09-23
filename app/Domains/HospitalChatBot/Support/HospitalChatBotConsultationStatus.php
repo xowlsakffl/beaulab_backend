@@ -25,6 +25,9 @@ final class HospitalChatBotConsultationStatus
 
     public const REASON_WAITING_TIMEOUT = 'WAITING_TIMEOUT';
 
+    /** 병원 사용자가 상담 중에 직접 종료한 경우(PRD D-09 결정 변경). */
+    public const REASON_USER_ENDED = 'USER_ENDED';
+
     /** 상태 전이를 수행한 주체 */
     public const ACTOR_HOSPITAL_USER = 'HOSPITAL_USER';
 

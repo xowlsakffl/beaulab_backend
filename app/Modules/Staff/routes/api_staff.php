@@ -542,6 +542,12 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
             ->name('operating-hours.show');
         Route::put('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'update'])
             ->name('operating-hours.update');
+        Route::get('qna-folders', [HospitalChatBotQnaForStaffController::class, 'folders'])->name('qna-folders.index');
+        Route::post('qna-folders', [HospitalChatBotQnaForStaffController::class, 'storeFolder'])->name('qna-folders.store');
+        Route::match(['put', 'patch'], 'qna-folders/{folder}', [HospitalChatBotQnaForStaffController::class, 'updateFolder'])
+            ->whereNumber('folder')->name('qna-folders.update');
+        Route::delete('qna-folders/{folder}', [HospitalChatBotQnaForStaffController::class, 'destroyFolder'])
+            ->whereNumber('folder')->name('qna-folders.destroy');
         Route::get('qnas', [HospitalChatBotQnaForStaffController::class, 'index'])->name('qnas.index');
         Route::post('qnas', [HospitalChatBotQnaForStaffController::class, 'store'])->name('qnas.store');
         Route::get('qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'show'])->whereNumber('qna')->name('qnas.show');

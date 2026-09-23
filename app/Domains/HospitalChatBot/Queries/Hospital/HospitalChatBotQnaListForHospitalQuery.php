@@ -18,6 +18,7 @@ final class HospitalChatBotQnaListForHospitalQuery
             ->active()
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->get(['id', 'category', 'question', 'answer', 'sort_order']);
+            ->with('folder:id,parent_id,name')
+            ->get(['id', 'folder_id', 'category', 'question', 'answer', 'sort_order']);
     }
 }

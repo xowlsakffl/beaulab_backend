@@ -30,6 +30,7 @@ final class HospitalChatBotQnaListForStaffRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:100'],
             'category' => ['nullable', 'string', 'max:100'],
+            'folder_id' => ['nullable', 'integer', 'min:1'],
             'status' => ['nullable', 'array'],
             'status.*' => ['string', Rule::in(HospitalChatBotQna::statuses())],
             'sort' => ['nullable', 'in:id,category,question,status,sort_order,created_at,updated_at'],
@@ -45,6 +46,7 @@ final class HospitalChatBotQnaListForStaffRequest extends FormRequest
         return [
             'q' => $validated['q'] ?? null,
             'category' => $validated['category'] ?? null,
+            'folder_id' => isset($validated['folder_id']) ? (int) $validated['folder_id'] : null,
             'status' => $validated['status'] ?? null,
             'sort' => $validated['sort'] ?? null,
             'direction' => $validated['direction'] ?? 'asc',

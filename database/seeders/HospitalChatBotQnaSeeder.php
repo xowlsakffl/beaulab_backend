@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotQnaFolder;
 use Illuminate\Database\Seeder;
 use JsonException;
 use RuntimeException;
@@ -41,9 +42,17 @@ final class HospitalChatBotQnaSeeder extends Seeder
                 throw new RuntimeException('초기 챗봇 Q&A에 빈 분류·질문·답변이 있습니다.');
             }
 
+            // 분류는 1단 폴더로 만든다. 등록 화면이 폴더를 고르게 되어 있으므로
+            // 시드 데이터도 같은 구조로 들어가야 한다.
+            $folder = HospitalChatBotQnaFolder::query()->firstOrCreate(
+                ['parent_id' => null, 'name' => $category],
+                ['depth' => 1, 'sort_order' => 0],
+            );
+
             HospitalChatBotQna::withTrashed()->firstOrCreate(
                 ['question_key' => HospitalChatBotQna::questionKey($question)],
                 [
+                    'folder_id' => $folder->id,
                     'category' => $category,
                     'question' => $question,
                     'answer' => $answer,

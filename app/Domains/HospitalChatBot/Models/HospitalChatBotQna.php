@@ -23,6 +23,7 @@ final class HospitalChatBotQna extends Model
     protected $table = 'hospital_chatbot_qnas';
 
     protected $fillable = [
+        'folder_id',
         'category',
         'question',
         'question_key',
@@ -34,6 +35,7 @@ final class HospitalChatBotQna extends Model
     ];
 
     protected $casts = [
+        'folder_id' => 'integer',
         'sort_order' => 'integer',
         'created_by_staff_id' => 'integer',
         'updated_by_staff_id' => 'integer',
@@ -78,5 +80,10 @@ final class HospitalChatBotQna extends Model
     public static function questionKey(string $question): string
     {
         return hash('sha256', self::normalizeQuestion($question));
+    }
+
+    public function folder(): BelongsTo
+    {
+        return $this->belongsTo(HospitalChatBotQnaFolder::class, 'folder_id');
     }
 }

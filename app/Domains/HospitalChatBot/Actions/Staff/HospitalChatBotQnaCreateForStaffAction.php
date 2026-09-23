@@ -9,6 +9,7 @@ use App\Domains\HospitalChatBot\Dto\Staff\HospitalChatBotQnaForStaffDto;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaCreateForStaffQuery;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaDuplicateForStaffQuery;
+use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaFolderForStaffQuery;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +18,7 @@ final class HospitalChatBotQnaCreateForStaffAction
 {
     public function __construct(
         private readonly HospitalChatBotQnaCreateForStaffQuery $query,
+        private readonly HospitalChatBotQnaFolderForStaffQuery $folders,
         private readonly HospitalChatBotQnaDuplicateForStaffQuery $duplicateQuery,
     ) {}
 
@@ -34,7 +36,9 @@ final class HospitalChatBotQnaCreateForStaffAction
 
         try {
             $qna = DB::transaction(fn (): HospitalChatBotQna => $this->query->create([
-                'category' => trim((string) $payload['category']),
+                'folder_id' => (int) $payload['folder_id'],
+                // category는 폴더 이름을 따라간다. 목록 필터와 기존 조회가 아직 이 값을 쓴다.
+                'category' => $this->folders->find((int) $payload['folder_id'])->name,
                 'question' => $question,
                 'question_key' => $questionKey,
                 'answer' => trim((string) $payload['answer']),
@@ -47,6 +51,7 @@ final class HospitalChatBotQnaCreateForStaffAction
             throw ValidationException::withMessages(['question' => '동일한 질문이 이미 등록되어 있습니다.']);
         }
 
-        return HospitalChatBotQnaForStaffDto::fromModel($qna);
+        // DTO는 관계를 지연 로드하지 않는다. 폴더 이름을 실으려면 여기서 붙여야 한다.
+        return HospitalChatBotQnaForStaffDto::fromModel($qna->loadMissing('folder:id,parent_id,name'));
     }
 }

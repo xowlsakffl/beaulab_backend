@@ -18,7 +18,7 @@ final class HospitalChatBotQnaCreateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category' => ['required', 'string', 'max:100'],
+            'folder_id' => ['required', 'integer', 'exists:hospital_chatbot_qna_folders,id'],
             'question' => ['required', 'string', 'max:255'],
             'answer' => ['required', 'string', 'max:10000'],
             'status' => ['sometimes', 'string', Rule::in(HospitalChatBotQna::statuses())],

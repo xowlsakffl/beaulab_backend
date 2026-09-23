@@ -11,6 +11,6 @@ final class HospitalChatBotQnaGetForStaffAction
 {
     public function execute(HospitalChatBotQna $qna): array
     {
-        return HospitalChatBotQnaForStaffDto::fromModel($qna);
+        return HospitalChatBotQnaForStaffDto::fromModel($qna->loadMissing('folder:id,parent_id,name'));
     }
 }

@@ -9,6 +9,7 @@ use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotQnaFolder;
 use Database\Seeders\HospitalChatBotQnaSeeder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Application;
@@ -38,7 +39,7 @@ final class HospitalChatBotQnaFlowTest extends TestCase
         $this->login('staff', $staff, 'http://localhost:3000');
 
         $created = $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
-            'category' => '병원회원',
+            'folder_id' => $this->folder('병원회원')->id,
             'question' => '계정은 어떻게 변경하나요?',
             'answer' => '<strong>계정 메뉴</strong>에서 변경해 주세요.',
             'status' => HospitalChatBotQna::STATUS_ACTIVE,
@@ -48,7 +49,7 @@ final class HospitalChatBotQnaFlowTest extends TestCase
         $qnaId = (int) $created->json('data.id');
 
         $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
-            'category' => '병원회원',
+            'folder_id' => $this->folder('병원회원')->id,
             'question' => '  계정은   어떻게 변경하나요? ',
             'answer' => '중복 답변',
         ])->assertUnprocessable()
@@ -68,7 +69,7 @@ final class HospitalChatBotQnaFlowTest extends TestCase
         $this->login('hospital', $hospitalAccount, 'http://localhost:3002');
 
         HospitalChatBotQna::query()->create([
-            'category' => '숨김',
+            'folder_id' => $this->folder('숨김')->id,
             'question' => '비공개 질문',
             'question_key' => HospitalChatBotQna::questionKey('비공개 질문'),
             'answer' => '비공개 답변',
@@ -117,9 +118,18 @@ final class HospitalChatBotQnaFlowTest extends TestCase
             ->exists());
     }
 
+    private function folder(string $name): HospitalChatBotQnaFolder
+    {
+        return HospitalChatBotQnaFolder::query()->firstOrCreate(
+            ['parent_id' => null, 'name' => $name],
+            ['depth' => 1, 'sort_order' => 0],
+        );
+    }
+
     private function createQna(string $question): HospitalChatBotQna
     {
         return HospitalChatBotQna::query()->create([
+            'folder_id' => $this->folder('테스트')->id,
             'category' => '테스트',
             'question' => $question,
             'question_key' => HospitalChatBotQna::questionKey($question),

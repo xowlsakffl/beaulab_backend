@@ -12,7 +12,7 @@ final class HospitalChatBotQnaListForStaffQuery
 {
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $query = HospitalChatBotQna::query();
+        $query = HospitalChatBotQna::query()->with('folder:id,parent_id,name');
 
         if (! empty($filters['q'])) {
             $keyword = addcslashes((string) $filters['q'], '\\%_');
@@ -20,6 +20,10 @@ final class HospitalChatBotQnaListForStaffQuery
                 $builder->where('question', 'like', "%{$keyword}%")
                     ->orWhere('answer', 'like', "%{$keyword}%");
             });
+        }
+
+        if (! empty($filters['folder_id'])) {
+            $query->where('folder_id', (int) $filters['folder_id']);
         }
 
         if (! empty($filters['category'])) {

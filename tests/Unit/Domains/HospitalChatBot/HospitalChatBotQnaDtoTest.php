@@ -36,6 +36,10 @@ final class HospitalChatBotQnaDtoTest extends TestCase
 
         self::assertSame([
             'id' => 7,
+            // 폴더를 미리 싣지 않았으므로 비어 있다. 지연 로드하지 않는다.
+            'folder_id' => null,
+            'parent_folder_id' => null,
+            'folder_name' => null,
             'category' => '병원회원',
             'question' => '비밀번호 변경은 어떻게 하나요?',
             'answer' => "계정 메뉴에서 변경해 주세요.\nHTML은 실행하지 않습니다.",

@@ -20,6 +20,7 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEntry\HospitalEntryForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForStaffController;
@@ -515,4 +516,12 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('faqs.updateFaqForStaff');
     Route::delete('faqs/{faq}', [FaqForStaffController::class, 'deleteFaqForStaff'])
         ->name('faqs.deleteFaqForStaff');
+
+    Route::prefix('hospital-chatbot')->name('hospital-chatbot.')->group(function () {
+        Route::get('qnas', [HospitalChatBotQnaForStaffController::class, 'index'])->name('qnas.index');
+        Route::post('qnas', [HospitalChatBotQnaForStaffController::class, 'store'])->name('qnas.store');
+        Route::get('qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'show'])->whereNumber('qna')->name('qnas.show');
+        Route::match(['put', 'patch'], 'qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'update'])->whereNumber('qna')->name('qnas.update');
+        Route::delete('qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'destroy'])->whereNumber('qna')->name('qnas.destroy');
+    });
 });

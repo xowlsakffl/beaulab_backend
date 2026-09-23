@@ -9,6 +9,7 @@ use App\Modules\Hospital\Http\Controllers\AdminNote\AdminNoteForHospitalControll
 use App\Modules\Hospital\Http\Controllers\Auth\AuthForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountInvitationForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountPasswordResetForHospitalController;
+use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalPromotion\HospitalPromotionForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,8 @@ Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
     Route::get('/notes', [AdminNoteForHospitalController::class, 'getAdminNotesForHospital'])->name('notes.getAdminNotesForHospital');
     Route::post('/notes', [AdminNoteForHospitalController::class, 'createAdminNoteForHospital'])->name('notes.createAdminNoteForHospital');
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForHospitalController::class, 'updateAdminNoteForHospital'])->name('notes.updateAdminNoteForHospital');
+    Route::get('/hospital-chatbot/qnas', [HospitalChatBotQnaForHospitalController::class, 'index'])
+        ->name('hospital-chatbot.qnas.index');
 
     /**
      * 동영상 공개여부 변경

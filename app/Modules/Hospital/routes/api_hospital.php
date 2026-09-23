@@ -70,6 +70,9 @@ Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
     Route::post('/hospital-chatbot/consultations/{consultation}/cancel', [HospitalChatBotConsultationForHospitalController::class, 'cancel'])
         ->whereNumber('consultation')
         ->name('hospital-chatbot.consultations.cancel');
+    Route::post('/hospital-chatbot/consultations/{consultation}/end', [HospitalChatBotConsultationForHospitalController::class, 'end'])
+        ->whereNumber('consultation')
+        ->name('hospital-chatbot.consultations.end');
 
     /**
      * 동영상 공개여부 변경

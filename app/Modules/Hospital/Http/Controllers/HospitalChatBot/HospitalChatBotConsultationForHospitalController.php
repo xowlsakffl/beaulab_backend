@@ -9,6 +9,7 @@ use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalChatBot\Actions\Hospital\HospitalChatBotConsultationActiveForHospitalAction;
 use App\Domains\HospitalChatBot\Actions\Hospital\HospitalChatBotConsultationCancelForHospitalAction;
 use App\Domains\HospitalChatBot\Actions\Hospital\HospitalChatBotConsultationCreateForHospitalAction;
+use App\Domains\HospitalChatBot\Actions\Hospital\HospitalChatBotConsultationEndForHospitalAction;
 use App\Modules\Hospital\Http\Requests\HospitalChatBot\HospitalChatBotConsultationCreateForHospitalRequest;
 
 final class HospitalChatBotConsultationForHospitalController extends Controller
@@ -26,6 +27,11 @@ final class HospitalChatBotConsultationForHospitalController extends Controller
     }
 
     public function cancel(int $consultation, HospitalChatBotConsultationCancelForHospitalAction $action)
+    {
+        return ApiResponse::success($action->execute($consultation));
+    }
+
+    public function end(int $consultation, HospitalChatBotConsultationEndForHospitalAction $action)
     {
         return ApiResponse::success($action->execute($consultation));
     }

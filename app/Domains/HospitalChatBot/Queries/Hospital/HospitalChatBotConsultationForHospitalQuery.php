@@ -119,6 +119,11 @@ final class HospitalChatBotConsultationForHospitalQuery
         );
     }
 
+    public function endByUser(HospitalChatBotConsultation $consultation, int $accountHospitalId): bool
+    {
+        return $this->transition->endByUser((int) $consultation->id, $accountHospitalId);
+    }
+
     private function isUniqueViolation(QueryException $exception): bool
     {
         return ($exception->errorInfo[1] ?? null) === 1062;

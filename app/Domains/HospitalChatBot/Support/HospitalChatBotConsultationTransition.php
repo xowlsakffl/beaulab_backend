@@ -94,6 +94,31 @@ final class HospitalChatBotConsultationTransition
     }
 
     /**
+     * 병원 사용자가 상담을 종료한다.
+     *
+     * 상담원 종료와 달리 담당자 조건이 없다. 대신 호출자가 상담의 소유 병원을 먼저 확인한다.
+     */
+    public function endByUser(int $consultationId, ?int $accountHospitalId): bool
+    {
+        $now = CarbonImmutable::now();
+
+        return $this->transition(
+            consultationId: $consultationId,
+            fromStatus: HospitalChatBotConsultationStatus::CONNECTED,
+            toStatus: HospitalChatBotConsultationStatus::ENDED,
+            values: [
+                'ended_at' => $now,
+                'close_reason' => HospitalChatBotConsultationStatus::REASON_USER_ENDED,
+                'active_hospital_id' => null,
+            ],
+            actorType: HospitalChatBotConsultationStatus::ACTOR_HOSPITAL_USER,
+            actorId: $accountHospitalId,
+            reason: HospitalChatBotConsultationStatus::REASON_USER_ENDED,
+            occurredAt: $now,
+        );
+    }
+
+    /**
      * 상담 생성 직후의 최초 이력을 남긴다. from_status는 비어 있다.
      */
     public function recordOpened(HospitalChatBotConsultation $consultation, ?int $actorId): void

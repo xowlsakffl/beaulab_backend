@@ -201,7 +201,9 @@ apps/staff-web/
 4. 장애·인증 검증: 재연결, 중복 요청, 동시 연결, 비로그인 접근 차단·병원별 데이터 격리, 큐 장애를 검증.
 5. 인수: 개발 환경에서 실제 연동 확인, 전체 소스·설정·설치·배포·복구 절차와 미해결 항목 전달.
 
-작업 브랜치와 PR을 사용하고 기본 브랜치에 직접 푸시하지 않는다. 기존 미커밋 작업·운영 설정을 덮어쓰지 않는다. 상용 서비스 비용, 소스 수정·운영 권한, 하자보수 기간과 책임은 별도 계약에 명시한다.
+병원 챗봇의 통합 기준 브랜치는 백엔드·프론트 각 저장소의 `feat/hospital-chatbot`으로 고정한다. 기능·작업별 브랜치를 최신 통합 기준 브랜치에서 생성하고, 첫 의미 있는 커밋 푸시 후 `feat/hospital-chatbot`을 base로 하는 Draft PR을 생성한다. 기능·검증·문서가 완료되기 전에는 Ready나 병합 상태로 바꾸지 않는다. 커밋은 하나의 작업 목적만 담고, 코드·해당 테스트·필수 계약 문서를 같은 기능 단위로 완결한다. 기존 미커밋 작업·운영 설정을 덮어쓰지 않는다. 상용 서비스 비용, 소스 수정·운영 권한, 하자보수 기간과 책임은 별도 계약에 명시한다.
+
+별도 병원 챗봇 전용·공용 개발 서버는 제공되지 않는다고 전제하되, 로컬 격리 서버와 로컬 전용 DB·Redis·큐·Reverb는 구현·검증에 사용할 수 있다. 챗봇과 직접 관련 없는 기능·공용 설정·기존 데이터는 변경하지 않는다. 운영·공유 환경 배포, 원격 DB 접속·마이그레이션·시딩, 실제 외부 발송, 원격 큐·스케줄러·Reverb 실행은 별도 승인·적용 절차 없이 수행하지 않는다. 실제 환경 반영이 필요한 항목은 실행하지 않고 적용 명령·순서·복구 방법만 인수 문서에 남긴다.
 
 ### 필수 검수 시나리오
 
@@ -230,7 +232,7 @@ apps/staff-web/
 | 기존 계정 관계 | `account_hospitals.hospital_id` → `hospitals.id`, 병원과 계정 1:1. 직원은 `account_staffs` 모델의 실제 테이블 매핑을 확인 |
 | 기존 채팅      | 일반 사용자 간 `Chat` 모델·관련 테이블은 참고용. 병원 상담 데이터와 분리                                                  |
 | Redis          | 세션·큐·캐시용. 개발자별 전용 인스턴스 또는 승인된 DB 번호·접두사 사용                                                    |
-| 로컬 주소      | API `http://localhost:8000`, 직원 `http://localhost:3000`, 병원 `http://localhost:3002`                                   |
+| 로컬 주소      | API `http://localhost:8000`, 직원 `http://localhost:3010`, 병원 `http://localhost:3002`                                   |
 | 실시간 주소    | Reverb 사용 시 로컬 예시 `ws://localhost:8080`, 공용 환경에서는 승인된 WSS 주소                                           |
 | 개발 데이터    | [로컬 설치](local-setup.md), [개발 데이터](development-data.md), [.env.frontend.example](../.env.frontend.example) 참고   |
 
@@ -268,7 +270,7 @@ WEB_SESSION_REVOCATION_STORE=redis
 QUEUE_CONNECTION=redis
 HORIZON_PREFIX=beaulab-chatbot-local-horizon:
 
-STAFF_WEB_ORIGINS=http://localhost:3000
+STAFF_WEB_ORIGINS=http://localhost:3010
 HOSPITAL_WEB_ORIGINS=http://localhost:3002
 
 # Reverb 사용 시 적용. 비밀 값은 로컬 전용으로 생성한다.

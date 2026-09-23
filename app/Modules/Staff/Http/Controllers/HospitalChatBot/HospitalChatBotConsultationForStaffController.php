@@ -18,7 +18,9 @@ final class HospitalChatBotConsultationForStaffController extends Controller
         HospitalChatBotConsultationListForStaffRequest $request,
         HospitalChatBotConsultationListForStaffAction $action,
     ) {
-        return ApiResponse::success($action->execute($request->filters()));
+        $result = $action->execute($request->filters());
+
+        return ApiResponse::success($result['items'], $result['meta']);
     }
 
     public function show(int $consultation, HospitalChatBotConsultationShowForStaffAction $action)

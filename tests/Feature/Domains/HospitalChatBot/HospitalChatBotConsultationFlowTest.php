@@ -59,8 +59,8 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
         $this->getJson('/api/v1/staff/hospital-chatbot/consultations')
             ->assertOk()
-            ->assertJsonCount(1, 'data.items')
-            ->assertJsonPath('data.items.0.id', $consultationId);
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $consultationId);
 
         $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/claim")
             ->assertOk()

@@ -32,66 +32,101 @@
   - 컨테이너 MySQL에 DB 생성과 `beaulab_frontend` 권한 부여 완료
   - 백엔드 전체 테스트 37개/114 assertions 통과를 확인했다. 이전 핸드오프의 "권한 부재로 실행 불가"는 해소됐다.
 
-## 현재 작업: 운영시간 Frontend
+## 현재 상태 (2026-09-23 23:40 갱신)
 
-- 저장소: `worktrees/frontend-operating-hours`
-- 브랜치: `feat/hospital-chatbot-operating-hours` (프론트)
-- base: `feat/hospital-chatbot-qna`
-- 기능 커밋: `d9ace0b feat(chatbot): 상담 운영시간 관리 화면과 SDK 상태 처리 추가`
-- PR #30: https://github.com/beaulab/beaulab_new_frontend/pull/30
+| PR | 상태 | 비고 |
+|---|---|---|
+| BE #84 Q&A API | **병합 완료** | |
+| FE #29 Q&A 화면·SDK | **병합 완료** | 리뷰 12건 반영, SDK UI 디자인 반영 |
+| BE #87 운영시간 API | **병합 완료** | `c78ddbe` |
+| FE #30 운영시간 화면 | **병합 완료** | base를 `feat/hospital-chatbot`으로 재타깃 후 병합 `3b6aa0e` |
 
-### 구현 범위
+챗봇 Phase 2(관리 기능 기반)는 통합 브랜치 `feat/hospital-chatbot`에 모두 들어갔다.
 
-- 직원 화면 `/hospital-chatbot/operating-hours`: 요일 7개 토글과 시작·종료 시간, 휴무일 추가·삭제
-- 저장 전 검증은 백엔드 `HospitalChatBotOperatingHoursUpdateForStaffRequest`와 같은 규칙을 따른다.
-- 설정 없음 또는 운영 요일 0개이면 상담원 연결이 계속 닫힌다는 경고를 표시한다.
-- SDK는 선택 어댑터 `loadAvailability`로 상담 가능 여부를 받아 하단 상태 영역에만 반영한다. 조회 실패는 Q&A 사용을 막지 않는다.
-- hospital-web이 `GET /api/v1/hospital/hospital-chatbot/availability`를 연결한다.
-- 상담원 연결 버튼과 메시지 입력창은 상담 단계라 넣지 않았다.
+### 직전 핸드오프의 "바로 해야 할 일" 처리 결과
 
-### 검증
+1. FE #30 base 재타깃 — 완료. `feat/hospital-chatbot-qna` → `feat/hospital-chatbot`.
+2. 병합 순서 BE #87 → FE #30 — 완료. BE #87이 먼저 병합된 뒤 FE #30을 병합했다.
+3. 수동 E2E — 로컬 DB 마이그레이션 적용과 도메인 레벨 검증까지 완료. **브라우저 화면 확인만 남았다**(staff 로그인 필요).
 
-- staff-web·hospital-web·SDK typecheck·lint 통과
-- 단위 테스트 35건 통과(운영시간 6건 신규)
-- 미실행: 백엔드 #87이 적용된 환경에서의 저장·조회와 SDK 상태 표시 수동 확인
+### 로컬 E2E 수행 결과 (2026-09-23)
 
-## 이전 작업: 운영시간 Backend
+`beaulab_frontend_local`에 운영시간 3개 마이그레이션을 적용했다.
 
-- 저장소: `worktrees/backend-operating-hours`
-- 브랜치: `feat/hospital-chatbot-operating-hours`
-- 원격 기준 브랜치: `feat/hospital-chatbot`
-- 기능 커밋: `2b6e589 feat(chatbot): 상담 운영시간 설정 API 추가`
-- Draft WIP PR #87: https://github.com/beaulab/beaulab_new_dev/pull/87
-- Backend 구현·최소 검증·푸시·Draft PR 생성까지 완료했다.
+- `create_hospital_chatbot_operating_hours_table`
+- `create_hospital_chatbot_closure_dates_table`
+- `create_hospital_chatbot_settings_table`
 
-### 구현 정책
+적용 후 실제 DB를 대상으로 저장·조회·판정을 확인했다.
 
-- 전체 병원 공통 상담 운영시간
-- 시간대 `Asia/Seoul`
-- 요일별 하나의 연속 시간 구간, 자정 넘김 미지원
-- 날짜별 휴무가 주간 운영시간보다 우선하며 공휴일/임시 휴무를 강제로 끌 수 있다.
-- 시작 시각 포함, 종료 시각 미포함
-- 설정 누락·오류 시 상담원 연결을 닫는 fail-closed 방식
-- 운영시간 외 메시지: `상담원 연결 시간이 아닙니다.`
-- Q&A는 운영시간과 무관하게 계속 사용할 수 있다.
+| 검증 | 결과 |
+|---|---|
+| 주간 스케줄 7건 + 휴무일 1건 저장 | 성공 |
+| 저장값 재조회 (월 09:00~18:00 / 일 휴무 / 휴무일 사유 한글) | 일치 |
+| 수 14:00 | `OPEN` |
+| 수 20:00 | `OUTSIDE_HOURS`, next 2026-09-24T09:00+09:00 |
+| 일 14:00 | `OUTSIDE_HOURS`, next 2026-09-28T09:00+09:00 |
+| 휴무일 2026-09-30 14:00 | `CLOSED_DATE`, next 2026-10-01T09:00+09:00 |
+| 즉시 중단 스위치 ON | `FORCE_CLOSED`, `next_open_at` 없음 |
+| 즉시 중단 스위치 OFF 복구 | `OUTSIDE_HOURS`로 복귀, 설정 행 초기화 확인 |
 
-### 변경 파일
+`/hospital-chatbot/operating-hours`는 미로그인 시 `/login?next=/hospital-chatbot/operating-hours`로 정상 리다이렉트되고 페이지 타이틀(`상담 운영시간`)까지 해석된다. 라우팅·권한 배선은 확인됐다.
 
-- 운영시간/휴무일 마이그레이션 2개
-- 운영시간/휴무일 모델 2개
-- `HospitalChatBotAvailabilityResolver`
-- Staff 조회·수정 DTO/Query/Action/Request/Controller
-- Hospital availability Query/Action/Controller
-- Staff/Hospital API 라우트
-- resolver 단위 테스트
-- `develop-doc/api.md`, `develop-doc/hospital-chatbot-prd.md`
+**남은 것**: staff 계정으로 로그인한 뒤 화면에서 요일 저장·휴무일 추가·즉시 중단 토글을 눌러보고, hospital-web SDK 하단 상태 영역이 위 상태값에 맞게 바뀌는지 눈으로 확인한다. 비밀번호 입력이 필요한 단계라 사람이 직접 해야 한다.
 
-### 다음 순서
+### 로컬 서버 기동 메모
 
-1. Frontend 운영시간 브랜치 fast-forward 완료(`56048b0` 반영), Staff UI와 SDK 상태 처리 구현 완료.
-2. 백엔드 #87의 운영시간 마이그레이션을 로컬 DB에 적용하고, 저장·조회와 SDK 상태 표시를 실제 화면에서 확인한다.
-3. 확인 후 PR #87과 프론트 PR #30의 Ready·병합 순서를 사용자 지시에 따라 진행한다. 병합 순서는 백엔드 #87 → 프론트 #29 → 프론트 #30이다.
-4. 상담원 연결(상담 세션) 단계는 아직 착수하지 않았다. SDK의 `상담원 연결` 버튼과 입력창이 여기에 포함된다.
+- 프론트 worktree에는 `.env.local`이 복사되지 않는다(ignored). `beaulab_new_frontend/apps/*/`.env.local`을 worktree의 같은 경로로 복사해야 `NEXT_PUBLIC_API_URL`이 잡힌다.
+- staff-web은 `pnpm exec next dev -p 3010`으로 띄운다. 3010을 여러 worktree가 동시에 쓸 수 없으므로 기존 프로세스를 먼저 내린다.
+- API는 backend worktree에서 `php artisan serve --port=8000`.
+- Sanctum이 `config/sanctum.php`에서 `'guard' => []`이라 **Bearer 토큰이 통하지 않는다**. API 수동 확인은 쿠키 세션이 필요하고, 도메인 레벨 확인은 `bootstrap/app.php`를 로드하는 스크립트에서 Action을 직접 호출하면 된다.
+- `closure_dates` 항목의 키는 `date`다(`closure_date` 아님).
+
+### 이번에 추가된 것
+
+- 상담원 연결 **즉시 중단 스위치**. `hospital_chatbot_settings` 테이블, resolver가 요일·휴무일보다 먼저 검사해 `FORCE_CLOSED` 반환. 날짜별 휴무는 사전 예약, 스위치는 당장 중단용으로 역할을 나눴다.
+- 휴무일은 매년 수동 갱신이 필요하다는 점은 그대로다. 공휴일 캘린더 자동 연동은 PRD 4.2 Out of Scope.
+
+### 고친 결함 (테스트 붙이며 발견)
+
+- `closure_dates`가 `required`라 휴무일 전체 해제 저장이 422였다. `present`로 변경.
+- Q&A Flow 테스트가 이 저장소 오류 봉투(`error.details.errors`) 대신 Laravel 기본 형식을 검증했다.
+- 같은 테스트가 한글 쿼리스트링을 인코딩하지 않아 검색이 0건이었다. **앱 코드는 정상.**
+- Q&A DTO 단위 테스트가 실행 환경 시간대에 의존했다. UTC 고정.
+
+### 다음 기능 단계
+
+상담 세션(상담원 연결, 대기·연결·종료, 메시지)은 미착수. SDK의 `상담원 연결` 버튼과 입력창이 여기 포함된다.
+
+전체 잔여 작업은 PRD 17장 티켓 47개 기준으로 완료 8 / 진행중 9 / 남음 30이다.
+시각화한 현황판은 저장소 밖 `html/chatbot-roadmap.html`(저장소 상위 폴더)에 있다.
+
+## 결정 사항 (2026-09-23 사용자 확정)
+
+### D-25 인증 Adapter — **현행 유지로 확정**
+
+챗봇은 당분간 **이 사이트(hospital-web) 안에서만 돈다**. 따라서 별도 인증 Adapter를 설계하지 않는다.
+
+- 상담 API도 기존 `/api/v1/hospital/hospital-chatbot/*`와 같은 자리에 `Authenticate:sanctum` + `EnsureActor:hospital`로 붙인다.
+- 서버가 쿠키 세션에서 병원을 직접 읽으므로 프론트가 보낸 `hospitalId`를 신뢰하지 않는다. PRD 4.3 요구사항은 이걸로 충족된다.
+- 같은 오리진이라 Laravel 브로드캐스팅 인가도 기본 세션으로 동작한다. 실시간 채널 인가를 따로 설계할 필요가 없다.
+- **단, SDK가 콜백(`loadQnas` 등)을 주입받는 현재 구조는 그대로 유지한다.** 나중에 병원 쪽 사이트로 독립 배포(D-29)할 일이 생겨도 주입 함수만 교체하면 된다. SDK 내부에서 직접 `fetch`를 호출하기 시작하면 그때 전면 수정이 필요해진다.
+- 크로스 오리진으로 나갈 때가 오면 그때 단기 토큰 발급 방식을 다시 검토한다. 그 경우 `config/sanctum.php`의 `'guard' => []`를 손봐야 Bearer가 동작한다.
+
+남은 필수 결정 3건(D-14 Export 범위, D-15 보존 기간, D-21 Q&A 중복)은 Phase 5 전까지 미뤄도 된다.
+
+### 착수 순서 (합의됨)
+
+1. **상담 스키마** — `consultations`, `consultation_messages`, `consultation_status_history`. 병원당 활성 상담 1건 Unique 인덱스를 이때 같이 건다(D-26). 나중에 붙이면 데이터 정리가 필요해진다.
+2. **상담 생성·활성 조회** — 운영시간 검증 후 `WAITING` 생성. 중복 클릭·다중 탭은 Unique로 막고 기존 상담을 반환한다.
+3. **상태머신과 Claim** — `WAITING → CONNECTED` 원자적 UPDATE(영향 행 0이면 `409 ALREADY_CLAIMED`), 취소, 종료, 상태 이력. **대기 30분 자동 만료 배치(D-07)를 빠뜨리기 쉽다.**
+4. **관리자 대기 목록과 연결 버튼** — 실시간 없이 폴링/새로고침으로 먼저. 이 시점에 화면에서 상태 전이를 눈으로 검증할 수 있다.
+5. **SDK 연결 요청과 대기 화면** — 상담원 연결 버튼, `WAITING` UI, 입력창 비활성, 취소.
+
+여기까지가 PRD Phase 3이고, 끝나면 실시간 없이도 "요청 → 연결 → 취소"가 양쪽 화면에서 돈다.
+이후 Phase 4(메시지·Reverb 실시간) → Phase 5(기록·CSV Export) → Phase 6(통합·QA) 순서다.
+
+Phase 4 착수 전에 Reverb 기동과 운영 배포 방식을 정해야 한다. 로컬에는 Redis만 떠 있고 Reverb는 아직 띄운 적이 없다.
 
 ## 검증 관련 주의
 

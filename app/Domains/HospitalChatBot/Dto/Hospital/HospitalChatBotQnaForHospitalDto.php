@@ -37,4 +37,22 @@ final readonly class HospitalChatBotQnaForHospitalDto
 
         return $folder?->parent_id !== null ? (int) $folder->parent_id : null;
     }
+
+    /**
+     * 상위 폴더 이름.
+     *
+     * SDK가 다른 Q&A에서 상위 이름을 유추하면, 상위에 직접 달린 Q&A가 없을 때
+     * 계층이 사라진다. 서버가 직접 알려 준다.
+     */
+    private static function parentFolderName(HospitalChatBotQna $qna): ?string
+    {
+        $folder = $qna->relationLoaded('folder') ? $qna->getRelation('folder') : null;
+        if ($folder === null || ! $folder->relationLoaded('parent')) {
+            return null;
+        }
+
+        $parent = $folder->getRelation('parent');
+
+        return $parent?->name !== null ? (string) $parent->name : null;
+    }
 }

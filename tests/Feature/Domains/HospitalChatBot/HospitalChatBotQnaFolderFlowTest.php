@@ -154,6 +154,51 @@ final class HospitalChatBotQnaFolderFlowTest extends TestCase
             ->assertOk()->assertJsonCount(0, 'data');
     }
 
+    public function test_renaming_a_folder_keeps_the_category_copy_in_sync(): void
+    {
+        $this->loginStaff();
+
+        $folderId = (int) $this->postJson('/api/v1/staff/hospital-chatbot/qna-folders', ['name' => '병원회원'])
+            ->assertOk()->json('data.0.id');
+
+        $qnaId = (int) $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
+            'folder_id' => $folderId,
+            'question' => '가입은 어떻게 하나요?',
+            'answer' => '가입 답변',
+        ])->assertStatus(201)->json('data.id');
+
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qna-folders/{$folderId}", ['name' => '회원 관리'])
+            ->assertOk();
+
+        // category는 폴더 이름의 사본이다. 목록 정렬과 기존 필터가 옛 이름을 보면 안 된다.
+        self::assertSame('회원 관리', HospitalChatBotQna::query()->whereKey($qnaId)->value('category'));
+        $this->getJson("/api/v1/staff/hospital-chatbot/qnas/{$qnaId}")
+            ->assertOk()
+            ->assertJsonPath('data.folder_name', '회원 관리');
+    }
+
+    public function test_the_folder_count_matches_the_delete_rule(): void
+    {
+        $this->loginStaff();
+
+        $folderId = (int) $this->postJson('/api/v1/staff/hospital-chatbot/qna-folders', ['name' => '병원회원'])
+            ->assertOk()->json('data.0.id');
+        $qnaId = (int) $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
+            'folder_id' => $folderId,
+            'question' => '가입은 어떻게 하나요?',
+            'answer' => '가입 답변',
+        ])->assertStatus(201)->json('data.id');
+
+        $this->deleteJson("/api/v1/staff/hospital-chatbot/qnas/{$qnaId}")->assertOk();
+
+        // 소프트 삭제된 Q&A도 삭제를 막는다. 화면에 0건으로 보이면
+        // 지워지지 않는 이유를 알 수 없다.
+        $this->getJson('/api/v1/staff/hospital-chatbot/qna-folders')
+            ->assertOk()
+            ->assertJsonPath('data.0.qna_count', 1);
+        $this->deleteJson("/api/v1/staff/hospital-chatbot/qna-folders/{$folderId}")->assertStatus(422);
+    }
+
     private function loginStaff(): void
     {
         $staff = AccountStaff::factory()->create();

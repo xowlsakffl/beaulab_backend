@@ -17,8 +17,8 @@ final class HospitalChatBotQnaFolderForStaffRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            // 수정에서는 상위를 바꾸지 않는다. 이동은 깊이 재계산이 필요해 따로 다룬다.
-            'parent_id' => ['nullable', 'integer', 'exists:hospital_chatbot_qna_folders,id'],
+            // 생성에서만 쓴다. 수정은 상위를 바꾸지 않으므로 라우트에서 막는다.
+            'parent_id' => ['nullable', 'integer', 'exists:hospital_chatbot_qna_folders,id', 'prohibited_if:_method,PATCH,PUT'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ];
     }

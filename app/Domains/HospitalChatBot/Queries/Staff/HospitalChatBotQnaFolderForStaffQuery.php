@@ -17,7 +17,9 @@ final class HospitalChatBotQnaFolderForStaffQuery
     public function all(): Collection
     {
         return HospitalChatBotQnaFolder::query()
-            ->withCount('qnas')
+            // 삭제 차단은 소프트 삭제된 Q&A까지 센다. 화면에 다른 수를 보여 주면
+            // 0건인데 지워지지 않는 폴더가 생긴다.
+            ->withCount(['qnas as qnas_count' => fn ($query) => $query->withTrashed()])
             ->orderBy('depth')
             ->orderBy('sort_order')
             ->orderBy('id')
@@ -96,6 +98,12 @@ final class HospitalChatBotQnaFolderForStaffQuery
         } catch (UniqueConstraintViolationException) {
             throw $this->duplicateName($payload['name']);
         }
+
+        // category는 폴더 이름의 사본이다. 이름을 바꾸면 따라가지 않으면
+        // 목록 정렬과 기존 필터가 옛 이름을 보게 된다.
+        HospitalChatBotQna::withTrashed()
+            ->where('folder_id', $folder->id)
+            ->update(['category' => $payload['name']]);
 
         return $folder->refresh();
     }

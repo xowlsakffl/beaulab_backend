@@ -20,6 +20,7 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotOperatingHoursForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEntry\HospitalEntryForStaffController;
@@ -518,6 +519,10 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('faqs.deleteFaqForStaff');
 
     Route::prefix('hospital-chatbot')->name('hospital-chatbot.')->group(function () {
+        Route::get('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'show'])
+            ->name('operating-hours.show');
+        Route::put('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'update'])
+            ->name('operating-hours.update');
         Route::get('qnas', [HospitalChatBotQnaForStaffController::class, 'index'])->name('qnas.index');
         Route::post('qnas', [HospitalChatBotQnaForStaffController::class, 'store'])->name('qnas.store');
         Route::get('qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'show'])->whereNumber('qna')->name('qnas.show');

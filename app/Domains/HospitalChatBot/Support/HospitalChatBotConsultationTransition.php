@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Support;
 
+use App\Domains\HospitalChatBot\Events\HospitalChatBotConsultationChanged;
+use App\Domains\HospitalChatBot\Events\HospitalChatBotQueueChanged;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationStatusHistory;
 use Carbon\CarbonImmutable;
@@ -123,6 +125,13 @@ final class HospitalChatBotConsultationTransition
      */
     public function recordOpened(HospitalChatBotConsultation $consultation, ?int $actorId): void
     {
+        $consultationId = (int) $consultation->id;
+
+        // 새 요청이 상담원 대기 목록에 바로 뜨도록 알린다.
+        DB::afterCommit(static function () use ($consultationId): void {
+            self::announce($consultationId, HospitalChatBotConsultationStatus::WAITING);
+        });
+
         $this->record(
             consultationId: (int) $consultation->id,
             fromStatus: null,
@@ -184,8 +193,25 @@ final class HospitalChatBotConsultationTransition
                 occurredAt: $occurredAt,
             );
 
+            // 커밋된 뒤에 발행한다. 롤백된 전이가 화면에 먼저 보이면 안 된다.
+            DB::afterCommit(function () use ($consultationId, $toStatus): void {
+                self::announce($consultationId, $toStatus);
+            });
+
             return true;
         });
+    }
+
+    /**
+     * 상태 변화를 상담 채널과 대기 목록 채널로 알린다.
+     *
+     * 발행이 실패해도 전이는 이미 커밋됐다. 양쪽 화면이 주기적으로 다시 조회하므로
+     * 상태는 결국 맞춰진다. 메시지와 달리 재발행 장치를 두지 않는 이유다.
+     */
+    public static function announce(int $consultationId, string $status): void
+    {
+        HospitalChatBotConsultationChanged::dispatch($consultationId, $status);
+        HospitalChatBotQueueChanged::dispatch($consultationId, $status);
     }
 
     private function record(

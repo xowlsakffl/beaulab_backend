@@ -40,6 +40,8 @@ use App\Modules\Staff\Http\Controllers\NavigationBadge\NavigationBadgeForStaffCo
 use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\Talk\TalkForStaffController;
 use App\Modules\Staff\Http\Controllers\TalkComment\TalkCommentForStaffController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -519,6 +521,10 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
     Route::delete('faqs/{faq}', [FaqForStaffController::class, 'deleteFaqForStaff'])
         ->name('faqs.deleteFaqForStaff');
 
+    // 챗봇 실시간 채널 인가. 공용 /broadcasting/auth는 actor:user 전용이라 액터별로 따로 연다.
+    Route::post('/broadcasting/auth', static fn (Request $request) => Broadcast::auth($request))
+        ->name('broadcasting.auth');
+
     Route::prefix('hospital-chatbot')->name('hospital-chatbot.')->group(function () {
         Route::get('consultations', [HospitalChatBotConsultationForStaffController::class, 'index'])
             ->name('consultations.index');
@@ -528,6 +534,10 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
             ->whereNumber('consultation')->name('consultations.claim');
         Route::post('consultations/{consultation}/end', [HospitalChatBotConsultationForStaffController::class, 'end'])
             ->whereNumber('consultation')->name('consultations.end');
+        Route::get('consultations/{consultation}/messages', [HospitalChatBotConsultationForStaffController::class, 'messages'])
+            ->whereNumber('consultation')->name('consultations.messages.index');
+        Route::post('consultations/{consultation}/messages', [HospitalChatBotConsultationForStaffController::class, 'sendMessage'])
+            ->whereNumber('consultation')->middleware('throttle:hospital-chatbot-message')->name('consultations.messages.store');
         Route::get('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'show'])
             ->name('operating-hours.show');
         Route::put('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'update'])

@@ -189,6 +189,23 @@ Artisan::command('hospital-evaluations:refresh-hospital-ratings {--hospital-id=*
     $this->info("Refreshed hospital evaluation ratings: {$refreshedCount} hospitals");
 })->purpose('Refresh denormalized hospital evaluation rating aggregates');
 
+// 저장은 됐는데 발행을 놓친 상담 메시지를 다시 집어 간다.
+Artisan::command('hospital-chatbot:dispatch-pending-broadcasts {--limit=500}', function () {
+    $limit = max(1, min((int) $this->option('limit'), 1000));
+
+    $ids = \App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage::query()
+        ->where('broadcast_pending', true)
+        ->orderBy('id')
+        ->limit($limit)
+        ->pluck('id');
+
+    foreach ($ids as $id) {
+        \App\Domains\HospitalChatBot\Jobs\BroadcastHospitalChatBotMessageJob::dispatch((int) $id);
+    }
+
+    $this->info('Queued pending hospital chatbot broadcasts: '.$ids->count());
+})->purpose('Recover committed chatbot messages whose broadcast was not completed');
+
 // 상담원이 아무도 잡지 않은 대기 상담을 자동으로 취소한다(PRD D-07).
 Artisan::command('hospital-chatbot:expire-waiting-consultations {--limit=500}', function () {
     $minutes = max(1, (int) config('hospital_chatbot.waiting_timeout_minutes', 30));
@@ -244,6 +261,8 @@ Schedule::command('queue:prune-failed --hours=168')->dailyAt('03:20');
 
 // 병원별 평가 평점 집계 정합성 보정
 Schedule::command('hospital-evaluations:refresh-hospital-ratings')->dailyAt('03:30');
+
+Schedule::command('hospital-chatbot:dispatch-pending-broadcasts')->everyMinute()->withoutOverlapping();
 
 // 대기 상담 자동 만료 (기본 30분)
 Schedule::command('hospital-chatbot:expire-waiting-consultations')

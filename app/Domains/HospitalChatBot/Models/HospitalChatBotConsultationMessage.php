@@ -38,6 +38,7 @@ final class HospitalChatBotConsultationMessage extends Model
         'client_message_id',
         'message_type',
         'content',
+        'broadcast_pending',
         'created_at',
     ];
 
@@ -45,6 +46,7 @@ final class HospitalChatBotConsultationMessage extends Model
         'consultation_id' => 'integer',
         'sequence' => 'integer',
         'sender_id' => 'integer',
+        'broadcast_pending' => 'boolean',
         'created_at' => 'datetime',
     ];
 

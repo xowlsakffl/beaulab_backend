@@ -34,7 +34,7 @@
 
 ## 현재 작업: 운영시간 Frontend
 
-- 저장소: `/Users/sunny/Desktop/부업/beaulab/worktrees/frontend-operating-hours`
+- 저장소: `worktrees/frontend-operating-hours`
 - 브랜치: `feat/hospital-chatbot-operating-hours` (프론트)
 - base: `feat/hospital-chatbot-qna`
 - 기능 커밋: `d9ace0b feat(chatbot): 상담 운영시간 관리 화면과 SDK 상태 처리 추가`
@@ -57,7 +57,7 @@
 
 ## 이전 작업: 운영시간 Backend
 
-- 저장소: `/Users/sunny/Desktop/부업/beaulab/worktrees/backend-operating-hours`
+- 저장소: `worktrees/backend-operating-hours`
 - 브랜치: `feat/hospital-chatbot-operating-hours`
 - 원격 기준 브랜치: `feat/hospital-chatbot`
 - 기능 커밋: `2b6e589 feat(chatbot): 상담 운영시간 설정 API 추가`
@@ -103,14 +103,15 @@
 ## 로컬 실행 상태
 
 - MySQL 8.4 / Redis 7은 Docker 컨테이너로 실행한다. MySQL은 호스트 3307에 매핑했다(3306은 다른 프로젝트 MariaDB가 점유).
-- compose 파일은 저장소 밖 `beaulab/docker-compose.yml`에 있다. 비밀번호가 들어 있어 커밋하지 않는다.
+- compose 파일은 저장소 밖 `docker-compose.yml`(저장소 상위 폴더)에 있다. 비밀번호가 들어 있어 커밋하지 않는다.
 - 로컬 개발 DB `beaulab_frontend_local`에는 Q&A 70건이 적재되어 있다.
 - API 8000, hospital-web 3002, staff-web 3010. staff-web은 3000이 다른 프로젝트에 선점되어 3010을 쓰며, 그때는 `.env`의 `STAFF_WEB_ORIGINS`에 해당 Origin을 추가해야 한다.
 - macOS 환경 구축 기록은 백엔드 `develop-doc/local-setup-macos.md`에 있다.
 
 ## 도구 경로
 
-- PHP/Composer: `/opt/homebrew/bin/php`, `/opt/homebrew/bin/composer`
-- gh: `/Users/sunny/.local/bin/gh`
-- Node: `/Users/sunny/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node`
-- pnpm CLI: `/Users/sunny/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/bin/pnpm.cjs`
+개발자 PC마다 다르므로 절대경로를 기록하지 않는다. 사용하는 도구는 다음과 같고, 설치 위치는 각자 환경에서 확인한다.
+
+- PHP 8.3 이상과 Composer 2 (macOS 설치 기록은 `develop-doc/local-setup-macos.md`)
+- GitHub CLI `gh`
+- Node와 pnpm. 프론트 저장소는 `packageManager`에 지정된 pnpm 버전을 사용한다.

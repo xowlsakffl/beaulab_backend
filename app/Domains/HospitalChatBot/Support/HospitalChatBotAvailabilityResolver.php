@@ -6,6 +6,7 @@ namespace App\Domains\HospitalChatBot\Support;
 
 use App\Domains\HospitalChatBot\Models\HospitalChatBotClosureDate;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotOperatingHour;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotSetting;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -22,6 +23,8 @@ final class HospitalChatBotAvailabilityResolver
 
     public const REASON_CONFIGURATION_UNAVAILABLE = 'CONFIGURATION_UNAVAILABLE';
 
+    public const REASON_FORCE_CLOSED = 'FORCE_CLOSED';
+
     private const CLOSED_MESSAGE = '상담원 연결 시간이 아닙니다.';
 
     /**
@@ -29,9 +32,18 @@ final class HospitalChatBotAvailabilityResolver
      * @param  Collection<int, HospitalChatBotClosureDate>  $closures
      * @return array{timezone:string,checked_at:string,is_available:bool,reason:string,message:?string,next_open_at:?string}
      */
-    public function resolve(CarbonInterface $now, Collection $hours, Collection $closures): array
-    {
+    public function resolve(
+        CarbonInterface $now,
+        Collection $hours,
+        Collection $closures,
+        ?HospitalChatBotSetting $setting = null,
+    ): array {
         $checkedAt = CarbonImmutable::instance($now)->setTimezone(self::TIMEZONE);
+
+        // 강제 중단은 요일·휴무일 설정보다 우선한다. 다시 켜는 시점을 알 수 없으므로 next_open_at은 비운다.
+        if ($setting?->is_force_closed === true) {
+            return $this->result($checkedAt, false, self::REASON_FORCE_CLOSED, null);
+        }
 
         if (! $this->isConfigured($hours)) {
             return $this->result($checkedAt, false, self::REASON_CONFIGURATION_UNAVAILABLE, null);
@@ -103,6 +115,10 @@ final class HospitalChatBotAvailabilityResolver
         Collection $hoursByDay,
         Collection $closureDates,
     ): ?CarbonImmutable {
+        if ($hoursByDay->every(static fn (HospitalChatBotOperatingHour $hour): bool => ! $hour->is_open)) {
+            return null;
+        }
+
         for ($offset = 0; $offset <= 370; $offset++) {
             $date = $now->startOfDay()->addDays($offset);
             if ($closureDates->has($date->format('Y-m-d'))) {

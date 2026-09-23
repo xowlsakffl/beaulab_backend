@@ -21,6 +21,7 @@ final class HospitalChatBotOperatingHoursGetForStaffAction
             $this->query->hours(),
             $this->query->closures(),
             $this->resolver,
+            $this->query->setting(),
         );
     }
 }

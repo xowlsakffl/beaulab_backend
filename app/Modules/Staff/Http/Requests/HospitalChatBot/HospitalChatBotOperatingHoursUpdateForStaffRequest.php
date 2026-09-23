@@ -22,7 +22,9 @@ final class HospitalChatBotOperatingHoursUpdateForStaffRequest extends FormReque
             'weekly_schedule.*.is_open' => ['required', 'boolean'],
             'weekly_schedule.*.opens_at' => ['nullable', 'date_format:H:i'],
             'weekly_schedule.*.closes_at' => ['nullable', 'date_format:H:i'],
-            'closure_dates' => ['required', 'array', 'max:366'],
+            'closure_dates' => ['present', 'array', 'max:366'],
+            'is_force_closed' => ['sometimes', 'boolean'],
+            'force_closed_reason' => ['nullable', 'string', 'max:255'],
             'closure_dates.*.date' => ['required', 'date_format:Y-m-d', 'distinct'],
             'closure_dates.*.reason' => ['nullable', 'string', 'max:255'],
         ];
@@ -58,7 +60,14 @@ final class HospitalChatBotOperatingHoursUpdateForStaffRequest extends FormReque
     {
         $validated = $this->validated();
 
+        $isForceClosed = (bool) ($validated['is_force_closed'] ?? false);
+
         return [
+            'is_force_closed' => $isForceClosed,
+            'force_closed_reason' => $isForceClosed && isset($validated['force_closed_reason'])
+                && trim((string) $validated['force_closed_reason']) !== ''
+                    ? trim((string) $validated['force_closed_reason'])
+                    : null,
             'weekly_schedule' => collect($validated['weekly_schedule'])
                 ->sortBy('day_of_week')
                 ->map(static function (array $item): array {

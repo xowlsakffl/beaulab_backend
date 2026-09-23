@@ -20,6 +20,7 @@ final class HospitalChatBotAvailabilityForHospitalAction
             now(HospitalChatBotAvailabilityResolver::TIMEZONE),
             $this->query->hours(),
             $this->query->closures(),
+            $this->query->setting(),
         );
     }
 }

@@ -6,6 +6,7 @@ namespace App\Domains\HospitalChatBot\Queries\Staff;
 
 use App\Domains\HospitalChatBot\Models\HospitalChatBotClosureDate;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotOperatingHour;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotSetting;
 use Illuminate\Support\Collection;
 
 final class HospitalChatBotOperatingHoursForStaffQuery
@@ -26,6 +27,21 @@ final class HospitalChatBotOperatingHoursForStaffQuery
      * @param  list<array{day_of_week:int,is_open:bool,opens_at:?string,closes_at:?string}>  $weeklySchedule
      * @param  list<array{date:string,reason:?string}>  $closureDates
      */
+    public function setting(): HospitalChatBotSetting
+    {
+        return HospitalChatBotSetting::current();
+    }
+
+    public function saveSetting(bool $isForceClosed, ?string $reason, ?int $staffId): void
+    {
+        $setting = HospitalChatBotSetting::query()->orderBy('id')->first() ?? new HospitalChatBotSetting;
+        $setting->fill([
+            'is_force_closed' => $isForceClosed,
+            'force_closed_reason' => $isForceClosed ? $reason : null,
+            'updated_by_staff_id' => $staffId,
+        ])->save();
+    }
+
     public function replace(array $weeklySchedule, array $closureDates, ?int $staffId): void
     {
         foreach ($weeklySchedule as $item) {

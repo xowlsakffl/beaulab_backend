@@ -58,10 +58,11 @@
 
 ## 병원 챗봇 상담 운영시간 API
 
-- 직원 `GET /api/v1/staff/hospital-chatbot/operating-hours`는 `timezone`, `configured`, 월요일 1~일요일 7의 `weekly_schedule`, `closure_dates`를 반환합니다.
-- 직원 `PUT /api/v1/staff/hospital-chatbot/operating-hours`는 7개 요일 설정과 최대 366개 휴무일을 한 트랜잭션에서 교체합니다. 운영 요일은 `opens_at < closes_at`인 `H:i` 단일 구간이어야 하며 자정을 넘길 수 없습니다.
+- 직원 `GET /api/v1/staff/hospital-chatbot/operating-hours`는 `timezone`, `configured`, `is_force_closed`, `force_closed_reason`, 월요일 1~일요일 7의 `weekly_schedule`, `closure_dates`를 반환합니다.
+- `is_force_closed`는 요일·휴무일 설정보다 먼저 검사하는 즉시 중단 스위치입니다. 켜져 있으면 availability가 `FORCE_CLOSED`와 `next_open_at: null`을 반환하며, 다시 끌 때까지 상담원 연결을 닫습니다. 스위치를 끄면 사유는 함께 비웁니다.
+- 직원 `PUT /api/v1/staff/hospital-chatbot/operating-hours`는 7개 요일 설정과 최대 366개 휴무일, 강제 중단 설정을 한 트랜잭션에서 교체합니다. 휴무일을 모두 해제할 때는 빈 배열을 보냅니다. 운영 요일은 `opens_at < closes_at`인 `H:i` 단일 구간이어야 하며 자정을 넘길 수 없습니다.
 - 병원 `GET /api/v1/hospital/hospital-chatbot/availability`는 KST 서버 시각 기준 `checked_at`, `is_available`, `reason`, `message`, `next_open_at`을 반환합니다. 시작 시각은 포함하고 종료 시각은 제외합니다.
-- `reason`은 `OPEN`, `OUTSIDE_HOURS`, `CLOSED_DATE`, `CONFIGURATION_UNAVAILABLE` 중 하나입니다. 날짜별 공휴일·임시휴무는 요일 설정보다 우선해 강제로 닫습니다.
+- `reason`은 `OPEN`, `FORCE_CLOSED`, `OUTSIDE_HOURS`, `CLOSED_DATE`, `CONFIGURATION_UNAVAILABLE` 중 하나입니다. 날짜별 공휴일·임시휴무는 요일 설정보다 우선해 강제로 닫습니다.
 - 설정이 없거나 7일 구성이 유효하지 않으면 Fail Closed로 상담 연결을 막고 `상담원 연결 시간이 아닙니다.`를 반환합니다. Q&A 조회는 운영시간과 무관하게 계속 허용합니다.
 
 ## 병원 프로모션 API

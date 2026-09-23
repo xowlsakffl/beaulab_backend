@@ -14,6 +14,8 @@ use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotConsult
 use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalPromotion\HospitalPromotionForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -58,6 +60,10 @@ Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
     Route::get('/notes', [AdminNoteForHospitalController::class, 'getAdminNotesForHospital'])->name('notes.getAdminNotesForHospital');
     Route::post('/notes', [AdminNoteForHospitalController::class, 'createAdminNoteForHospital'])->name('notes.createAdminNoteForHospital');
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForHospitalController::class, 'updateAdminNoteForHospital'])->name('notes.updateAdminNoteForHospital');
+    // 챗봇 실시간 채널 인가. 공용 /broadcasting/auth는 actor:user 전용이라 액터별로 따로 연다.
+    Route::post('/broadcasting/auth', static fn (Request $request) => Broadcast::auth($request))
+        ->name('broadcasting.auth');
+
     Route::get('/hospital-chatbot/qnas', [HospitalChatBotQnaForHospitalController::class, 'index'])
         ->name('hospital-chatbot.qnas.index');
     Route::get('/hospital-chatbot/availability', [HospitalChatBotAvailabilityForHospitalController::class, 'show'])

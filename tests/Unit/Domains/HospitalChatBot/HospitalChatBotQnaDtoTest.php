@@ -11,6 +11,25 @@ use PHPUnit\Framework\TestCase;
 
 final class HospitalChatBotQnaDtoTest extends TestCase
 {
+    private string $previousTimezone = 'UTC';
+
+    /**
+     * 이 테스트는 Laravel 앱을 띄우지 않아 PHP 기본 시간대를 그대로 쓴다.
+     * 실행 순서나 개발자 PC 설정에 따라 ISO 변환 결과가 달라지므로 UTC로 고정한다.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->previousTimezone = date_default_timezone_get();
+        date_default_timezone_set('UTC');
+    }
+
+    protected function tearDown(): void
+    {
+        date_default_timezone_set($this->previousTimezone);
+        parent::tearDown();
+    }
+
     public function test_hospital_payload_only_exposes_active_content_fields(): void
     {
         $payload = HospitalChatBotQnaForHospitalDto::fromModel($this->qna());

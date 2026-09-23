@@ -51,9 +51,10 @@ final class HospitalChatBotQnaFlowTest extends TestCase
             'category' => '병원회원',
             'question' => '  계정은   어떻게 변경하나요? ',
             'answer' => '중복 답변',
-        ])->assertUnprocessable()->assertJsonValidationErrors('question');
+        ])->assertUnprocessable()
+            ->assertJsonPath('error.details.errors.question.0', '동일한 질문이 이미 등록되어 있습니다.');
 
-        $this->getJson('/api/v1/staff/hospital-chatbot/qnas?q=계정')
+        $this->getJson('/api/v1/staff/hospital-chatbot/qnas?q=%EA%B3%84%EC%A0%95')
             ->assertOk()
             ->assertJsonCount(1, 'data');
 

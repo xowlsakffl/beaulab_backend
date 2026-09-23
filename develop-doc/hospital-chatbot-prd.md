@@ -769,8 +769,8 @@ flowchart TD
 
 ### 필드
 
-- 적용 Scope — 전체 공통 또는 병원별
-- 기준 Timezone
+- 적용 Scope — MVP는 전체 병원 공통
+- 기준 Timezone — `Asia/Seoul` 고정
 - 요일
 - 휴무 여부
 - 시작 시각
@@ -781,7 +781,8 @@ flowchart TD
 - 요일별 한 개의 연속 시간 구간을 지원한다.
 - 시작 시각은 종료 시각보다 빨라야 한다.
 - 자정을 넘기는 시간 구간은 MVP에서 지원하지 않는 것을 권장한다.
-- 공휴일·임시 휴무 예외 일정은 MVP 범위 밖이다.
+- 날짜별 공휴일·임시 휴무 예외를 MVP에 포함하며 해당 날짜는 요일 설정과 무관하게 강제 OFF 처리한다.
+- 즉시 중단 스위치를 제공한다. 켜져 있는 동안은 요일·휴무일 설정과 무관하게 상담원 연결을 닫고, 운영자가 직접 끌 때까지 유지한다. 날짜별 휴무가 사전 예약이라면 이 스위치는 당장의 중단을 위한 수단이다.
 
 ### 동작
 
@@ -1448,29 +1449,24 @@ WHERE id = :consultationId
 
 ### API-SDK-03. 상담 가능 여부 조회
 
-`GET /api/v1/chatbot/service-availability`
+`GET /api/v1/hospital/hospital-chatbot/availability`
 
 **Response**
 
 ```json
 {
   "data": {
-    "qnaAvailable": true,
-    "agentAvailable": false,
     "timezone": "Asia/Seoul",
-    "serverTime": "2026-09-23T18:30:00+09:00",
-    "nextOpenAt": "2026-09-24T09:00:00+09:00",
-    "businessHoursSummary": [
-      {
-        "dayOfWeek": "THURSDAY",
-        "isOpen": true,
-        "openTime": "09:00",
-        "closeTime": "18:00"
-      }
-    ]
+    "checked_at": "2026-09-23T18:30:00+09:00",
+    "is_available": false,
+    "reason": "OUTSIDE_HOURS",
+    "message": "상담원 연결 시간이 아닙니다.",
+    "next_open_at": "2026-09-24T09:00:00+09:00"
   }
 }
 ```
+
+Q&A는 이 응답과 무관하게 24시간 이용 가능하다. 실제 상담 생성 API는 `is_available`을 다시 서버에서 판정해 운영시간 외 요청을 생성하지 않아야 하며, 이는 BE-05 상담 생성 작업에서 연결한다.
 
 ---
 
@@ -1784,33 +1780,37 @@ Request와 Response는 SDK 메시지 API와 동일한 구조를 사용하되 `se
 
 | Method | Endpoint                               | 설명                                  |
 | ------ | -------------------------------------- | ------------------------------------- |
-| `GET`  | `/api/v1/admin/business-hours`         | 운영시간 조회                         |
-| `PUT`  | `/api/v1/admin/business-hours`         | 운영시간 전체 저장                    |
-| `GET`  | `/api/v1/admin/business-hours/preview` | 특정 시각의 가능 여부 미리보기 — 선택 |
+| `GET` | `/api/v1/staff/hospital-chatbot/operating-hours` | 운영시간·휴무일 조회      |
+| `PUT` | `/api/v1/staff/hospital-chatbot/operating-hours` | 운영시간·휴무일 전체 저장 |
 
 ### 운영시간 저장 Request
 
 ```json
 {
-  "timezone": "Asia/Seoul",
-  "scopeType": "GLOBAL",
-  "hospitalId": null,
-  "weeklyRules": [
+  "weekly_schedule": [
     {
-      "dayOfWeek": "MONDAY",
-      "isOpen": true,
-      "openTime": "09:00",
-      "closeTime": "18:00"
+      "day_of_week": 1,
+      "is_open": true,
+      "opens_at": "09:00",
+      "closes_at": "18:00"
     },
     {
-      "dayOfWeek": "SUNDAY",
-      "isOpen": false,
-      "openTime": null,
-      "closeTime": null
+      "day_of_week": 7,
+      "is_open": false,
+      "opens_at": null,
+      "closes_at": null
+    }
+  ],
+  "closure_dates": [
+    {
+      "date": "2026-10-03",
+      "reason": "개천절"
     }
   ]
 }
 ```
+
+`weekly_schedule`은 월요일 1부터 일요일 7까지 정확히 7개 항목을 전달한다. 기준 시간대와 적용 범위는 각각 `Asia/Seoul`, 전체 병원 공통으로 고정하며 요청 값으로 받지 않는다.
 
 ## 13.6 상담 기록 내보내기 API
 
@@ -2552,7 +2552,7 @@ erDiagram
 | D-17 | 메시지 최대 길이                 | 2,000자                              | 변경 시 DB, API Validation, UI Counter 조정                 |
 | D-18 | Timezone                         | `Asia/Seoul`                         | 해외 병원 지원 시 Scope별 Timezone 필요                     |
 | D-19 | 운영시간 구간                    | 요일별 단일 구간                     | 점심시간 등 복수 구간은 Schema/UI 확장 필요                 |
-| D-20 | 공휴일/임시휴무                  | MVP 제외                             | 필요 시 Exception Calendar Entity 필요                      |
+| D-20 | 공휴일/임시휴무                  | MVP 포함, 날짜별 강제 OFF            | 향후 공휴일 자동 연동 시 외부 Calendar 연계 필요             |
 | D-21 | Q&A 중복 질문                    | 동일 Scope 내 금지 또는 저장 전 경고 | 허용 시 사용자에게 동일 질문이 여러 개 보일 수 있음         |
 | D-22 | 종료 사유 입력                   | 기본 코드만 저장                     | 상담원 선택식 사유가 필요하면 UI/통계 항목 추가             |
 | D-23 | 상담 기록 내 System Message 포함 | 포함 권장                            | 제외 시 연결/종료 시점 해석이 어려울 수 있음                |

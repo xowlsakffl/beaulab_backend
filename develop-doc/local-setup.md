@@ -2,7 +2,7 @@
 
 목표는 프론트 개발자가 자기 PC에서 Laravel API와 개발 데이터를 실행하고 웹·React Native를 연동하는 것이다. AWS 서버나 운영 DB는 필요하지 않다.
 
-기준 환경은 **Ubuntu 24.04 또는 Windows의 WSL2 Ubuntu 24.04**다. 명령은 Ubuntu 터미널에서 실행한다. macOS 사용자는 PHP 8.3·MySQL 8·Redis·Composer를 준비한 뒤 저장소 설정 단계부터 동일하게 진행할 수 있지만, 아래 apt 설치 명령은 사용할 수 없다. macOS 설치와 iOS 빌드는 이번에 검증하지 않았다.
+기준 환경은 **Ubuntu 24.04 또는 Windows의 WSL2 Ubuntu 24.04**다. 명령은 Ubuntu 터미널에서 실행한다. macOS 사용자는 PHP 8.3·MySQL 8·Redis·Composer를 준비한 뒤 저장소 설정 단계부터 동일하게 진행할 수 있지만, 아래 apt 설치 명령은 사용할 수 없다. macOS 설치와 iOS 빌드는 이번에 검증하지 않았다. macOS에서 수행한 기록은 [macOS 로컬 API 환경 구축 기록](local-setup-macos.md)에 있다.
 
 ## 1. 처음 한 번 설치
 

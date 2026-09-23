@@ -17,6 +17,8 @@
 | 채팅, 알림, SMS                        | [메시징](messaging.md)              |
 | 배포, 장애 확인, 큐, 파일 이전         | [운영 절차](operations.md)          |
 
+병원관리자 챗봇·상담 기능은 [PRD](hospital-chatbot-prd.md)와 [작업지시서](hospital-chatbot-work-order.md)를 함께 확인합니다.
+
 [DB 관계도](schema.dbml)는 탐색용입니다. 실제 제약과 컬럼은 [마이그레이션](../database/migrations)과 각 Model을 확인하세요.
 
 ## Git 협업

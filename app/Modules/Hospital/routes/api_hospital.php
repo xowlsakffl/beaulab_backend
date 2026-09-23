@@ -10,6 +10,7 @@ use App\Modules\Hospital\Http\Controllers\Auth\AuthForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountInvitationForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountPasswordResetForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotAvailabilityForHospitalController;
+use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotConsultationForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalPromotion\HospitalPromotionForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
@@ -61,6 +62,14 @@ Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
         ->name('hospital-chatbot.qnas.index');
     Route::get('/hospital-chatbot/availability', [HospitalChatBotAvailabilityForHospitalController::class, 'show'])
         ->name('hospital-chatbot.availability.show');
+    Route::get('/hospital-chatbot/consultations/active', [HospitalChatBotConsultationForHospitalController::class, 'active'])
+        ->name('hospital-chatbot.consultations.active');
+    Route::post('/hospital-chatbot/consultations', [HospitalChatBotConsultationForHospitalController::class, 'store'])
+        ->middleware('throttle:hospital-chatbot-consultation')
+        ->name('hospital-chatbot.consultations.store');
+    Route::post('/hospital-chatbot/consultations/{consultation}/cancel', [HospitalChatBotConsultationForHospitalController::class, 'cancel'])
+        ->whereNumber('consultation')
+        ->name('hospital-chatbot.consultations.cancel');
 
     /**
      * 동영상 공개여부 변경

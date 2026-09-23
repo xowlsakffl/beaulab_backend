@@ -21,6 +21,14 @@ final class RateLimitServiceProvider extends ServiceProvider
             ];
         });
 
+        // 상담원 연결 버튼 연타를 막는다. 중복 생성은 활성 상담 유니크가 이미 막고 있으므로
+        // 여기서는 서버 부하만 덜어내는 수준으로 느슨하게 둔다.
+        RateLimiter::for('hospital-chatbot-consultation', function (Request $request) {
+            $account = $request->user()?->getAuthIdentifier() ?? $request->ip();
+
+            return [Limit::perMinute(10)->by("hospital-chatbot-consultation:{$account}")];
+        });
+
         RateLimiter::for('auth-login', function (Request $request) {
             $actor = $this->actor($request);
             $identifier = $this->loginIdentifier($request);

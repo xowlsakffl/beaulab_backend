@@ -1,0 +1,104 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domains\HospitalChatBot\Dto\Staff;
+
+use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationStatusHistory;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotAvailabilityResolver;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
+
+final readonly class HospitalChatBotConsultationForStaffDto
+{
+    /** @return array<string, mixed> */
+    public static function fromModel(HospitalChatBotConsultation $consultation): array
+    {
+        return [
+            'id' => (int) $consultation->id,
+            'status' => (string) $consultation->status,
+            'hospital' => [
+                'id' => (int) $consultation->hospital_id,
+                'name' => self::text($consultation->hospital_name_snapshot),
+            ],
+            'requester' => [
+                'account_hospital_id' => $consultation->requested_by_account_hospital_id !== null
+                    ? (int) $consultation->requested_by_account_hospital_id
+                    : null,
+                'name' => self::text($consultation->requester_name_snapshot),
+            ],
+            'assigned_staff' => [
+                'id' => $consultation->assigned_staff_id !== null ? (int) $consultation->assigned_staff_id : null,
+                'name' => self::text($consultation->assigned_staff_name_snapshot),
+            ],
+            'requested_at' => self::time($consultation->requested_at),
+            'connected_at' => self::time($consultation->connected_at),
+            'ended_at' => self::time($consultation->ended_at),
+            'canceled_at' => self::time($consultation->canceled_at),
+            'close_reason' => self::text($consultation->close_reason),
+            'waiting_seconds' => self::waitingSeconds($consultation),
+            'last_message_at' => self::time($consultation->last_message_at),
+            'last_message_sequence' => (int) $consultation->last_message_sequence,
+            'source_page_path' => self::text($consultation->source_page_path),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, HospitalChatBotConsultationStatusHistory>  $histories
+     * @return array<string, mixed>
+     */
+    public static function withHistories(HospitalChatBotConsultation $consultation, Collection $histories): array
+    {
+        return self::fromModel($consultation) + [
+            'status_histories' => $histories->map(
+                static fn (HospitalChatBotConsultationStatusHistory $history): array => [
+                    'from_status' => self::text($history->from_status),
+                    'to_status' => (string) $history->to_status,
+                    'actor_type' => (string) $history->actor_type,
+                    'actor_id' => $history->actor_id !== null ? (int) $history->actor_id : null,
+                    'reason' => self::text($history->reason),
+                    'occurred_at' => self::time($history->occurred_at),
+                ],
+            )->all(),
+        ];
+    }
+
+    /**
+     * 대기 목록의 "얼마나 기다렸는지"에 쓴다.
+     * 연결된 뒤에는 요청부터 연결까지 걸린 시간으로 고정된다.
+     */
+    private static function waitingSeconds(HospitalChatBotConsultation $consultation): ?int
+    {
+        $requestedAt = $consultation->requested_at;
+        if (! $requestedAt instanceof CarbonInterface) {
+            return null;
+        }
+
+        $until = match ((string) $consultation->status) {
+            HospitalChatBotConsultationStatus::WAITING => CarbonImmutable::now(),
+            HospitalChatBotConsultationStatus::CANCELED => $consultation->canceled_at,
+            default => $consultation->connected_at,
+        };
+
+        if (! $until instanceof CarbonInterface) {
+            return null;
+        }
+
+        return max(0, (int) $requestedAt->diffInSeconds($until, false));
+    }
+
+    private static function text(mixed $value): ?string
+    {
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    private static function time(mixed $value): ?string
+    {
+        return $value instanceof CarbonInterface
+            ? $value->setTimezone(HospitalChatBotAvailabilityResolver::TIMEZONE)->toIso8601String()
+            : null;
+    }
+}

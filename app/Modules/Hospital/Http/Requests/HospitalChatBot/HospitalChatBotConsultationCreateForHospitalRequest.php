@@ -18,17 +18,21 @@ final class HospitalChatBotConsultationCreateForHospitalRequest extends FormRequ
         return [
             'source_application' => ['nullable', 'string', 'max:100'],
             'source_page_path' => ['nullable', 'string', 'max:255'],
+            // 상담을 부르기 직전에 보던 질문. 없어도 상담은 열린다.
+            'context_qna_id' => ['nullable', 'integer', 'min:1'],
         ];
     }
 
-    /** @return array{source_application:?string, source_page_path:?string} */
+    /** @return array{source_application:?string, source_page_path:?string, context_qna_id:?int} */
     public function context(): array
     {
         $validated = $this->validated();
+        $qnaId = $validated['context_qna_id'] ?? null;
 
         return [
             'source_application' => self::text($validated['source_application'] ?? null),
             'source_page_path' => self::text($validated['source_page_path'] ?? null),
+            'context_qna_id' => is_numeric($qnaId) ? (int) $qnaId : null,
         ];
     }
 

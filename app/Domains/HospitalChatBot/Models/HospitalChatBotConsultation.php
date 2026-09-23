@@ -25,6 +25,9 @@ final class HospitalChatBotConsultation extends Model
         'hospital_name_snapshot',
         'requested_by_account_hospital_id',
         'requester_name_snapshot',
+        'context_qna_id',
+        'context_qna_question_snapshot',
+        'context_qna_answer_snapshot',
         'status',
         'active_hospital_id',
         'assigned_staff_id',
@@ -44,6 +47,7 @@ final class HospitalChatBotConsultation extends Model
     protected $casts = [
         'hospital_id' => 'integer',
         'requested_by_account_hospital_id' => 'integer',
+        'context_qna_id' => 'integer',
         'active_hospital_id' => 'integer',
         'assigned_staff_id' => 'integer',
         'requested_at' => 'datetime',

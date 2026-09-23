@@ -8,11 +8,13 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationTransition;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 final class HospitalChatBotConsultationForHospitalQuery
 {
@@ -55,6 +57,7 @@ final class HospitalChatBotConsultationForHospitalQuery
         AccountHospital $account,
         ?string $sourceApplication,
         ?string $sourcePagePath,
+        ?int $contextQnaId = null,
     ): HospitalChatBotConsultation {
         $hospitalId = (int) $account->hospital_id;
 
@@ -64,11 +67,13 @@ final class HospitalChatBotConsultationForHospitalQuery
         }
 
         $now = CarbonImmutable::now();
+        $context = $this->contextQna($contextQnaId);
 
         try {
             // 상담과 최초 상태 이력은 함께 커밋한다. 이력만 실패하면 전이 기록이 없는 상담이 남는다.
             $consultation = DB::transaction(function () use (
                 $account,
+                $context,
                 $hospitalId,
                 $now,
                 $sourceApplication,
@@ -79,6 +84,9 @@ final class HospitalChatBotConsultationForHospitalQuery
                     'hospital_name_snapshot' => $account->hospital?->name,
                     'requested_by_account_hospital_id' => (int) $account->id,
                     'requester_name_snapshot' => $account->name,
+                    'context_qna_id' => $context['id'],
+                    'context_qna_question_snapshot' => $context['question'],
+                    'context_qna_answer_snapshot' => $context['answer'],
                     'status' => HospitalChatBotConsultationStatus::WAITING,
                     'active_hospital_id' => $hospitalId,
                     'requested_at' => $now,
@@ -107,6 +115,34 @@ final class HospitalChatBotConsultationForHospitalQuery
         }
 
         return $consultation->fresh(['assignedStaff:id,name']) ?? $consultation;
+    }
+
+    /**
+     * 상담을 부르기 직전에 보던 질문을 찾아 본문째 복사한다.
+     *
+     * Q&A는 고쳐지고 지워진다. 상담원이 봐야 하는 것은 "그때 무엇을 읽고 있었는지"라
+     * 지금의 Q&A를 따라가면 안 된다. 찾지 못해도 상담은 그대로 연다. 맥락은 곁다리다.
+     *
+     * @return array{id:?int, question:?string, answer:?string}
+     */
+    private function contextQna(?int $qnaId): array
+    {
+        $empty = ['id' => null, 'question' => null, 'answer' => null];
+
+        if ($qnaId === null) {
+            return $empty;
+        }
+
+        $qna = HospitalChatBotQna::query()->find($qnaId);
+        if ($qna === null) {
+            return $empty;
+        }
+
+        return [
+            'id' => (int) $qna->id,
+            'question' => Str::limit((string) $qna->question, 497),
+            'answer' => (string) $qna->answer,
+        ];
     }
 
     public function cancel(HospitalChatBotConsultation $consultation, int $accountHospitalId): bool

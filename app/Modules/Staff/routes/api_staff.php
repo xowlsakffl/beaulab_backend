@@ -528,6 +528,10 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
             ->whereNumber('consultation')->name('consultations.claim');
         Route::post('consultations/{consultation}/end', [HospitalChatBotConsultationForStaffController::class, 'end'])
             ->whereNumber('consultation')->name('consultations.end');
+        Route::get('consultations/{consultation}/messages', [HospitalChatBotConsultationForStaffController::class, 'messages'])
+            ->whereNumber('consultation')->name('consultations.messages.index');
+        Route::post('consultations/{consultation}/messages', [HospitalChatBotConsultationForStaffController::class, 'sendMessage'])
+            ->whereNumber('consultation')->middleware('throttle:hospital-chatbot-message')->name('consultations.messages.store');
         Route::get('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'show'])
             ->name('operating-hours.show');
         Route::put('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'update'])

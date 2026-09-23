@@ -9,8 +9,11 @@ use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationClaimForStaffAction;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationEndForStaffAction;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationListForStaffAction;
+use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationMessageForStaffAction;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationShowForStaffAction;
 use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationListForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationMessageListForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationMessageSendForStaffRequest;
 
 final class HospitalChatBotConsultationForStaffController extends Controller
 {
@@ -36,5 +39,28 @@ final class HospitalChatBotConsultationForStaffController extends Controller
     public function end(int $consultation, HospitalChatBotConsultationEndForStaffAction $action)
     {
         return ApiResponse::success($action->execute($consultation));
+    }
+
+    public function messages(
+        int $consultation,
+        HospitalChatBotConsultationMessageListForStaffRequest $request,
+        HospitalChatBotConsultationMessageForStaffAction $action,
+    ) {
+        $result = $action->index($consultation, $request->afterSequence(), $request->limit());
+
+        return ApiResponse::success($result['items'], [
+            'last_sequence' => $result['last_sequence'],
+            'has_older' => $result['has_older'],
+        ]);
+    }
+
+    public function sendMessage(
+        int $consultation,
+        HospitalChatBotConsultationMessageSendForStaffRequest $request,
+        HospitalChatBotConsultationMessageForStaffAction $action,
+    ) {
+        return ApiResponse::success(
+            $action->store($consultation, $request->content(), $request->clientMessageId()),
+        );
     }
 }

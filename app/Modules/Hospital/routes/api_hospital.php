@@ -73,6 +73,13 @@ Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
     Route::post('/hospital-chatbot/consultations/{consultation}/end', [HospitalChatBotConsultationForHospitalController::class, 'end'])
         ->whereNumber('consultation')
         ->name('hospital-chatbot.consultations.end');
+    Route::get('/hospital-chatbot/consultations/{consultation}/messages', [HospitalChatBotConsultationForHospitalController::class, 'messages'])
+        ->whereNumber('consultation')
+        ->name('hospital-chatbot.consultations.messages.index');
+    Route::post('/hospital-chatbot/consultations/{consultation}/messages', [HospitalChatBotConsultationForHospitalController::class, 'sendMessage'])
+        ->whereNumber('consultation')
+        ->middleware('throttle:hospital-chatbot-message')
+        ->name('hospital-chatbot.consultations.messages.store');
 
     /**
      * 동영상 공개여부 변경

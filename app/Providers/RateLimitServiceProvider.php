@@ -29,6 +29,13 @@ final class RateLimitServiceProvider extends ServiceProvider
             return [Limit::perMinute(10)->by("hospital-chatbot-consultation:{$account}")];
         });
 
+        // 채팅 입력 속도를 막지 않으면서 자동화된 폭주만 걸러낸다.
+        RateLimiter::for('hospital-chatbot-message', function (Request $request) {
+            $account = $request->user()?->getAuthIdentifier() ?? $request->ip();
+
+            return [Limit::perMinute(120)->by("hospital-chatbot-message:{$account}")];
+        });
+
         RateLimiter::for('auth-login', function (Request $request) {
             $actor = $this->actor($request);
             $identifier = $this->loginIdentifier($request);

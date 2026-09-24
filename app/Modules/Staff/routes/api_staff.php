@@ -546,6 +546,8 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         Route::post('qna-folders', [HospitalChatBotQnaForStaffController::class, 'storeFolder'])->name('qna-folders.store');
         Route::match(['put', 'patch'], 'qna-folders/{folder}', [HospitalChatBotQnaForStaffController::class, 'updateFolder'])
             ->whereNumber('folder')->name('qna-folders.update');
+        Route::patch('qna-folders/{folder}/move', [HospitalChatBotQnaForStaffController::class, 'moveFolder'])
+            ->whereNumber('folder')->name('qna-folders.move');
         Route::delete('qna-folders/{folder}', [HospitalChatBotQnaForStaffController::class, 'destroyFolder'])
             ->whereNumber('folder')->name('qna-folders.destroy');
         Route::get('qnas', [HospitalChatBotQnaForStaffController::class, 'index'])->name('qnas.index');

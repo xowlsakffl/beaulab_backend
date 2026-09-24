@@ -199,6 +199,127 @@ final class HospitalChatBotQnaFolderFlowTest extends TestCase
         $this->deleteJson("/api/v1/staff/hospital-chatbot/qna-folders/{$folderId}")->assertStatus(422);
     }
 
+    public function test_moving_reorders_siblings_and_repacks_both_sides(): void
+    {
+        $this->loginStaff();
+
+        $a = $this->createFolder('가');
+        $b = $this->createFolder('나');
+        $c = $this->createFolder('다');
+
+        // 맨 뒤의 '다'를 맨 앞으로 끌어다 놓는다.
+        $tree = $this->patchJson("/api/v1/staff/hospital-chatbot/qna-folders/{$c}/move", [
+            'parent_id' => null,
+            'position' => 0,
+        ])->assertOk()->json('data');
+
+        self::assertSame(['다', '가', '나'], array_column($tree, 'name'));
+        // 번호는 매번 0부터 다시 매긴다. 틈이 남으면 다음 이동이 그 틈을 밟는다.
+        self::assertSame([0, 1, 2], array_column($tree, 'sort_order'));
+
+        // '가'를 '다' 아래 소분류로 내린다.
+        $tree = $this->patchJson("/api/v1/staff/hospital-chatbot/qna-folders/{$a}/move", [
+            'parent_id' => $c,
+            'position' => 0,
+        ])->assertOk()->json('data');
+
+        self::assertSame(['다', '나'], array_column($tree, 'name'));
+        // 떠나온 자리도 다시 채워야 한다.
+        self::assertSame([0, 1], array_column($tree, 'sort_order'));
+        self::assertSame('가', $tree[0]['children'][0]['name']);
+        self::assertSame(2, $tree[0]['children'][0]['depth']);
+
+        // 다시 대분류로 올리면 깊이가 되돌아온다.
+        $tree = $this->patchJson("/api/v1/staff/hospital-chatbot/qna-folders/{$a}/move", [
+            'parent_id' => null,
+            'position' => 1,
+        ])->assertOk()->json('data');
+
+        self::assertSame(['다', '가', '나'], array_column($tree, 'name'));
+        self::assertSame(1, $tree[1]['depth']);
+        self::assertSame([], $tree[0]['children']);
+
+        self::assertSame($b, (int) $tree[2]['id']);
+    }
+
+    public function test_a_folder_with_children_cannot_become_a_subfolder(): void
+    {
+        $this->loginStaff();
+
+        $parent = $this->createFolder('병원회원');
+        $this->createFolder('가입', $parent);
+        $other = $this->createFolder('이벤트');
+
+        // 손자가 3단이 되어 버린다. 옮기기 전에 막아야 한다.
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qna-folders/{$parent}/move", [
+            'parent_id' => $other,
+            'position' => 0,
+        ])
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'INVALID_REQUEST');
+
+        self::assertNull(HospitalChatBotQnaFolder::query()->whereKey($parent)->value('parent_id'));
+    }
+
+    public function test_a_folder_cannot_be_moved_into_itself_or_onto_a_name_that_is_taken(): void
+    {
+        $this->loginStaff();
+
+        $parent = $this->createFolder('병원회원');
+        $this->createFolder('가입', $parent);
+        $loose = $this->createFolder('가입');
+
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qna-folders/{$parent}/move", [
+            'parent_id' => $parent,
+            'position' => 0,
+        ])->assertStatus(422);
+
+        // 옮겨 가려는 자리에 같은 이름이 이미 있다. 고르는 사람이 구분할 수 없게 된다.
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qna-folders/{$loose}/move", [
+            'parent_id' => $parent,
+            'position' => 0,
+        ])
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'INVALID_REQUEST');
+
+        self::assertNull(HospitalChatBotQnaFolder::query()->whereKey($loose)->value('parent_id'));
+    }
+
+    public function test_moving_past_the_end_lands_at_the_end(): void
+    {
+        $this->loginStaff();
+
+        $a = $this->createFolder('가');
+        $this->createFolder('나');
+        $this->createFolder('다');
+
+        // 화면이 센 자리와 서버가 아는 형제 수가 어긋날 수 있다. 끝으로 접어 준다.
+        $tree = $this->patchJson("/api/v1/staff/hospital-chatbot/qna-folders/{$a}/move", [
+            'parent_id' => null,
+            'position' => 99,
+        ])->assertOk()->json('data');
+
+        self::assertSame(['나', '다', '가'], array_column($tree, 'name'));
+    }
+
+    private function createFolder(string $name, ?int $parentId = null): int
+    {
+        $tree = $this->postJson('/api/v1/staff/hospital-chatbot/qna-folders', [
+            'name' => $name,
+            'parent_id' => $parentId,
+        ])->assertOk()->json('data');
+
+        $found = HospitalChatBotQnaFolder::query()
+            ->where('name', $name)
+            ->when($parentId === null, fn ($query) => $query->whereNull('parent_id'))
+            ->when($parentId !== null, fn ($query) => $query->where('parent_id', $parentId))
+            ->firstOrFail();
+
+        self::assertNotEmpty($tree);
+
+        return (int) $found->id;
+    }
+
     private function loginStaff(): void
     {
         $staff = AccountStaff::factory()->create();

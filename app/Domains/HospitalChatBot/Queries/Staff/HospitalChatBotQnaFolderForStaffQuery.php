@@ -10,6 +10,7 @@ use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQnaFolder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 final class HospitalChatBotQnaFolderForStaffQuery
 {
@@ -106,6 +107,90 @@ final class HospitalChatBotQnaFolderForStaffQuery
             ->update(['category' => $payload['name']]);
 
         return $folder->refresh();
+    }
+
+    /**
+     * 폴더를 원하는 자리로 옮긴다.
+     *
+     * 순서 바꾸기와 상위 바꾸기를 한 경로로 처리한다. 드래그 한 번이 둘 중 무엇인지는
+     * 놓는 자리가 정하지, 누르는 사람이 고르는 게 아니기 때문이다.
+     *
+     * $position은 대상 형제 목록에서 자기 자신을 뺀 0-based 자리다.
+     */
+    public function move(HospitalChatBotQnaFolder $folder, ?int $parentId, int $position): void
+    {
+        if ($parentId === (int) $folder->id) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '폴더를 자기 자신 안으로 옮길 수 없습니다.');
+        }
+
+        $depth = $this->resolveDepth($parentId);
+
+        // 하위 폴더를 가진 폴더는 소분류가 될 수 없다. 그러면 손자가 3단이 된다.
+        if ($depth >= HospitalChatBotQnaFolder::MAX_DEPTH && $this->hasChildren($folder)) {
+            throw new CustomException(
+                ErrorCode::INVALID_REQUEST,
+                '하위 폴더가 있는 폴더는 대분류로만 둘 수 있습니다.',
+            );
+        }
+
+        try {
+            DB::transaction(function () use ($folder, $parentId, $position, $depth): void {
+                $previousParentId = $folder->parent_id !== null ? (int) $folder->parent_id : null;
+
+                $siblings = $this->siblingIds($parentId, exceptId: (int) $folder->id);
+                $index = max(0, min($position, count($siblings)));
+                array_splice($siblings, $index, 0, [(int) $folder->id]);
+
+                $folder->forceFill([
+                    'parent_id' => $parentId,
+                    'depth' => $depth,
+                ])->save();
+
+                $this->applyOrder($siblings);
+
+                // 떠나온 자리에도 빈 번호가 남는다. 다음 이동이 그 틈을 밟지 않게 다시 채운다.
+                if ($previousParentId !== $parentId) {
+                    $this->applyOrder($this->siblingIds($previousParentId, exceptId: (int) $folder->id));
+                }
+            });
+        } catch (UniqueConstraintViolationException) {
+            throw $this->duplicateName((string) $folder->name);
+        }
+    }
+
+    private function hasChildren(HospitalChatBotQnaFolder $folder): bool
+    {
+        return HospitalChatBotQnaFolder::query()->where('parent_id', $folder->id)->exists();
+    }
+
+    /** @return list<int> */
+    private function siblingIds(?int $parentId, int $exceptId): array
+    {
+        return HospitalChatBotQnaFolder::query()
+            ->where(fn ($query) => $parentId === null
+                ? $query->whereNull('parent_id')
+                : $query->where('parent_id', $parentId))
+            ->whereKeyNot($exceptId)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
+    }
+
+    /**
+     * 순서를 0부터 다시 매긴다.
+     *
+     * 사이에 끼워 넣을 때마다 번호를 벌려 두는 방식은 언젠가 자리가 없어진다.
+     * 폴더 수가 적으니 매번 다시 매기는 편이 단순하고 틀릴 데가 없다.
+     *
+     * @param  list<int>  $orderedIds
+     */
+    private function applyOrder(array $orderedIds): void
+    {
+        foreach ($orderedIds as $order => $id) {
+            HospitalChatBotQnaFolder::query()->whereKey($id)->update(['sort_order' => $order]);
+        }
     }
 
     /**

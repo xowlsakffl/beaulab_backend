@@ -43,6 +43,7 @@ final readonly class HospitalChatBotConsultationForStaffDto
             'last_message_at' => self::time($consultation->last_message_at),
             'last_message_sequence' => (int) $consultation->last_message_sequence,
             'source_page_path' => self::text($consultation->source_page_path),
+            'context_qna' => self::contextQna($consultation),
         ];
     }
 
@@ -63,6 +64,28 @@ final readonly class HospitalChatBotConsultationForStaffDto
                     'occurred_at' => self::time($history->occurred_at),
                 ],
             )->all(),
+        ];
+    }
+
+    /**
+     * 상담을 부르기 직전에 보던 질문.
+     *
+     * 요청 당시 본문을 그대로 돌려준다. Q&A가 그 뒤 고쳐지거나 지워져도
+     * 상담원이 보는 화면은 요청자가 읽던 그 글이어야 한다.
+     *
+     * @return array<string, mixed>|null
+     */
+    private static function contextQna(HospitalChatBotConsultation $consultation): ?array
+    {
+        $question = self::text($consultation->context_qna_question_snapshot);
+        if ($question === null) {
+            return null;
+        }
+
+        return [
+            'id' => $consultation->context_qna_id !== null ? (int) $consultation->context_qna_id : null,
+            'question' => $question,
+            'answer' => self::text($consultation->context_qna_answer_snapshot),
         ];
     }
 

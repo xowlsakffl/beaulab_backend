@@ -18,7 +18,7 @@ final class HospitalChatBotConsultationCreateForHospitalAction
     ) {}
 
     /**
-     * @param  array{source_application?:?string, source_page_path?:?string}  $payload
+     * @param  array{source_application?:?string, source_page_path?:?string, context_qna_id?:?int}  $payload
      * @return array<string, mixed>
      */
     public function execute(array $payload): array
@@ -49,6 +49,7 @@ final class HospitalChatBotConsultationCreateForHospitalAction
             account: $account,
             sourceApplication: $payload['source_application'] ?? null,
             sourcePagePath: $payload['source_page_path'] ?? null,
+            contextQnaId: $payload['context_qna_id'] ?? null,
         );
 
         return $this->payload($consultation, $availability);

@@ -9,6 +9,7 @@ use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -379,6 +380,60 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
         // 다른 병원의 상담은 취소할 수 없다.
         $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$firstId}/cancel")
             ->assertStatus(404);
+    }
+
+    public function test_the_qna_the_user_was_reading_reaches_the_agent_and_survives_edits(): void
+    {
+        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->openOperatingHours();
+
+        $qna = HospitalChatBotQna::query()->create([
+            'category' => '병원회원',
+            'question' => '가입 승인은 얼마나 걸리나요?',
+            'question_key' => HospitalChatBotQna::questionKey('가입 승인은 얼마나 걸리나요?'),
+            'answer' => '영업일 기준 1~2일 걸립니다.',
+        ]);
+
+        $account = $this->hospitalAccount();
+        $this->login('hospital', $account, 'http://localhost:3002');
+
+        $consultationId = (int) $this->postJson('/api/v1/hospital/hospital-chatbot/consultations', [
+            'context_qna_id' => (int) $qna->id,
+        ])->assertOk()
+            ->assertJsonPath('data.consultation.context_qna.question', '가입 승인은 얼마나 걸리나요?')
+            ->json('data.consultation.id');
+
+        // 상담을 연 뒤 Q&A가 고쳐져도 상담원이 보는 것은 요청자가 읽던 그 글이어야 한다.
+        $qna->forceFill(['question' => '완전히 다른 질문', 'answer' => '완전히 다른 답변'])->save();
+
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->getJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}")
+            ->assertOk()
+            ->assertJsonPath('data.context_qna.id', (int) $qna->id)
+            ->assertJsonPath('data.context_qna.question', '가입 승인은 얼마나 걸리나요?')
+            ->assertJsonPath('data.context_qna.answer', '영업일 기준 1~2일 걸립니다.');
+
+        // 대기 목록에서도 무엇을 보다 불렀는지 바로 보인다.
+        $this->getJson('/api/v1/staff/hospital-chatbot/consultations')
+            ->assertOk()
+            ->assertJsonPath('data.0.context_qna.question', '가입 승인은 얼마나 걸리나요?');
+    }
+
+    public function test_a_consultation_opens_even_when_the_context_qna_is_missing(): void
+    {
+        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->openOperatingHours();
+
+        $account = $this->hospitalAccount();
+        $this->login('hospital', $account, 'http://localhost:3002');
+
+        // 맥락은 곁다리다. 없는 Q&A를 보내도 상담 요청 자체가 막히면 안 된다.
+        $this->postJson('/api/v1/hospital/hospital-chatbot/consultations', ['context_qna_id' => 999999])
+            ->assertOk()
+            ->assertJsonPath('data.consultation.status', HospitalChatBotConsultationStatus::WAITING)
+            ->assertJsonPath('data.consultation.context_qna', null);
     }
 
     private function hospitalAccount(): AccountHospital

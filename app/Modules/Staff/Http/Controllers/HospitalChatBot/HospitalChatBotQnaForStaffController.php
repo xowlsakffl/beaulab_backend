@@ -15,6 +15,7 @@ use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotQnaUpdateForStaffAc
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotQnaCreateForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotQnaFolderForStaffRequest;
+use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotQnaFolderMoveForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotQnaListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotQnaUpdateForStaffRequest;
 
@@ -68,6 +69,14 @@ final class HospitalChatBotQnaForStaffController extends Controller
         HospitalChatBotQnaFolderForStaffAction $action,
     ) {
         return ApiResponse::success($action->update($folder, $request->payload()));
+    }
+
+    public function moveFolder(
+        int $folder,
+        HospitalChatBotQnaFolderMoveForStaffRequest $request,
+        HospitalChatBotQnaFolderForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->move($folder, $request->payload()));
     }
 
     public function destroyFolder(int $folder, HospitalChatBotQnaFolderForStaffAction $action)

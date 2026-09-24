@@ -38,6 +38,19 @@ final class HospitalChatBotQnaFolderForStaffAction
         return $this->index();
     }
 
+    /**
+     * 순서·상위를 한꺼번에 바꾼다. 드래그 한 번이 둘 중 무엇인지는 놓는 자리가 정한다.
+     *
+     * @param  array{parent_id:?int, position:int}  $payload
+     * @return list<array<string, mixed>>
+     */
+    public function move(int $folderId, array $payload): array
+    {
+        $this->query->move($this->query->find($folderId), $payload['parent_id'], $payload['position']);
+
+        return $this->index();
+    }
+
     /** @return list<array<string, mixed>> */
     public function destroy(int $folderId): array
     {

@@ -10,6 +10,7 @@ use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalChatBot\Events\HospitalChatBotConsultationMessageCreated;
 use App\Domains\HospitalChatBot\Jobs\BroadcastHospitalChatBotMessageJob;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -236,6 +237,33 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
         $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages", [
             'content' => str_repeat('가', HospitalChatBotConsultationMessage::MAX_LENGTH),
         ])->assertOk();
+    }
+
+    public function test_blank_content_is_rejected_before_it_takes_a_sequence(): void
+    {
+        Bus::fake();
+
+        [, $account, $consultationId] = $this->connectedConsultation();
+        $this->login('hospital', $account, 'http://localhost:3002');
+
+        foreach (['', '   ', "\n\t "] as $blank) {
+            $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages", [
+                'content' => $blank,
+            ])->assertStatus(422);
+        }
+
+        /*
+         * 순번은 상담 안에서 이어져야 한다. 빈 메시지가 번호를 먼저 가져가면
+         * 클라이언트가 갭으로 읽고 없는 구간을 계속 다시 조회한다.
+         */
+        self::assertSame(
+            0,
+            (int) HospitalChatBotConsultation::query()->whereKey($consultationId)->value('last_message_sequence'),
+        );
+
+        $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages", [
+            'content' => '안녕하세요',
+        ])->assertOk()->assertJsonPath('data.sequence', 1);
     }
 
     /** @return array{0: AccountStaff, 1: AccountHospital, 2: int} */

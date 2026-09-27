@@ -58,6 +58,21 @@ Queries에는 기존 저장 메서드도 있으므로 폴더명만으로 읽기 
 
 API가 아직 없는 업무도 있습니다. Hospital Module에는 현재 병원 정보 수정·영상 등록 전체 CRUD가 없고, Beauty Module도 전체 파트너 관리 API가 아닙니다. 실제 범위는 각각의 라우트로 판단합니다.
 
+## 병원 챗봇 구조
+
+기존 앱에 도메인 하나와 화면 몇 개가 붙은 형태입니다. 새 서비스는 없습니다.
+
+![병원 챗봇 구조 — 구성, 추가된 테이블 8개, 실시간 처리 방식, 운영에 필요한 프로세스](images/hospital-chatbot-architecture.svg)
+
+읽을 때 짚을 것 네 가지입니다.
+
+- **기존 테이블은 바꾸지 않았습니다.** 새 테이블 8개는 전부 `hospital_chatbot_` 접두사이고, `hospitals`·`account_hospitals`·`account_staffs`는 FK로 참조만 합니다. 병원명·요청자명·상담원명은 요청 시점 값을 스냅샷 컬럼에 복사하므로 계정을 지워도 상담 기록이 남습니다.
+- **실시간은 지금 폴링입니다.** `BROADCAST_CONNECTION=log`라 이벤트를 만들되 내보내지 않고, 화면이 주기적으로 다시 조회합니다(메시지 5초, 목록 10초). Reverb 경로는 채널·인가·재발행까지 전부 구현되어 있고 환경변수만 바꾸면 켜집니다. 폴링은 원래 발행 실패 대비 경로라 따로 쓴 코드가 아닙니다.
+- **상시 프로세스는 Scheduler 하나만 필요합니다.** 대기 상담 자동 만료와 지표 기록이 매분 돕니다. Queue Worker는 발행이 꺼져 있는 동안 할 일이 없고, Reverb를 켤 때 함께 필요해집니다.
+- **인증·권한은 기존 것을 그대로 씁니다.** Sanctum 쿠키 세션이고 새 권한을 만들지 않았습니다(`common.access`).
+
+연동 계약은 [API 문서](api.md)의 「병원 챗봇」 절, 요구사항은 [PRD](hospital-chatbot-prd.md), 확인 항목은 [테스트 케이스](hospital-chatbot-test-cases.md)에 있습니다.
+
 ## 변경할 때 지킬 기준
 
 1. 같은 Actor의 가까운 도메인에서 Controller → Request → Action → Query → DTO 흐름을 먼저 읽습니다.

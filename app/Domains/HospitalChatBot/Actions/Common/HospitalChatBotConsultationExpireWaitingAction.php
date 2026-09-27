@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\HospitalChatBot\Actions\System;
+namespace App\Domains\HospitalChatBot\Actions\Common;
 
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;

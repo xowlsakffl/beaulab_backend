@@ -8,6 +8,7 @@ use App\Domains\HospitalChatBot\Queries\Hospital\HospitalChatBotAvailabilityForH
 use App\Domains\HospitalChatBot\Support\HospitalChatBotAvailabilityResolver;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 final class HospitalChatBotAvailabilityForHospitalAction
@@ -34,7 +35,11 @@ final class HospitalChatBotAvailabilityForHospitalAction
              * 안전한 답은 "지금은 연결할 수 없다"이지 500이 아니다. 잘못 닫으면 상담이
              * 한 건 늦어지지만, 잘못 열면 아무도 받지 않는 요청이 쌓인다.
              */
-            HospitalChatBotLog::failure(HospitalChatBotLog::OPERATING_HOURS_FAILED, $exception);
+            Log::error('챗봇 운영시간 계산 실패', [
+                'event' => HospitalChatBotLog::OPERATING_HOURS_FAILED,
+                'exception' => $exception::class,
+                'reason' => $exception->getMessage(),
+            ]);
 
             return [
                 'timezone' => HospitalChatBotAvailabilityResolver::TIMEZONE,

@@ -10,6 +10,7 @@ use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationStatusHistory;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 상담 상태 전이를 한곳에서 수행한다.
@@ -184,18 +185,16 @@ final class HospitalChatBotConsultationTransition
                  * 조건부 UPDATE가 0건이면 다른 쪽이 먼저 바꿔 놓은 것이다.
                  * Claim 충돌은 상담원 둘이 동시에 누른 경우로, 지표로 세야 한다(PRD 16.6).
                  */
-                HospitalChatBotLog::warning(
-                    $toStatus === HospitalChatBotConsultationStatus::CONNECTED
+                Log::warning('챗봇 상담 상태 전이 충돌', [
+                    'event' => $toStatus === HospitalChatBotConsultationStatus::CONNECTED
                         ? HospitalChatBotLog::CONSULTATION_CLAIM_CONFLICT
-                        : HospitalChatBotLog::CONSULTATION_CLOSED.'.conflict',
-                    [
-                        'consultation_id' => $consultationId,
-                        'from_status' => $fromStatus,
-                        'to_status' => $toStatus,
-                        'actor_type' => $actorType,
-                        'actor_id' => $actorId,
-                    ],
-                );
+                        : HospitalChatBotLog::CONSULTATION_CLOSE_CONFLICT,
+                    'consultation_id' => $consultationId,
+                    'from_status' => $fromStatus,
+                    'to_status' => $toStatus,
+                    'actor_type' => $actorType,
+                    'actor_id' => $actorId,
+                ]);
 
                 return false;
             }
@@ -210,19 +209,17 @@ final class HospitalChatBotConsultationTransition
                 occurredAt: $occurredAt,
             );
 
-            HospitalChatBotLog::info(
-                $toStatus === HospitalChatBotConsultationStatus::CONNECTED
+            Log::info('챗봇 상담 상태 전이', [
+                'event' => $toStatus === HospitalChatBotConsultationStatus::CONNECTED
                     ? HospitalChatBotLog::CONSULTATION_CLAIMED
                     : HospitalChatBotLog::CONSULTATION_CLOSED,
-                [
-                    'consultation_id' => $consultationId,
-                    'from_status' => $fromStatus,
-                    'to_status' => $toStatus,
-                    'actor_type' => $actorType,
-                    'actor_id' => $actorId,
-                    'reason' => $reason,
-                ],
-            );
+                'consultation_id' => $consultationId,
+                'from_status' => $fromStatus,
+                'to_status' => $toStatus,
+                'actor_type' => $actorType,
+                'actor_id' => $actorId,
+                'reason' => $reason,
+            ]);
 
             // 커밋된 뒤에 발행한다. 롤백된 전이가 화면에 먼저 보이면 안 된다.
             DB::afterCommit(function () use ($consultationId, $toStatus): void {

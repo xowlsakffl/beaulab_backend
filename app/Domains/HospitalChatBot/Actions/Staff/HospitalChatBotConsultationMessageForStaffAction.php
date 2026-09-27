@@ -6,8 +6,8 @@ namespace App\Domains\HospitalChatBot\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\HospitalChatBot\Actions\Shared\HospitalChatBotConsultationMessageListAction;
-use App\Domains\HospitalChatBot\Actions\Shared\HospitalChatBotConsultationMessageSendAction;
+use App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotConsultationMessageListAction;
+use App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotConsultationMessageSendAction;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotConsultationForStaffQuery;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotStaffActor;

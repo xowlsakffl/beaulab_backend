@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Actions\Hospital;
 
-use App\Domains\HospitalChatBot\Actions\Shared\HospitalChatBotConsultationMessageListAction;
-use App\Domains\HospitalChatBot\Actions\Shared\HospitalChatBotConsultationMessageSendAction;
+use App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotConsultationMessageListAction;
+use App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotConsultationMessageSendAction;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage;
 use App\Domains\HospitalChatBot\Queries\Hospital\HospitalChatBotConsultationForHospitalQuery;
 

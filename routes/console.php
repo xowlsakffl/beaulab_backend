@@ -218,10 +218,11 @@ Artisan::command('hospital-chatbot:dispatch-pending-broadcasts {--limit=500}', f
 
     // 재시도는 조용히 넘어가면 안 된다. 매분 같은 수가 잡히면 발행이 아예 안 되고 있다는 뜻이다.
     if ($ids->isNotEmpty()) {
-        \App\Domains\HospitalChatBot\Support\HospitalChatBotLog::warning(
-            \App\Domains\HospitalChatBot\Support\HospitalChatBotLog::BROADCAST_RETRIED,
-            ['queued' => $ids->count(), 'limit' => $limit],
-        );
+        \Illuminate\Support\Facades\Log::warning('챗봇 메시지 발행 재시도', [
+            'event' => \App\Domains\HospitalChatBot\Support\HospitalChatBotLog::BROADCAST_RETRIED,
+            'queued' => $ids->count(),
+            'limit' => $limit,
+        ]);
     }
 
     $this->info('Queued pending hospital chatbot broadcasts: '.$ids->count());
@@ -229,7 +230,7 @@ Artisan::command('hospital-chatbot:dispatch-pending-broadcasts {--limit=500}', f
 
 // 지금 상태를 지표로 남긴다(PRD 16.6). 수집기에서 event로 묶어 그래프로 쓴다.
 Artisan::command('hospital-chatbot:report-metrics', function () {
-    $metrics = app(\App\Domains\HospitalChatBot\Actions\System\HospitalChatBotMetricsAction::class)->execute();
+    $metrics = app(\App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotMetricsAction::class)->execute();
 
     foreach ($metrics as $key => $value) {
         $this->line(sprintf('%-34s %s', $key, $value ?? '-'));
@@ -240,7 +241,7 @@ Artisan::command('hospital-chatbot:report-metrics', function () {
 Artisan::command('hospital-chatbot:expire-waiting-consultations {--limit=500}', function () {
     $minutes = max(1, (int) config('hospital_chatbot.waiting_timeout_minutes', 30));
     $limit = max(1, min((int) $this->option('limit'), 1000));
-    $expired = app(\App\Domains\HospitalChatBot\Actions\System\HospitalChatBotConsultationExpireWaitingAction::class)
+    $expired = app(\App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotConsultationExpireWaitingAction::class)
         ->execute($minutes, $limit);
 
     $this->info("Expired waiting consultations: {$expired}");
@@ -294,8 +295,9 @@ Schedule::command('hospital-evaluations:refresh-hospital-ratings')->dailyAt('03:
 
 Schedule::command('hospital-chatbot:dispatch-pending-broadcasts')->everyMinute()->withoutOverlapping();
 
-// 지표는 매분 남긴다. 대기 수와 최장 대기 시간은 분 단위로 봐야 의미가 있다.
-Schedule::command('hospital-chatbot:report-metrics')->everyMinute()->withoutOverlapping();
+// 지표는 5분마다 남긴다. 매분은 대부분 0인 줄만 쌓이고, 대기 상담은 어차피 30분에
+// 자동 만료되므로 5분 간격이면 놓치지 않는다.
+Schedule::command('hospital-chatbot:report-metrics')->everyFiveMinutes()->withoutOverlapping();
 
 // 대기 상담 자동 만료 (기본 30분)
 Schedule::command('hospital-chatbot:expire-waiting-consultations')

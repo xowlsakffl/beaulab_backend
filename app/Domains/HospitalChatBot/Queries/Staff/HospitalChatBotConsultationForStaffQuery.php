@@ -8,9 +8,12 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationStatusHistory;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationFilters;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationTransition;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 final class HospitalChatBotConsultationForStaffQuery
@@ -20,33 +23,81 @@ final class HospitalChatBotConsultationForStaffQuery
     ) {}
 
     /**
-     * @param  array{status?:list<string>, assigned_staff_id?:?int, per_page:int}  $filters
+     * @param  array<string, mixed>  $filters
      */
     public function paginate(array $filters): LengthAwarePaginator
+    {
+        return $this->filtered($filters)
+            ->paginate((int) $filters['per_page'])
+            ->withQueryString();
+    }
+
+    /**
+     * 목록과 내보내기가 같은 조건을 본다.
+     *
+     * 내보내기가 자기 조건을 따로 만들면 화면에서 본 것과 받은 파일이 달라진다.
+     * PRD가 "현재 필터 조건을 기준으로"라고 못 박은 지점이다(ADM-S06).
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function filtered(array $filters): Builder
     {
         $query = HospitalChatBotConsultation::query();
 
         $statuses = $filters['status'] ?? [];
-        if ($statuses !== []) {
+        if (is_array($statuses) && $statuses !== []) {
             $query->whereIn('status', $statuses);
         }
 
-        if (! empty($filters['assigned_staff_id'])) {
-            $query->where('assigned_staff_id', (int) $filters['assigned_staff_id']);
+        foreach (['assigned_staff_id' => 'assigned_staff_id', 'hospital_id' => 'hospital_id'] as $key => $column) {
+            if (! empty($filters[$key])) {
+                $query->where($column, (int) $filters[$key]);
+            }
         }
 
-        // 대기가 먼저, 그 안에서는 오래 기다린 순. 상담원이 위에서부터 집으면 된다.
-        return $query
-            ->orderByRaw('FIELD(status, ?, ?, ?, ?)', [
-                HospitalChatBotConsultationStatus::WAITING,
-                HospitalChatBotConsultationStatus::CONNECTED,
-                HospitalChatBotConsultationStatus::ENDED,
-                HospitalChatBotConsultationStatus::CANCELED,
-            ])
-            ->orderBy('requested_at')
-            ->orderBy('id')
-            ->paginate((int) $filters['per_page'])
-            ->withQueryString();
+        if (! empty($filters['consultation_id'])) {
+            $query->whereKey((int) $filters['consultation_id']);
+        }
+
+        if (! empty($filters['requester'])) {
+            // 요청 당시 표시명으로 찾는다. 계정을 지워도 기록은 남아야 하므로
+            // 조인이 아니라 스냅샷을 본다.
+            $query->where(
+                'requester_name_snapshot',
+                'like',
+                '%'.self::escapeLike((string) $filters['requester']).'%',
+            );
+        }
+
+        if (($filters['from'] ?? null) instanceof CarbonInterface) {
+            $query->where('requested_at', '>=', $filters['from']);
+        }
+
+        if (($filters['to'] ?? null) instanceof CarbonInterface) {
+            $query->where('requested_at', '<=', $filters['to']);
+        }
+
+        return ($filters['sort'] ?? HospitalChatBotConsultationFilters::SORT_QUEUE) === HospitalChatBotConsultationFilters::SORT_RECENT
+            // 기록 조회는 최근 것부터 본다(ADM-S05).
+            ? $query->orderByDesc('requested_at')->orderByDesc('id')
+            // 대기 목록은 집어야 할 순서다. 대기가 먼저, 그 안에서는 오래 기다린 순.
+            : $query
+                ->orderByRaw('FIELD(status, ?, ?, ?, ?)', [
+                    HospitalChatBotConsultationStatus::WAITING,
+                    HospitalChatBotConsultationStatus::CONNECTED,
+                    HospitalChatBotConsultationStatus::ENDED,
+                    HospitalChatBotConsultationStatus::CANCELED,
+                ])
+                ->orderBy('requested_at')
+                ->orderBy('id');
+    }
+
+    /**
+     * LIKE 안에서 %와 _는 와일드카드다. 사용자가 친 그대로 찾게 이스케이프한다.
+     */
+    private static function escapeLike(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
     }
 
     public function find(int $consultationId): HospitalChatBotConsultation

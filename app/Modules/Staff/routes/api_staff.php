@@ -528,6 +528,9 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
     Route::prefix('hospital-chatbot')->name('hospital-chatbot.')->group(function () {
         Route::get('consultations', [HospitalChatBotConsultationForStaffController::class, 'index'])
             ->name('consultations.index');
+        // {consultation} 보다 먼저 와야 한다. 뒤에 두면 'export'가 상담 ID로 잡힌다.
+        Route::get('consultations/export', [HospitalChatBotConsultationForStaffController::class, 'export'])
+            ->name('consultations.export');
         Route::get('consultations/{consultation}', [HospitalChatBotConsultationForStaffController::class, 'show'])
             ->whereNumber('consultation')->name('consultations.show');
         Route::post('consultations/{consultation}/claim', [HospitalChatBotConsultationForStaffController::class, 'claim'])

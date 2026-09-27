@@ -233,6 +233,21 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
         self::assertStringStartsWith('병원 #', $row[1]);
     }
 
+    public function test_export_keeps_the_last_day_even_when_given_mutable_dates(): void
+    {
+        $this->loginStaff();
+
+        $today = now()->format('Y-m-d');
+        $lateToday = $this->consultation(['requested_at' => now()->setTime(23, 30)]);
+
+        // guardPeriod가 to를 되감으면 그날 늦은 상담이 통째로 빠진다.
+        $csv = $this->get(
+            "/api/v1/staff/hospital-chatbot/consultations/export?status=ENDED&from={$today}&to={$today}",
+        )->assertOk()->streamedContent();
+
+        self::assertStringContainsString((string) $lateToday, $csv);
+    }
+
     /** @param array<string, mixed> $overrides */
     private function consultation(array $overrides = []): int
     {

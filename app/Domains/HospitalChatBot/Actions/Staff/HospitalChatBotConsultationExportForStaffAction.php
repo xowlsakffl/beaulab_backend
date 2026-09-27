@@ -107,7 +107,10 @@ final class HospitalChatBotConsultationExportForStaffAction
         }
 
         // 같은 날을 고르면 1일이다. diffInDays는 0을 준다.
-        $days = (int) $from->startOfDay()->diffInDays($to->startOfDay()) + 1;
+        // toImmutable을 거치는 이유는 mutable Carbon이 오면 startOfDay가 원본을 바꿔
+        // $filters['to']가 23:59:59에서 00:00:00으로 되감기기 때문이다. 그러면
+        // 종료일 하루가 통째로 빠진다.
+        $days = (int) $from->toImmutable()->startOfDay()->diffInDays($to->toImmutable()->startOfDay()) + 1;
         if ($days > $maxDays) {
             throw new CustomException(
                 ErrorCode::INVALID_REQUEST,

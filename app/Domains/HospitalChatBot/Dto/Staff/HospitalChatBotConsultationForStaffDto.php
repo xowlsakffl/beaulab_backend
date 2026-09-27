@@ -40,6 +40,7 @@ final readonly class HospitalChatBotConsultationForStaffDto
             'canceled_at' => self::time($consultation->canceled_at),
             'close_reason' => self::text($consultation->close_reason),
             'waiting_seconds' => self::waitingSeconds($consultation),
+            'duration_seconds' => self::durationSeconds($consultation),
             'last_message_at' => self::time($consultation->last_message_at),
             'last_message_sequence' => (int) $consultation->last_message_sequence,
             'source_page_path' => self::text($consultation->source_page_path),
@@ -111,6 +112,31 @@ final readonly class HospitalChatBotConsultationForStaffDto
         }
 
         return max(0, (int) $requestedAt->diffInSeconds($until, false));
+    }
+
+    /**
+     * 연결된 뒤 실제로 대화한 시간.
+     *
+     * 연결되지 않고 취소된 상담은 값이 없다. 0초로 내보내면 "바로 끝난 상담"과
+     * 구분되지 않는다.
+     */
+    private static function durationSeconds(HospitalChatBotConsultation $consultation): ?int
+    {
+        $connectedAt = $consultation->connected_at;
+        if (! $connectedAt instanceof CarbonInterface) {
+            return null;
+        }
+
+        $until = $consultation->ended_at instanceof CarbonInterface
+            ? $consultation->ended_at
+            // 진행 중이면 지금까지가 상담 시간이다.
+            : ($consultation->status === HospitalChatBotConsultationStatus::CONNECTED ? CarbonImmutable::now() : null);
+
+        if (! $until instanceof CarbonInterface) {
+            return null;
+        }
+
+        return max(0, (int) $connectedAt->diffInSeconds($until, false));
     }
 
     private static function text(mixed $value): ?string

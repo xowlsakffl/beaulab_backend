@@ -56,4 +56,32 @@ final class HospitalChatBotConsultationStatus
     {
         return in_array($status, self::terminal(), true);
     }
+
+    /**
+     * 사람이 읽는 이름. 내보낸 CSV는 화면 없이 혼자 읽히므로 코드가 아니라 말이어야 한다.
+     *
+     * 모르는 코드는 그대로 돌려준다. 칸이 비는 것보다 낫다.
+     */
+    public static function label(string $status): string
+    {
+        return match ($status) {
+            self::WAITING => '대기',
+            self::CONNECTED => '진행',
+            self::ENDED => '종료',
+            self::CANCELED => '취소',
+            default => $status,
+        };
+    }
+
+    public static function closeReasonLabel(?string $reason): string
+    {
+        return match ($reason) {
+            null, '' => '',
+            self::REASON_AGENT_COMPLETED => '상담원 종료',
+            self::REASON_USER_CANCELED => '사용자 취소',
+            self::REASON_USER_ENDED => '사용자 종료',
+            self::REASON_WAITING_TIMEOUT => '대기 시간 초과',
+            default => $reason,
+        };
+    }
 }

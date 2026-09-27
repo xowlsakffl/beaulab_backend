@@ -68,7 +68,7 @@
 ## 병원 챗봇 Q&A 폴더 API
 
 - 폴더는 2단 고정입니다. 대분류 > 소분류 > 질문이며 소분류 아래에는 만들 수 없습니다. 깊이는 `depth` 컬럼으로 들고 있어 트리를 타지 않고 검사합니다.
-- 직원 `GET /api/v1/staff/hospital-chatbot/qna-folders`는 전체 트리를 한 번에 반환합니다. 노드는 `id`, `parent_id`, `depth`, `name`, `sort_order`, `qna_count`, `children`이며 `qna_count`는 그 폴더에 **직접** 달린 Q&A 수입니다. 하위 폴더 것은 포함하지 않습니다.
+- 직원 `GET /api/v1/staff/hospital-chatbot/qna-folders`는 전체 트리를 한 번에 반환합니다. 노드는 `id`, `parent_id`, `depth`, `name`, `sort_order`, `qna_count`, `children`이며 `qna_count`는 그 폴더에 **직접** 달린 Q&A 수입니다. 하위 폴더 것은 포함하지 않되 **소프트 삭제된 Q&A는 포함합니다.** 삭제 차단 규칙과 같은 수를 보여 주려는 것입니다. 다른 수를 보여 주면 0건인데 지워지지 않는 폴더가 생깁니다. 화면에 노출하는 "질문 수"로 쓰면 목록보다 큰 값이 나올 수 있습니다.
 - `POST`, `PATCH /{folder}`, `DELETE /{folder}`, `PATCH /{folder}/move`는 모두 **갱신된 전체 트리**를 반환합니다. 클라이언트가 다시 조회하지 않습니다.
 - `PATCH /{folder}/move`는 `parent_id`(null이면 대분류)와 `position`을 받습니다. `position`은 **자기 자신을 뺀** 형제 목록의 0-based 자리입니다. 형제 수를 넘기면 거절하지 않고 끝으로 접습니다. 화면이 센 자리와 서버가 아는 형제 수는 어긋날 수 있습니다.
 - 이동할 때마다 형제 전체의 `sort_order`를 0부터 다시 매기고, 떠나온 자리도 함께 채웁니다. 번호를 벌려 두지 않습니다.
@@ -82,7 +82,7 @@
 - 연타와 다중 탭은 한 건으로 수렴합니다. 사전 조회로 한 번, `active_hospital_id` 유니크 위반으로 또 한 번 막습니다. 병원당 활성 상담은 DB 레벨에서 1건입니다.
 - 요청 본문의 `context_qna_id`(선택)는 상담을 부르기 직전에 보던 Q&A입니다. 서버가 **요청 시점의 질문·답변 본문을 복사**해 둡니다. Q&A가 뒤에 고쳐지거나 지워져도 상담원이 보는 것은 요청자가 읽던 글입니다. 없는 id를 보내도 상담은 그대로 열립니다.
 - 운영시간 밖이면 422 `CONSULTATION_UNAVAILABLE`이며 `details.availability`에 판정 결과가 들어갑니다.
-- 병원 `GET /consultations/active`는 활성 상담 또는 null을 반환합니다. 새로고침 복구용입니다.
+- 병원 `GET /consultations/active`는 생성과 **같은 `{availability, consultation}` 봉투**를 반환하며 활성 상담이 없으면 `consultation`이 null입니다. 새로고침 복구용이고, 함께 오는 `availability`로 연결 버튼 상태를 맞춥니다.
 - 병원 `POST /consultations/{consultation}/cancel`은 대기 중에만, `/end`는 연결된 뒤에만 가능합니다. 순서가 어긋나면 409입니다. 다른 병원의 상담은 404입니다.
 - 직원 `GET /api/v1/staff/hospital-chatbot/consultations`는 `status`(CSV), `assigned_staff_id`, `hospital_id`, `consultation_id`, `requester`, `from`, `to`, `sort`, `per_page`를 받습니다. `status`를 주지 않으면 대기·진행만 반환합니다.
 - `from`·`to`는 `Y-m-d`이며 서버가 그날 처음과 끝으로 넓혀 `requested_at`에 겁니다. `to`를 시각 없이 그대로 쓰면 마지막 날이 통째로 빠지기 때문입니다.

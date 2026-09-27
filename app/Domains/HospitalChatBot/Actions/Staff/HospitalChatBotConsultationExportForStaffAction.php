@@ -56,7 +56,7 @@ final class HospitalChatBotConsultationExportForStaffAction
 
             // BOM이 없으면 엑셀이 한국어를 깨뜨린다(PRD ADM-S06).
             fwrite($output, "\xEF\xBB\xBF");
-            fputcsv($output, [
+            self::writeRow($output, [
                 '상담 ID',
                 '병원',
                 '요청자',
@@ -78,7 +78,7 @@ final class HospitalChatBotConsultationExportForStaffAction
             foreach ($query->cursor()->chunk($chunkSize) as $chunk) {
                 /** @var Collection<int, HospitalChatBotConsultation> $chunk */
                 foreach ($chunk as $consultation) {
-                    fputcsv($output, $this->row($consultation));
+                    self::writeRow($output, $this->row($consultation));
                     $rows++;
                 }
 
@@ -134,6 +134,21 @@ final class HospitalChatBotConsultationExportForStaffAction
             (string) ($consultation->context_qna_question_snapshot ?? ''),
             (string) ($consultation->source_page_path ?? ''),
         ];
+    }
+
+    /**
+     * CSV 한 줄을 쓴다.
+     *
+     * escape를 비워 RFC 4180대로 쓴다. PHP 기본값인 백슬래시 escape는 표준이 아니라
+     * 백슬래시 뒤에 큰따옴표가 오는 값을 리더가 다르게 읽는다. PHP 8.4부터는 생략
+     * 자체가 deprecated이고 9에서 기본값이 ''로 바뀐다.
+     *
+     * @param  resource  $output
+     * @param  array<int, string>  $values
+     */
+    private static function writeRow($output, array $values): void
+    {
+        fputcsv($output, $values, ',', '"', '');
     }
 
     private function time(mixed $value): string

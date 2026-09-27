@@ -181,6 +181,26 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
             ->assertJsonPath('error.code', 'INVALID_REQUEST');
     }
 
+    public function test_export_writes_rfc_4180_csv_that_survives_a_round_trip(): void
+    {
+        $this->loginStaff();
+
+        // 백슬래시 바로 뒤에 큰따옴표. PHP 기본 escape는 이 값을 깨뜨린다.
+        $tricky = '경로\\"주의"';
+        $this->consultation(['requester_name_snapshot' => $tricky]);
+
+        $today = now()->format('Y-m-d');
+        $csv = $this->get(
+            "/api/v1/staff/hospital-chatbot/consultations/export?status=ENDED&from={$today}&to={$today}",
+        )->assertOk()->streamedContent();
+
+        $lines = array_values(array_filter(explode("\n", trim(str_replace("\xEF\xBB\xBF", '', $csv)))));
+        $row = str_getcsv($lines[1], ',', '"', '');
+
+        // 표준 리더로 다시 읽었을 때 쓴 값이 그대로 나와야 한다.
+        self::assertSame($tricky, $row[2]);
+    }
+
     /** @param array<string, mixed> $overrides */
     private function consultation(array $overrides = []): int
     {

@@ -13,6 +13,7 @@ use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 /**
  * 상담 기록을 CSV로 내보낸다.
@@ -47,9 +48,13 @@ final class HospitalChatBotConsultationExportForStaffAction
 
         $chunkSize = (int) config('hospital_chatbot.export.chunk_size');
 
-        return response()->streamDownload(function () use ($query, $chunkSize): void {
+        return response()->streamDownload(function () use ($query, $chunkSize, $total): void {
             $output = fopen('php://output', 'wb');
             if ($output === false) {
+                HospitalChatBotLog::failure(HospitalChatBotLog::EXPORT_FAILED, null, [
+                    'reason' => 'php://output 을 열 수 없었다',
+                ]);
+
                 return;
             }
 
@@ -77,12 +82,29 @@ final class HospitalChatBotConsultationExportForStaffAction
              * 것은 PHP 객체 쪽이고, 메모리 상한을 실제로 잡아 주는 것은 위의 max_rows다.
              * 진짜 스트리밍이 필요해지면 커넥션에 버퍼드 해제를 걸어야 한다.
              */
-            foreach ($query->cursor()->chunk($chunkSize) as $chunk) {
-                foreach ($chunk as $consultation) {
-                    self::writeRow($output, $this->row($consultation));
-                }
+            /*
+             * 스트림이 시작된 뒤의 예외는 예외 핸들러가 잡아도 이미 절반이 나간
+             * 파일을 되돌릴 수 없다. 받는 사람은 잘린 CSV를 온전한 것으로 착각한다.
+             * 그래서 여기서 직접 남기고, 파일 끝에 잘렸다는 표시를 붙인다.
+             */
+            $written = 0;
 
-                fflush($output);
+            try {
+                foreach ($query->cursor()->chunk($chunkSize) as $chunk) {
+                    foreach ($chunk as $consultation) {
+                        self::writeRow($output, $this->row($consultation));
+                        $written++;
+                    }
+
+                    fflush($output);
+                }
+            } catch (Throwable $exception) {
+                HospitalChatBotLog::failure(HospitalChatBotLog::EXPORT_FAILED, $exception, [
+                    'written_rows' => $written,
+                    'expected_rows' => $total,
+                ]);
+
+                self::writeRow($output, ["# 내보내기가 {$written}/{$total}행에서 중단됐습니다. 이 파일은 완전하지 않습니다."]);
             }
 
             fclose($output);

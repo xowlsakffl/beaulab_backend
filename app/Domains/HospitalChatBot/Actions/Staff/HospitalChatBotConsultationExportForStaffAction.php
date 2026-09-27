@@ -12,7 +12,6 @@ use App\Domains\HospitalChatBot\Support\HospitalChatBotAvailabilityResolver;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
-use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -72,20 +71,20 @@ final class HospitalChatBotConsultationExportForStaffAction
                 '요청 화면',
             ]);
 
-            // 정렬이 정해져 있으므로 chunk가 아니라 chunkById를 쓸 수 없다.
-            // cursor는 커넥션 하나로 흘려보내 메모리를 잡아 두지 않는다.
-            $rows = 0;
+            /*
+             * cursor는 모델 객체를 한 번에 다 만들지 않는다. 다만 PDO MySQL이 기본
+             * 버퍼드라 드라이버는 결과셋 전체를 이미 받아 둔 상태다. 즉 여기서 줄어드는
+             * 것은 PHP 객체 쪽이고, 메모리 상한을 실제로 잡아 주는 것은 위의 max_rows다.
+             * 진짜 스트리밍이 필요해지면 커넥션에 버퍼드 해제를 걸어야 한다.
+             */
             foreach ($query->cursor()->chunk($chunkSize) as $chunk) {
-                /** @var Collection<int, HospitalChatBotConsultation> $chunk */
                 foreach ($chunk as $consultation) {
                     self::writeRow($output, $this->row($consultation));
-                    $rows++;
                 }
 
                 fflush($output);
             }
 
-            unset($rows);
             fclose($output);
         }, $this->fileName($filters), [
             'Content-Type' => 'text/csv; charset=UTF-8',

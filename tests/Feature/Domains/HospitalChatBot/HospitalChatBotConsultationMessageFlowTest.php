@@ -243,14 +243,31 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
     {
         Bus::fake();
 
-        [, $account, $consultationId] = $this->connectedConsultation();
-        $this->login('hospital', $account, 'http://localhost:3002');
+        [$staff, $account, $consultationId] = $this->connectedConsultation();
 
-        foreach (['', '   ', "\n\t "] as $blank) {
-            $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages", [
-                'content' => $blank,
-            ])->assertStatus(422);
+        /*
+         * 양쪽 경로를 다 본다. Request 클래스가 병원·직원 각각 따로 있어서
+         * 한쪽 규칙만 고쳐도 다른 쪽은 그대로 남는다.
+         *
+         * 여기서 지키는 것이 생각보다 미묘하다. required가 걸리는 것은 트림된
+         * 값인데, 트림은 검증 규칙이 아니라 전역 TrimStrings 미들웨어가 한다.
+         * Request의 content()는 검증을 통과한 뒤에야 trim()한다. 그 미들웨어가
+         * 이 경로에서 빠지면 공백만 있는 메시지가 순번을 가져간다.
+         */
+        foreach ([
+            ['hospital', $account, 'http://localhost:3002'],
+            ['staff', $staff, 'http://localhost:3000'],
+        ] as [$actor, $as, $origin]) {
+            $this->login($actor, $as, $origin);
+
+            foreach (['', '   ', "\n\t "] as $blank) {
+                $this->postJson("/api/v1/{$actor}/hospital-chatbot/consultations/{$consultationId}/messages", [
+                    'content' => $blank,
+                ])->assertStatus(422);
+            }
         }
+
+        $this->login('hospital', $account, 'http://localhost:3002');
 
         /*
          * 순번은 상담 안에서 이어져야 한다. 빈 메시지가 번호를 먼저 가져가면

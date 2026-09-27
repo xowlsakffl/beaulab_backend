@@ -8,9 +8,11 @@ use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationClaimForStaffAction;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationEndForStaffAction;
+use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationExportForStaffAction;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationListForStaffAction;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationMessageForStaffAction;
 use App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationShowForStaffAction;
+use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationExportForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationMessageListForStaffRequest;
 use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationMessageSendForStaffRequest;
@@ -24,6 +26,14 @@ final class HospitalChatBotConsultationForStaffController extends Controller
         $result = $action->execute($request->filters());
 
         return ApiResponse::success($result['items'], $result['meta']);
+    }
+
+    /** 목록과 같은 필터로 CSV를 내려 준다. ApiResponse가 아니라 파일 스트림이다. */
+    public function export(
+        HospitalChatBotConsultationExportForStaffRequest $request,
+        HospitalChatBotConsultationExportForStaffAction $action,
+    ) {
+        return $action->execute($request->filters());
     }
 
     public function show(int $consultation, HospitalChatBotConsultationShowForStaffAction $action)

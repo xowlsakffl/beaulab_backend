@@ -71,6 +71,15 @@ API가 아직 없는 업무도 있습니다. Hospital Module에는 현재 병원
 - **상시 프로세스는 Scheduler 하나만 필요합니다.** 대기 상담 자동 만료와 지표 기록이 매분 돕니다. Queue Worker는 발행이 꺼져 있는 동안 할 일이 없고, Reverb를 켤 때 함께 필요해집니다.
 - **인증·권한은 기존 것을 그대로 씁니다.** Sanctum 쿠키 세션이고 새 권한을 만들지 않았습니다(`common.access`).
 
+### 테이블
+
+![병원 챗봇 ERD — 테이블 8개의 컬럼과 관계](images/hospital-chatbot-erd.svg)
+
+- 컬럼 정의는 [schema.dbml](schema.dbml)의 「병원 챗봇」 블록에 있습니다. 나머지 92개 테이블과 같은 파일입니다.
+- 실제 DDL은 [hospital-chatbot-schema.sql](hospital-chatbot-schema.sql)입니다. 마이그레이션이 정본이므로 보통은 `php artisan migrate`를 쓰고, 이 파일은 스키마를 눈으로 확인하거나 마이그레이션을 돌릴 수 없는 환경에서 씁니다.
+- **스냅샷 컬럼**(`*_name_snapshot`, `context_qna_*_snapshot`)은 요청 시점 값을 복사합니다. 계정이나 Q&A를 지워도 상담 기록이 그대로 남습니다.
+- **생성 컬럼 두 개**는 MySQL에 Partial Unique Index가 없어서 둡니다. `parent_key`는 `parent_id`가 NULL인 최상위 폴더끼리도 이름 유니크를 걸려고, `active_question_key`는 살아 있는 Q&A끼리만 질문 중복을 막으려고 씁니다. `active_hospital_id`도 같은 수법으로 병원당 활성 상담 1건을 보장합니다.
+
 연동 계약은 [API 문서](api.md)의 「병원 챗봇」 절, 요구사항은 [PRD](hospital-chatbot-prd.md), 확인 항목은 [테스트 케이스](hospital-chatbot-test-cases.md)에 있습니다.
 
 ## 변경할 때 지킬 기준

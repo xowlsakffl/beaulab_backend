@@ -9,6 +9,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -92,6 +93,13 @@ final class HospitalChatBotConsultationMessageQuery
                     : null;
 
                 if ($concurrent === null) {
+                    // 멱등 충돌이 아닌 진짜 저장 실패다. 사람이 봐야 한다(PRD 16.6).
+                    HospitalChatBotLog::failure(HospitalChatBotLog::MESSAGE_STORE_FAILED, $exception, [
+                        'consultation_id' => $consultationId,
+                        'sequence' => $sequence,
+                        'sender_type' => $senderType,
+                    ]);
+
                     throw $exception;
                 }
 

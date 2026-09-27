@@ -180,6 +180,23 @@ final class HospitalChatBotConsultationTransition
                 ]));
 
             if ($affected !== 1) {
+                /*
+                 * 조건부 UPDATE가 0건이면 다른 쪽이 먼저 바꿔 놓은 것이다.
+                 * Claim 충돌은 상담원 둘이 동시에 누른 경우로, 지표로 세야 한다(PRD 16.6).
+                 */
+                HospitalChatBotLog::warning(
+                    $toStatus === HospitalChatBotConsultationStatus::CONNECTED
+                        ? HospitalChatBotLog::CONSULTATION_CLAIM_CONFLICT
+                        : HospitalChatBotLog::CONSULTATION_CLOSED.'.conflict',
+                    [
+                        'consultation_id' => $consultationId,
+                        'from_status' => $fromStatus,
+                        'to_status' => $toStatus,
+                        'actor_type' => $actorType,
+                        'actor_id' => $actorId,
+                    ],
+                );
+
                 return false;
             }
 
@@ -191,6 +208,20 @@ final class HospitalChatBotConsultationTransition
                 actorId: $actorId,
                 reason: $reason,
                 occurredAt: $occurredAt,
+            );
+
+            HospitalChatBotLog::info(
+                $toStatus === HospitalChatBotConsultationStatus::CONNECTED
+                    ? HospitalChatBotLog::CONSULTATION_CLAIMED
+                    : HospitalChatBotLog::CONSULTATION_CLOSED,
+                [
+                    'consultation_id' => $consultationId,
+                    'from_status' => $fromStatus,
+                    'to_status' => $toStatus,
+                    'actor_type' => $actorType,
+                    'actor_id' => $actorId,
+                    'reason' => $reason,
+                ],
             );
 
             // 커밋된 뒤에 발행한다. 롤백된 전이가 화면에 먼저 보이면 안 된다.

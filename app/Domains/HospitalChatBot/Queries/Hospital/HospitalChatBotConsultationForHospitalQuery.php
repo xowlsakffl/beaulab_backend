@@ -11,6 +11,7 @@ use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationTransition;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -63,6 +64,13 @@ final class HospitalChatBotConsultationForHospitalQuery
 
         $existing = $this->active($hospitalId);
         if ($existing !== null) {
+            // 연타나 여러 탭에서 온 요청이 같은 상담으로 수렴한 경우다. 얼마나 잦은지 봐야 한다.
+            HospitalChatBotLog::info(HospitalChatBotLog::CONSULTATION_REQUEST_DEDUPED, [
+                'consultation_id' => (int) $existing->id,
+                'hospital_id' => $hospitalId,
+                'status' => (string) $existing->status,
+            ]);
+
             return $existing;
         }
 
@@ -111,8 +119,23 @@ final class HospitalChatBotConsultationForHospitalQuery
                 throw $exception;
             }
 
+            // 유니크 위반으로 수렴한 경우. 위의 사전 조회를 빠져나간 동시 요청이다.
+            HospitalChatBotLog::info(HospitalChatBotLog::CONSULTATION_REQUEST_DEDUPED, [
+                'consultation_id' => (int) $concurrent->id,
+                'hospital_id' => $hospitalId,
+                'via' => 'unique_violation',
+            ]);
+
             return $concurrent;
         }
+
+        HospitalChatBotLog::info(HospitalChatBotLog::CONSULTATION_REQUESTED, [
+            'consultation_id' => (int) $consultation->id,
+            'hospital_id' => $hospitalId,
+            'account_hospital_id' => (int) $account->id,
+            'context_qna_id' => $context['id'],
+            'source_page_path' => $sourcePagePath,
+        ]);
 
         return $consultation->fresh(['assignedStaff:id,name']) ?? $consultation;
     }

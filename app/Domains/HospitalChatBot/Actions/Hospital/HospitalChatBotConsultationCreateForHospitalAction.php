@@ -9,6 +9,7 @@ use App\Common\Exceptions\ErrorCode;
 use App\Domains\HospitalChatBot\Dto\Hospital\HospitalChatBotConsultationForHospitalDto;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Queries\Hospital\HospitalChatBotConsultationForHospitalQuery;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
 
 final class HospitalChatBotConsultationCreateForHospitalAction
 {
@@ -34,6 +35,17 @@ final class HospitalChatBotConsultationCreateForHospitalAction
         // 운영시간이 끝난 뒤에도 진행 중인 상담은 이어갈 수 있어야 한다.
         $existing = $this->query->active($hospitalId);
         if ($existing !== null) {
+            /*
+             * 연타나 여러 탭에서 온 요청이다. open()까지 가지 않고 여기서 돌려주므로
+             * 로그도 여기서 남겨야 한다. Query 안에만 두면 이 경로가 통째로 빠진다.
+             */
+            HospitalChatBotLog::info(HospitalChatBotLog::CONSULTATION_REQUEST_DEDUPED, [
+                'consultation_id' => (int) $existing->id,
+                'hospital_id' => $hospitalId,
+                'status' => (string) $existing->status,
+                'via' => 'active_lookup',
+            ]);
+
             return $this->payload($existing, $availability);
         }
 

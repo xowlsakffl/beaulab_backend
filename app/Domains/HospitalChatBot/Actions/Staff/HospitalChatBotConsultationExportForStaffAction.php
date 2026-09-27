@@ -121,18 +121,18 @@ final class HospitalChatBotConsultationExportForStaffAction
     {
         return [
             (string) $consultation->id,
-            (string) ($consultation->hospital_name_snapshot ?? "병원 #{$consultation->hospital_id}"),
-            (string) ($consultation->requester_name_snapshot ?? ''),
-            (string) ($consultation->assigned_staff_name_snapshot ?? ''),
+            self::text($consultation->hospital_name_snapshot) ?? "병원 #{$consultation->hospital_id}",
+            self::text($consultation->requester_name_snapshot) ?? '',
+            self::text($consultation->assigned_staff_name_snapshot) ?? '',
             $this->time($consultation->requested_at),
             $this->time($consultation->connected_at),
             $this->time($consultation->ended_at ?? $consultation->canceled_at),
-            $this->seconds($consultation->requested_at, $consultation->connected_at ?? $consultation->canceled_at),
+            $this->waitingSeconds($consultation),
             $this->seconds($consultation->connected_at, $consultation->ended_at),
             HospitalChatBotConsultationStatus::label((string) $consultation->status),
             HospitalChatBotConsultationStatus::closeReasonLabel($consultation->close_reason),
-            (string) ($consultation->context_qna_question_snapshot ?? ''),
-            (string) ($consultation->source_page_path ?? ''),
+            self::text($consultation->context_qna_question_snapshot) ?? '',
+            self::text($consultation->source_page_path) ?? '',
         ];
     }
 
@@ -149,6 +149,29 @@ final class HospitalChatBotConsultationExportForStaffAction
     private static function writeRow($output, array $values): void
     {
         fputcsv($output, $values, ',', '"', '');
+    }
+
+    /** 빈 문자열은 값이 없는 것으로 본다. 화면(DTO)도 같은 규칙을 쓴다. */
+    private static function text(mixed $value): ?string
+    {
+        return is_string($value) && trim($value) !== '' ? $value : null;
+    }
+
+    /**
+     * 대기 시간. 아직 대기 중이면 지금까지를 센다.
+     *
+     * 화면(HospitalChatBotConsultationForStaffDto::waitingSeconds)과 같은 규칙이어야
+     * 한다. 다르면 같은 상담이 목록과 파일에서 다른 값으로 보인다.
+     */
+    private function waitingSeconds(HospitalChatBotConsultation $consultation): string
+    {
+        $until = match ((string) $consultation->status) {
+            HospitalChatBotConsultationStatus::WAITING => CarbonImmutable::now(),
+            HospitalChatBotConsultationStatus::CANCELED => $consultation->canceled_at,
+            default => $consultation->connected_at,
+        };
+
+        return $this->seconds($consultation->requested_at, $until);
     }
 
     private function time(mixed $value): string

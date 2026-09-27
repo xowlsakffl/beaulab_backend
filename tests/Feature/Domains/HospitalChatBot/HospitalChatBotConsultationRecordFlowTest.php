@@ -201,6 +201,38 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
         self::assertSame($tricky, $row[2]);
     }
 
+    public function test_export_matches_the_screen_for_waiting_rows_and_blank_snapshots(): void
+    {
+        $this->loginStaff();
+
+        $waiting = $this->consultation([
+            'status' => HospitalChatBotConsultationStatus::WAITING,
+            'hospital_name_snapshot' => '',
+            'connected_at' => null,
+            'ended_at' => null,
+            'close_reason' => null,
+            'requested_at' => now()->subMinutes(3),
+        ]);
+
+        $screen = $this->getJson("/api/v1/staff/hospital-chatbot/consultations/{$waiting}")->assertOk()->json('data');
+
+        $today = now()->format('Y-m-d');
+        $csv = $this->get(
+            "/api/v1/staff/hospital-chatbot/consultations/export?status=WAITING&from={$today}&to={$today}",
+        )->assertOk()->streamedContent();
+
+        $lines = array_values(array_filter(explode("\n", trim(str_replace("\xEF\xBB\xBF", '', $csv)))));
+        $row = str_getcsv($lines[1], ',', '"', '');
+
+        // 대기 중인 상담도 화면과 같은 대기 시간을 내보낸다. 빈 칸이면 두 화면이 어긋난다.
+        self::assertNotSame('', $row[7]);
+        self::assertEqualsWithDelta((int) $screen['waiting_seconds'], (int) $row[7], 2);
+
+        // 병원명이 빈 문자열이어도 화면과 같은 대체값을 쓴다.
+        self::assertSame($screen['hospital']['name'] ?? "병원 #{$this->hospitalIdOf($waiting)}", $row[1]);
+        self::assertStringStartsWith('병원 #', $row[1]);
+    }
+
     /** @param array<string, mixed> $overrides */
     private function consultation(array $overrides = []): int
     {

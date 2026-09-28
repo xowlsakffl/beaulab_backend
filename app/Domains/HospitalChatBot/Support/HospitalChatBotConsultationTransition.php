@@ -209,25 +209,57 @@ final class HospitalChatBotConsultationTransition
                 occurredAt: $occurredAt,
             );
 
-            Log::info('챗봇 상담 상태 전이', [
-                'event' => $toStatus === HospitalChatBotConsultationStatus::CONNECTED
-                    ? HospitalChatBotLog::CONSULTATION_CLAIMED
-                    : HospitalChatBotLog::CONSULTATION_CLOSED,
-                'consultation_id' => $consultationId,
-                'from_status' => $fromStatus,
-                'to_status' => $toStatus,
-                'actor_type' => $actorType,
-                'actor_id' => $actorId,
-                'reason' => $reason,
-            ]);
-
-            // 커밋된 뒤에 발행한다. 롤백된 전이가 화면에 먼저 보이면 안 된다.
-            DB::afterCommit(function () use ($consultationId, $toStatus): void {
+            /*
+             * 발행과 로그 모두 커밋된 뒤에 한다.
+             *
+             * 롤백된 전이가 화면에 먼저 보이면 안 되고, 로그도 마찬가지다. 커밋이
+             * 실패하면 상태는 되돌아가는데 로그만 성공으로 남아 집계가 실제보다 커진다.
+             */
+            DB::afterCommit(function () use (
+                $consultationId,
+                $fromStatus,
+                $toStatus,
+                $actorType,
+                $actorId,
+                $reason,
+            ): void {
                 self::announce($consultationId, $toStatus);
+
+                Log::info(self::logMessage($toStatus, $reason), [
+                    'event' => $toStatus === HospitalChatBotConsultationStatus::CONNECTED
+                        ? HospitalChatBotLog::CONSULTATION_CLAIMED
+                        : HospitalChatBotLog::CONSULTATION_CLOSED,
+                    'consultation_id' => $consultationId,
+                    'from_status' => $fromStatus,
+                    'to_status' => $toStatus,
+                    'actor_type' => $actorType,
+                    'actor_id' => $actorId,
+                    'reason' => $reason,
+                ]);
             });
 
             return true;
         });
+    }
+
+    /**
+     * 로그 문장.
+     *
+     * 저장소의 다른 로그처럼 문장만 봐도 무슨 일인지 알아야 한다. event는 집계용이고
+     * 사람은 laravel.log를 눈으로 훑는다. 연결·종료·취소·만료가 한 문장으로 묶이면
+     * 그때마다 컨텍스트를 열어 봐야 한다.
+     */
+    private static function logMessage(string $toStatus, ?string $reason): string
+    {
+        if ($toStatus === HospitalChatBotConsultationStatus::CONNECTED) {
+            return '챗봇 상담 연결';
+        }
+
+        return match ($reason) {
+            HospitalChatBotConsultationStatus::REASON_WAITING_TIMEOUT => '챗봇 상담 대기 만료',
+            HospitalChatBotConsultationStatus::REASON_USER_CANCELED => '챗봇 상담 요청 취소',
+            default => '챗봇 상담 종료',
+        };
     }
 
     /**

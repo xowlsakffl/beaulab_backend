@@ -124,9 +124,9 @@
 
 ## 병원 챗봇 로그와 지표
 
-- 도메인 로그는 [HospitalChatBotLog](../app/Domains/HospitalChatBot/Support/HospitalChatBotLog.php)를 거칩니다. 메시지 문장 대신 `event` 키를 고정하고 나머지는 컨텍스트로 넘깁니다. 수집기에서 `event`로 묶으면 그대로 지표가 됩니다.
+- 로그는 저장소 관례대로 `Log::info('한국어 문장', [컨텍스트])` 로 남기되, 컨텍스트에 `event` 키를 하나 얹습니다. 문장은 사람이 읽고 `event`는 수집기가 묶습니다. 문장을 고쳐도 집계가 끊기지 않습니다. `event` 값은 [HospitalChatBotLog](../app/Domains/HospitalChatBot/Support/HospitalChatBotLog.php)에 상수로 있습니다. 오타 하나로 그 이벤트만 집계에서 빠지는 것을 막으려는 것입니다.
 - 상담 요청·중복 반환·연결·충돌·종료, 메시지 저장 실패, 발행 실패와 재시도, Export 실패, 운영시간 계산 오류를 남깁니다. Claim 충돌은 성공과 다른 event입니다. 같은 이름으로 묶이면 셀 수 없습니다.
-- `hospital-chatbot:report-metrics`가 매분 현재 상태를 남깁니다. 대기 수, 진행 수, 최장 대기 시간, 미발행 메시지 수와 그중 가장 오래된 것, 그리고 발행 사용 여부입니다. 발행이 꺼져 있으면 미발행 수는 줄지 않으므로 숫자만 보고 장애로 읽지 않습니다.
+- `hospital-chatbot:report-metrics`가 5분마다 현재 상태를 남깁니다. 대기 수, 진행 수, 최장 대기 시간, 미발행 메시지 수와 그중 가장 오래된 것, 그리고 발행 사용 여부입니다. 발행이 꺼져 있으면 미발행 수는 줄지 않으므로 숫자만 보고 장애로 읽지 않습니다.
 - 운영시간 계산이 깨지면 500이 아니라 `CONFIGURATION_UNAVAILABLE`로 닫습니다. 여기서 예외를 올리면 SDK가 Q&A조차 열지 못합니다.
 
 ## 병원 프로모션 API

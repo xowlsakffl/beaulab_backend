@@ -71,6 +71,10 @@ final class HospitalChatBotObservabilityTest extends TestCase
         self::assertNotSame(HospitalChatBotLog::CONSULTATION_REQUESTED, $requested['message']);
         self::assertSame(HospitalChatBotLog::CONSULTATION_REQUESTED, $requested['context']['event']);
         self::assertSame($id, $requested['context']['consultation_id']);
+
+        // 종료 사유는 문장에 드러나야 한다. 상담원 종료와 사용자 종료가 같은 문장이면 컨텍스트를 열어야 한다.
+        $closed = $this->firstWithEvent($seen, HospitalChatBotLog::CONSULTATION_CLOSED);
+        self::assertSame('챗봇 상담 상담원 종료', $closed['message']);
     }
 
     public function test_a_claim_conflict_is_logged_as_its_own_event(): void

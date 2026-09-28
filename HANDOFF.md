@@ -9,70 +9,61 @@
 - 코드·스키마·설정 PR에는 실제 수행 결과를 포함한 `Test plan`을 작성한다.
 - 검증은 변경 범위에 맞게 최소화한다.
 - 사용량이 10% 이하로 남으면 이 파일을 갱신하고 핸드오프한다.
+- 리뷰 지적을 고치면 그 코멘트 스레드마다 수정 완료 답글을 단다.
 
-## 완료된 작업
+## 구조 한눈에
 
-- Backend Q&A PR #84 병합 완료: https://github.com/beaulab/beaulab_new_dev/pull/84
-  - 병합 커밋: `f3a95a8`
-  - 리뷰 반영 커밋: `2e1d9b1`
-- Frontend Q&A PR #29 Ready 상태: https://github.com/beaulab/beaulab_new_frontend/pull/29
-  - Staff 화면 권한 누락으로 404 전환되던 문제 수정·푸시 완료
-  - 수정 커밋: `8d80536`
-  - `http://localhost:3010/hospital-chatbot/qnas` 접근 확인 완료
-  - Q&A 화면 데이터가 비어 있는 것은 현재 8000 API가 통합 Q&A 코드를 제공하지 않기 때문이며 화면 라우팅 문제는 해결됐다.
+![병원 챗봇 구조 — 구성, 추가된 테이블 8개, 실시간 처리 방식, 운영에 필요한 프로세스](develop-doc/images/hospital-chatbot-architecture.svg)
 
-- Frontend Q&A PR #29 후속 반영
-  - 리뷰 12건 중 11건 반영: `665540a` (transpilePackages, 순서 상한·빈 값, page 정수 파싱, SDK 오류 메시지·Escape·포커스, 재조회 방지, 분류 그룹핑, 미사용 ref, 테스트 추가)
-  - 확정 디자인 반영: `56048b0` (원형 런처, Gradient Header, 서비스 아이콘과 `뷰랩스 챗봇` 명칭, 하단 상태 영역, 패널 폭 340px, 색상 CSS 변수화)
-  - 인가 지적 2건은 PRD 4.2·4.3의 범위 밖 판단으로 철회했다.
-- 로컬 개발 DB에 Q&A 초기 데이터 적재 완료
-  - `beaulab_frontend_local`에 `hospital_chatbot_qnas` 마이그레이션 적용 후 `HospitalChatBotQnaSeeder` 실행
-  - 70건 적재, 질문 키 중복 0건. 원본 엑셀의 자사 시트와 질문 단위로 대조해 누락 없음을 확인했다.
-- `beaulab_testing` 권한 문제 해결
-  - 컨테이너 MySQL에 DB 생성과 `beaulab_frontend` 권한 부여 완료
-  - 백엔드 전체 테스트 37개/114 assertions 통과를 확인했다. 이전 핸드오프의 "권한 부재로 실행 불가"는 해소됐다.
+![병원 챗봇 ERD — 테이블 8개의 컬럼과 관계](develop-doc/images/hospital-chatbot-erd.svg)
 
-## 현재 상태 (2026-09-23 23:40 갱신)
+세 줄 요약이다. **기존 테이블은 하나도 바꾸지 않았고**, **실시간은 폴링이며**, **상시 프로세스는 Scheduler 하나만 필요하다.** 왜 그렇게 되어 있는지와 스냅샷·생성 컬럼의 근거는 [구조 문서](develop-doc/architecture.md#병원-챗봇-구조)에 있다. 여기서 반복하지 않는다.
 
-| PR | 상태 | 비고 |
-|---|---|---|
-| BE #84 Q&A API | **병합 완료** | |
-| FE #29 Q&A 화면·SDK | **병합 완료** | 리뷰 12건 반영, SDK UI 디자인 반영 |
-| BE #87 운영시간 API | **병합 완료** | `c78ddbe` |
-| FE #30 운영시간 화면 | **병합 완료** | base를 `feat/hospital-chatbot`으로 재타깃 후 병합 `3b6aa0e` |
-
-챗봇 Phase 2(관리 기능 기반)는 통합 브랜치 `feat/hospital-chatbot`에 모두 들어갔다.
-
-### 직전 핸드오프의 "바로 해야 할 일" 처리 결과
-
-1. FE #30 base 재타깃 — 완료. `feat/hospital-chatbot-qna` → `feat/hospital-chatbot`.
-2. 병합 순서 BE #87 → FE #30 — 완료. BE #87이 먼저 병합된 뒤 FE #30을 병합했다.
-3. 수동 E2E — 로컬 DB 마이그레이션 적용과 도메인 레벨 검증까지 완료. **브라우저 화면 확인만 남았다**(staff 로그인 필요).
-
-### 로컬 E2E 수행 결과 (2026-09-23)
-
-`beaulab_frontend_local`에 운영시간 3개 마이그레이션을 적용했다.
-
-- `create_hospital_chatbot_operating_hours_table`
-- `create_hospital_chatbot_closure_dates_table`
-- `create_hospital_chatbot_settings_table`
-
-적용 후 실제 DB를 대상으로 저장·조회·판정을 확인했다.
-
-| 검증 | 결과 |
+| 찾는 것 | 문서 |
 |---|---|
-| 주간 스케줄 7건 + 휴무일 1건 저장 | 성공 |
-| 저장값 재조회 (월 09:00~18:00 / 일 휴무 / 휴무일 사유 한글) | 일치 |
-| 수 14:00 | `OPEN` |
-| 수 20:00 | `OUTSIDE_HOURS`, next 2026-09-24T09:00+09:00 |
-| 일 14:00 | `OUTSIDE_HOURS`, next 2026-09-28T09:00+09:00 |
-| 휴무일 2026-09-30 14:00 | `CLOSED_DATE`, next 2026-10-01T09:00+09:00 |
-| 즉시 중단 스위치 ON | `FORCE_CLOSED`, `next_open_at` 없음 |
-| 즉시 중단 스위치 OFF 복구 | `OUTSIDE_HOURS`로 복귀, 설정 행 초기화 확인 |
+| 구조·테이블·왜 그렇게 했는지 | [architecture.md](develop-doc/architecture.md#병원-챗봇-구조) |
+| 컬럼 정의 | [schema.dbml](develop-doc/schema.dbml) 「병원 챗봇」 블록 |
+| DDL | [hospital-chatbot-schema.sql](develop-doc/hospital-chatbot-schema.sql) |
+| 연동 계약 (필드·오류코드·채널) | [api.md](develop-doc/api.md) 「병원 챗봇」 절 |
+| 확인 항목·배포 전 목록 | [hospital-chatbot-test-cases.md](develop-doc/hospital-chatbot-test-cases.md) |
+| 요구사항 | [hospital-chatbot-prd.md](develop-doc/hospital-chatbot-prd.md) |
 
-`/hospital-chatbot/operating-hours`는 미로그인 시 `/login?next=/hospital-chatbot/operating-hours`로 정상 리다이렉트되고 페이지 타이틀(`상담 운영시간`)까지 해석된다. 라우팅·권한 배선은 확인됐다.
+## 현재 상태 (2026-09-28 갱신)
 
-**남은 것**: staff 계정으로 로그인한 뒤 화면에서 요일 저장·휴무일 추가·즉시 중단 토글을 눌러보고, hospital-web SDK 하단 상태 영역이 위 상태값에 맞게 바뀌는지 눈으로 확인한다. 비밀번호 입력이 필요한 단계라 사람이 직접 해야 한다.
+**Phase 2~6이 전부 통합 브랜치 `feat/hospital-chatbot`에 들어갔다.** 기능 티켓은 모두 닫혔고 남은 것은 사람이 브라우저에서 봐야 하는 확인뿐이다.
+
+| Phase | 내용 | PR |
+|---|---|---|
+| 2 | Q&A·운영시간 관리, SDK Q&A 화면 | BE #84·#87 / FE #29·#30 |
+| 3 | 상담 생성·연결·취소·종료, 대기 목록, SDK 대기 화면 | BE #88·#89 / FE #31·#32 |
+| 4 | 메시지 저장·조회, 채널·인가, 양쪽 채팅 화면 | BE #90 / FE #33 |
+| 5 | 상담 기록 조회·필터, 상태 이력, CSV 내보내기 | BE #94 / FE #41 |
+| 6 | 로그·지표, 연동 계약 문서, 테스트 케이스 | BE #95·#96·#97 / FE #42·#43 |
+| 그 외 | Q&A 폴더 2단·드래그 정렬, 상담 맥락 전달, SDK 분해 | BE #91·#92·#93 / FE #34~#40 |
+
+PRD 17장 티켓 47개 기준 **완료 37 / 진행중 7 / 남음 2 / 보류 1**이다. 현황판은 저장소 밖 `html/chatbot-roadmap.html`에 있다.
+
+자동 테스트는 챗봇 범위에서 **BE 58개 · 관리자 FE 104개 · SDK 47개**가 통과한다.
+
+### 결정된 것
+
+- **실시간은 폴링으로 간다(2026-09-27).** Reverb를 띄우지 않기로 했다. 배포 방식이 정해지지 않았고 예상 규모에서 5초 지연은 감당 가능하다고 판단했다. 느리다는 얘기가 나오면 Reverb보다 **폴링 주기를 줄이는 쪽을 먼저** 본다. 동작 방식은 [구조 문서](develop-doc/architecture.md#병원-챗봇-구조)에 있다.
+- **BE-02 Identity Adapter는 보류다.** D-25에 따라 SDK가 같은 오리진에서만 도는 이상 어댑터를 둘 이유가 없다. 지금 만들면 쓰지 않을 추상화만 남는다.
+
+### 브라우저로 확인한 것 (2026-09-28)
+
+상담원·병원 양쪽에 로그인해 Q&A 탐색 → 상담 요청 → 연결 → 양방향 채팅 → 종료 → 기록 조회 → CSV까지 끝까지 돌렸다. 폴더 드래그 정렬과 기록 화면 뒤로가기 조건 복원도 확인했다. 종료 전파는 0.7초였다.
+
+그 과정에서 결함 하나를 찾아 고쳤다(연결 요청 중 끝내기 버튼이 "취소 중"이라고 하던 것, FE #42).
+
+### 아직 아무도 확인하지 않은 것
+
+자동 테스트가 덮지 못하는 것 중 **6가지**가 남았다. 목록과 재현 방법은 [테스트 케이스 문서](develop-doc/hospital-chatbot-test-cases.md#배포-전-훑을-것-qa-08)의 「배포 전 훑을 것」이 정본이다. 위젯 열고 닫기의 Host 회귀와 CSV를 실제 엑셀로 여는 것은 2026-09-28 사용자가 직접 확인했다.
+
+가장 걸리는 둘만 여기 적는다.
+
+- **동시 요청의 유니크 위반 경로는 자동 테스트도 밟지 않는다.** 순차 연타만 덮는다. 두 탭에서 동시에 요청하는 확인도 아직이다.
+- **상담원 둘이 동시에 연결을 누르는 것은 브라우저로 못 봤다.** 상담원 계정이 하나라서다. 자동 테스트는 덮는다.
 
 ### 로컬 서버 기동 메모
 
@@ -81,25 +72,6 @@
 - API는 backend worktree에서 `php artisan serve --port=8000`.
 - Sanctum이 `config/sanctum.php`에서 `'guard' => []`이라 **Bearer 토큰이 통하지 않는다**. API 수동 확인은 쿠키 세션이 필요하고, 도메인 레벨 확인은 `bootstrap/app.php`를 로드하는 스크립트에서 Action을 직접 호출하면 된다.
 - `closure_dates` 항목의 키는 `date`다(`closure_date` 아님).
-
-### 이번에 추가된 것
-
-- 상담원 연결 **즉시 중단 스위치**. `hospital_chatbot_settings` 테이블, resolver가 요일·휴무일보다 먼저 검사해 `FORCE_CLOSED` 반환. 날짜별 휴무는 사전 예약, 스위치는 당장 중단용으로 역할을 나눴다.
-- 휴무일은 매년 수동 갱신이 필요하다는 점은 그대로다. 공휴일 캘린더 자동 연동은 PRD 4.2 Out of Scope.
-
-### 고친 결함 (테스트 붙이며 발견)
-
-- `closure_dates`가 `required`라 휴무일 전체 해제 저장이 422였다. `present`로 변경.
-- Q&A Flow 테스트가 이 저장소 오류 봉투(`error.details.errors`) 대신 Laravel 기본 형식을 검증했다.
-- 같은 테스트가 한글 쿼리스트링을 인코딩하지 않아 검색이 0건이었다. **앱 코드는 정상.**
-- Q&A DTO 단위 테스트가 실행 환경 시간대에 의존했다. UTC 고정.
-
-### 다음 기능 단계
-
-상담 세션(상담원 연결, 대기·연결·종료, 메시지)은 미착수. SDK의 `상담원 연결` 버튼과 입력창이 여기 포함된다.
-
-전체 잔여 작업은 PRD 17장 티켓 47개 기준으로 완료 8 / 진행중 9 / 남음 30이다.
-시각화한 현황판은 저장소 밖 `html/chatbot-roadmap.html`(저장소 상위 폴더)에 있다.
 
 ## 결정 사항 (2026-09-23 사용자 확정)
 
@@ -115,31 +87,21 @@
 
 남은 필수 결정 3건(D-14 Export 범위, D-15 보존 기간, D-21 Q&A 중복)은 Phase 5 전까지 미뤄도 된다.
 
-### 착수 순서 (합의됨)
+### 남은 결정
 
-1. **상담 스키마** — `consultations`, `consultation_messages`, `consultation_status_history`. 병원당 활성 상담 1건 Unique 인덱스를 이때 같이 건다(D-26). 나중에 붙이면 데이터 정리가 필요해진다.
-2. **상담 생성·활성 조회** — 운영시간 검증 후 `WAITING` 생성. 중복 클릭·다중 탭은 Unique로 막고 기존 상담을 반환한다.
-3. **상태머신과 Claim** — `WAITING → CONNECTED` 원자적 UPDATE(영향 행 0이면 `409 ALREADY_CLAIMED`), 취소, 종료, 상태 이력. **대기 30분 자동 만료 배치(D-07)를 빠뜨리기 쉽다.**
-4. **관리자 대기 목록과 연결 버튼** — 실시간 없이 폴링/새로고침으로 먼저. 이 시점에 화면에서 상태 전이를 눈으로 검증할 수 있다.
-5. **SDK 연결 요청과 대기 화면** — 상담원 연결 버튼, `WAITING` UI, 입력창 비활성, 취소.
-
-여기까지가 PRD Phase 3이고, 끝나면 실시간 없이도 "요청 → 연결 → 취소"가 양쪽 화면에서 돈다.
-이후 Phase 4(메시지·Reverb 실시간) → Phase 5(기록·CSV Export) → Phase 6(통합·QA) 순서다.
-
-Phase 4 착수 전에 Reverb 기동과 운영 배포 방식을 정해야 한다. 로컬에는 Redis만 떠 있고 Reverb는 아직 띄운 적이 없다.
+D-14(Export 범위), D-15(보존 기간), D-21(Q&A 중복)은 Phase 5를 넘기며 실무 기본값으로 굳었다. Export는 기간 92일·1만 행 상한(설정값), Q&A 중복은 활성 질문 기준 유니크다. 보존 기간은 여전히 정해지지 않았고 지금은 무제한이다.
 
 ## 검증 관련 주의
 
-- Backend 테스트용 `beaulab_testing` DB와 권한은 컨테이너 MySQL에 준비됐고 전체 37개가 통과한다. 실행 명령은 `vendor/bin/phpunit`이며 `php artisan test`는 이 저장소에 없다.
+- Backend 테스트용 `beaulab_testing` DB와 권한은 컨테이너 MySQL에 준비됐고, 챗봇 범위 58개가 통과한다. 실행 명령은 `vendor/bin/phpunit`이며 `php artisan test`는 이 저장소에 없다.
 - 운영시간 작업에서도 원격/공용 DB에는 절대 마이그레이션하지 않는다.
 - Backend 운영시간 worktree에는 `composer install`이 완료되어 `vendor/`가 있다(ignored).
-- Backend 운영시간 검증 결과: resolver 단위 테스트 3개/12 assertions 통과, 변경 PHP 17개 Pint 통과, 신규 라우트 3개 등록 확인, `git diff --check` 통과.
 
 ## 로컬 실행 상태
 
 - MySQL 8.4 / Redis 7은 Docker 컨테이너로 실행한다. MySQL은 호스트 3307에 매핑했다(3306은 다른 프로젝트 MariaDB가 점유).
 - compose 파일은 저장소 밖 `docker-compose.yml`(저장소 상위 폴더)에 있다. 비밀번호가 들어 있어 커밋하지 않는다.
-- 로컬 개발 DB `beaulab_frontend_local`에는 Q&A 70건이 적재되어 있다.
+- 로컬 개발 DB `beaulab_frontend_local`에는 Q&A 71건과 폴더 7개가 적재되어 있다.
 - API 8000, hospital-web 3002, staff-web 3010. staff-web은 3000이 다른 프로젝트에 선점되어 3010을 쓰며, 그때는 `.env`의 `STAFF_WEB_ORIGINS`에 해당 Origin을 추가해야 한다.
 - macOS 환경 구축 기록은 백엔드 `develop-doc/local-setup-macos.md`에 있다.
 

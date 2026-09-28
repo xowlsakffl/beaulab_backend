@@ -58,6 +58,30 @@ Queries에는 기존 저장 메서드도 있으므로 폴더명만으로 읽기 
 
 API가 아직 없는 업무도 있습니다. Hospital Module에는 현재 병원 정보 수정·영상 등록 전체 CRUD가 없고, Beauty Module도 전체 파트너 관리 API가 아닙니다. 실제 범위는 각각의 라우트로 판단합니다.
 
+## 병원 챗봇 구조
+
+기존 앱에 도메인 하나와 화면 몇 개가 붙은 형태입니다. 새 서비스는 없습니다.
+
+![병원 챗봇 구조 — 구성, 추가된 테이블 8개, 실시간 처리 방식, 운영에 필요한 프로세스](images/hospital-chatbot-architecture.svg)
+
+읽을 때 짚을 것 네 가지입니다.
+
+- **기존 테이블은 바꾸지 않았습니다.** 새 테이블 8개는 전부 `hospital_chatbot_` 접두사이고, `hospitals`·`account_hospitals`·`account_staffs`는 FK로 참조만 합니다. 병원명·요청자명·상담원명은 요청 시점 값을 스냅샷 컬럼에 복사하므로 계정을 지워도 상담 기록이 남습니다.
+- **실시간은 지금 폴링입니다.** `BROADCAST_CONNECTION=log`라 이벤트를 만들되 내보내지 않고, 화면이 주기적으로 다시 조회합니다(메시지 5초, 목록 10초). Reverb 경로는 채널·인가·재발행까지 전부 구현되어 있고 환경변수만 바꾸면 켜집니다. 폴링은 원래 발행 실패 대비 경로라 따로 쓴 코드가 아닙니다.
+- **상시 프로세스는 Scheduler 하나만 필요합니다.** 대기 상담 자동 만료는 매분, 지표 기록은 5분마다 돕니다. Queue Worker는 발행이 꺼져 있는 동안 할 일이 없고, Reverb를 켤 때 함께 필요해집니다.
+- **인증·권한은 기존 것을 그대로 씁니다.** Sanctum 쿠키 세션이고 새 권한을 만들지 않았습니다(`common.access`).
+
+### 테이블
+
+![병원 챗봇 ERD — 테이블 8개의 컬럼과 관계](images/hospital-chatbot-erd.svg)
+
+- 컬럼 정의는 [schema.dbml](schema.dbml)의 「병원 챗봇」 블록에 있습니다. 나머지 92개 테이블과 같은 파일입니다.
+- 실제 DDL은 [hospital-chatbot-schema.sql](hospital-chatbot-schema.sql)입니다. 마이그레이션이 정본이므로 보통은 `php artisan migrate`를 쓰고, 이 파일은 스키마를 눈으로 확인하거나 마이그레이션을 돌릴 수 없는 환경에서 씁니다.
+- **스냅샷 컬럼**(`*_name_snapshot`, `context_qna_*_snapshot`)은 요청 시점 값을 복사합니다. 계정이나 Q&A를 지워도 상담 기록이 그대로 남습니다.
+- **생성 컬럼 두 개**는 MySQL에 Partial Unique Index가 없어서 둡니다. `parent_key`는 `parent_id`가 NULL인 최상위 폴더끼리도 이름 유니크를 걸려고, `active_question_key`는 살아 있는 Q&A끼리만 질문 중복을 막으려고 씁니다. `active_hospital_id`도 같은 수법으로 병원당 활성 상담 1건을 보장합니다.
+
+연동 계약은 [API 문서](api.md)의 「병원 챗봇」 절, 요구사항은 [PRD](hospital-chatbot-prd.md), 확인 항목은 [테스트 케이스](hospital-chatbot-test-cases.md)에 있습니다.
+
 ## 변경할 때 지킬 기준
 
 1. 같은 Actor의 가까운 도메인에서 Controller → Request → Action → Query → DTO 흐름을 먼저 읽습니다.

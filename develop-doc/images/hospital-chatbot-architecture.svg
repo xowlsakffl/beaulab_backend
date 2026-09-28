@@ -153,7 +153,7 @@
   <rect x="40" y="1210" width="356" height="12" fill="#E0F0EA"/>
   <text x="60" y="1213" font-size="12" font-weight="700" fill="#0B6E5A">필수</text>
   <text x="60" y="1252" font-size="14" font-weight="700" fill="#13201D">Scheduler (cron)</text>
-  <text x="60" y="1278" font-size="12.5" fill="#5B6C68">매분 두 가지를 돌립니다.</text>
+  <text x="60" y="1278" font-size="12.5" fill="#5B6C68">두 가지를 돌립니다 (만료는 매분, 지표는 5분마다).</text>
   <text x="60" y="1300" font-size="12.5" fill="#13201D">· 대기 30분 넘은 상담 자동 취소</text>
   <text x="60" y="1322" font-size="12.5" fill="#13201D">· 지표 기록 (대기 수 · 최장 대기)</text>
   <rect x="60" y="1334" width="316" height="22" rx="5" fill="#F7FAF9" stroke="#DBE4E1"/>

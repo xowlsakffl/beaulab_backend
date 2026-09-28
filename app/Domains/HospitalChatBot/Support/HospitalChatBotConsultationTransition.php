@@ -10,6 +10,7 @@ use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationStatusHistory;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 상담 상태 전이를 한곳에서 수행한다.
@@ -184,18 +185,16 @@ final class HospitalChatBotConsultationTransition
                  * 조건부 UPDATE가 0건이면 다른 쪽이 먼저 바꿔 놓은 것이다.
                  * Claim 충돌은 상담원 둘이 동시에 누른 경우로, 지표로 세야 한다(PRD 16.6).
                  */
-                HospitalChatBotLog::warning(
-                    $toStatus === HospitalChatBotConsultationStatus::CONNECTED
+                Log::warning('챗봇 상담 상태 전이 충돌', [
+                    'event' => $toStatus === HospitalChatBotConsultationStatus::CONNECTED
                         ? HospitalChatBotLog::CONSULTATION_CLAIM_CONFLICT
-                        : HospitalChatBotLog::CONSULTATION_CLOSED.'.conflict',
-                    [
-                        'consultation_id' => $consultationId,
-                        'from_status' => $fromStatus,
-                        'to_status' => $toStatus,
-                        'actor_type' => $actorType,
-                        'actor_id' => $actorId,
-                    ],
-                );
+                        : HospitalChatBotLog::CONSULTATION_CLOSE_CONFLICT,
+                    'consultation_id' => $consultationId,
+                    'from_status' => $fromStatus,
+                    'to_status' => $toStatus,
+                    'actor_type' => $actorType,
+                    'actor_id' => $actorId,
+                ]);
 
                 return false;
             }
@@ -210,27 +209,56 @@ final class HospitalChatBotConsultationTransition
                 occurredAt: $occurredAt,
             );
 
-            HospitalChatBotLog::info(
-                $toStatus === HospitalChatBotConsultationStatus::CONNECTED
-                    ? HospitalChatBotLog::CONSULTATION_CLAIMED
-                    : HospitalChatBotLog::CONSULTATION_CLOSED,
-                [
+            /*
+             * 발행과 로그 모두 커밋된 뒤에 한다.
+             *
+             * 롤백된 전이가 화면에 먼저 보이면 안 되고, 로그도 마찬가지다. 커밋이
+             * 실패하면 상태는 되돌아가는데 로그만 성공으로 남아 집계가 실제보다 커진다.
+             *
+             * 로그가 먼저다. 발행은 동기(ShouldBroadcastNow)라 Reverb가 안 닿으면
+             * 여기서 던지는데, 로그가 뒤에 있으면 그 순간의 전이가 로그에서 사라진다.
+             */
+            DB::afterCommit(function () use (
+                $consultationId,
+                $fromStatus,
+                $toStatus,
+                $actorType,
+                $actorId,
+                $reason,
+            ): void {
+                Log::info(self::logMessage($toStatus, $reason), [
+                    'event' => $toStatus === HospitalChatBotConsultationStatus::CONNECTED
+                        ? HospitalChatBotLog::CONSULTATION_CLAIMED
+                        : HospitalChatBotLog::CONSULTATION_CLOSED,
                     'consultation_id' => $consultationId,
                     'from_status' => $fromStatus,
                     'to_status' => $toStatus,
                     'actor_type' => $actorType,
                     'actor_id' => $actorId,
                     'reason' => $reason,
-                ],
-            );
+                ]);
 
-            // 커밋된 뒤에 발행한다. 롤백된 전이가 화면에 먼저 보이면 안 된다.
-            DB::afterCommit(function () use ($consultationId, $toStatus): void {
                 self::announce($consultationId, $toStatus);
             });
 
             return true;
         });
+    }
+
+    /**
+     * 로그 문장.
+     *
+     * 저장소의 다른 로그처럼 문장만 봐도 무슨 일인지 알아야 한다. event는 집계용이고
+     * 사람은 laravel.log를 눈으로 훑는다. 종료 사유의 이름은 CSV와 같은 표를 쓴다.
+     * 표가 둘이면 사유가 하나 늘 때 한쪽을 놓친다.
+     */
+    private static function logMessage(string $toStatus, ?string $reason): string
+    {
+        if ($toStatus === HospitalChatBotConsultationStatus::CONNECTED) {
+            return '챗봇 상담 연결';
+        }
+
+        return '챗봇 상담 '.HospitalChatBotConsultationStatus::closeReasonLabel($reason);
     }
 
     /**

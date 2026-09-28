@@ -12,6 +12,7 @@ use App\Domains\HospitalChatBot\Support\HospitalChatBotAvailabilityResolver;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
@@ -51,7 +52,8 @@ final class HospitalChatBotConsultationExportForStaffAction
         return response()->streamDownload(function () use ($query, $chunkSize, $total): void {
             $output = fopen('php://output', 'wb');
             if ($output === false) {
-                HospitalChatBotLog::failure(HospitalChatBotLog::EXPORT_FAILED, null, [
+                Log::error('챗봇 상담 기록 내보내기 실패', [
+                    'event' => HospitalChatBotLog::EXPORT_FAILED,
                     'reason' => 'php://output 을 열 수 없었다',
                 ]);
 
@@ -99,7 +101,10 @@ final class HospitalChatBotConsultationExportForStaffAction
                     fflush($output);
                 }
             } catch (Throwable $exception) {
-                HospitalChatBotLog::failure(HospitalChatBotLog::EXPORT_FAILED, $exception, [
+                Log::error('챗봇 상담 기록 내보내기 중단', [
+                    'event' => HospitalChatBotLog::EXPORT_FAILED,
+                    'exception' => $exception::class,
+                    'reason' => $exception->getMessage(),
                     'written_rows' => $written,
                     'expected_rows' => $total,
                 ]);

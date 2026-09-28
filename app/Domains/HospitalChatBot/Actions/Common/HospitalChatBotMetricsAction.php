@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\HospitalChatBot\Actions\System;
+namespace App\Domains\HospitalChatBot\Actions\Common;
 
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage;
@@ -10,6 +10,7 @@ use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 지금 이 순간의 챗봇 상태를 한 줄로 남긴다(PRD 16.6 권장 지표).
@@ -58,7 +59,7 @@ final class HospitalChatBotMetricsAction
             ),
         ];
 
-        HospitalChatBotLog::info(HospitalChatBotLog::METRICS, $metrics);
+        Log::info('챗봇 지표', ['event' => HospitalChatBotLog::METRICS] + $metrics);
 
         return $metrics;
     }

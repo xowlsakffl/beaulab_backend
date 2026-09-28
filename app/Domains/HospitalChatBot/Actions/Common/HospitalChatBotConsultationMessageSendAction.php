@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domains\HospitalChatBot\Actions\Shared;
+namespace App\Domains\HospitalChatBot\Actions\Common;
 
 use App\Domains\HospitalChatBot\Dto\HospitalChatBotConsultationMessageDto;
 use App\Domains\HospitalChatBot\Jobs\BroadcastHospitalChatBotMessageJob;

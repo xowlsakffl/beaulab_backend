@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Hospital\Http\Requests\HospitalChatBot;
 
-use App\Domains\HospitalChatBot\Actions\Shared\HospitalChatBotConsultationMessageListAction;
+use App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotConsultationMessageListAction;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class HospitalChatBotConsultationMessageListForHospitalRequest extends FormRequest

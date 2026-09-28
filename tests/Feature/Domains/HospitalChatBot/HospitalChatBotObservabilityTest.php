@@ -8,7 +8,7 @@ use App\Common\Authorization\AccessPermissions;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\HospitalChatBot\Actions\System\HospitalChatBotMetricsAction;
+use App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotMetricsAction;
 use App\Domains\HospitalChatBot\Jobs\BroadcastHospitalChatBotMessageJob;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
@@ -63,10 +63,18 @@ final class HospitalChatBotObservabilityTest extends TestCase
         self::assertContains(HospitalChatBotLog::CONSULTATION_CLAIMED, $events);
         self::assertContains(HospitalChatBotLog::CONSULTATION_CLOSED, $events);
 
-        // 문장이 아니라 event 키로 묶여야 집계할 수 있다(PRD 16.6).
+        /*
+         * 메시지는 저장소 관례대로 한국어 문장이고, 집계용 키는 컨텍스트의 event다.
+         * 문장을 고쳐도 집계가 끊기지 않아야 한다(PRD 16.6).
+         */
         $requested = $this->firstWithEvent($seen, HospitalChatBotLog::CONSULTATION_REQUESTED);
-        self::assertSame(HospitalChatBotLog::CONSULTATION_REQUESTED, $requested['message']);
+        self::assertNotSame(HospitalChatBotLog::CONSULTATION_REQUESTED, $requested['message']);
+        self::assertSame(HospitalChatBotLog::CONSULTATION_REQUESTED, $requested['context']['event']);
         self::assertSame($id, $requested['context']['consultation_id']);
+
+        // 종료 사유는 문장에 드러나야 한다. 상담원 종료와 사용자 종료가 같은 문장이면 컨텍스트를 열어야 한다.
+        $closed = $this->firstWithEvent($seen, HospitalChatBotLog::CONSULTATION_CLOSED);
+        self::assertSame('챗봇 상담 상담원 종료', $closed['message']);
     }
 
     public function test_a_claim_conflict_is_logged_as_its_own_event(): void

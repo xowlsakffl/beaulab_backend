@@ -11,6 +11,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -68,7 +69,10 @@ final class BroadcastHospitalChatBotMessageJob implements ShouldQueue
      */
     public function failed(?Throwable $exception): void
     {
-        HospitalChatBotLog::failure(HospitalChatBotLog::BROADCAST_FAILED, $exception, [
+        Log::error('챗봇 메시지 발행 실패', [
+            'event' => HospitalChatBotLog::BROADCAST_FAILED,
+            'exception' => $exception ? $exception::class : null,
+            'reason' => $exception?->getMessage(),
             'message_id' => $this->messageId,
             'tries' => $this->tries,
         ]);

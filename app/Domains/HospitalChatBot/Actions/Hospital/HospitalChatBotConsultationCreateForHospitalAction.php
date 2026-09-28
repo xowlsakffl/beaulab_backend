@@ -10,6 +10,7 @@ use App\Domains\HospitalChatBot\Dto\Hospital\HospitalChatBotConsultationForHospi
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Queries\Hospital\HospitalChatBotConsultationForHospitalQuery;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
+use Illuminate\Support\Facades\Log;
 
 final class HospitalChatBotConsultationCreateForHospitalAction
 {
@@ -39,7 +40,8 @@ final class HospitalChatBotConsultationCreateForHospitalAction
              * 연타나 여러 탭에서 온 요청이다. open()까지 가지 않고 여기서 돌려주므로
              * 로그도 여기서 남겨야 한다. Query 안에만 두면 이 경로가 통째로 빠진다.
              */
-            HospitalChatBotLog::info(HospitalChatBotLog::CONSULTATION_REQUEST_DEDUPED, [
+            Log::info('챗봇 상담 요청 중복 수렴', [
+                'event' => HospitalChatBotLog::CONSULTATION_REQUEST_DEDUPED,
                 'consultation_id' => (int) $existing->id,
                 'hospital_id' => $hospitalId,
                 'status' => (string) $existing->status,

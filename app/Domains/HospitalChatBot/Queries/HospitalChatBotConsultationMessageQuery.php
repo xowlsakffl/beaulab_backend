@@ -14,6 +14,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 상담 메시지 저장과 조회.
@@ -94,7 +95,10 @@ final class HospitalChatBotConsultationMessageQuery
 
                 if ($concurrent === null) {
                     // 멱등 충돌이 아닌 진짜 저장 실패다. 사람이 봐야 한다(PRD 16.6).
-                    HospitalChatBotLog::failure(HospitalChatBotLog::MESSAGE_STORE_FAILED, $exception, [
+                    Log::error('챗봇 메시지 저장 실패', [
+                        'event' => HospitalChatBotLog::MESSAGE_STORE_FAILED,
+                        'exception' => $exception::class,
+                        'reason' => $exception->getMessage(),
                         'consultation_id' => $consultationId,
                         'sequence' => $sequence,
                         'sender_type' => $senderType,

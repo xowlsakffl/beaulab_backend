@@ -11,6 +11,7 @@ use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationStatusHistory;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * 상담 상태 전이를 한곳에서 수행한다.
@@ -266,11 +267,25 @@ final class HospitalChatBotConsultationTransition
      *
      * 발행이 실패해도 전이는 이미 커밋됐다. 양쪽 화면이 주기적으로 다시 조회하므로
      * 상태는 결국 맞춰진다. 메시지와 달리 재발행 장치를 두지 않는 이유다.
+     *
+     * 그래서 예외를 삼킨다. 발행은 동기(ShouldBroadcastNow)라 Reverb가 죽으면 여기서
+     * 던지는데, 그대로 두면 커밋된 전이가 500으로 나간다. 운영은 기존 채팅 때문에
+     * Reverb가 켜져 있어 이 경로가 실제로 밟힌다. 기존 채팅의 발행 실패 처리와 같다.
      */
     public static function announce(int $consultationId, string $status): void
     {
-        HospitalChatBotConsultationChanged::dispatch($consultationId, $status);
-        HospitalChatBotQueueChanged::dispatch($consultationId, $status);
+        try {
+            HospitalChatBotConsultationChanged::dispatch($consultationId, $status);
+            HospitalChatBotQueueChanged::dispatch($consultationId, $status);
+        } catch (Throwable $exception) {
+            Log::warning('챗봇 상담 상태 발행 실패. 화면은 폴링으로 맞춰진다', [
+                'event' => HospitalChatBotLog::CONSULTATION_ANNOUNCE_FAILED,
+                'consultation_id' => $consultationId,
+                'status' => $status,
+                'exception' => $exception::class,
+                'reason' => $exception->getMessage(),
+            ]);
+        }
     }
 
     private function record(

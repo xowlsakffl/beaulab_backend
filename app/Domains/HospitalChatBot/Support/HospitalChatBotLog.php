@@ -27,6 +27,8 @@ final class HospitalChatBotLog
 
     public const CONSULTATION_CLOSE_CONFLICT = 'hospital_chatbot.consultation.close_conflict';
 
+    public const CONSULTATION_ANNOUNCE_FAILED = 'hospital_chatbot.consultation.announce_failed';
+
     public const MESSAGE_STORE_FAILED = 'hospital_chatbot.message.store_failed';
 
     public const BROADCAST_FAILED = 'hospital_chatbot.broadcast.failed';

@@ -9,6 +9,7 @@ use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotMetricsAction;
+use App\Domains\HospitalChatBot\Events\HospitalChatBotConsultationChanged;
 use App\Domains\HospitalChatBot\Jobs\BroadcastHospitalChatBotMessageJob;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
@@ -16,6 +17,7 @@ use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Spatie\Permission\Models\Permission;
@@ -214,6 +216,46 @@ final class HospitalChatBotObservabilityTest extends TestCase
      *
      * @return \ArrayObject<int, array<string, mixed>>
      */
+    /**
+     * 운영은 기존 채팅 때문에 Reverb가 켜져 있다. 발행이 죽어도 커밋된 전이가
+     * 500으로 나가면 안 되고, 전이 로그도 남아야 한다. 화면은 폴링으로 맞춰진다.
+     */
+    public function test_a_broadcast_failure_neither_fails_the_transition_nor_loses_its_log(): void
+    {
+        $seen = $this->captureLogs();
+
+        Event::listen(HospitalChatBotConsultationChanged::class, static function (): void {
+            throw new \RuntimeException('reverb unreachable');
+        });
+
+        $staff = $this->staff();
+        $this->loginStaff($staff);
+        $this->openOperatingHours();
+
+        $account = $this->hospitalAccount();
+        $this->login('hospital', $account, 'http://localhost:3002');
+
+        // 요청 생성의 발행(recordOpened)도 같은 경로를 탄다.
+        $id = (int) $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
+            ->assertOk()->json('data.consultation.id');
+
+        $this->loginStaff($staff);
+        $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$id}/claim")->assertOk();
+
+        $this->assertDatabaseHas('hospital_chatbot_consultations', [
+            'id' => $id,
+            'status' => HospitalChatBotConsultationStatus::CONNECTED,
+        ]);
+
+        $events = array_column($seen->getArrayCopy(), 'event');
+        self::assertContains(HospitalChatBotLog::CONSULTATION_CLAIMED, $events);
+        self::assertContains(HospitalChatBotLog::CONSULTATION_ANNOUNCE_FAILED, $events);
+
+        $failed = $this->firstWithEvent($seen, HospitalChatBotLog::CONSULTATION_ANNOUNCE_FAILED);
+        self::assertSame('warning', $failed['level']);
+        self::assertSame(\RuntimeException::class, $failed['context']['exception']);
+    }
+
     private function captureLogs(): \ArrayObject
     {
         /** @var \ArrayObject<int, array<string, mixed>> $seen */

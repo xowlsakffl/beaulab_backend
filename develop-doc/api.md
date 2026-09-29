@@ -122,7 +122,7 @@
 - 이벤트는 `.hospital-chatbot.message.created`(상담 채널), `.hospital-chatbot.consultation.changed`(상담 채널), `.hospital-chatbot.queue.changed`(목록 채널)입니다.
 - 메시지 발행은 저장 커밋 뒤에 Job으로 나갑니다. `broadcast_pending` 표식과 발행을 한 트랜잭션에서 처리하므로 중간에 실패하면 표식이 남고 `hospital-chatbot:dispatch-pending-broadcasts`가 매분 다시 집어 갑니다.
 - 상태 변경 발행은 재발행 장치가 없습니다. 실패해도 양쪽 화면이 주기적으로 다시 조회해 결국 맞춰집니다.
-- **화면은 구독하지 않고 폴링합니다**(메시지 5초, 목록 10초). 운영은 기존 채팅 때문에 Reverb가 켜져 있어 챗봇 이벤트도 발행되지만 받는 화면이 없습니다. 상태 발행이 실패하면 `hospital_chatbot.consultation.announce_failed` 경고만 남기고 응답은 정상입니다. 전이는 이미 커밋됐고 폴링이 맞춥니다. 로컬처럼 `BROADCAST_CONNECTION=log`면 재발행 커맨드도 아무것도 집지 않습니다. 큐 워커가 없는 환경에서 같은 메시지를 매분 다시 밀어 넣으면 Redis만 부풀기 때문입니다. 이렇게 둔 이유는 [구조 문서](architecture.md#병원-챗봇-구조)에 있습니다.
+- **폴링이 기본입니다**(메시지 5초, 목록 10초). 운영은 기존 채팅 때문에 Reverb가 켜져 있어 챗봇 이벤트도 발행됩니다. 관리자 화면은 `NEXT_PUBLIC_REVERB_APP_KEY`가 설정되면 구독도 하고, 병원 SDK는 구독 코드가 없어 폴링만 합니다. 상태 발행이 실패하면 `hospital_chatbot.consultation.announce_failed` 경고만 남기고 응답은 정상입니다. 전이는 이미 커밋됐고 폴링이 맞춥니다. 로컬처럼 `BROADCAST_CONNECTION=log`면 재발행 커맨드도 아무것도 집지 않습니다. 큐 워커가 없는 환경에서 같은 메시지를 매분 다시 밀어 넣으면 Redis만 부풀기 때문입니다. 이렇게 둔 이유는 [구조 문서](architecture.md#병원-챗봇-구조)에 있습니다.
 - 클라이언트는 순번이 아는 값보다 2 이상 앞서면 붙이지 않고 `after_sequence`로 다시 조회합니다. 실시간과 재조회가 같은 메시지를 줘도 순번으로 한 번만 남깁니다.
 
 ## 병원 챗봇 로그와 지표

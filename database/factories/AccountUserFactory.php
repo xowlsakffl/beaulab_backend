@@ -16,7 +16,7 @@ final class AccountUserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name(),
+            'name' => fake('ko_KR')->name(),
             'nickname' => $this->faker->unique()->userName(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),

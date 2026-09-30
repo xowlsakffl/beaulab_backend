@@ -24,7 +24,7 @@ final class HospitalDoctorFactory extends Factory
         return [
             'hospital_id' => Hospital::factory(),
             'sort_order' => $this->faker->numberBetween(0, 20),
-            'name' => $this->faker->name(),
+            'name' => fake('ko_KR')->name(),
             'gender' => $this->faker->randomElement([
                 HospitalDoctor::GENDER_MALE,
                 HospitalDoctor::GENDER_FEMALE,
@@ -34,13 +34,13 @@ final class HospitalDoctorFactory extends Factory
             'license_number' => strtoupper($this->faker->bothify('DOC-########')),
             'specialist_field' => $this->faker->randomElement(HospitalDoctor::specialistFields()),
             'educations' => collect(range(1, $educationCount))
-                ->map(fn (): string => $this->faker->company() . ' 수료')
+                ->map(fn (): string => $this->faker->randomElement(['대한의학회 연수 과정 수료', '임상 진료 교육 과정 수료']))
                 ->all(),
             'careers' => collect(range(1, $careerCount))
-                ->map(fn (): string => $this->faker->company() . ' 근무')
+                ->map(fn (): string => $this->faker->randomElement(['서울 의료원 근무', '중앙 종합병원 근무']))
                 ->all(),
             'etc_contents' => collect(range(1, $etcCount))
-                ->map(fn (): string => $this->faker->sentence(6))
+                ->map(fn (): string => $this->faker->randomElement(['대한의학회 정회원', '임상 연구 학술대회 발표']))
                 ->all(),
             'status' => $this->faker->randomElement([
                 HospitalDoctor::STATUS_ACTIVE,

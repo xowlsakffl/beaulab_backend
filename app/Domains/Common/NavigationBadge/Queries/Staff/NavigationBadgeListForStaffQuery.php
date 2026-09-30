@@ -16,6 +16,7 @@ use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
+use App\Domains\RemoteConsultation\Models\RemoteConsultation;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,6 +41,9 @@ final class NavigationBadgeListForStaffQuery
                     ->count(),
                 '/customer-db-manage/real-models' => HospitalEventRealModelDB::query()
                     ->where('status', HospitalEventRealModelDB::STATUS_RECEIVED)
+                    ->count(),
+                '/customer-db-manage/consultations' => RemoteConsultation::query()
+                    ->where('approval_status', 'PENDING')
                     ->count(),
                 '/ads-manage/events' => $this->countPendingAllowStatus(HospitalEvent::query(), HospitalEvent::ALLOW_PENDING),
                 '/ads-manage/event-ads' => $this->countPendingAllowStatus(HospitalEventAd::query(), HospitalEventAd::ALLOW_PENDING),

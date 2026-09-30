@@ -18,7 +18,8 @@ final class CategoryFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->unique()->word();
+        $code = $this->faker->unique()->numerify('TEST_########');
+        $name = '테스트 진료과목 '.substr($code, 5);
 
         return [
             'domain' => Category::DOMAIN_HOSPITAL_MEDICAL,
@@ -26,7 +27,7 @@ final class CategoryFactory extends Factory
             'depth' => 1,
             'group_code' => null,
             'name' => $name,
-            'code' => strtoupper($name),
+            'code' => $code,
             'full_path' => $name,
             'sort_order' => 1,
             'status' => Category::STATUS_ACTIVE,
@@ -197,7 +198,7 @@ final class CategoryFactory extends Factory
             : ($parent?->group_code ? (string) $parent->group_code : null);
 
         if ($groupCode !== null && ! in_array($groupCode, Category::groupCodes(), true)) {
-            throw new RuntimeException("Unknown category group code: {$groupCode}");
+            throw new RuntimeException("알 수 없는 카테고리 그룹 코드입니다: {$groupCode}");
         }
 
         return $groupCode;
@@ -248,7 +249,7 @@ final class CategoryFactory extends Factory
             $category = $categoriesByCode->get($item['code']);
 
             if (! $category instanceof Category) {
-                throw new RuntimeException("Category usage references missing category code: {$item['code']}");
+                throw new RuntimeException("카테고리 사용처가 존재하지 않는 코드를 참조합니다: {$item['code']}");
             }
 
             $categoryIds[] = (int) $category->id;
@@ -301,6 +302,10 @@ final class CategoryFactory extends Factory
                     ->selectRaw('1')
                     ->from('category_assignments')
                     ->whereColumn('category_assignments.category_id', 'categories.id');
+            })
+            ->whereNotExists(static function ($query): void {
+                $query->selectRaw('1')->from('remote_consultation_categories')
+                    ->whereColumn('remote_consultation_categories.category_id', 'categories.id');
             })
             ->pluck('id')
             ->all();

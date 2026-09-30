@@ -6,6 +6,7 @@ return [
     'disk' => env('MEDIA_DISK', 'public'),
     'private_disk' => env('MEDIA_PRIVATE_DISK', 'private_media'),
     'private_collections' => [
+        \App\Domains\RemoteConsultation\Models\RemoteConsultation::class => ['member_images', 'style_images'],
         \App\Domains\HospitalWallet\Models\HospitalWalletRefund::class => ['hospital_wallet_refund_business_registration_file', 'hospital_wallet_refund_bankbook_file'],
         \App\Domains\Hospital\Models\HospitalBusinessRegistration::class => ['business_registration_file'],
         \App\Domains\Beauty\Models\BeautyBusinessRegistration::class => ['business_registration_file'],

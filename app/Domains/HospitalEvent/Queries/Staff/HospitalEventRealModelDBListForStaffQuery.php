@@ -17,6 +17,10 @@ final class HospitalEventRealModelDBListForStaffQuery
 
         $this->applyFilters($builder, $filters);
 
+        if (empty($filters['sort'])) {
+            $builder->orderByRaw('CASE WHEN status = ? THEN 0 ELSE 1 END', [HospitalEventRealModelDB::STATUS_RECEIVED]);
+        }
+
         $sort = (string) ($filters['sort'] ?? 'id');
         $direction = (string) ($filters['direction'] ?? 'desc');
         $builder->orderBy($sort, $direction);

@@ -19,7 +19,7 @@ final class HospitalStatusChangeRequestFactory extends Factory
             'previous_status' => Hospital::STATUS_ACTIVE,
             'target_status' => Hospital::STATUS_SUSPENDED,
             'status' => HospitalStatusChangeRequest::STATUS_PENDING,
-            'reason' => fake()->sentence(),
+            'reason' => fake()->randomElement(['내부 정비를 위해 상태 변경을 요청합니다.', '운영 일정 변경으로 상태 변경을 요청합니다.']),
             'requested_by_staff_id' => AccountStaff::factory(),
         ];
     }

@@ -60,7 +60,7 @@ final class HospitalEventRealModelDBListForStaffRequest extends FormRequest
             'birth_year_max' => $validated['birth_year_max'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
-            'sort' => $validated['sort'] ?? 'id',
+            'sort' => $validated['sort'] ?? null,
             'direction' => $validated['direction'] ?? 'desc',
             'per_page' => (int) ($validated['per_page'] ?? 15),
         ];

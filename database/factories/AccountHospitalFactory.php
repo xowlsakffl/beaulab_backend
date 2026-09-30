@@ -17,7 +17,7 @@ final class AccountHospitalFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company(),
+            'name' => fake('ko_KR')->name(),
             'nickname' => $this->faker->unique()->userName(),
             'email' => $this->faker->unique()->safeEmail(),
 

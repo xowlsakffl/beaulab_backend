@@ -273,6 +273,8 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('users.getAccountUsersForStaff');
     Route::get('users/summary', [AccountUserForStaffController::class, 'getAccountUserSummaryForStaff'])
         ->name('users.getAccountUserSummaryForStaff');
+    Route::get('users/statistics/{section}', [\App\Modules\Staff\Http\Controllers\AccountUser\AccountUserStatisticsForStaffController::class, 'show'])
+        ->whereIn('section', ['summary', 'channels', 'visits'])->name('users.statistics');
     Route::get('users/{user}', [AccountUserForStaffController::class, 'getAccountUserForStaff'])
         ->withTrashed()
         ->name('users.getAccountUserForStaff');
@@ -515,4 +517,17 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('faqs.updateFaqForStaff');
     Route::delete('faqs/{faq}', [FaqForStaffController::class, 'deleteFaqForStaff'])
         ->name('faqs.deleteFaqForStaff');
+});
+
+// Internal remote-consultation administration. No User/Hospital write endpoints yet.
+Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermissions::COMMON_ACCESS])->prefix('remote-consultations')->group(function () {
+    $controller = \App\Modules\Staff\Http\Controllers\RemoteConsultation\RemoteConsultationForStaffController::class;
+    Route::get('/', [$controller, 'index']);
+    Route::get('/{consultation}', [$controller, 'show'])->whereNumber('consultation');
+    Route::get('/{consultation}/quotes/{quote}', [$controller, 'quote'])->whereNumber('consultation')->whereNumber('quote');
+    Route::post('/{consultation}/approve', [$controller, 'approve'])->whereNumber('consultation');
+    Route::patch('/{consultation}/status', [$controller, 'status'])->whereNumber('consultation');
+    Route::get('/{consultation}/hospitals', [$controller, 'hospitals'])->whereNumber('consultation');
+    Route::post('/{consultation}/quotes', [$controller, 'assign'])->whereNumber('consultation');
+    Route::delete('/{consultation}/quotes/{quote}', [$controller, 'removeQuote'])->whereNumber('consultation')->whereNumber('quote');
 });

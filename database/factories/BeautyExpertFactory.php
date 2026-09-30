@@ -24,18 +24,18 @@ final class BeautyExpertFactory extends Factory
         return [
             'beauty_id' => Beauty::factory(),
             'sort_order' => $this->faker->numberBetween(0, 20),
-            'name' => $this->faker->name(),
+            'name' => fake('ko_KR')->name(),
             'gender' => $this->faker->randomElement(['M', 'F']),
             'position' => $this->faker->randomElement(['원장', '실장', '디자이너', '상담사']),
             'career_started_at' => $this->faker->dateTimeBetween('-15 years', '-1 year')->format('Y-m-d'),
             'educations' => collect(range(1, $educationCount))
-                ->map(fn (): string => $this->faker->company() . ' 수료')
+                ->map(fn (): string => $this->faker->randomElement(['피부 관리 전문 교육 수료', '미용 실무 교육 과정 수료']))
                 ->all(),
             'careers' => collect(range(1, $careerCount))
-                ->map(fn (): string => $this->faker->company() . ' 근무')
+                ->map(fn (): string => $this->faker->randomElement(['뷰랩 피부관리실 근무', '중앙 뷰티센터 근무']))
                 ->all(),
             'etc_contents' => collect(range(1, $etcCount))
-                ->map(fn (): string => $this->faker->sentence(6))
+                ->map(fn (): string => $this->faker->randomElement(['피부 관리 전문가 과정 이수', '미용 실무 교육 강사']))
                 ->all(),
             'status' => $this->faker->randomElement([
                 BeautyExpert::STATUS_ACTIVE,

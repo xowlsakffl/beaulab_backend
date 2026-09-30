@@ -24,7 +24,7 @@ final class HospitalEvaluationSeeder extends Seeder
         $categoryIdsByCode = $this->categoryIdsByCode(HospitalEvaluation::categoryCodes());
 
         if ($authorIds === [] || $hospitalIds === [] || $categoryIdsByCode === []) {
-            $this->command?->warn('HospitalEvaluationSeeder skipped: active users, approved hospitals, or evaluation categories are missing.');
+            $this->command?->warn('병의원평가 시드 생성을 건너뜁니다: 활성 회원, 승인 병원 또는 평가 카테고리가 없습니다.');
 
             return;
         }

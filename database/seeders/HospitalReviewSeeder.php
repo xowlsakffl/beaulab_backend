@@ -27,7 +27,7 @@ final class HospitalReviewSeeder extends Seeder
         $categoryIdsByDomain = $this->categoryIdsByDomain(HospitalReview::categoryDomains());
 
         if ($authorIds === [] || $hospitalIds === [] || $categoryIdsByDomain === []) {
-            $this->command?->warn('HospitalReviewSeeder skipped: active users, approved hospitals, or review categories are missing.');
+            $this->command?->warn('후기 시드 생성을 건너뜁니다: 활성 회원, 승인 병원 또는 후기 카테고리가 없습니다.');
 
             return;
         }
@@ -239,7 +239,7 @@ final class HospitalReviewSeeder extends Seeder
                         ->create([
                             'hospital_review_id' => $review->id,
                             'author_id' => $authorIds[array_rand($authorIds)],
-                            'content' => '[상태 샘플 부모 댓글] '.fake()->sentence(14),
+                            'content' => '[상태 샘플 부모 댓글] 자세한 후기 공유 감사합니다.',
                         ]);
                 }
 
@@ -254,7 +254,7 @@ final class HospitalReviewSeeder extends Seeder
             $factory->count(random_int(1, 2))->create([
                 'hospital_review_id' => $review->id,
                 'author_id' => fn () => $authorIds[array_rand($authorIds)],
-                'content' => fn () => $sample['prefix'].' '.fake()->sentence(14),
+                'content' => fn () => $sample['prefix'].' 회복 과정도 함께 공유해 주세요.',
             ]);
         }
     }

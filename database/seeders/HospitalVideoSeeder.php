@@ -20,7 +20,7 @@ final class HospitalVideoSeeder extends Seeder
             ->get();
 
         if ($hospitals->isEmpty()) {
-            $this->command?->warn('HospitalVideoSeeder skipped: approved active hospitals are missing.');
+            $this->command?->warn('동영상 시드 생성을 건너뜁니다: 승인된 활성 병원이 없습니다.');
 
             return;
         }

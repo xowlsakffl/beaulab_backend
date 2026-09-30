@@ -23,27 +23,27 @@ final class FrontendDevelopmentSeeder extends Seeder
     {
         $password = (string) config('seeding.frontend.password');
         if (! app()->environment('local') || ! config('seeding.frontend.enabled')) {
-            throw new LogicException('Requires APP_ENV=local and FRONTEND_SEED_ENABLED=true.');
+            throw new LogicException('APP_ENV=local 및 FRONTEND_SEED_ENABLED=true 설정이 필요합니다.');
         }
         if (strlen($password) < 12) {
-            throw new LogicException('Set a private FRONTEND_SEED_PASSWORD of at least 12 characters.');
+            throw new LogicException('FRONTEND_SEED_PASSWORD에 외부에 공유하지 않는 12자 이상의 비밀번호를 설정해 주세요.');
         }
         if (config('sms.enabled') || config('push.enabled')) {
-            throw new LogicException('Disable SMS_ENABLED and PUSH_ENABLED before creating fixtures.');
+            throw new LogicException('시드 생성 전에 SMS_ENABLED와 PUSH_ENABLED를 비활성화해 주세요.');
         }
 
         $connection = DB::connection();
         if ($connection->getDriverName() !== 'mysql'
             || ! in_array($connection->getConfig('host'), ['127.0.0.1', 'localhost', '::1'], true)) {
-            throw new LogicException('Only a local MySQL connection is supported.');
+            throw new LogicException('로컬 MySQL 연결만 지원합니다.');
         }
         $database = (string) $connection->selectOne('SELECT DATABASE() AS name')->name;
         if (! preg_match('/^beaulab_frontend_[a-z0-9_]+$/', $database)) {
-            throw new LogicException('Use a dedicated database named beaulab_frontend_<name>.');
+            throw new LogicException('beaulab_frontend_<name> 형식의 전용 데이터베이스를 사용해 주세요.');
         }
         $lock = 'frontend-seed:'.substr(hash('sha256', $database), 0, 40);
         if ((int) $connection->selectOne('SELECT GET_LOCK(?, 0) AS acquired', [$lock])->acquired !== 1) {
-            throw new LogicException('Another frontend seed is running.');
+            throw new LogicException('다른 프론트 개발 시드 생성 작업이 실행 중입니다.');
         }
 
         try {
@@ -51,7 +51,7 @@ final class FrontendDevelopmentSeeder extends Seeder
             foreach ($connection->select("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'") as $table) {
                 $name = (string) array_values((array) $table)[0];
                 if (! in_array($name, ['migrations', 'hospital_event_ad_booking_locks', 'hospital_promotion_slot_locks'], true) && $connection->table($name)->exists()) {
-                    throw new LogicException("Database is not empty ({$name}). Existing data was not modified.");
+                    throw new LogicException("데이터베이스가 비어 있지 않습니다({$name}). 기존 데이터는 변경하지 않았습니다.");
                 }
             }
             // Fixtures must not trigger observers, notifications or outbound delivery.
@@ -64,8 +64,8 @@ final class FrontendDevelopmentSeeder extends Seeder
             $connection->selectOne('SELECT RELEASE_LOCK(?)', [$lock]);
         }
 
-        $this->command?->info('Local fixtures created. Passwords were not printed. Do not rerun on this database.');
-        $this->command?->table(['Kind', 'ID', 'Login / name'], $result);
+        $this->command?->info('로컬 시드 생성을 완료했습니다. 비밀번호는 출력하지 않았습니다. 이 데이터베이스에서 다시 실행하지 마세요.');
+        $this->command?->table(['구분', 'ID', '로그인 정보 / 이름'], $result);
     }
 
     private function createFixtures(string $password): array
@@ -74,36 +74,36 @@ final class FrontendDevelopmentSeeder extends Seeder
         $staff = AccountStaff::factory()->withPassword($password)->asSuperAdmin()->create([
             'name' => '개발 관리자', 'nickname' => 'frontend_admin', 'email' => 'admin@frontend.test',
         ]);
-        $rows[] = ['staff', $staff->id, $staff->nickname];
+        $rows[] = ['직원', $staff->id, $staff->nickname];
         $restricted = AccountStaff::factory()->withPassword($password)->create([
             'name' => '권한 없는 직원', 'nickname' => 'frontend_restricted', 'email' => 'restricted@frontend.test',
         ]);
-        $rows[] = ['staff (no permissions)', $restricted->id, $restricted->nickname];
+        $rows[] = ['직원 (권한 없음)', $restricted->id, $restricted->nickname];
 
         $users = [];
-        foreach (['alice', 'bob', 'empty', 'suspended'] as $name) {
+        foreach (['alice' => '가', 'bob' => '나', 'empty' => '빈 내역', 'suspended' => '이용 정지'] as $name => $label) {
             $users[$name] = AccountUser::factory()->withPassword($password)->create([
-                'name' => '개발 사용자 '.$name, 'nickname' => 'frontend_'.$name,
+                'name' => '개발 사용자 '.$label, 'nickname' => 'frontend_'.$name,
                 'email' => $name.'@frontend.test', 'phone' => null,
                 'status' => $name === 'suspended' ? AccountUser::STATUS_SUSPENDED : AccountUser::STATUS_ACTIVE,
                 'last_accessed_at' => null, 'last_access_ip' => null,
             ]);
-            $rows[] = ['user', $users[$name]->id, $users[$name]->email];
+            $rows[] = ['회원', $users[$name]->id, $users[$name]->email];
         }
 
-        foreach (['alpha', 'beta'] as $name) {
+        foreach (['alpha' => '가', 'beta' => '나'] as $name => $label) {
             $hospital = Hospital::factory()->approved()->active()->withSeedMedia(1)->create([
-                'name' => '개발 병원 '.$name, 'address' => '개발용 가상 주소',
+                'name' => '개발 병원 '.$label, 'address' => '개발용 가상 주소',
                 'description' => '실제 병원이 아닌 로컬 테스트 데이터입니다.',
                 'youtube_link' => null, 'tel' => null, 'ad_reception_phone_1' => null,
                 'ad_reception_phone_2' => null, 'ad_reception_phone_3' => null,
             ]);
-            $rows[] = ['hospital', $hospital->id, $hospital->name];
+            $rows[] = ['병의원', $hospital->id, $hospital->name];
             $owner = AccountHospital::factory()->forHospital($hospital)->withPassword($password)->create([
                 'email' => 'hospital-'.$name.'@frontend.test', 'nickname' => 'frontend_hospital_'.$name,
             ]);
             $owner->syncRoles([AccessRoles::HOSPITAL_OWNER]);
-            $rows[] = ['hospital account', $owner->id, $owner->nickname];
+            $rows[] = ['병의원 계정', $owner->id, $owner->nickname];
             // A zero wallet is consistent with an empty ledger; do not invent paid balance.
             HospitalWallet::query()->create([
                 'hospital_id' => $hospital->id, 'paid_balance' => 0,
@@ -111,13 +111,13 @@ final class FrontendDevelopmentSeeder extends Seeder
             ]);
             foreach (['open', 'closed'] as $state) {
                 $event = HospitalEvent::factory()->forHospital($hospital)->textType()->approved()->active()->withSeedMedia()->create([
-                    'name' => '개발 이벤트 '.$name.' '.$state,
+                    'name' => '개발 이벤트 '.$label.' '.($state === 'open' ? '진행중' : '종료'),
                     'manager_staff_id' => $staff->id,
                     'is_event_period_unlimited' => $state === 'open',
                     'event_start_at' => now()->subDays(30),
                     'event_end_at' => $state === 'open' ? null : now()->subDay(),
                 ]);
-                $rows[] = ['event', $event->id, $event->name];
+                $rows[] = ['이벤트', $event->id, $event->name];
             }
         }
 
@@ -131,11 +131,11 @@ final class FrontendDevelopmentSeeder extends Seeder
         foreach (['alice', 'bob'] as $name) {
             $message = $chat->messages()->create([
                 'sender_user_id' => $users[$name]->id, 'client_message_id' => 'frontend-fixture-'.$name,
-                'body' => '개발용 대화입니다: '.$name, 'broadcast_pending' => false,
+                'body' => '개발용 대화입니다: '.$users[$name]->name, 'broadcast_pending' => false,
             ]);
         }
         $chat->update(['last_message_id' => $message->id, 'last_message_at' => $message->created_at]);
-        $rows[] = ['chat (alice / bob)', $chat->id, '2 messages, no outbound notification'];
+        $rows[] = ['채팅 (개발 사용자 가 / 나)', $chat->id, '메시지 2건, 외부 알림 미발송'];
 
         return $rows;
     }

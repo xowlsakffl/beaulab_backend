@@ -21,7 +21,7 @@ final class HospitalEventSeeder extends Seeder
         $categoryIdsByUsage = $this->categoryIdsByUsage();
 
         if ($hospitalIds === [] || $categoryIdsByUsage === []) {
-            $this->command?->warn('HospitalEventSeeder skipped: approved hospitals or event categories are missing.');
+            $this->command?->warn('이벤트 시드 생성을 건너뜁니다: 승인 병원 또는 이벤트 카테고리가 없습니다.');
 
             return;
         }

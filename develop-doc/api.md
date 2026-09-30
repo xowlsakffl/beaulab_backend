@@ -156,3 +156,22 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 
 병원 인증 메일은 [HospitalAccountMail](../app/Domains/AccountHospital/Support/HospitalAccountMail.php), [메일 템플릿](../resources/views/mail)을 사용합니다.
 휴대폰 인증에서 전환하는 기존 환경의 데이터·링크 폐기 및 rollback 제한은 [운영 절차](operations.md)의 이메일 인증 전환 항목을 먼저 확인하세요.
+
+## 직원 비대면 상담 API
+
+모든 경로는 `/api/v1/staff` 아래이며 기존 직원 웹 세션·CSRF·`common.access`를 사용합니다.
+
+| 메서드 | 경로                                        | 용도 / 추가 권한                                            |
+| ------ | ------------------------------------------- | ----------------------------------------------------------- |
+| GET    | `/remote-consultations`                     | 목록 / `beaulab.remote_consultation.show`                   |
+| GET    | `/remote-consultations/{id}`                | 신청·이미지·배정 정보 / 동일 조회 권한                      |
+| GET    | `/remote-consultations/{id}/quotes/{quote}` | 해당 신청에 속한 병원 답변 / 동일 조회 권한                 |
+| POST   | `/remote-consultations/{id}/approve`        | 신청 승인 (기존 배정 유지) / 조회 + `beaulab.remote_consultation.approve` |
+| PATCH  | `/remote-consultations/{id}/status`         | 검수·반려 (`status`: `REVIEWING`/`REJECTED`) / 조회 + 승인 권한 |
+| GET    | `/remote-consultations/{id}/hospitals`      | 배정 가능 병원 검색 (`q`, `page`) / 조회 + 승인 권한 |
+| POST   | `/remote-consultations/{id}/quotes`         | 다중 직접 배정 (`hospital_ids`: 최대 6개, 기존 `hospital_id` 단건 호환) / 조회 + 승인 권한 |
+| DELETE | `/remote-consultations/{id}/quotes/{quote}` | 미상담 견적 삭제 / 조회 + 승인 권한 |
+
+목록은 `q`(ID·이름·전화번호), `gender`, `approval_status`, `start_date`, `end_date`, `birth_year_from`, `birth_year_to`, `page`로 조회합니다. 날짜 범위는 한국 시간 기준 신청일이며 15건 단위입니다. 목록 응답은 공통 `data: []`, `meta` 페이지 정보 형식, 승인 응답은 갱신된 신청 상세입니다. 잘못된 필터/승인 조건은 422, 권한 없음은 403, 다른 신청의 견적 ID는 404입니다.
+
+회원·병원용 경로는 제공하지 않습니다. 승인 응답의 `assigned_count`는 배정 건수이며 외부 알림 발송 건수가 아닙니다. 데이터와 후속 입력 검증 계약은 [도메인 규칙](domain-rules.md#비대면-상담-db)을 따릅니다.

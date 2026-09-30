@@ -20,7 +20,7 @@ final class HospitalReviewCommentFactory extends Factory
             'hospital_review_id' => null,
             'parent_id' => null,
             'author_id' => $this->randomAuthorId(),
-            'content' => $this->faker->sentence(18),
+            'content' => $this->faker->randomElement(['후기 잘 읽었습니다. 회복 과정도 궁금해요.', '자세한 후기 공유 감사합니다.', '상담받을 때 참고하겠습니다.']),
             'status' => HospitalReviewComment::STATUS_ACTIVE,
             'author_ip' => $this->faker->ipv4(),
             'like_count' => $this->faker->numberBetween(0, 80),

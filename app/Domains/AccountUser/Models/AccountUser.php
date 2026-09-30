@@ -42,6 +42,10 @@ final class AccountUser extends Authenticatable
 
     public const SIGNUP_CHANNEL_NAVER = 'NAVER';
 
+    public const SIGNUP_CHANNEL_GOOGLE = 'GOOGLE';
+
+    public const SIGNUP_CHANNEL_INSTAGRAM = 'INSTAGRAM';
+
     public const SIGNUP_CHANNEL_APPLE = 'APPLE';
 
     public const SIGNUP_CHANNEL_FACEBOOK = 'FACEBOOK';
@@ -149,10 +153,12 @@ final class AccountUser extends Authenticatable
         return [
             self::SIGNUP_CHANNEL_KAKAO => '카카오톡',
             self::SIGNUP_CHANNEL_NAVER => '네이버',
+            self::SIGNUP_CHANNEL_GOOGLE => '구글',
+            self::SIGNUP_CHANNEL_INSTAGRAM => '인스타',
             self::SIGNUP_CHANNEL_EMAIL => '이메일',
             self::SIGNUP_CHANNEL_APPLE => '애플',
             self::SIGNUP_CHANNEL_FACEBOOK => '페이스북',
-            self::SIGNUP_CHANNEL_EMAIL_NO_CONTACT => '이메일(연락처 x)',
+            self::SIGNUP_CHANNEL_EMAIL_NO_CONTACT => '이메일',
             self::SIGNUP_CHANNEL_UNKNOWN => '미확인',
         ];
     }

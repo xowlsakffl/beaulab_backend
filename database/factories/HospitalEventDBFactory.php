@@ -33,7 +33,7 @@ final class HospitalEventDBFactory extends Factory
             'hospital_id' => (int) $event->hospital_id,
             'hospital_event_id' => (int) $event->id,
             'hospital_doctor_id' => $doctorId,
-            'name' => $this->faker->name(),
+            'name' => fake('ko_KR')->name(),
             'phone' => $this->faker->numerify('010-####-####'),
             'contact_method' => $this->faker->randomElement(HospitalEventDB::contactMethods()),
             'preferred_time' => $this->faker->randomElement(HospitalEventDB::preferredTimes()),

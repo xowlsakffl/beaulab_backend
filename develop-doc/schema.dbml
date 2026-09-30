@@ -1605,3 +1605,59 @@ Table media_file_deletions {
   created_at timestamp
   updated_at timestamp
 }
+
+
+// Staff remote consultation. User/hospital submission endpoints are not implemented yet.
+Table remote_consultations {
+  id bigint [pk, increment]
+  account_user_id bigint [null, ref: > account_users.id]
+  name varchar(100) [not null]
+  birth_date date [not null]
+  gender varchar(10) [not null, note: 'MALE/FEMALE']
+  phone varchar(30) [not null]
+  surgery_timing varchar(30) [not null, note: 'WITHIN_1_MONTH/WITHIN_2_MONTHS/WITHIN_3_MONTHS/WITHIN_4_MONTHS/WITHIN_6_MONTHS/UNDECIDED']
+  height_cm smallint [null]
+  budget_amount bigint [null]
+  special_conditions json [not null]
+  desired_style text [null]
+  inquiry text [null]
+  requested_hospital_ids json [not null]
+  approval_status varchar(20) [not null, default: 'PENDING', note: 'PENDING 신청 / REVIEWING 검수 / APPROVED 승인 / REJECTED 반려']
+  approved_by_staff_id bigint [null, ref: > account_staffs.id]
+  approved_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
+  indexes {
+    (approval_status, created_at, id)
+    (created_at, id)
+    birth_date
+  }
+}
+Table remote_consultation_categories {
+  id bigint [pk, increment]
+  remote_consultation_id bigint [not null, ref: > remote_consultations.id]
+  category_id bigint [not null, ref: > categories.id]
+  category_name varchar(255) [not null]
+  indexes { (remote_consultation_id, category_id) [unique] }
+}
+Table remote_consultation_quotes {
+  id bigint [pk, increment]
+  remote_consultation_id bigint [not null, ref: > remote_consultations.id]
+  hospital_id bigint [not null, ref: > hospitals.id]
+  hospital_name varchar(255) [not null]
+  selection_type varchar(10) [not null, note: 'SELECTED/RANDOM']
+  matching_version varchar(40) [not null, default: 'random-v1']
+  matched_categories json [not null]
+  status varchar(10) [not null, default: 'WAITING', note: 'WAITING/ANSWERED']
+  quoted_categories json [null]
+  answer longtext [null, note: '통합 상담 답변']
+  total_amount bigint [null, note: 'unsigned; manually provided total, not category sum']
+  recommended_events json [null]
+  answered_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
+  indexes {
+    (remote_consultation_id, hospital_id) [unique]
+    (hospital_id, status, id)
+  }
+}

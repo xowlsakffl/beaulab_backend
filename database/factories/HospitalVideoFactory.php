@@ -35,7 +35,7 @@ final class HospitalVideoFactory extends Factory
                 '상담 프로세스 안내',
                 '리얼 후기 콘텐츠',
             ]),
-            'description' => $this->faker->realText(120),
+            'description' => $this->faker->randomElement(['시술 전 상담에서 자주 묻는 질문을 안내합니다.', '시술 과정과 회복 기간 중 주의사항을 설명합니다.']),
             'external_video_url' => "https://www.youtube.com/watch?v={$externalVideoId}",
             'duration_seconds' => $this->faker->numberBetween(30, 1800),
             'hospital_status' => $this->faker->randomElement(HospitalVideo::hospitalStatuses()),

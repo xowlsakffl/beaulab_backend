@@ -18,6 +18,11 @@ enum ErrorCode: string
     case RATE_LIMITED = 'RATE_LIMITED';
     case PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE';
 
+    // HospitalChatBot 상담
+    case CONSULTATION_UNAVAILABLE = 'CONSULTATION_UNAVAILABLE';
+    case CONSULTATION_ALREADY_CLAIMED = 'CONSULTATION_ALREADY_CLAIMED';
+    case CONSULTATION_NOT_ACTIVE = 'CONSULTATION_NOT_ACTIVE';
+
     public function status(): int
     {
         return match ($this) {
@@ -32,6 +37,8 @@ enum ErrorCode: string
             self::RATE_LIMITED => 429,
             self::DB_ERROR => 500,
             self::USER_NOT_FOUND => 404,
+            self::CONSULTATION_UNAVAILABLE => 422,
+            self::CONSULTATION_ALREADY_CLAIMED, self::CONSULTATION_NOT_ACTIVE => 409,
             default => 500,
         };
     }
@@ -50,6 +57,9 @@ enum ErrorCode: string
             self::RATE_LIMITED => '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
             self::DB_ERROR => '데이터베이스 오류가 발생했습니다.',
             self::USER_NOT_FOUND => '사용자를 찾을 수 없습니다.',
+            self::CONSULTATION_UNAVAILABLE => '지금은 상담원 연결이 어렵습니다.',
+            self::CONSULTATION_ALREADY_CLAIMED => '다른 상담원이 이미 연결한 상담입니다.',
+            self::CONSULTATION_NOT_ACTIVE => '이미 종료되었거나 취소된 상담입니다.',
             default => '서버 오류가 발생했습니다.',
         };
     }

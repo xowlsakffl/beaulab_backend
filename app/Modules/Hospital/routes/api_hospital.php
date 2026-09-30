@@ -9,8 +9,13 @@ use App\Modules\Hospital\Http\Controllers\AdminNote\AdminNoteForHospitalControll
 use App\Modules\Hospital\Http\Controllers\Auth\AuthForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountInvitationForHospitalController;
 use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountPasswordResetForHospitalController;
+use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotAvailabilityForHospitalController;
+use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotConsultationForHospitalController;
+use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalPromotion\HospitalPromotionForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -55,6 +60,32 @@ Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
     Route::get('/notes', [AdminNoteForHospitalController::class, 'getAdminNotesForHospital'])->name('notes.getAdminNotesForHospital');
     Route::post('/notes', [AdminNoteForHospitalController::class, 'createAdminNoteForHospital'])->name('notes.createAdminNoteForHospital');
     Route::match(['put', 'patch'], '/notes/{note}', [AdminNoteForHospitalController::class, 'updateAdminNoteForHospital'])->name('notes.updateAdminNoteForHospital');
+    // 챗봇 실시간 채널 인가. 공용 /broadcasting/auth는 actor:user 전용이라 액터별로 따로 연다.
+    Route::post('/broadcasting/auth', static fn (Request $request) => Broadcast::auth($request))
+        ->name('broadcasting.auth');
+
+    Route::get('/hospital-chatbot/qnas', [HospitalChatBotQnaForHospitalController::class, 'index'])
+        ->name('hospital-chatbot.qnas.index');
+    Route::get('/hospital-chatbot/availability', [HospitalChatBotAvailabilityForHospitalController::class, 'show'])
+        ->name('hospital-chatbot.availability.show');
+    Route::get('/hospital-chatbot/consultations/active', [HospitalChatBotConsultationForHospitalController::class, 'active'])
+        ->name('hospital-chatbot.consultations.active');
+    Route::post('/hospital-chatbot/consultations', [HospitalChatBotConsultationForHospitalController::class, 'store'])
+        ->middleware('throttle:hospital-chatbot-consultation')
+        ->name('hospital-chatbot.consultations.store');
+    Route::post('/hospital-chatbot/consultations/{consultation}/cancel', [HospitalChatBotConsultationForHospitalController::class, 'cancel'])
+        ->whereNumber('consultation')
+        ->name('hospital-chatbot.consultations.cancel');
+    Route::post('/hospital-chatbot/consultations/{consultation}/end', [HospitalChatBotConsultationForHospitalController::class, 'end'])
+        ->whereNumber('consultation')
+        ->name('hospital-chatbot.consultations.end');
+    Route::get('/hospital-chatbot/consultations/{consultation}/messages', [HospitalChatBotConsultationForHospitalController::class, 'messages'])
+        ->whereNumber('consultation')
+        ->name('hospital-chatbot.consultations.messages.index');
+    Route::post('/hospital-chatbot/consultations/{consultation}/messages', [HospitalChatBotConsultationForHospitalController::class, 'sendMessage'])
+        ->whereNumber('consultation')
+        ->middleware('throttle:hospital-chatbot-message')
+        ->name('hospital-chatbot.consultations.messages.store');
 
     /**
      * 동영상 공개여부 변경

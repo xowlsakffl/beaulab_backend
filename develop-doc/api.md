@@ -48,6 +48,90 @@
 
 직원 `GET /api/v1/staff/videos`의 카테고리는 `category_ids` CSV/배열로 다중선택합니다. 선택한 활성 동영상 카테고리 중 하나라도 연결된 영상을 중복 없이 반환하며 최대 100개를 검증합니다. 기존 단일 `category_id`도 입력 별칭으로 지원하고, 미선택/빈 배열은 전체입니다.
 
+## 병원 챗봇 Q&A API
+
+- 직원 API `/api/v1/staff/hospital-chatbot/qnas`는 목록·등록을 제공하고 `/{qna}`에서 조회·수정·삭제합니다. 목록은 `q`, `category`, `status`, `sort`, `direction`, `per_page`를 지원하며 일반 페이지 meta를 반환합니다.
+- 병원 API `GET /api/v1/hospital/hospital-chatbot/qnas`는 로그인한 병원에 활성 Q&A 전건을 `sort_order`, `id` 순으로 반환합니다. 응답에는 `id`, `category`, `question`, `answer`, `sort_order`만 포함하고 직원·상태 정보는 노출하지 않습니다.
+- 질문은 공백·대소문자를 정규화한 키를 기준으로 활성 Q&A끼리 중복될 수 없습니다. 삭제된 Q&A는 초기 데이터 Seeder를 다시 실행해도 복원하거나 같은 질문을 재등록하지 않습니다.
+- 질문과 답변은 HTML이 아닌 일반 텍스트 계약입니다. 클라이언트는 DOM `textContent`와 동등한 방식으로 렌더링하며 서버 값을 HTML로 실행하지 않습니다.
+- 초기 70건은 `HospitalChatBotQnaSeeder`를 대상으로 지정해 한 번 적재합니다. 전체 `DatabaseSeeder`에서는 자동 실행하지 않으며, 공유·운영 DB에는 적용 전 기존 키와 삭제 이력을 확인합니다.
+
+## 병원 챗봇 상담 운영시간 API
+
+- 직원 `GET /api/v1/staff/hospital-chatbot/operating-hours`는 `timezone`, `configured`, `is_force_closed`, `force_closed_reason`, 월요일 1~일요일 7의 `weekly_schedule`, `closure_dates`를 반환합니다.
+- `is_force_closed`는 요일·휴무일 설정보다 먼저 검사하는 즉시 중단 스위치입니다. 켜져 있으면 availability가 `FORCE_CLOSED`와 `next_open_at: null`을 반환하며, 다시 끌 때까지 상담원 연결을 닫습니다. 스위치를 끄면 사유는 함께 비웁니다.
+- 직원 `PUT /api/v1/staff/hospital-chatbot/operating-hours`는 7개 요일 설정과 최대 366개 휴무일, 강제 중단 설정을 한 트랜잭션에서 교체합니다. 휴무일을 모두 해제할 때는 빈 배열을 보냅니다. 운영 요일은 `opens_at < closes_at`인 `H:i` 단일 구간이어야 하며 자정을 넘길 수 없습니다.
+- 병원 `GET /api/v1/hospital/hospital-chatbot/availability`는 KST 서버 시각 기준 `checked_at`, `is_available`, `reason`, `message`, `next_open_at`을 반환합니다. 시작 시각은 포함하고 종료 시각은 제외합니다.
+- `reason`은 `OPEN`, `FORCE_CLOSED`, `OUTSIDE_HOURS`, `CLOSED_DATE`, `CONFIGURATION_UNAVAILABLE` 중 하나입니다. 날짜별 공휴일·임시휴무는 요일 설정보다 우선해 강제로 닫습니다.
+- 설정이 없거나 7일 구성이 유효하지 않으면 Fail Closed로 상담 연결을 막고 `상담원 연결 시간이 아닙니다.`를 반환합니다. Q&A 조회는 운영시간과 무관하게 계속 허용합니다.
+
+## 병원 챗봇 Q&A 폴더 API
+
+> 전체 구조와 추가된 테이블 8개는 [구조 문서](architecture.md#병원-챗봇-구조)의 그림을 먼저 보면 아래 절들이 빨리 읽힙니다.
+
+
+- 폴더는 2단 고정입니다. 대분류 > 소분류 > 질문이며 소분류 아래에는 만들 수 없습니다. 깊이는 `depth` 컬럼으로 들고 있어 트리를 타지 않고 검사합니다.
+- 직원 `GET /api/v1/staff/hospital-chatbot/qna-folders`는 전체 트리를 한 번에 반환합니다. 노드는 `id`, `parent_id`, `depth`, `name`, `sort_order`, `qna_count`, `children`이며 `qna_count`는 그 폴더에 **직접** 달린 Q&A 수입니다. 하위 폴더 것은 포함하지 않되 **소프트 삭제된 Q&A는 포함합니다.** 삭제 차단 규칙과 같은 수를 보여 주려는 것입니다. 다른 수를 보여 주면 0건인데 지워지지 않는 폴더가 생깁니다. 화면에 노출하는 "질문 수"로 쓰면 목록보다 큰 값이 나올 수 있습니다.
+- `POST`, `PATCH /{folder}`, `DELETE /{folder}`, `PATCH /{folder}/move`는 모두 **갱신된 전체 트리**를 반환합니다. 클라이언트가 다시 조회하지 않습니다.
+- `PATCH /{folder}/move`는 `parent_id`(null이면 대분류)와 `position`을 받습니다. `position`은 **자기 자신을 뺀** 형제 목록의 0-based 자리입니다. 형제 수를 넘기면 거절하지 않고 끝으로 접습니다. 화면이 센 자리와 서버가 아는 형제 수는 어긋날 수 있습니다.
+- 이동할 때마다 형제 전체의 `sort_order`를 0부터 다시 매기고, 떠나온 자리도 함께 채웁니다. 번호를 벌려 두지 않습니다.
+- 같은 상위 아래에서 이름은 겹칠 수 없습니다. 최상위는 `parent_id`가 NULL이라 유니크가 걸리지 않으므로 `parent_key` 생성 컬럼으로 0에 접어서 비교합니다.
+- 하위 폴더가 있는 폴더는 소분류가 될 수 없습니다. 손자가 3단이 됩니다. 하위 폴더나 Q&A가 남아 있으면 삭제도 막습니다. 삭제 판정은 소프트 삭제된 Q&A까지 셉니다.
+- Q&A의 `category`는 폴더 이름의 사본입니다. `folder_id`가 정본이며 이름을 바꾸면 사본도 따라갑니다.
+
+## 병원 챗봇 상담 API
+
+- 병원 `POST /api/v1/hospital/hospital-chatbot/consultations`는 운영시간을 검증한 뒤 `WAITING` 상담을 만들고 `{availability, consultation}`을 반환합니다. 이미 활성 상담이 있으면 운영시간과 무관하게 그 상담을 그대로 돌려줍니다. 진행 중인 상담은 마감 뒤에도 이어갈 수 있어야 합니다.
+- 연타와 다중 탭은 한 건으로 수렴합니다. 사전 조회로 한 번, `active_hospital_id` 유니크 위반으로 또 한 번 막습니다. 병원당 활성 상담은 DB 레벨에서 1건입니다.
+- 요청 본문의 `context_qna_id`(선택)는 상담을 부르기 직전에 보던 Q&A입니다. 서버가 **요청 시점의 질문·답변 본문을 복사**해 둡니다. Q&A가 뒤에 고쳐지거나 지워져도 상담원이 보는 것은 요청자가 읽던 글입니다. 없는 id를 보내도 상담은 그대로 열립니다.
+- 운영시간 밖이면 422 `CONSULTATION_UNAVAILABLE`이며 `details.availability`에 판정 결과가 들어갑니다.
+- 병원 `GET /consultations/active`는 생성과 **같은 `{availability, consultation}` 봉투**를 반환하며 활성 상담이 없으면 `consultation`이 null입니다. 새로고침 복구용이고, 함께 오는 `availability`로 연결 버튼 상태를 맞춥니다.
+- 병원 `POST /consultations/{consultation}/cancel`은 대기 중에만, `/end`는 연결된 뒤에만 가능합니다. 순서가 어긋나면 409입니다. 다른 병원의 상담은 404입니다.
+- 직원 `GET /api/v1/staff/hospital-chatbot/consultations`는 `status`(CSV), `assigned_staff_id`, `hospital_id`, `consultation_id`, `requester`, `from`, `to`, `sort`, `per_page`를 받습니다. `status`를 주지 않으면 대기·진행만 반환합니다.
+- `from`·`to`는 `Y-m-d`이며 서버가 그날 처음과 끝으로 넓혀 `requested_at`에 겁니다. `to`를 시각 없이 그대로 쓰면 마지막 날이 통째로 빠지기 때문입니다.
+- `requester`는 요청 당시 표시명 부분 일치입니다. 계정을 지워도 기록은 남아야 하므로 스냅샷을 봅니다. LIKE 와일드카드는 이스케이프해 글자 그대로 찾습니다.
+- `sort`는 `queue`(기본)와 `recent`입니다. 대기 목록은 집어야 할 순서(대기 먼저, 오래 기다린 순)고 기록 조회는 최신순입니다. 같은 데이터를 다른 순서로 보는 두 화면이라 클라이언트가 정합니다.
+- 직원 `POST /consultations/{consultation}/claim`은 조건부 UPDATE로 한 명만 통과시킵니다. 이미 다른 상담원이 가져갔으면 409 `CONSULTATION_ALREADY_CLAIMED`입니다. **같은 상담원이 다시 눌러도 성공으로 취급합니다.**
+- 직원 `POST /consultations/{consultation}/end`는 담당 상담원만 가능합니다. 담당 검사는 조회가 아니라 UPDATE 조건에서 합니다. 담당이 아니면 403입니다.
+- 직원 `GET /consultations/{consultation}`은 목록 항목에 `status_histories`를 더해 반환합니다. 이력은 `from_status`, `to_status`, `actor_type`, `actor_id`, `reason`, `occurred_at`이며 `from_status`가 null이면 상담이 생긴 순간입니다.
+- 상담 DTO의 `waiting_seconds`는 대기 중이면 지금까지, 취소면 취소 시각까지, 나머지는 연결 시각까지입니다. `duration_seconds`는 연결→종료이며 **연결되지 않은 상담은 null**입니다. 0초로 내보내면 바로 끝난 상담과 구분되지 않습니다.
+- `close_reason`은 `AGENT_COMPLETED`, `USER_CANCELED`, `USER_ENDED`, `WAITING_TIMEOUT`입니다. 대기 상담은 `hospital-chatbot:expire-waiting-consultations`가 설정된 시간(기본 30분) 뒤 자동 취소합니다.
+
+## 병원 챗봇 상담 메시지 API
+
+- 병원·직원 모두 `GET /consultations/{consultation}/messages`와 `POST`를 사용합니다. 경로 접두사만 다르고 계약은 같습니다.
+- 목록은 `after_sequence`(0 이상)를 주면 그 뒤만, 주지 않으면 **최신 꼬리**를 반환합니다. meta에 `last_sequence`와 `has_older`가 들어갑니다. 재접속 후 순번 갭을 메울 때 이 파라미터를 씁니다.
+- 전송 본문은 `content`(1~2000자)와 `client_message_id`(선택, 64자)입니다. 같은 `client_message_id`로 다시 보내면 새로 만들지 않고 먼저 저장된 메시지를 돌려줍니다. 재시도가 중복을 만들지 않습니다.
+- `sequence`는 상담 안에서 1부터 증가하며 `lockForUpdate` 아래에서 매깁니다. 클라이언트는 이 값으로 정렬·중복 제거·갭 감지를 합니다.
+- 전송은 `throttle:hospital-chatbot-message`(계정당 분당 120건)로 제한합니다. 연결된 상담에서만, 병원은 자기 상담에서만, 직원은 담당 상담에서만 보낼 수 있습니다.
+
+## 병원 챗봇 상담 기록 내보내기 API
+
+- 직원 `GET /consultations/export`는 목록과 **같은 필터**를 받아 CSV를 스트림합니다. 화면에서 본 것과 받은 파일이 달라지면 안 되므로 파싱과 검증을 목록과 공유합니다.
+- 라우트는 `/{consultation}`보다 먼저 선언합니다. 뒤에 두면 `export`가 상담 ID로 잡힙니다.
+- `from`·`to`는 **필수**입니다. 전체 기간은 동기 처리로 감당되지 않습니다. 기간은 `hospital_chatbot.export.max_days`(기본 92), 행 수는 `max_rows`(기본 10000)까지이며 넘으면 422와 함께 몇 건인지 알려 줍니다.
+- 응답은 `text/csv; charset=UTF-8`이고 UTF-8 BOM으로 시작합니다. BOM이 없으면 엑셀이 한국어를 깨뜨립니다. `fputcsv`의 escape는 비워 RFC 4180대로 씁니다. PHP 기본 백슬래시 escape는 표준이 아닙니다.
+- 열은 상담 ID, 병원, 요청자, 담당 상담원, 요청·연결·종료 시각, 대기 시간(초), 상담 시간(초), 상태, 종료 사유, 상담 전 질문, 요청 화면입니다. 상태와 사유는 코드가 아니라 한국어입니다. 파일은 화면 없이 혼자 읽힙니다.
+- 스트림이 시작된 뒤의 예외는 되돌릴 수 없으므로, 로그를 남기고 파일 끝에 잘렸다는 행을 붙입니다.
+
+## 병원 챗봇 실시간
+
+- 채널은 [routes/channels.php](../routes/channels.php)에 있습니다. `hospital-chatbot.consultation.{consultationId}`는 상담 한 건, `hospital-chatbot.queue`는 상담원 대기 목록입니다.
+- 기본 `withBroadcasting`은 user actor 전용이라 직원·병원은 각자의 `/api/v1/{staff|hospital}/broadcasting/auth`를 씁니다. 클라이언트는 Echo의 custom authorizer로 그 경로를 지정하고 쿠키·CSRF를 함께 보냅니다.
+- 상담 채널은 그 상담의 병원 계정과 **모든 직원**이 구독합니다. 상담원은 담당이 아니어도 목록에서 상세로 들어가 볼 수 있어야 합니다. 대기 목록 채널은 직원만입니다.
+- 이벤트는 `.hospital-chatbot.message.created`(상담 채널), `.hospital-chatbot.consultation.changed`(상담 채널), `.hospital-chatbot.queue.changed`(목록 채널)입니다.
+- 메시지 발행은 저장 커밋 뒤에 Job으로 나갑니다. `broadcast_pending` 표식과 발행을 한 트랜잭션에서 처리하므로 중간에 실패하면 표식이 남고 `hospital-chatbot:dispatch-pending-broadcasts`가 매분 다시 집어 갑니다.
+- 상태 변경 발행은 재발행 장치가 없습니다. 실패해도 양쪽 화면이 주기적으로 다시 조회해 결국 맞춰집니다.
+- **폴링이 기본입니다**(메시지 5초, 목록 10초). 운영은 기존 채팅 때문에 Reverb가 켜져 있어 챗봇 이벤트도 발행됩니다. 관리자 화면과 병원 관리자(SDK 호스트) 둘 다 `NEXT_PUBLIC_REVERB_APP_KEY`가 설정되면 구독도 합니다. 키가 없으면 폴링만 합니다. 상태 발행이 실패하면 `hospital_chatbot.consultation.announce_failed` 경고만 남기고 응답은 정상입니다. 전이는 이미 커밋됐고 폴링이 맞춥니다. 로컬처럼 `BROADCAST_CONNECTION=log`면 재발행 커맨드도 아무것도 집지 않습니다. 큐 워커가 없는 환경에서 같은 메시지를 매분 다시 밀어 넣으면 Redis만 부풀기 때문입니다. 이렇게 둔 이유는 [구조 문서](architecture.md#병원-챗봇-구조)에 있습니다.
+- 클라이언트는 순번이 아는 값보다 2 이상 앞서면 붙이지 않고 `after_sequence`로 다시 조회합니다. 실시간과 재조회가 같은 메시지를 줘도 순번으로 한 번만 남깁니다.
+
+## 병원 챗봇 로그와 지표
+
+- 로그는 저장소 관례대로 `Log::info('한국어 문장', [컨텍스트])` 로 남기되, 컨텍스트에 `event` 키를 하나 얹습니다. 문장은 사람이 읽고 `event`는 수집기가 묶습니다. 문장을 고쳐도 집계가 끊기지 않습니다. `event` 값은 [HospitalChatBotLog](../app/Domains/HospitalChatBot/Support/HospitalChatBotLog.php)에 상수로 있습니다. 오타 하나로 그 이벤트만 집계에서 빠지는 것을 막으려는 것입니다.
+- 상담 요청·중복 반환·연결·충돌·종료, 메시지 저장 실패, 발행 실패와 재시도, Export 실패, 운영시간 계산 오류를 남깁니다. Claim 충돌은 성공과 다른 event입니다. 같은 이름으로 묶이면 셀 수 없습니다.
+- `hospital-chatbot:report-metrics`가 5분마다 현재 상태를 남깁니다. 대기 수, 진행 수, 최장 대기 시간, 미발행 메시지 수와 그중 가장 오래된 것, 그리고 발행 사용 여부입니다. 발행이 꺼져 있으면 미발행 수는 줄지 않으므로 숫자만 보고 장애로 읽지 않습니다.
+- 운영시간 계산이 깨지면 500이 아니라 `CONFIGURATION_UNAVAILABLE`로 닫습니다. 여기서 예외를 올리면 SDK가 Q&A조차 열지 못합니다.
+
 ## 병원 프로모션 API
 
 Staff 접두사는 `/api/v1/staff/hospital-promotions`입니다. `GET /board`는 일반 ApiResponse data에 `{today,left,right}`를 반환합니다. 양쪽은 `current: [{slot,promotion,filtered_out}]` 3개와 `upcoming: {items,meta}`입니다. 예약 자체가 없으면 null/false, 필터에 제외된 현재 예약은 내용 없이 null/true입니다. `GET /`는 ENDED만 data 배열과 최상위 meta로 반환하고 종료일·ID 내림차순입니다. `q`는 제목·등록 직원 이름/닉네임·숫자 ID 검색, 목록의 `status`는 ACTIVE/INACTIVE CSV 또는 배열의 다중선택이며 기존 단일 값도 받습니다. 미선택은 전체, 여러 값은 OR 조건이고 저장 폼의 단일 status와 구분합니다. 날짜 필터는 게시 구간과 교집합입니다. 예정 목록은 시작일·슬롯·ID 오름차순이며 `left_page`/`right_page`는 독립적입니다. 모든 목록은 15개 고정입니다.

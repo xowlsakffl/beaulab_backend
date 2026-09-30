@@ -17,6 +17,7 @@
 동일 업무를 별도 영구 queue:work 구성과 중복 운영해 관리 경계를 흐리지 않습니다.
 
 - Job의 HTTP timeout, Job timeout, Redis retry_after가 충돌하지 않아야 합니다. 긴 외부 요청을 붙일 때 함께 확인합니다.
+- Redis `retry_after` 기본값은 360초로, Horizon의 최대 timeout 300초보다 길게 둡니다. 기존 환경의 `REDIS_QUEUE_RETRY_AFTER`가 기본값을 덮어쓰므로 배포 시 실제 설정을 확인하고 config 캐시와 워커를 갱신합니다. 실행 시간을 늘리면 재예약 간격도 함께 조정합니다.
 - 업무 데이터 저장 뒤 큐 dispatch 성공만으로 사용자 전달 성공을 판단하지 않습니다.
 - 커밋 이후 dispatch와 DB의 재처리 대상 기록을 함께 사용합니다. 상세 전달 보장은 [메시징](messaging.md)에 있습니다.
 - 긴 수명의 Horizon/Reverb는 코드·config 변경 뒤 재시작해야 합니다.

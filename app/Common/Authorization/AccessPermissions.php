@@ -21,6 +21,10 @@ final class AccessPermissions
 
     public const COMMON_ADMIN_NOTE_WRITE = 'common.admin_note.write';
 
+    public const BEAULAB_REMOTE_CONSULTATION_SHOW = 'beaulab.remote_consultation.show';
+
+    public const BEAULAB_REMOTE_CONSULTATION_APPROVE = 'beaulab.remote_consultation.approve';
+
     // Beaulab
     public const BEAULAB_HOSPITAL_SHOW = 'beaulab.hospital.show';
 
@@ -393,6 +397,7 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_EVENT_AD_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_AD_DELETE,
             self::BEAULAB_HOSPITAL_EVENT_DB_SHOW,
+            self::BEAULAB_REMOTE_CONSULTATION_SHOW,
             self::BEAULAB_HOSPITAL_EVENT_DB_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_SHOW,
             self::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_UPDATE,
@@ -454,6 +459,7 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_EVENT_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_AD_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_DB_STATUS_UPDATE,
+            self::BEAULAB_REMOTE_CONSULTATION_APPROVE,
             self::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_REVIEW_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_EVALUATION_STATUS_UPDATE,

@@ -9,7 +9,7 @@ final class DemoSeeder extends Seeder
     public function run(): void
     {
         if (! app()->environment(['local', 'testing'])) {
-            throw new \LogicException('Demo data is only available in local/testing environments.');
+            throw new \LogicException('데모 데이터는 local/testing 환경에서만 생성할 수 있습니다.');
         }
 
         $this->call([

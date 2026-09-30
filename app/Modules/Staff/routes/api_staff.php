@@ -20,6 +20,9 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotConsultationForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotOperatingHoursForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEntry\HospitalEntryForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForStaffController;
@@ -37,6 +40,8 @@ use App\Modules\Staff\Http\Controllers\NavigationBadge\NavigationBadgeForStaffCo
 use App\Modules\Staff\Http\Controllers\Notice\NoticeForStaffController;
 use App\Modules\Staff\Http\Controllers\Talk\TalkForStaffController;
 use App\Modules\Staff\Http\Controllers\TalkComment\TalkCommentForStaffController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -273,6 +278,8 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('users.getAccountUsersForStaff');
     Route::get('users/summary', [AccountUserForStaffController::class, 'getAccountUserSummaryForStaff'])
         ->name('users.getAccountUserSummaryForStaff');
+    Route::get('users/statistics/{section}', [\App\Modules\Staff\Http\Controllers\AccountUser\AccountUserStatisticsForStaffController::class, 'show'])
+        ->whereIn('section', ['summary', 'channels', 'visits'])->name('users.statistics');
     Route::get('users/{user}', [AccountUserForStaffController::class, 'getAccountUserForStaff'])
         ->withTrashed()
         ->name('users.getAccountUserForStaff');
@@ -515,4 +522,56 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('faqs.updateFaqForStaff');
     Route::delete('faqs/{faq}', [FaqForStaffController::class, 'deleteFaqForStaff'])
         ->name('faqs.deleteFaqForStaff');
+
+    // 챗봇 실시간 채널 인가. 공용 /broadcasting/auth는 actor:user 전용이라 액터별로 따로 연다.
+    Route::post('/broadcasting/auth', static fn (Request $request) => Broadcast::auth($request))
+        ->name('broadcasting.auth');
+
+    Route::prefix('hospital-chatbot')->name('hospital-chatbot.')->group(function () {
+        Route::get('consultations', [HospitalChatBotConsultationForStaffController::class, 'index'])
+            ->name('consultations.index');
+        // {consultation} 보다 먼저 와야 한다. 뒤에 두면 'export'가 상담 ID로 잡힌다.
+        Route::get('consultations/export', [HospitalChatBotConsultationForStaffController::class, 'export'])
+            ->name('consultations.export');
+        Route::get('consultations/{consultation}', [HospitalChatBotConsultationForStaffController::class, 'show'])
+            ->whereNumber('consultation')->name('consultations.show');
+        Route::post('consultations/{consultation}/claim', [HospitalChatBotConsultationForStaffController::class, 'claim'])
+            ->whereNumber('consultation')->name('consultations.claim');
+        Route::post('consultations/{consultation}/end', [HospitalChatBotConsultationForStaffController::class, 'end'])
+            ->whereNumber('consultation')->name('consultations.end');
+        Route::get('consultations/{consultation}/messages', [HospitalChatBotConsultationForStaffController::class, 'messages'])
+            ->whereNumber('consultation')->name('consultations.messages.index');
+        Route::post('consultations/{consultation}/messages', [HospitalChatBotConsultationForStaffController::class, 'sendMessage'])
+            ->whereNumber('consultation')->middleware('throttle:hospital-chatbot-message')->name('consultations.messages.store');
+        Route::get('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'show'])
+            ->name('operating-hours.show');
+        Route::put('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'update'])
+            ->name('operating-hours.update');
+        Route::get('qna-folders', [HospitalChatBotQnaForStaffController::class, 'folders'])->name('qna-folders.index');
+        Route::post('qna-folders', [HospitalChatBotQnaForStaffController::class, 'storeFolder'])->name('qna-folders.store');
+        Route::match(['put', 'patch'], 'qna-folders/{folder}', [HospitalChatBotQnaForStaffController::class, 'updateFolder'])
+            ->whereNumber('folder')->name('qna-folders.update');
+        Route::patch('qna-folders/{folder}/move', [HospitalChatBotQnaForStaffController::class, 'moveFolder'])
+            ->whereNumber('folder')->name('qna-folders.move');
+        Route::delete('qna-folders/{folder}', [HospitalChatBotQnaForStaffController::class, 'destroyFolder'])
+            ->whereNumber('folder')->name('qna-folders.destroy');
+        Route::get('qnas', [HospitalChatBotQnaForStaffController::class, 'index'])->name('qnas.index');
+        Route::post('qnas', [HospitalChatBotQnaForStaffController::class, 'store'])->name('qnas.store');
+        Route::get('qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'show'])->whereNumber('qna')->name('qnas.show');
+        Route::match(['put', 'patch'], 'qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'update'])->whereNumber('qna')->name('qnas.update');
+        Route::delete('qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'destroy'])->whereNumber('qna')->name('qnas.destroy');
+    });
+});
+
+// Internal remote-consultation administration. No User/Hospital write endpoints yet.
+Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermissions::COMMON_ACCESS])->prefix('remote-consultations')->group(function () {
+    $controller = \App\Modules\Staff\Http\Controllers\RemoteConsultation\RemoteConsultationForStaffController::class;
+    Route::get('/', [$controller, 'index']);
+    Route::get('/{consultation}', [$controller, 'show'])->whereNumber('consultation');
+    Route::get('/{consultation}/quotes/{quote}', [$controller, 'quote'])->whereNumber('consultation')->whereNumber('quote');
+    Route::post('/{consultation}/approve', [$controller, 'approve'])->whereNumber('consultation');
+    Route::patch('/{consultation}/status', [$controller, 'status'])->whereNumber('consultation');
+    Route::get('/{consultation}/hospitals', [$controller, 'hospitals'])->whereNumber('consultation');
+    Route::post('/{consultation}/quotes', [$controller, 'assign'])->whereNumber('consultation');
+    Route::delete('/{consultation}/quotes/{quote}', [$controller, 'removeQuote'])->whereNumber('consultation')->whereNumber('quote');
 });

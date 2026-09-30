@@ -12,13 +12,13 @@ final class SeedMediaFactory
         $sourcePath = public_path('test.png');
 
         if (! is_file($sourcePath)) {
-            throw new RuntimeException("Seed media file not found: {$sourcePath}");
+            throw new RuntimeException("시드 미디어 파일을 찾을 수 없습니다: {$sourcePath}");
         }
 
         $content = file_get_contents($sourcePath);
 
         if ($content === false) {
-            throw new RuntimeException("Failed to read seed media file: {$sourcePath}");
+            throw new RuntimeException("시드 미디어 파일을 읽지 못했습니다: {$sourcePath}");
         }
 
         $fileName = sprintf('%s-%s.png', $prefix, str_replace('.', '', uniqid('', true)));

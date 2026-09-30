@@ -20,7 +20,7 @@ final class AccountStaffFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name(),
+            'name' => fake('ko_KR')->name(),
             'nickname' => $this->faker->unique()->userName(),
             'email' => $this->faker->unique()->safeEmail(),
 
@@ -28,8 +28,8 @@ final class AccountStaffFactory extends Factory
 
             'status' => AccountStaff::STATUS_ACTIVE,
 
-            'department' => $this->faker->jobTitle(),
-            'job_title' => $this->faker->jobTitle(),
+            'department' => $this->faker->randomElement(['운영팀', '고객지원팀', '사업관리팀']),
+            'job_title' => $this->faker->randomElement(['매니저', '팀장', '담당자']),
 
             'email_verified_at' => now(),
 

@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Route;
 
 // 앱 사용자 API
 
+Route::post('visits', [\App\Modules\User\Http\Controllers\SiteVisit\SiteVisitController::class, 'store'])
+    ->middleware('throttle:60,1')->name('visits.store');
+
 // 로그인은 인증 전에 호출되므로 auth 미들웨어 밖에 둔다.
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthForUserController::class, 'login'])

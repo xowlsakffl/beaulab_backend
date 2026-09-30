@@ -19,19 +19,19 @@ final class HospitalFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->unique()->company().' 병원';
+        $name = '뷰랩'.fake()->unique()->numerify('######').'의원';
 
         return [
             'name' => $name,
             'department' => $this->faker->randomElement(Hospital::departments()),
-            'description' => $this->faker->optional(0.7)->paragraph(),
+            'description' => $this->faker->optional(0.7)->randomElement(['충분한 상담을 통해 개인별 진료 계획을 안내합니다.', '상담부터 사후 관리까지 세심하게 안내하는 병원입니다.']),
             'youtube_link' => $this->faker->optional(0.5)->randomElement([
                 'https://www.youtube.com/@beaulabclinic',
                 'https://www.youtube.com/@skinclinic',
                 'https://www.youtube.com/@plasticclinic',
             ]),
-            'address' => $this->faker->address(),
-            'address_detail' => $this->faker->secondaryAddress(),
+            'address' => fake('ko_KR')->address(),
+            'address_detail' => $this->faker->numberBetween(1, 15).'층',
 
             'latitude' => $this->faker->latitude(33.0, 38.6),
             'longitude' => $this->faker->longitude(124.5, 132.0),
@@ -41,9 +41,9 @@ final class HospitalFactory extends Factory
             'ad_reception_phone_2' => $this->faker->optional(0.5)->numerify('010-####-####'),
             'ad_reception_phone_3' => $this->faker->optional(0.3)->numerify('010-####-####'),
 
-            'consulting_hours' => $this->faker->optional(0.6)->sentence(10),
+            'consulting_hours' => $this->faker->optional(0.6)->randomElement(['평일 오전 10시부터 오후 7시까지 상담 가능합니다.', '토요일은 오후 3시까지 상담 가능합니다.']),
             'operation_hours' => $this->defaultOperationHours(),
-            'direction' => $this->faker->optional(0.6)->sentence(12),
+            'direction' => $this->faker->optional(0.6)->randomElement(['지하철역 2번 출구에서 도보 5분 거리입니다.', '건물 지하 주차장을 이용해 주세요.']),
 
             'view_count' => $this->faker->numberBetween(0, 50000),
 
@@ -119,14 +119,14 @@ final class HospitalFactory extends Factory
                 'hospital_id' => $hospital->id,
                 'business_number' => $this->faker->unique()->numerify('##########'),
                 'company_name' => $hospital->name,
-                'ceo_name' => $this->faker->name(),
+                'ceo_name' => fake('ko_KR')->name(),
                 'business_type' => $this->faker->randomElement(['의료업', '보건업']),
                 'business_item' => $this->faker->randomElement(['성형외과', '피부과', '치과']),
                 'business_address' => $hospital->address,
                 'business_address_detail' => $hospital->address_detail,
                 'settlement_bank_name' => $this->faker->randomElement(['국민은행', '신한은행', '우리은행', '하나은행']),
                 'settlement_account_number' => $this->faker->numerify('###-######-#####'),
-                'settlement_account_holder' => $this->faker->name(),
+                'settlement_account_holder' => fake('ko_KR')->name(),
                 'tax_invoice_email' => $this->faker->companyEmail(),
                 'issued_at' => $this->faker->date(),
                 'status' => HospitalBusinessRegistration::STATUS_ACTIVE,

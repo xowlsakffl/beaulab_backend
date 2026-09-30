@@ -78,6 +78,7 @@ final class OperationHistoryTargetRegistry
      * @var array<string, class-string<Model>>
      */
     private const MAP = [
+        'remote_consultation' => \App\Domains\RemoteConsultation\Models\RemoteConsultation::class,
         self::ALIAS_HOSPITAL => Hospital::class,
         self::ALIAS_HOSPITAL_DOCTOR => HospitalDoctor::class,
         self::ALIAS_HOSPITAL_ENTRY => HospitalEntry::class,

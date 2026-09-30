@@ -26,7 +26,7 @@ final class HospitalEvaluationFactory extends Factory
             'author_id' => $this->randomAuthorId(),
             'hospital_id' => $hospitalId,
             'doctor_id' => $this->randomDoctorId($hospitalId),
-            'content' => $this->faker->paragraphs(4, true),
+            'content' => $this->faker->randomElement(['예약 시간에 방문해 상담받았습니다. 직원 안내가 친절했고 진료 과정에 대한 설명을 충분히 들었습니다.', '시설이 깔끔하고 상담 내용과 예상 비용을 자세히 안내받았습니다.']),
             'phone' => $this->faker->phoneNumber(),
             'author_ip' => $this->faker->ipv4(),
             'cost' => $this->faker->numberBetween(20, 1500),
@@ -116,7 +116,7 @@ final class HospitalEvaluationFactory extends Factory
             'receipt_status' => HospitalEvaluation::RECEIPT_STATUS_REJECTED,
             'receipt_rejection_reason' => $reason,
             'receipt_rejection_reason_text' => $reason === HospitalEvaluation::RECEIPT_REJECTION_REASON_OTHER
-                ? $this->faker->sentence(10)
+                ? '결제 내역과 진료 항목을 확인할 수 있는 영수증을 다시 첨부해 주세요.'
                 : null,
         ]);
     }

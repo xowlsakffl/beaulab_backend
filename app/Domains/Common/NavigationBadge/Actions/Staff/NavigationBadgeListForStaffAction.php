@@ -18,6 +18,7 @@ final class NavigationBadgeListForStaffAction
         '/hospital-manage/doctors' => AccessPermissions::BEAULAB_DOCTOR_SHOW,
         '/hospital-manage/hospital-entries' => AccessPermissions::BEAULAB_HOSPITAL_ENTRY_SHOW,
         '/customer-db-manage/events' => AccessPermissions::BEAULAB_HOSPITAL_EVENT_DB_SHOW,
+        '/customer-db-manage/consultations' => AccessPermissions::BEAULAB_REMOTE_CONSULTATION_SHOW,
         '/customer-db-manage/real-models' => AccessPermissions::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_SHOW,
         '/ads-manage/events' => AccessPermissions::BEAULAB_HOSPITAL_EVENT_SHOW,
         '/ads-manage/event-ads' => AccessPermissions::BEAULAB_HOSPITAL_EVENT_AD_SHOW,

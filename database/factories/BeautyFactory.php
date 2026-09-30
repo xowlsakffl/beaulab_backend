@@ -19,32 +19,32 @@ final class BeautyFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->unique()->company() . ' 뷰티';
+        $name = '뷰랩 뷰티 '.fake()->unique()->numerify('######');
 
         return [
-            'name'            => $name,
-            'description'     => $this->faker->optional(0.7)->paragraph(),
-            'address'         => $this->faker->optional(0.9)->address(),
-            'address_detail'  => $this->faker->optional(0.5)->secondaryAddress(),
+            'name' => $name,
+            'description' => $this->faker->optional(0.7)->randomElement(['개인별 피부 상태에 맞는 관리 프로그램을 제공합니다.']),
+            'address' => fake('ko_KR')->optional(0.9)->address(),
+            'address_detail' => $this->faker->boolean() ? $this->faker->numberBetween(1, 15).'층' : null,
 
-            'latitude'        => $this->faker->optional(0.8)->latitude(33.0, 38.6),
-            'longitude'       => $this->faker->optional(0.8)->longitude(124.5, 132.0),
+            'latitude' => $this->faker->optional(0.8)->latitude(33.0, 38.6),
+            'longitude' => $this->faker->optional(0.8)->longitude(124.5, 132.0),
 
-            'tel'             => $this->faker->optional(0.9)->phoneNumber(),
-            'email'           => $this->faker->optional(0.7)->companyEmail(),
+            'tel' => $this->faker->optional(0.9)->phoneNumber(),
+            'email' => $this->faker->optional(0.7)->companyEmail(),
 
-            'consulting_hours'=> $this->faker->optional(0.6)->sentence(10),
-            'direction'       => $this->faker->optional(0.6)->sentence(12),
+            'consulting_hours' => $this->faker->optional(0.6)->randomElement(['평일 오전 10시부터 오후 7시까지 상담 가능합니다.']),
+            'direction' => $this->faker->optional(0.6)->randomElement(['건물 지하 주차장을 이용해 주세요.']),
 
-            'view_count'      => $this->faker->numberBetween(0, 50000),
+            'view_count' => $this->faker->numberBetween(0, 50000),
 
-            'allow_status'    => $this->faker->randomElement([
+            'allow_status' => $this->faker->randomElement([
                 Beauty::ALLOW_PENDING,
                 Beauty::ALLOW_APPROVED,
                 Beauty::ALLOW_REJECTED,
             ]),
 
-            'status'          => $this->faker->randomElement([
+            'status' => $this->faker->randomElement([
                 Beauty::STATUS_ACTIVE,
                 Beauty::STATUS_SUSPENDED,
                 Beauty::STATUS_WITHDRAWN,
@@ -75,7 +75,7 @@ final class BeautyFactory extends Factory
                 'beauty_id' => $beauty->id,
                 'business_number' => $this->faker->unique()->numerify('##########'),
                 'company_name' => $beauty->name,
-                'ceo_name' => $this->faker->name(),
+                'ceo_name' => fake('ko_KR')->name(),
                 'business_type' => $this->faker->randomElement(['미용업', '서비스업']),
                 'business_item' => $this->faker->randomElement(['헤어', '피부관리', '네일']),
                 'business_address' => $beauty->address,

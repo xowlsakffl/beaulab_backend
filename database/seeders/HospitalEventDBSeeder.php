@@ -25,7 +25,7 @@ final class HospitalEventDBSeeder extends Seeder
         }
 
         if ($eventIds->isEmpty()) {
-            $this->command?->warn('HospitalEventDBSeeder skipped: hospital events are missing.');
+            $this->command?->warn('이벤트 DB 시드 생성을 건너뜁니다: 병의원 이벤트가 없습니다.');
 
             return;
         }

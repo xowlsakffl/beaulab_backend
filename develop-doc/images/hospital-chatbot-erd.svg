@@ -1,0 +1,296 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1422 1375" width="1422" height="1375" font-family="-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif">
+<defs><marker id="one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5B6C68"/></marker></defs>
+<rect width="1422" height="1375" fill="#F1F5F3"/>
+<text x="40" y="48" font-size="13" font-weight="600" fill="#0B6E5A" letter-spacing="1.6">ERD</text>
+<text x="40" y="84" font-size="26" font-weight="700" fill="#13201D">병원 챗봇 테이블 8개</text>
+<text x="40" y="112" font-size="13.5" fill="#5B6C68">컬럼 설명은 DB COMMENT를 그대로 옮긴 것입니다. 점선 상자는 기존 테이블이며 참조만 합니다.</text>
+<rect x="40" y="152" width="400" height="286" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M40 164 a12 12 0 0 1 12 -12 h376 a12 12 0 0 1 12 12 v22 h-400 z" fill="#E0F0EA"/>
+<text x="54" y="174" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">qna_folders</text>
+<text x="426" y="174" font-size="11" fill="#0B6E5A" text-anchor="end">Q&amp;A 폴더</text>
+<text x="54" y="200" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="426" y="200" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="392" y="200" font-size="10" fill="#5B6C68" text-anchor="end">Q&amp;A 폴더 ID · bigint unsigned</text>
+<text x="54" y="221" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">parent_id</text>
+<text x="426" y="221" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="392" y="221" font-size="10" fill="#5B6C68" text-anchor="end">상위 폴더 ID. 없으면 대분류 · bigint unsigned</text>
+<text x="54" y="242" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">depth</text>
+<text x="426" y="242" font-size="10" fill="#5B6C68" text-anchor="end">1=대분류, 2=소분류 · tinyint unsigned</text>
+<text x="54" y="263" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">name</text>
+<text x="426" y="263" font-size="10" fill="#5B6C68" text-anchor="end">폴더 이름 · varchar(100)</text>
+<text x="54" y="284" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">sort_order</text>
+<text x="426" y="284" font-size="10" fill="#5B6C68" text-anchor="end">같은 상위 안에서의 노출 순서 · int unsigned</text>
+<text x="54" y="305" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_by_staff_id</text>
+<text x="426" y="305" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="392" y="305" font-size="10" fill="#5B6C68" text-anchor="end">등록한 직원 계정 ID · bigint unsigned</text>
+<text x="54" y="326" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_by_staff_id</text>
+<text x="426" y="326" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="392" y="326" font-size="10" fill="#5B6C68" text-anchor="end">수정한 직원 계정 ID · bigint unsigned</text>
+<text x="54" y="347" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_at</text>
+<text x="426" y="347" font-size="10" fill="#5B6C68" text-anchor="end">생성 일시 · timestamp</text>
+<text x="54" y="368" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_at</text>
+<text x="426" y="368" font-size="10" fill="#5B6C68" text-anchor="end">수정 일시 · timestamp</text>
+<text x="54" y="389" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">parent_key</text>
+<text x="426" y="389" font-size="8.5" font-weight="700" fill="#9C5410" text-anchor="end">GEN</text>
+<text x="392" y="389" font-size="10" fill="#5B6C68" text-anchor="end">유니크 비교용. 최상위는 0 · bigint unsigned</text>
+<rect x="50" y="398" width="380" height="22" rx="5" fill="#F7FAF9" stroke="#DBE4E1"/>
+<text x="58" y="414" font-size="10" fill="#9C5410" font-weight="600">UNIQUE (parent_key, name)</text>
+<rect x="40" y="474" width="400" height="370" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M40 486 a12 12 0 0 1 12 -12 h376 a12 12 0 0 1 12 12 v22 h-400 z" fill="#E0F0EA"/>
+<text x="54" y="496" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">qnas</text>
+<text x="426" y="496" font-size="11" fill="#0B6E5A" text-anchor="end">Q&amp;A</text>
+<text x="54" y="522" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="426" y="522" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="392" y="522" font-size="10" fill="#5B6C68" text-anchor="end">병원 챗봇 Q&amp;A ID · bigint unsigned</text>
+<text x="54" y="543" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">folder_id</text>
+<text x="426" y="543" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="392" y="543" font-size="10" fill="#5B6C68" text-anchor="end">속한 Q&amp;A 폴더 ID · bigint unsigned</text>
+<text x="54" y="564" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">category</text>
+<text x="426" y="564" font-size="10" fill="#5B6C68" text-anchor="end">Q&amp;A 분류. folder_id가 정본이고 이 값은 사… · varchar(100)</text>
+<text x="54" y="585" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">question</text>
+<text x="426" y="585" font-size="10" fill="#5B6C68" text-anchor="end">병원 화면에 노출할 질문 · varchar(255)</text>
+<text x="54" y="606" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">question_key</text>
+<text x="426" y="606" font-size="10" fill="#5B6C68" text-anchor="end">공백·대소문자를 정규화한 질문 해시 · char(64)</text>
+<text x="54" y="627" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">answer</text>
+<text x="426" y="627" font-size="10" fill="#5B6C68" text-anchor="end">일반 텍스트 답변 · text</text>
+<text x="54" y="648" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">status</text>
+<text x="426" y="648" font-size="10" fill="#5B6C68" text-anchor="end">노출 상태(ACTIVE, INACTIVE) · varchar(20)</text>
+<text x="54" y="669" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">sort_order</text>
+<text x="426" y="669" font-size="10" fill="#5B6C68" text-anchor="end">전체 노출 순서 · int unsigned</text>
+<text x="54" y="690" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_by_staff_id</text>
+<text x="426" y="690" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="392" y="690" font-size="10" fill="#5B6C68" text-anchor="end">등록한 직원 계정 ID · bigint unsigned</text>
+<text x="54" y="711" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_by_staff_id</text>
+<text x="426" y="711" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="392" y="711" font-size="10" fill="#5B6C68" text-anchor="end">수정한 직원 계정 ID · bigint unsigned</text>
+<text x="54" y="732" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_at</text>
+<text x="426" y="732" font-size="10" fill="#5B6C68" text-anchor="end">생성 일시 · timestamp</text>
+<text x="54" y="753" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_at</text>
+<text x="426" y="753" font-size="10" fill="#5B6C68" text-anchor="end">수정 일시 · timestamp</text>
+<text x="54" y="774" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">deleted_at</text>
+<text x="426" y="774" font-size="10" fill="#5B6C68" text-anchor="end">소프트 삭제 일시 · timestamp</text>
+<text x="54" y="795" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">active_question_key</text>
+<text x="426" y="795" font-size="8.5" font-weight="700" fill="#9C5410" text-anchor="end">GEN</text>
+<text x="392" y="795" font-size="10" fill="#5B6C68" text-anchor="end">활성 Q&amp;A 질문 중복 방지… · char(64)</text>
+<rect x="50" y="804" width="380" height="22" rx="5" fill="#F7FAF9" stroke="#DBE4E1"/>
+<text x="58" y="820" font-size="10" fill="#9C5410" font-weight="600">UNIQUE (active_question_key)</text>
+<rect x="40" y="880" width="400" height="307" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M40 892 a12 12 0 0 1 12 -12 h376 a12 12 0 0 1 12 12 v22 h-400 z" fill="#E0F0EA"/>
+<text x="54" y="902" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">consultation_messages</text>
+<text x="426" y="902" font-size="11" fill="#0B6E5A" text-anchor="end">상담 메시지</text>
+<text x="54" y="928" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="426" y="928" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="392" y="928" font-size="10" fill="#5B6C68" text-anchor="end">상담 메시지 ID · bigint unsigned</text>
+<text x="54" y="949" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">consultation_id</text>
+<text x="426" y="949" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="392" y="949" font-size="10" fill="#5B6C68" text-anchor="end">상담 ID · bigint unsigned</text>
+<text x="54" y="970" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">sequence</text>
+<text x="426" y="970" font-size="10" fill="#5B6C68" text-anchor="end">상담 내 단조 증가 순번 · bigint unsigned</text>
+<text x="54" y="991" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">sender_type</text>
+<text x="426" y="991" font-size="10" fill="#5B6C68" text-anchor="end">발신자 구분(HOSPITAL_USER, AGENT, SYS… · varchar(20)</text>
+<text x="54" y="1012" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">sender_id</text>
+<text x="426" y="1012" font-size="10" fill="#5B6C68" text-anchor="end">발신자 계정 ID. SYSTEM은 비어 있다 · bigint unsigned</text>
+<text x="54" y="1033" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">sender_name_snapshot</text>
+<text x="426" y="1033" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">SNAP</text>
+<text x="392" y="1033" font-size="10" fill="#5B6C68" text-anchor="end">발신 당시 표시명 · varchar(191)</text>
+<text x="54" y="1054" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">client_message_id</text>
+<text x="426" y="1054" font-size="10" fill="#5B6C68" text-anchor="end">클라이언트 중복 전송 방지 키 · varchar(64)</text>
+<text x="54" y="1075" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">message_type</text>
+<text x="426" y="1075" font-size="10" fill="#5B6C68" text-anchor="end">메시지 종류(TEXT, SYSTEM_TEXT) · varchar(20)</text>
+<text x="54" y="1096" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">content</text>
+<text x="426" y="1096" font-size="10" fill="#5B6C68" text-anchor="end">메시지 본문 · text</text>
+<text x="54" y="1117" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">broadcast_pending</text>
+<text x="426" y="1117" font-size="10" fill="#5B6C68" text-anchor="end">실시간 발행 대기 여부 · boolean</text>
+<text x="54" y="1138" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_at</text>
+<text x="426" y="1138" font-size="10" fill="#5B6C68" text-anchor="end">서버 저장 시각 · timestamp</text>
+<rect x="50" y="1147" width="380" height="22" rx="5" fill="#F7FAF9" stroke="#DBE4E1"/>
+<text x="58" y="1163" font-size="10" fill="#9C5410" font-weight="600">UNIQUE (consultation_id, sequence)</text>
+<rect x="476" y="152" width="470" height="580" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M476 164 a12 12 0 0 1 12 -12 h446 a12 12 0 0 1 12 12 v22 h-470 z" fill="#E0F0EA"/>
+<text x="490" y="174" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">consultations</text>
+<text x="932" y="174" font-size="11" fill="#0B6E5A" text-anchor="end">상담 세션</text>
+<text x="490" y="200" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="932" y="200" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="898" y="200" font-size="10" fill="#5B6C68" text-anchor="end">상담 ID · bigint unsigned</text>
+<text x="490" y="221" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">hospital_id</text>
+<text x="932" y="221" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="898" y="221" font-size="10" fill="#5B6C68" text-anchor="end">상담을 요청한 병원 ID · bigint unsigned</text>
+<text x="490" y="242" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">hospital_name_snapshot</text>
+<text x="932" y="242" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">SNAP</text>
+<text x="898" y="242" font-size="10" fill="#5B6C68" text-anchor="end">요청 당시 병원 표시명 · varchar(191)</text>
+<text x="490" y="263" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">requested_by_account_hospital_id</text>
+<text x="932" y="263" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="898" y="263" font-size="10" fill="#5B6C68" text-anchor="end">요청한 병원 계… · bigint unsigned</text>
+<text x="490" y="284" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">requester_name_snapshot</text>
+<text x="932" y="284" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">SNAP</text>
+<text x="898" y="284" font-size="10" fill="#5B6C68" text-anchor="end">요청 당시 요청자 표시명 · varchar(191)</text>
+<text x="490" y="305" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">context_qna_id</text>
+<text x="932" y="305" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="898" y="305" font-size="10" fill="#5B6C68" text-anchor="end">상담을 요청하기 직전에 보던 Q&amp;A ID · bigint unsigned</text>
+<text x="490" y="326" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">context_qna_question_snapshot</text>
+<text x="932" y="326" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">SNAP</text>
+<text x="898" y="326" font-size="10" fill="#5B6C68" text-anchor="end">요청 당시 질문 본문 · varchar(500)</text>
+<text x="490" y="347" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">context_qna_answer_snapshot</text>
+<text x="932" y="347" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">SNAP</text>
+<text x="898" y="347" font-size="10" fill="#5B6C68" text-anchor="end">요청 당시 답변 본문 · text</text>
+<text x="490" y="368" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">status</text>
+<text x="932" y="368" font-size="10" fill="#5B6C68" text-anchor="end">상담 상태(WAITING, CONNECTED, ENDED, CANCELED) · varchar(20)</text>
+<text x="490" y="389" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">active_hospital_id</text>
+<text x="932" y="389" font-size="8.5" font-weight="700" fill="#9C5410" text-anchor="end">UQ</text>
+<text x="898" y="389" font-size="10" fill="#5B6C68" text-anchor="end">활성 상담일 때만 채워지는 병원 I… · bigint unsigned</text>
+<text x="490" y="410" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">assigned_staff_id</text>
+<text x="932" y="410" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="898" y="410" font-size="10" fill="#5B6C68" text-anchor="end">연결된 상담원 직원 계정 ID · bigint unsigned</text>
+<text x="490" y="431" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">assigned_staff_name_snapshot</text>
+<text x="932" y="431" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">SNAP</text>
+<text x="898" y="431" font-size="10" fill="#5B6C68" text-anchor="end">연결 당시 상담원 표시명 · varchar(191)</text>
+<text x="490" y="452" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">requested_at</text>
+<text x="932" y="452" font-size="10" fill="#5B6C68" text-anchor="end">상담 요청 시각 · timestamp</text>
+<text x="490" y="473" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">connected_at</text>
+<text x="932" y="473" font-size="10" fill="#5B6C68" text-anchor="end">상담원 연결 시각 · timestamp</text>
+<text x="490" y="494" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">ended_at</text>
+<text x="932" y="494" font-size="10" fill="#5B6C68" text-anchor="end">상담 종료 시각 · timestamp</text>
+<text x="490" y="515" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">canceled_at</text>
+<text x="932" y="515" font-size="10" fill="#5B6C68" text-anchor="end">상담 취소 시각 · timestamp</text>
+<text x="490" y="536" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">close_reason</text>
+<text x="932" y="536" font-size="10" fill="#5B6C68" text-anchor="end">종료·취소 사유 코드 · varchar(40)</text>
+<text x="490" y="557" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">last_message_at</text>
+<text x="932" y="557" font-size="10" fill="#5B6C68" text-anchor="end">마지막 메시지 시각 · timestamp</text>
+<text x="490" y="578" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">last_message_sequence</text>
+<text x="932" y="578" font-size="10" fill="#5B6C68" text-anchor="end">마지막 메시지 순번 · bigint unsigned</text>
+<text x="490" y="599" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">source_application</text>
+<text x="932" y="599" font-size="10" fill="#5B6C68" text-anchor="end">요청 Host 정보 · varchar(100)</text>
+<text x="490" y="620" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">source_page_path</text>
+<text x="932" y="620" font-size="10" fill="#5B6C68" text-anchor="end">요청 당시 화면 경로 · varchar(255)</text>
+<text x="490" y="641" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">version</text>
+<text x="932" y="641" font-size="10" fill="#5B6C68" text-anchor="end">Optimistic Lock 버전 · bigint unsigned</text>
+<text x="490" y="662" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_at</text>
+<text x="932" y="662" font-size="10" fill="#5B6C68" text-anchor="end">생성 일시 · timestamp</text>
+<text x="490" y="683" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_at</text>
+<text x="932" y="683" font-size="10" fill="#5B6C68" text-anchor="end">수정 일시 · timestamp</text>
+<rect x="486" y="692" width="450" height="22" rx="5" fill="#F7FAF9" stroke="#DBE4E1"/>
+<text x="494" y="708" font-size="10" fill="#9C5410" font-weight="600">UNIQUE (active_hospital_id) — 병원당 활성 1건</text>
+<rect x="982" y="152" width="400" height="249" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M982 164 a12 12 0 0 1 12 -12 h376 a12 12 0 0 1 12 12 v22 h-400 z" fill="#E0F0EA"/>
+<text x="996" y="174" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">consultation_status_histories</text>
+<text x="1368" y="174" font-size="11" fill="#0B6E5A" text-anchor="end">상태 이력</text>
+<text x="996" y="200" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="1368" y="200" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="1334" y="200" font-size="10" fill="#5B6C68" text-anchor="end">상담 상태 이력 ID · bigint unsigned</text>
+<text x="996" y="221" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">consultation_id</text>
+<text x="1368" y="221" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="1334" y="221" font-size="10" fill="#5B6C68" text-anchor="end">상담 ID · bigint unsigned</text>
+<text x="996" y="242" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">from_status</text>
+<text x="1368" y="242" font-size="10" fill="#5B6C68" text-anchor="end">이전 상태. 최초 생성은 비어 있다 · varchar(20)</text>
+<text x="996" y="263" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">to_status</text>
+<text x="1368" y="263" font-size="10" fill="#5B6C68" text-anchor="end">변경된 상태 · varchar(20)</text>
+<text x="996" y="284" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">actor_type</text>
+<text x="1368" y="284" font-size="10" fill="#5B6C68" text-anchor="end">수행 주체(HOSPITAL_USER, AGENT, SYSTEM) · varchar(20)</text>
+<text x="996" y="305" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">actor_id</text>
+<text x="1368" y="305" font-size="10" fill="#5B6C68" text-anchor="end">수행자 계정 ID · bigint unsigned</text>
+<text x="996" y="326" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">reason</text>
+<text x="1368" y="326" font-size="10" fill="#5B6C68" text-anchor="end">변경 사유 코드 · varchar(40)</text>
+<text x="996" y="347" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">occurred_at</text>
+<text x="1368" y="347" font-size="10" fill="#5B6C68" text-anchor="end">발생 시각 · timestamp</text>
+<text x="996" y="368" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">request_id</text>
+<text x="1368" y="368" font-size="10" fill="#5B6C68" text-anchor="end">추적용 Request ID · varchar(64)</text>
+<rect x="982" y="437" width="400" height="228" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M982 449 a12 12 0 0 1 12 -12 h376 a12 12 0 0 1 12 12 v22 h-400 z" fill="#E0F0EA"/>
+<text x="996" y="459" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">operating_hours</text>
+<text x="1368" y="459" font-size="11" fill="#0B6E5A" text-anchor="end">운영시간 · 요일 7행</text>
+<text x="996" y="485" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="1368" y="485" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="1334" y="485" font-size="10" fill="#5B6C68" text-anchor="end">상담 운영시간 ID · bigint unsigned</text>
+<text x="996" y="506" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">day_of_week</text>
+<text x="1368" y="506" font-size="8.5" font-weight="700" fill="#9C5410" text-anchor="end">UQ</text>
+<text x="1334" y="506" font-size="10" fill="#5B6C68" text-anchor="end">ISO 요일(월요일 1~일요일 7) · tinyint unsigned</text>
+<text x="996" y="527" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">is_open</text>
+<text x="1368" y="527" font-size="10" fill="#5B6C68" text-anchor="end">상담 운영 여부 · boolean</text>
+<text x="996" y="548" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">opens_at</text>
+<text x="1368" y="548" font-size="10" fill="#5B6C68" text-anchor="end">상담 시작 시각 · time</text>
+<text x="996" y="569" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">closes_at</text>
+<text x="1368" y="569" font-size="10" fill="#5B6C68" text-anchor="end">상담 종료 시각 · time</text>
+<text x="996" y="590" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_by_staff_id</text>
+<text x="1368" y="590" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="1334" y="590" font-size="10" fill="#5B6C68" text-anchor="end">마지막 수정 직원 … · bigint unsigned</text>
+<text x="996" y="611" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_at</text>
+<text x="1368" y="611" font-size="10" fill="#5B6C68" text-anchor="end">생성 일시 · timestamp</text>
+<text x="996" y="632" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_at</text>
+<text x="1368" y="632" font-size="10" fill="#5B6C68" text-anchor="end">수정 일시 · timestamp</text>
+<rect x="982" y="701" width="400" height="186" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M982 713 a12 12 0 0 1 12 -12 h376 a12 12 0 0 1 12 12 v22 h-400 z" fill="#E0F0EA"/>
+<text x="996" y="723" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">closure_dates</text>
+<text x="1368" y="723" font-size="11" fill="#0B6E5A" text-anchor="end">휴무일</text>
+<text x="996" y="749" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="1368" y="749" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="1334" y="749" font-size="10" fill="#5B6C68" text-anchor="end">상담 휴무일 ID · bigint unsigned</text>
+<text x="996" y="770" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">closure_date</text>
+<text x="1368" y="770" font-size="8.5" font-weight="700" fill="#9C5410" text-anchor="end">UQ</text>
+<text x="1334" y="770" font-size="10" fill="#5B6C68" text-anchor="end">상담을 강제로 중단할 날짜 · date</text>
+<text x="996" y="791" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">reason</text>
+<text x="1368" y="791" font-size="10" fill="#5B6C68" text-anchor="end">공휴일·임시휴무 사유 · varchar(255)</text>
+<text x="996" y="812" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_by_staff_id</text>
+<text x="1368" y="812" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="1334" y="812" font-size="10" fill="#5B6C68" text-anchor="end">마지막 수정 직원 … · bigint unsigned</text>
+<text x="996" y="833" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_at</text>
+<text x="1368" y="833" font-size="10" fill="#5B6C68" text-anchor="end">생성 일시 · timestamp</text>
+<text x="996" y="854" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_at</text>
+<text x="1368" y="854" font-size="10" fill="#5B6C68" text-anchor="end">수정 일시 · timestamp</text>
+<rect x="982" y="923" width="400" height="186" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M982 935 a12 12 0 0 1 12 -12 h376 a12 12 0 0 1 12 12 v22 h-400 z" fill="#E0F0EA"/>
+<text x="996" y="945" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">settings</text>
+<text x="1368" y="945" font-size="11" fill="#0B6E5A" text-anchor="end">즉시 중단 · 단일 행</text>
+<text x="996" y="971" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="1368" y="971" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="1334" y="971" font-size="10" fill="#5B6C68" text-anchor="end">병원 챗봇 공통 설정 ID · bigint unsigned</text>
+<text x="996" y="992" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">is_force_closed</text>
+<text x="1368" y="992" font-size="10" fill="#5B6C68" text-anchor="end">상담원 연결 강제 중단 여부 · boolean</text>
+<text x="996" y="1013" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">force_closed_reason</text>
+<text x="1368" y="1013" font-size="10" fill="#5B6C68" text-anchor="end">강제 중단 사유(내부 확인용) · varchar(255)</text>
+<text x="996" y="1034" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_by_staff_id</text>
+<text x="1368" y="1034" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="1334" y="1034" font-size="10" fill="#5B6C68" text-anchor="end">마지막 수정 직원 … · bigint unsigned</text>
+<text x="996" y="1055" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">created_at</text>
+<text x="1368" y="1055" font-size="10" fill="#5B6C68" text-anchor="end">생성 일시 · timestamp</text>
+<text x="996" y="1076" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_at</text>
+<text x="1368" y="1076" font-size="10" fill="#5B6C68" text-anchor="end">수정 일시 · timestamp</text>
+<rect x="476" y="768" width="470" height="44" rx="10" fill="#FFFFFF" stroke="#DBE4E1" stroke-dasharray="5 4"/>
+<text x="490" y="795" font-size="12" fill="#5B6C68" font-family="ui-monospace, Menlo, monospace">hospitals</text>
+<text x="932" y="795" font-size="10.5" fill="#5B6C68" text-anchor="end">기존 · 참조만</text>
+<rect x="476" y="820" width="470" height="44" rx="10" fill="#FFFFFF" stroke="#DBE4E1" stroke-dasharray="5 4"/>
+<text x="490" y="847" font-size="12" fill="#5B6C68" font-family="ui-monospace, Menlo, monospace">account_hospitals</text>
+<text x="932" y="847" font-size="10.5" fill="#5B6C68" text-anchor="end">기존 · 참조만</text>
+<rect x="476" y="872" width="470" height="44" rx="10" fill="#FFFFFF" stroke="#DBE4E1" stroke-dasharray="5 4"/>
+<text x="490" y="899" font-size="12" fill="#5B6C68" font-family="ui-monospace, Menlo, monospace">account_staffs</text>
+<text x="932" y="899" font-size="10.5" fill="#5B6C68" text-anchor="end">기존 · 참조만</text>
+<path d="M220 438 V474" fill="none" stroke="#5B6C68" stroke-width="1.3" marker-end="url(#one)"/>
+<text x="228" y="460" font-size="10" fill="#5B6C68">folder_id</text>
+<path d="M40 214 h-14 a8 8 0 0 0 -8 8 v32 a8 8 0 0 0 8 8 h14" fill="none" stroke="#5B6C68" stroke-width="1.3" marker-end="url(#one)"/>
+<text x="26" y="272" font-size="9.5" fill="#5B6C68" text-anchor="middle">parent_id</text>
+<path d="M440 594 H458.0 V342 H476" fill="none" stroke="#5B6C68" stroke-width="1.3" marker-end="url(#one)"/>
+<text x="464.0" y="468.0" font-size="10" fill="#5B6C68">context_qna_id</text>
+<path d="M440 930 H458.0 V692 H476" fill="none" stroke="#5B6C68" stroke-width="1.3" marker-end="url(#one)"/>
+<text x="464.0" y="811.0" font-size="10" fill="#5B6C68">consultation_id</text>
+<path d="M946 212 H964.0 V202 H982" fill="none" stroke="#5B6C68" stroke-width="1.3" marker-end="url(#one)"/>
+<text x="970.0" y="207.0" font-size="10" fill="#5B6C68">consultation_id</text>
+<path d="M536 732 H536.0 V768 H536" fill="none" stroke="#5B6C68" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#one)"/>
+<text x="542.0" y="750.0" font-size="10" fill="#5B6C68">hospital_id</text>
+<path d="M562 732 H562.0 V820 H562" fill="none" stroke="#5B6C68" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#one)"/>
+<text x="568.0" y="776.0" font-size="10" fill="#5B6C68">requested_by…</text>
+<path d="M588 732 H588.0 V872 H588" fill="none" stroke="#5B6C68" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#one)"/>
+<text x="594.0" y="802.0" font-size="10" fill="#5B6C68">assigned_staff_id</text>
+<line x1="40" y1="1225" x2="1382" y2="1225" stroke="#DBE4E1"/>
+<text x="40" y="1249" font-size="10" font-weight="700" fill="#0B6E5A">PK</text>
+<text x="76" y="1249" font-size="11.5" fill="#5B6C68">기본키</text>
+<text x="143" y="1249" font-size="10" font-weight="700" fill="#5B6C68">FK</text>
+<text x="179" y="1249" font-size="11.5" fill="#5B6C68">외래키</text>
+<text x="246" y="1249" font-size="10" font-weight="700" fill="#9C5410">UQ</text>
+<text x="282" y="1249" font-size="11.5" fill="#5B6C68">유니크</text>
+<text x="349" y="1249" font-size="10" font-weight="700" fill="#9C5410">GEN</text>
+<text x="385" y="1249" font-size="11.5" fill="#5B6C68">생성 컬럼</text>
+<text x="478" y="1249" font-size="10" font-weight="700" fill="#0B6E5A">SNAP</text>
+<text x="514" y="1249" font-size="11.5" fill="#5B6C68">요청 시점 값 복사</text>
+<text x="40" y="1277" font-size="11.5" fill="#5B6C68">SNAP 컬럼은 요청 시점의 이름·본문을 복사합니다. 계정이나 Q&amp;A를 지워도 상담 기록이 그대로 남습니다.</text>
+<text x="40" y="1296" font-size="11.5" fill="#5B6C68">active_hospital_id는 활성(WAITING·CONNECTED)일 때만 hospital_id를 복사하고 끝나면 NULL로 비웁니다. MySQL에 Partial Unique Index가 없어 이렇게 병원당 활성 1건을 보장합니다.</text>
+<text x="40" y="1315" font-size="11.5" fill="#5B6C68">잘린 설명(…)의 전문은 DB COMMENT와 develop-doc/schema.dbml 에 있습니다. DDL은 develop-doc/hospital-chatbot-schema.sql 입니다.</text>
+</svg>

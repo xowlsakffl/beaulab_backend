@@ -25,7 +25,7 @@ final class HospitalEventRealModelDBSeeder extends Seeder
         }
 
         if ($eventIds->isEmpty()) {
-            $this->command?->warn('HospitalEventRealModelDBSeeder skipped: hospital events are missing.');
+            $this->command?->warn('리얼모델 DB 시드 생성을 건너뜁니다: 병의원 이벤트가 없습니다.');
 
             return;
         }

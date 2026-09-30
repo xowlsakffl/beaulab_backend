@@ -23,7 +23,7 @@ final class CategoryDeleteForStaffQuery
     {
         return DB::table('category_assignments')
             ->where('category_id', $category->id)
-            ->exists();
+            ->exists() || DB::table('remote_consultation_categories')->where('category_id', $category->id)->exists();
     }
 
     public function delete(Category $category): void

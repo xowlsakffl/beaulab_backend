@@ -17,19 +17,19 @@ final class AccountBeautyFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'              => $this->faker->name(),
-            'nickname'          => $this->faker->unique()->userName(),
-            'email'             => $this->faker->unique()->safeEmail(),
+            'name' => fake('ko_KR')->name(),
+            'nickname' => $this->faker->unique()->userName(),
+            'email' => $this->faker->unique()->safeEmail(),
 
-            'password'          => Hash::make('password'),
+            'password' => Hash::make('password'),
 
-            'status'            => AccountBeauty::STATUS_ACTIVE,
+            'status' => AccountBeauty::STATUS_ACTIVE,
 
-            'beauty_id'         => null,
+            'beauty_id' => null,
 
             'email_verified_at' => now(),
 
-            'last_login_at'     => null,
+            'last_login_at' => null,
         ];
     }
 

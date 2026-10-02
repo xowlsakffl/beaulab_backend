@@ -32,6 +32,32 @@ final class HospitalChatBotQnaFlowTest extends TestCase
         return $app;
     }
 
+    public function test_legacy_folder_routes_are_not_registered(): void
+    {
+        foreach (app('router')->getRoutes() as $route) {
+            self::assertStringNotContainsString('hospital-chatbot/qna-folders', $route->uri());
+        }
+    }
+
+    public function test_legacy_folder_input_is_rejected_instead_of_silently_ignored(): void
+    {
+        $staff = AccountStaff::factory()->create();
+        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::COMMON_ACCESS, 'staff'));
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
+            'folder_id' => 1, 'question' => '이전 폴더 등록',
+        ])->assertStatus(422);
+
+        $id = $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
+            'question' => '상위 항목',
+        ])->assertStatus(201)->json('data.id');
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qnas/{$id}", [
+            'folder_id' => 1,
+        ])->assertStatus(422);
+        $this->getJson("/api/v1/staff/hospital-chatbot/qnas/{$id}")
+            ->assertOk()->assertJsonPath('data.parent_id', null);
+    }
+
     public function test_staff_manages_qnas_and_hospital_only_receives_active_plain_text_fields(): void
     {
         $staff = AccountStaff::factory()->create();
@@ -39,7 +65,7 @@ final class HospitalChatBotQnaFlowTest extends TestCase
         $this->login('staff', $staff, 'http://localhost:3000');
 
         $created = $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
-            'folder_id' => $this->folder('병원회원')->id,
+            'parent_id' => null,
             'question' => '계정은 어떻게 변경하나요?',
             'answer' => '<strong>계정 메뉴</strong>에서 변경해 주세요.',
             'status' => HospitalChatBotQna::STATUS_ACTIVE,
@@ -49,11 +75,11 @@ final class HospitalChatBotQnaFlowTest extends TestCase
         $qnaId = (int) $created->json('data.id');
 
         $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
-            'folder_id' => $this->folder('병원회원')->id,
+            'parent_id' => null,
             'question' => '  계정은   어떻게 변경하나요? ',
             'answer' => '중복 답변',
         ])->assertUnprocessable()
-            ->assertJsonPath('error.details.errors.question.0', '동일한 질문이 이미 등록되어 있습니다.');
+            ->assertJsonPath('error.details.errors.question.0', '같은 상위 항목에 동일한 질문이 있습니다.');
 
         $this->getJson('/api/v1/staff/hospital-chatbot/qnas?q=%EA%B3%84%EC%A0%95')
             ->assertOk()
@@ -124,6 +150,63 @@ final class HospitalChatBotQnaFlowTest extends TestCase
             ['parent_id' => null, 'name' => $name],
             ['depth' => 1, 'sort_order' => 0],
         );
+    }
+
+    public function test_tree_enforces_depth_cycles_duplicates_and_child_deletion(): void
+    {
+        $staff = AccountStaff::factory()->create();
+        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::COMMON_ACCESS, 'staff'));
+        $this->login('staff', $staff, 'http://localhost:3000');
+        $create = fn (string $question, ?int $parent = null) => $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
+            'question' => $question, 'parent_id' => $parent, 'answer' => '',
+        ])->assertCreated()->json('data.id');
+        $root = $create('의료진 프로필');
+        $child = $create('사진 변경', $root);
+        $leaf = $create('등록 규격', $child);
+        $other = $create('병의원 프로필');
+        $create('사진 변경', $other);
+        $this->postJson('/api/v1/staff/hospital-chatbot/qnas', ['question' => '사진 변경', 'parent_id' => $root])->assertUnprocessable();
+        $this->postJson('/api/v1/staff/hospital-chatbot/qnas', ['question' => '4단계', 'parent_id' => $leaf])->assertUnprocessable();
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qnas/{$root}", ['parent_id' => $child])->assertUnprocessable();
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qnas/{$root}", ['parent_id' => $other])->assertUnprocessable();
+        $this->deleteJson("/api/v1/staff/hospital-chatbot/qnas/{$root}")->assertUnprocessable();
+        $this->getJson('/api/v1/staff/hospital-chatbot/qnas?depth=3')->assertOk()
+            ->assertJsonCount(1, 'data')->assertJsonPath('data.0.parent_path', '의료진 프로필 > 사진 변경');
+        $this->getJson('/api/v1/staff/hospital-chatbot/qnas/tree')->assertOk()->assertJsonCount(5, 'data');
+        $this->getJson("/api/v1/staff/hospital-chatbot/qnas?root_id={$root}&per_page=1&page=2")
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('meta.total', 3)->assertJsonPath('data.0.id', $child);
+        $this->getJson("/api/v1/staff/hospital-chatbot/qnas?root_id={$root}&depth=3")
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $leaf);
+        $this->getJson("/api/v1/staff/hospital-chatbot/qnas?root_id={$child}")->assertOk()->assertJsonCount(0, 'data');
+        $this->getJson('/api/v1/staff/hospital-chatbot/qnas?root_id=-1')->assertUnprocessable();
+        $this->getJson('/api/v1/staff/hospital-chatbot/qnas?all=1&per_page=1&page=2&status=ACTIVE,INACTIVE')
+            ->assertOk()->assertJsonCount(5, 'data');
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qnas/{$other}", ['parent_id' => null, 'position' => 0])
+            ->assertOk()->assertJsonPath('data.sort_order', 0);
+        $this->getJson('/api/v1/staff/hospital-chatbot/qnas?all=1')->assertJsonPath('data.0.id', $other);
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qnas/{$child}", ['parent_id' => $other, 'position' => 0])
+            ->assertUnprocessable();
+        $this->assertDatabaseHas('hospital_chatbot_qnas', ['id' => $child, 'parent_id' => $root]);
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qnas/{$root}", ['parent_id' => $leaf, 'position' => 0])
+            ->assertUnprocessable();
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qnas/{$root}", ['position' => -1])->assertUnprocessable();
+        $this->patchJson("/api/v1/staff/hospital-chatbot/qnas/{$child}", ['parent_id' => null, 'position' => 1])->assertOk()->assertJsonPath('data.depth', 1)->assertJsonPath('data.sort_order', 1);
+        $this->assertDatabaseHas('hospital_chatbot_qnas', ['id' => $leaf, 'depth' => 2, 'parent_id' => $child]);
+        $this->deleteJson("/api/v1/staff/hospital-chatbot/qnas/{$root}")->assertOk();
+        $this->postJson('/api/v1/staff/hospital-chatbot/qnas', ['question' => '삭제된 상위', 'parent_id' => $root])->assertUnprocessable();
+    }
+
+    public function test_hospital_excludes_descendants_of_hidden_nodes(): void
+    {
+        $create = app(\App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotQnaCreateForStaffAction::class);
+        $root = $create->execute(['question' => '의료진', 'status' => 'INACTIVE']);
+        $child = $create->execute(['question' => '프로필 변경', 'parent_id' => $root['id']]);
+        $create->execute(['question' => '이미지 규격', 'parent_id' => $child['id']]);
+        $visible = $create->execute(['question' => '병의원 정보']);
+        $account = AccountHospital::factory()->forHospital(Hospital::factory()->active()->create())->active()->create();
+        $this->login('hospital', $account, 'http://localhost:3002');
+        $this->getJson('/api/v1/hospital/hospital-chatbot/qnas')->assertOk()->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $visible['id'])->assertJsonPath('data.0.depth', 1);
     }
 
     private function createQna(string $question): HospitalChatBotQna

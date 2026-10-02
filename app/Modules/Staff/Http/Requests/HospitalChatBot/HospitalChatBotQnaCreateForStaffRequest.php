@@ -18,11 +18,17 @@ final class HospitalChatBotQnaCreateForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'folder_id' => ['required', 'integer', 'exists:hospital_chatbot_qna_folders,id'],
+            'folder_id' => ['prohibited'],
+            'parent_id' => ['nullable', 'integer', 'min:1'],
             'question' => ['required', 'string', 'max:255'],
-            'answer' => ['required', 'string', 'max:10000'],
+            'answer' => ['nullable', 'string', 'max:10000'],
             'status' => ['sometimes', 'string', Rule::in(HospitalChatBotQna::statuses())],
-            'sort_order' => ['sometimes', 'integer', 'min:0'],
+            'sort_order' => ['sometimes', 'integer', 'min:0', 'max:4294967295'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return ['folder_id.prohibited' => '폴더 대신 상위 Q&A 항목을 선택해 주세요.'];
     }
 }

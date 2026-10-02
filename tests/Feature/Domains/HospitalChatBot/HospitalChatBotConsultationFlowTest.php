@@ -87,7 +87,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
             array_map(static fn (array $row): array => [$row['from_status'], $row['to_status']], $detail),
         );
 
-        // 종료된 뒤에는 같은 병원이 새 상담을 열 수 있다.
+        // 종료된 뒤에는 같은 병의원이 새 상담을 열 수 있다.
         $this->login('hospital', $account, 'http://localhost:3002');
         $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
             ->assertOk()
@@ -275,7 +275,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
         $histories = $this->getJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}")
             ->assertOk()->json('data.status_histories');
 
-        // 마지막 전이의 주체가 병원 사용자로 남아야 상담원 종료와 구분된다.
+        // 마지막 전이의 주체가 병의원 사용자로 남아야 상담원 종료와 구분된다.
         $last = end($histories);
         self::assertSame(HospitalChatBotConsultationStatus::ACTOR_HOSPITAL_USER, $last['actor_type']);
         self::assertSame(HospitalChatBotConsultationStatus::REASON_USER_ENDED, $last['reason']);
@@ -350,7 +350,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
         $expired = HospitalChatBotConsultation::query()->whereKey($consultationId)->firstOrFail();
         self::assertSame(HospitalChatBotConsultationStatus::CANCELED, $expired->status);
         self::assertSame(HospitalChatBotConsultationStatus::REASON_WAITING_TIMEOUT, $expired->close_reason);
-        // 활성 키가 비워져야 같은 병원이 새 상담을 열 수 있다.
+        // 활성 키가 비워져야 같은 병의원이 새 상담을 열 수 있다.
         self::assertNull($expired->active_hospital_id);
 
         $this->postJson('/api/v1/hospital/hospital-chatbot/consultations')
@@ -377,7 +377,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
         self::assertNotSame($firstId, $secondId);
 
-        // 다른 병원의 상담은 취소할 수 없다.
+        // 다른 병의원의 상담은 취소할 수 없다.
         $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$firstId}/cancel")
             ->assertStatus(404);
     }
@@ -389,7 +389,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
         $this->openOperatingHours();
 
         $qna = HospitalChatBotQna::query()->create([
-            'category' => '병원회원',
+            'category' => '병의원회원',
             'question' => '가입 승인은 얼마나 걸리나요?',
             'question_key' => HospitalChatBotQna::questionKey('가입 승인은 얼마나 걸리나요?'),
             'answer' => '영업일 기준 1~2일 걸립니다.',

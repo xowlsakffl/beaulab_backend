@@ -174,7 +174,7 @@ final class HospitalUpdateHistoryRecordAction
             'operation_hours' => $this->item('진료시간', $hospital->operation_hours, $this->operationHoursLabel($hospital->operation_hours)),
             'direction' => $this->item('오시는 길', $hospital->direction, $hospital->direction),
             'categories' => $this->item('진료과목', $this->categoryValue($hospital), $this->categoryDisplay($hospital)),
-            'features' => $this->item('병원정보', $this->featureValue($hospital), $this->featureDisplay($hospital)),
+            'features' => $this->item('병의원정보', $this->featureValue($hospital), $this->featureDisplay($hospital)),
             'logo' => $this->item('로고 이미지', $hospital->logoMedia?->path, OperationHistoryDisplayValue::fileName($hospital->logoMedia?->path)),
             'gallery' => $this->item('병의원 이미지', $this->galleryValue($hospital), $this->galleryDisplay($hospital)),
             'business_number' => $this->item('사업자등록번호', $businessRegistration?->business_number, $businessRegistration?->business_number),

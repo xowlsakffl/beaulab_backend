@@ -26,7 +26,10 @@ final readonly class HospitalChatBotOperatingHoursForStaffDto
 
         return [
             'timezone' => HospitalChatBotAvailabilityResolver::TIMEZONE,
-            'configured' => $resolver->isConfigured($hours),
+            'configured' => $resolver->isConfigured($hours, $setting),
+            'break_starts_at' => self::time($setting?->break_starts_at),
+            'break_ends_at' => self::time($setting?->break_ends_at),
+            'public_holiday_codes' => $setting?->public_holiday_codes ?? [],
             'is_force_closed' => (bool) ($setting?->is_force_closed ?? false),
             'force_closed_reason' => $setting?->force_closed_reason !== null
                 ? (string) $setting->force_closed_reason
@@ -44,6 +47,7 @@ final readonly class HospitalChatBotOperatingHoursForStaffDto
             })->all(),
             'closure_dates' => $closures->map(static fn (HospitalChatBotClosureDate $closure): array => [
                 'date' => $closure->closure_date->format('Y-m-d'),
+                'end_date' => ($closure->end_date ?? $closure->closure_date)->format('Y-m-d'),
                 'reason' => $closure->reason !== null ? (string) $closure->reason : null,
             ])->all(),
         ];

@@ -10,17 +10,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('hospital_features', function (Blueprint $table) {
-            $table->id()->comment('병원 정보 고유 ID');
-            $table->string('code', 100)->unique()->comment('병원 정보 코드');
-            $table->string('name', 100)->comment('병원 정보명');
+            $table->id()->comment('병의원 정보 고유 ID');
+            $table->string('code', 100)->unique()->comment('병의원 정보 코드');
+            $table->string('name', 100)->comment('병의원 정보명');
             $table->unsignedInteger('sort_order')->default(0)->comment('정렬 순서');
-            $table->string('status', 20)->default('ACTIVE')->comment('병원 정보 상태');
+            $table->string('status', 20)->default('ACTIVE')->comment('병의원 정보 상태');
             $table->timestamps();
 
             $table->index(['status', 'sort_order']);
         });
 
-        DB::statement("ALTER TABLE hospital_features COMMENT = '병원 정보 마스터 테이블'");
+        DB::statement("ALTER TABLE hospital_features COMMENT = '병의원 정보 마스터 테이블'");
     }
 
     public function down(): void

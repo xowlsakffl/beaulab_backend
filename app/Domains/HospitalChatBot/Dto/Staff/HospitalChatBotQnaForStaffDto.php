@@ -12,6 +12,10 @@ final readonly class HospitalChatBotQnaForStaffDto
     {
         return [
             'id' => (int) $qna->id,
+            'parent_id' => $qna->parent_id,
+            'depth' => (int) ($qna->depth ?? 1),
+            'parent_path' => $qna->getAttribute('tree_path') ?? '',
+            'ancestor_ids' => $qna->getAttribute('ancestor_ids') ?? [],
             'folder_id' => $qna->folder_id !== null ? (int) $qna->folder_id : null,
             // 분류 이름은 폴더에서 가져온다. category 컬럼은 이관 전 데이터의 흔적이다.
             'folder_name' => self::folderName($qna) !== null ? (string) $qna->folder->name : null,

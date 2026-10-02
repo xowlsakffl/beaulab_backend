@@ -33,6 +33,9 @@ final class HospitalChatBotConsultationFilters
     public static function rules(): array
     {
         return [
+            'q' => ['nullable', 'string', 'max:191'],
+            'mine' => ['nullable', 'boolean'],
+            'close_reason' => ['nullable', Rule::in(['AGENT_COMPLETED', 'USER_ENDED', 'USER_CANCELED', 'WAITING_TIMEOUT'])],
             'status' => ['nullable', 'array'],
             'status.*' => ['string', Rule::in([
                 HospitalChatBotConsultationStatus::WAITING,
@@ -52,7 +55,7 @@ final class HospitalChatBotConsultationFilters
              * 대기 목록은 집어야 할 순서(대기 먼저, 오래 기다린 순), 기록은 최신순이다.
              * 화면이 정하게 두지 않으면 한쪽은 반드시 뒤집힌 목록을 보게 된다.
              */
-            'sort' => ['nullable', Rule::in([self::SORT_QUEUE, self::SORT_RECENT])],
+            'sort' => ['nullable', Rule::in([self::SORT_QUEUE, self::SORT_RECENT, 'manage'])],
         ];
     }
 
@@ -87,6 +90,9 @@ final class HospitalChatBotConsultationFilters
              */
             'status' => is_array($status) && $status !== [] ? array_values($status) : HospitalChatBotConsultationStatus::active(),
             'assigned_staff_id' => self::id($validated['assigned_staff_id'] ?? null),
+            'mine_staff_id' => ! empty($validated['mine']) ? (int) auth()->id() : null,
+            'q' => self::text($validated['q'] ?? null),
+            'close_reason' => self::text($validated['close_reason'] ?? null),
             'hospital_id' => self::id($validated['hospital_id'] ?? null),
             'consultation_id' => self::id($validated['consultation_id'] ?? null),
             'requester' => self::text($validated['requester'] ?? null),

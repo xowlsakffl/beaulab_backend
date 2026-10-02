@@ -32,7 +32,7 @@
 
 - 매분: SMS, Push, 채팅 미전달 복구.
 - 주기적: 파일 삭제 대기·미참조 업로드·에디터 임시 이미지 정리, Horizon 지표.
-- 일간: 예약 작업 모니터 동기화, 실패/배치 기록 정리, 병원 평점 보정, 충전금 무결성 감사.
+- 일간: 예약 작업 모니터 동기화, 실패/배치 기록 정리, 병의원 평점 보정, 충전금 무결성 감사.
 
 시간은 앱의 timezone을 따릅니다. 정확한 시각과 보존 기간은 위 소스와 실제 `schedule:list`로 확인합니다.
 
@@ -171,7 +171,7 @@ AuthorizationSeeder는 역할 권한을 덮어쓸 수 있고 CategorySeeder는 �
 현재는 컬럼·인덱스 변경을 해당 테이블의 최초 생성 마이그레이션에 합칩니다. 별도 `add`/`alter` 파일은 만들지 않고 신규 테이블만 `create` 파일로 분리합니다. 운영 배포가 시작되면 이미 배포된 스키마의 변경 절차를 별도로 정해야 합니다.
 
 - 활동로그의 `event`·`batch_uuid`, 알림 발송 복구 필드, 채팅 `broadcast_pending`은 각 생성 파일에 포함합니다. `broadcast_pending`의 기본값은 false로 유지합니다.
-- 계정 이메일·인증 시각·재설정 수신처는 [병원 계정 생성 파일](../database/migrations/0001_01_01_000006_create_account_hospitals_table.php)에 포함합니다. [이메일 인증 기록](../database/migrations/2026_09_10_100000_create_hospital_account_email_verifications_table.php)은 별도 테이블입니다. 이전 휴대폰 데이터는 과거 이력 참조를 위해 보존하지만 신규 인증에 사용하지 않습니다.
+- 계정 이메일·인증 시각·재설정 수신처는 [병의원 계정 생성 파일](../database/migrations/0001_01_01_000006_create_account_hospitals_table.php)에 포함합니다. [이메일 인증 기록](../database/migrations/2026_09_10_100000_create_hospital_account_email_verifications_table.php)은 별도 테이블입니다. 이전 휴대폰 데이터는 과거 이력 참조를 위해 보존하지만 신규 인증에 사용하지 않습니다.
 - 권한과 기본 역할 매핑은 `AccessPermissions`·`AccessRoles`를 읽는 `AuthorizationSeeder`에서 관리합니다. 권한 추가용 마이그레이션을 만들지 않습니다. 기존 환경에서 전체 Seeder를 실행하면 사용자 지정 권한이 덮어써질 수 있습니다.
 - 이미 적용된 생성 파일을 수정해도 `migrate`가 해당 변경을 재실행하지는 않습니다. 기존 DB는 실제 컬럼·인덱스·제약·권한을 먼저 대조하고 필요한 변경만 적용합니다. 마이그레이션 이력만 고쳐 누락된 스키마를 적용된 것처럼 처리하면 안 됩니다.
 - 통합으로 없어진 `add` 이력은 해당 변경의 실제 적용과 원본 생성 이력을 확인한 뒤에만 정리합니다. 생성 파일 이름이 바뀐 경우 이미 존재하는 테이블을 재생성하지 않도록 이력 이름도 함께 맞춥니다. `rollback`, `migrate:fresh`, 전체 Seeder로 이력을 맞추지 않습니다.
@@ -208,7 +208,7 @@ AuthorizationSeeder는 역할 권한을 덮어쓸 수 있고 CategorySeeder는 �
 2. 개발 전용 MySQL DB·Redis·파일 저장소·APP_KEY를 준비한다. 개인 작업 DB와 운영 DB를 그대로 공유하지 않는다.
 3. 잠금 파일로 의존성을 설치한다. 기존 DB가 있으면 생성 migration 수정분이 자동 반영되지 않으므로 실제 스키마를 먼저 대조한다.
 4. HTTPS 개발 주소를 정하고 `APP_URL`을 같은 주소로 맞춘다. 링크·서명 미디어가 개발자 PC와 기기에서 접근 가능해야 한다.
-5. 합성 데이터와 개발자별 테스트 계정을 제공한다. 직원·병원·사용자 계정을 하나의 관리자 계정으로 대체하지 않는다.
+5. 합성 데이터와 개발자별 테스트 계정을 제공한다. 직원·병의원·사용자 계정을 하나의 관리자 계정으로 대체하지 않는다.
 6. 필요 기능에 맞춰 Horizon·Reverb·Scheduler를 프로세스 관리자로 실행한다. 개발 DB와 전용 큐인지 확인하고, 메일은 테스트 수신함·SMS/Push는 비활성 또는 승인된 테스트 대상만 사용한다.
 7. API 주소, 테스트 계정, API 명세, 최신 배포 커밋, 배포·데이터 초기화 공지 방법을 프론트 개발자에게 전달한다. 환경 파일과 운영 자격 증명은 전달하지 않는다.
 
@@ -253,3 +253,24 @@ php artisan serve --host=0.0.0.0 --port=8000
 이 명령은 수신 주소만 바꾸며 WSL NAT·Windows/Hyper-V 방화벽·포트 전달을 자동 설정하지 않는다. 0.0.0.0은 접속 URL이 아니다. 허용된 개발자만 API 포트에 접근하도록 제한하고 실제 접속 가능한 호스트 주소를 전달한다. 현재 Redis가 0.0.0.0:6379에 바인딩된 것도 확인했으므로, PC 공유 시 Redis 포트까지 열리지 않도록 확인한다. 이것만으로 Redis가 인터넷에 공개됐다는 의미는 아니다.
 
 이 문서는 구성 안내이며 실제 VPN 설치, 포트 개방, 서버 배포, 환경변수 변경을 수행한 기록은 아니다.
+
+## 병의원 챗봇 로컬 실시간 실행
+
+로컬 DB·Redis 연결을 확인한 뒤 아래 두 프로세스를 API와 별도로 실행한다.
+메일 등 다른 큐를 함께 소비하지 않으려면 챗봇 전용 큐를 지정한다.
+
+```sh
+php artisan reverb:start --host=127.0.0.1 --port=8080
+php artisan queue:work redis --queue=hospital-chatbot --sleep=1 --tries=3 --timeout=30
+```
+
+백엔드의 `BROADCAST_CONNECTION=reverb`와 `REVERB_APP_ID`, `REVERB_APP_KEY`,
+`REVERB_APP_SECRET`, `REVERB_HOST`, `REVERB_PORT`, `REVERB_SCHEME`을 설정한다.
+로컬 백엔드 발행 주소는 `127.0.0.1:8080`이며 브라우저는 접근 가능한 호스트를 사용한다.
+직원·병의원 웹에 같은 공개 앱 키를 지정하되 secret은 전달하지 않는다.
+기존 Horizon이 `hospital-chatbot` 큐를 처리하고 있다면 별도 워커는 필요 없다.
+
+검증은 병의원 요청 → 직원 목록 반영 → 연결 → 양방향 메시지 → 읽음 숫자 순서로 진행한다.
+Reverb 중단 시 보조 조회로 전환되고 재시작 후 재구독되는지 확인한다.
+서버가 재시작돼도 자동 복구되려면 배포 환경의 프로세스 관리자가 Reverb·큐 워커를 상시 관리해야 한다.
+임시 로컬 실행을 운영 배포 완료로 취급하지 않는다.

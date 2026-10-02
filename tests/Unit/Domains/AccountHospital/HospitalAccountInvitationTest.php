@@ -138,10 +138,10 @@ final class HospitalAccountInvitationTest extends TestCase
 
     public function test_hospital_account_actor_uses_hospital_name_instead_of_account_name(): void
     {
-        $account = new AccountHospital(['name' => '저장된 이전 병원명']);
-        $account->setRelation('hospital', new Hospital(['name' => '현재 병원명']));
+        $account = new AccountHospital(['name' => '저장된 이전 병의원명']);
+        $account->setRelation('hospital', new Hospital(['name' => '현재 병의원명']));
 
-        self::assertSame('현재 병원명', ActorDisplay::name($account));
+        self::assertSame('현재 병의원명', ActorDisplay::name($account));
     }
 
     public function test_laravel_discovers_the_invitation_policy(): void

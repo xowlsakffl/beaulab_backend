@@ -18,7 +18,7 @@ use App\Modules\Staff\Http\Requests\HospitalDoctor\HospitalDoctorUpdateForStaffR
 
 /**
  * DoctorForStaffController 역할 정의.
- * 병원 의사 도메인의 HTTP 컨트롤러로, 라우트 요청을 받아 Request 검증 결과와 Action 실행 결과를 API 응답으로 연결한다.
+ * 병의원 의사 도메인의 HTTP 컨트롤러로, 라우트 요청을 받아 Request 검증 결과와 Action 실행 결과를 API 응답으로 연결한다.
  */
 final class HospitalDoctorForStaffController extends Controller
 {

@@ -11,7 +11,7 @@ use Illuminate\Http\UploadedFile;
 
 /**
  * HospitalBusinessRegistrationUpdateForStaffAction 역할 정의.
- * 병원 사업자 등록 수정 흐름과 증빙 파일 교체를 조합한다.
+ * 병의원 사업자 등록 수정 흐름과 증빙 파일 교체를 조합한다.
  */
 final class HospitalBusinessRegistrationUpdateForStaffAction
 {

@@ -11,7 +11,7 @@ use App\Domains\Beauty\Models\Beauty;
 final class BeautyUpdateForStaffQuery
 {
     /**
-     * 병원 정보 업데이트 (Staff 전용)
+     * 병의원 정보 업데이트 (Staff 전용)
      * - name 제외 (Request에서 안 받으니 여기에도 없음)
      * - 변경사항 없으면 save() 생략
      */

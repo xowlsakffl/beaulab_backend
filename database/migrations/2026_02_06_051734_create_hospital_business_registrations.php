@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('hospital_business_registrations', function (Blueprint $table) {
             $table->id()->comment('사업자 등록증 고유 ID');
 
-            $table->foreignId('hospital_id')->comment('소속 병원 ID')->constrained('hospitals')->cascadeOnDelete();
+            $table->foreignId('hospital_id')->comment('소속 병의원 ID')->constrained('hospitals')->cascadeOnDelete();
 
             $table->string('business_number', 20)->unique()->comment('사업자 등록번호');
             $table->string('company_name', 255)->comment('상호명');

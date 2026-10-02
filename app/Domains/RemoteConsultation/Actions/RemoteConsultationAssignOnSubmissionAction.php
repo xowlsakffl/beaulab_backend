@@ -33,12 +33,12 @@ final class RemoteConsultationAssignOnSubmissionAction
             }
             $selected = array_values(array_unique(array_map('intval', $c->requested_hospital_ids ?? [])));
             if (count($selected) > 6) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '선택 병원은 최대 6개입니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '선택 병의원은 최대 6개입니다.');
             }
             $random = $this->matching->randomIds($categoryIds, $selected, 6 - count($selected));
             $hospitals = $this->matching->eligible($categoryIds)->whereIn('id', [...$selected, ...$random])->orderBy('id')->lockForUpdate()->get();
             if (array_diff($selected, $hospitals->modelKeys())) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '선택 병원 중 배정 조건을 충족하지 않는 병원이 있습니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '선택 병의원 중 배정 조건을 충족하지 않는 병의원이 있습니다.');
             }
             foreach ($hospitals as $hospital) {
                 $c->quotes()->create([

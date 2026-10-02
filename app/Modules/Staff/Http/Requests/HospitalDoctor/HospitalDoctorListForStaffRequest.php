@@ -138,7 +138,7 @@ final class HospitalDoctorListForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병원 ID',
+            'hospital_id' => '병의원 ID',
             'q' => '검색어',
             'allow_status' => '검수 상태',
             'allow_status.*' => '검수 상태',

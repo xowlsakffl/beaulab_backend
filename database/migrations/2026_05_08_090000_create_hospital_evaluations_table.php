@@ -36,7 +36,7 @@ return new class extends Migration
 
             $table->unsignedTinyInteger('rating_staff_kindness')->comment('직원친절도 평점(1~5)');
             $table->unsignedTinyInteger('rating_surgery_satisfaction')->comment('수술만족도 평점(1~5)');
-            $table->unsignedTinyInteger('rating_facility')->comment('병원시설 평점(1~5)');
+            $table->unsignedTinyInteger('rating_facility')->comment('병의원시설 평점(1~5)');
             $table->unsignedTinyInteger('rating_aftercare')->comment('사후관리 평점(1~5)');
             $table->unsignedTinyInteger('rating_cost')->comment('비용 평점(1~5)');
             $table->decimal('average_rating', 2, 1)->default(0)->comment('5개 평점 항목 평균');

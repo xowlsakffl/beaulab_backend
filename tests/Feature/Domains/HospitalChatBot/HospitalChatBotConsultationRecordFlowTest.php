@@ -228,9 +228,9 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
         self::assertNotSame('', $row[7]);
         self::assertEqualsWithDelta((int) $screen['waiting_seconds'], (int) $row[7], 2);
 
-        // 병원명이 빈 문자열이어도 화면과 같은 대체값을 쓴다.
-        self::assertSame($screen['hospital']['name'] ?? "병원 #{$this->hospitalIdOf($waiting)}", $row[1]);
-        self::assertStringStartsWith('병원 #', $row[1]);
+        // 병의원명이 빈 문자열이어도 화면과 같은 대체값을 쓴다.
+        self::assertSame($screen['hospital']['name'] ?? "병의원 #{$this->hospitalIdOf($waiting)}", $row[1]);
+        self::assertStringStartsWith('병의원 #', $row[1]);
     }
 
     public function test_export_keeps_the_last_day_even_when_given_mutable_dates(): void
@@ -248,11 +248,68 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
         self::assertStringContainsString((string) $lateToday, $csv);
     }
 
+    public function test_manage_search_counts_sort_and_own_assignment(): void
+    {
+        $this->loginStaff();
+        $ended = $this->consultation(['hospital_name_snapshot' => '검색의원', 'ended_at' => now()->subMinute()]);
+        $connected = $this->consultation(['hospital_name_snapshot' => '검색의원', 'status' => 'CONNECTED', 'ended_at' => null, 'close_reason' => null]);
+        $waiting = $this->consultation(['hospital_name_snapshot' => '검색의원', 'status' => 'WAITING', 'assigned_staff_id' => null, 'connected_at' => null, 'ended_at' => null, 'close_reason' => null]);
+        $this->consultation(['hospital_name_snapshot' => '다른의원']);
+        $url = '/api/v1/staff/hospital-chatbot/consultations?status=WAITING,CONNECTED,ENDED,CANCELED&sort=manage&q='.urlencode('검색');
+        $response = $this->getJson($url)->assertOk()
+            ->assertJsonPath('meta.status_counts.all', 3)
+            ->assertJsonPath('meta.status_counts.active', 2)
+            ->assertJsonPath('meta.status_counts.closed', 1);
+        self::assertSame([$waiting, $connected, $ended], array_column($response->json('data'), 'id'));
+        $otherStaff = AccountStaff::factory()->create();
+        $this->consultation(['hospital_name_snapshot' => '검색의원', 'assigned_staff_id' => $otherStaff->id]);
+        $mine = $this->getJson($url.'&mine=1')->assertOk()->assertJsonCount(3, 'data')
+            ->assertJsonPath('meta.status_counts.active', 2);
+        self::assertSame([$waiting, $connected, $ended], array_column($mine->json('data'), 'id'));
+        $this->getJson($url.'&mine=1&close_reason=AGENT_COMPLETED')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $ended);
+        $this->getJson('/api/v1/staff/hospital-chatbot/consultations?status=ENDED&q='.$this->hospitalIdOf($ended))
+            ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $ended);
+        $this->getJson($url.'&mine=1&per_page=1')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('meta.status_counts.all', 3);
+    }
+
+    public function test_feed_cursor_keeps_order_and_returns_latest_message(): void
+    {
+        $this->loginStaff();
+        $ended = $this->consultation();
+        $waiting = $this->consultation(['status' => 'WAITING', 'assigned_staff_id' => null]);
+        $connected = $this->consultation(['status' => 'CONNECTED']);
+        foreach ([1 => '첫 메시지', 2 => '마지막 메시지'] as $sequence => $content) {
+            \App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage::query()->create([
+                'consultation_id' => $connected, 'sequence' => $sequence, 'sender_type' => 'AGENT',
+                'message_type' => 'TEXT', 'content' => $content,
+            ]);
+        }
+        $url = '/api/v1/staff/hospital-chatbot/consultations?feed=1&per_page=1&status=WAITING,CONNECTED,ENDED,CANCELED';
+        $first = $this->getJson($url)->assertOk()->assertJsonPath('data.0.id', $waiting);
+        $second = $this->getJson($url.'&cursor='.urlencode($first->json('meta.next_cursor')))
+            ->assertOk()->assertJsonPath('data.0.id', $connected)->assertJsonPath('data.0.last_message', '마지막 메시지');
+        $this->getJson($url.'&cursor='.urlencode($second->json('meta.next_cursor')))
+            ->assertOk()->assertJsonPath('data.0.id', $ended)->assertJsonPath('meta.next_cursor', null);
+    }
+
+    public function test_presence_is_scoped_to_the_hospital_and_staff_ids_do_not_collide(): void
+    {
+        require base_path('routes/channels.php');
+        $callback = \Illuminate\Support\Facades\Broadcast::getChannels()['hospital-chatbot.presence.{hospitalId}'];
+        $hospital = AccountHospital::factory()->make(['id' => 7, 'hospital_id' => 123]);
+        $staff = AccountStaff::factory()->make(['id' => 123]);
+        self::assertSame(['id' => 'hospital:7', 'actor' => 'hospital'], $callback($hospital, 123));
+        self::assertFalse($callback($hospital, 124));
+        self::assertSame(['id' => 'staff:123', 'actor' => 'staff'], $callback($staff, 123));
+        self::assertSame('staff:123', $staff->getAuthIdentifierForBroadcasting());
+        self::assertFalse($callback(new \stdClass, 123));
+    }
+
     /** @param array<string, mixed> $overrides */
     private function consultation(array $overrides = []): int
     {
         $account = AccountHospital::factory()
-            ->forHospital(Hospital::factory()->active()->create())
+            ->forHospital(Hospital::factory()->active()->create(['name' => '테스트'.mb_chr(0xAC00 + Hospital::query()->count()).'의원']))
             ->active()
             ->create();
 
@@ -282,6 +339,38 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
     }
 
     private ?int $staffId = null;
+
+    public function test_read_sequence_is_staff_scoped_and_never_moves_backwards(): void
+    {
+        $staff = $this->loginStaff();
+        $id = $this->consultation(['last_message_sequence' => 3]);
+        foreach ([1 => 'HOSPITAL_USER', 2 => 'AGENT', 3 => 'HOSPITAL_USER'] as $sequence => $sender) {
+            \App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage::query()->create([
+                'consultation_id' => $id, 'sequence' => $sequence, 'sender_type' => $sender,
+                'message_type' => 'TEXT', 'content' => '읽음 테스트',
+            ]);
+        }
+        $url = '/api/v1/staff/hospital-chatbot/consultations';
+        $this->getJson($url.'?feed=1&status=ENDED')->assertOk()->assertJsonPath('data.0.unread_count', 2);
+        $this->postJson($url."/{$id}/read", ['sequence' => 3])->assertOk()->assertJsonPath('data.unread_count', 0);
+        $this->postJson($url."/{$id}/read", ['sequence' => 1])->assertOk()->assertJsonPath('data.unread_count', 0);
+        $this->assertDatabaseHas('hospital_chatbot_consultation_reads', ['staff_id' => $staff->id, 'consultation_id' => $id, 'last_read_sequence' => 3]);
+        $this->loginStaff();
+        $this->getJson($url.'?feed=1&status=ENDED')->assertOk()->assertJsonPath('data.0.unread_count', 2);
+    }
+
+    public function test_claim_creates_one_greeting_even_when_retried(): void
+    {
+        $staff = $this->loginStaff();
+        $id = $this->consultation(['status' => 'WAITING', 'assigned_staff_id' => null]);
+        $url = "/api/v1/staff/hospital-chatbot/consultations/{$id}/claim";
+        $this->postJson($url)->assertOk();
+        $this->postJson($url)->assertOk();
+        $messages = \App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage::query()->where('consultation_id', $id)->get();
+        self::assertCount(1, $messages);
+        self::assertSame('안녕하십니까. 뷰랩 상담사 '.$staff->name.'입니다.', $messages->first()->content);
+        self::assertSame((int) $staff->id, (int) $messages->first()->sender_id);
+    }
 
     private function loginStaff(): AccountStaff
     {

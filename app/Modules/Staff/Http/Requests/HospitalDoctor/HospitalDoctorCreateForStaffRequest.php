@@ -103,7 +103,7 @@ final class HospitalDoctorCreateForStaffRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hospital_id' => '병원 ID',
+            'hospital_id' => '병의원 ID',
             'sort_order' => '정렬 순서',
             'name' => '의사명',
             'gender' => '성별',

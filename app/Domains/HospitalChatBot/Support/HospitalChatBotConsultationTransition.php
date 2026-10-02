@@ -60,7 +60,7 @@ final class HospitalChatBotConsultationTransition
             values: [
                 'canceled_at' => $now,
                 'close_reason' => $reason,
-                // 활성 키를 비워야 같은 병원이 새 상담을 열 수 있다.
+                // 활성 키를 비워야 같은 병의원이 새 상담을 열 수 있다.
                 'active_hospital_id' => null,
             ],
             actorType: $actorType,
@@ -98,9 +98,9 @@ final class HospitalChatBotConsultationTransition
     }
 
     /**
-     * 병원 사용자가 상담을 종료한다.
+     * 병의원 사용자가 상담을 종료한다.
      *
-     * 상담원 종료와 달리 담당자 조건이 없다. 대신 호출자가 상담의 소유 병원을 먼저 확인한다.
+     * 상담원 종료와 달리 담당자 조건이 없다. 대신 호출자가 상담의 소유 병의원을 먼저 확인한다.
      */
     public function endByUser(int $consultationId, ?int $accountHospitalId): bool
     {
@@ -200,6 +200,22 @@ final class HospitalChatBotConsultationTransition
                 return false;
             }
 
+            if ($toStatus === HospitalChatBotConsultationStatus::CONNECTED) {
+                $name = trim((string) ($values['assigned_staff_name_snapshot'] ?? ''));
+                $result = app(\App\Domains\HospitalChatBot\Queries\HospitalChatBotConsultationMessageQuery::class)->send(
+                    $consultationId, 'AGENT', $actorId, $name ?: '상담원',
+                    str_replace('{상담원명}', $name ?: '상담원', app(\App\Domains\HospitalChatBot\Queries\HospitalChatBotMessageSettingQuery::class)->current()->connection_message),
+                    'greeting:'.$consultationId,
+                );
+                DB::afterCommit(static function () use ($result): void {
+                    try {
+                        \App\Domains\HospitalChatBot\Jobs\BroadcastHospitalChatBotMessageJob::dispatch((int) $result['message']->id);
+                    } catch (Throwable $exception) {
+                        Log::warning('상담 자동 인사 발행 예약 실패', ['message_id' => $result['message']->id, 'exception' => $exception::class]);
+                    }
+                });
+            }
+
             $this->record(
                 consultationId: $consultationId,
                 fromStatus: $fromStatus,
@@ -278,13 +294,21 @@ final class HospitalChatBotConsultationTransition
             HospitalChatBotConsultationChanged::dispatch($consultationId, $status);
             HospitalChatBotQueueChanged::dispatch($consultationId, $status);
         } catch (Throwable $exception) {
-            Log::warning('챗봇 상담 상태 발행 실패. 화면은 폴링으로 맞춰진다', [
+            Log::warning('챗봇 상담 상태 발행 실패. 큐로 재시도한다', [
                 'event' => HospitalChatBotLog::CONSULTATION_ANNOUNCE_FAILED,
                 'consultation_id' => $consultationId,
                 'status' => $status,
                 'exception' => $exception::class,
                 'reason' => $exception->getMessage(),
             ]);
+            try {
+                \App\Domains\HospitalChatBot\Jobs\RetryHospitalChatBotStateBroadcastJob::dispatch($consultationId);
+            } catch (Throwable $retryException) {
+                Log::error('챗봇 상담 상태 재발행 예약 실패', [
+                    'consultation_id' => $consultationId,
+                    'exception' => $retryException::class,
+                ]);
+            }
         }
     }
 

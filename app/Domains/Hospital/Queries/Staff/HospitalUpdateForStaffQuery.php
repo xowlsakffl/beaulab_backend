@@ -6,12 +6,12 @@ use App\Domains\Hospital\Models\Hospital;
 
 /**
  * HospitalUpdateForStaffQuery 역할 정의.
- * 병원 도메인의 Query 계층으로, Eloquent 조회/저장 조건을 캡슐화해 Action 계층에 DB 쿼리가 흩어지지 않게 한다.
+ * 병의원 도메인의 Query 계층으로, Eloquent 조회/저장 조건을 캡슐화해 Action 계층에 DB 쿼리가 흩어지지 않게 한다.
  */
 final class HospitalUpdateForStaffQuery
 {
     /**
-     * 병원 정보 업데이트 (Staff 전용)
+     * 병의원 정보 업데이트 (Staff 전용)
      * - name 제외 (Request에서 안 받으니 여기에도 없음)
      * - 변경사항 없으면 save() 생략
      */

@@ -34,6 +34,27 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
         return $app;
     }
 
+    public function test_navigation_badge_tracks_waiting_and_own_unread_hospital_messages(): void
+    {
+        Bus::fake();
+        [$staff, $account, $id] = $this->connectedConsultation();
+        $badge = fn () => $this->getJson('/api/v1/staff/navigation-badges')->assertOk()
+            ->json('data.badges./hospital-chatbot/consultations');
+        self::assertFalse($badge()['has_new']);
+        $this->login('hospital', $account, 'http://localhost:3002');
+        $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$id}/messages", ['content' => '확인 부탁드립니다.'])->assertOk();
+        $this->login('staff', $staff, 'http://localhost:3000');
+        self::assertSame(['count' => 1, 'has_new' => true], $badge());
+        $other = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        self::assertSame(0, app(\App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotConsultationReadForStaffQuery::class)->attentionCount($other->id));
+        app(\App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotConsultationReadForStaffQuery::class)->mark($id, $staff->id, 2);
+        self::assertFalse($badge()['has_new']);
+        HospitalChatBotConsultation::query()->whereKey($id)->update(['status' => 'WAITING', 'assigned_staff_id' => null]);
+        self::assertTrue($badge()['has_new']);
+        HospitalChatBotConsultation::query()->whereKey($id)->update(['status' => 'CANCELED']);
+        self::assertFalse($badge()['has_new']);
+    }
+
     public function test_both_sides_exchange_messages_with_a_single_shared_sequence(): void
     {
         Bus::fake();
@@ -45,7 +66,7 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
             'content' => '안녕하세요, 문의가 있습니다.',
         ])
             ->assertOk()
-            ->assertJsonPath('data.sequence', 1)
+            ->assertJsonPath('data.sequence', 2)
             ->assertJsonPath('data.sender_type', HospitalChatBotConsultationMessage::SENDER_HOSPITAL_USER);
 
         $this->login('staff', $staff, 'http://localhost:3000');
@@ -53,26 +74,26 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
             'content' => '네, 말씀해 주세요.',
         ])
             ->assertOk()
-            ->assertJsonPath('data.sequence', 2)
+            ->assertJsonPath('data.sequence', 3)
             ->assertJsonPath('data.sender_type', HospitalChatBotConsultationMessage::SENDER_AGENT);
 
         // 양쪽이 같은 순번 공간을 쓰므로 순서가 하나로 정해진다.
         $messages = $this->getJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/messages")
             ->assertOk()
-            ->assertJsonPath('meta.last_sequence', 2)
+            ->assertJsonPath('meta.last_sequence', 3)
             ->json('data');
 
-        self::assertSame([1, 2], array_column($messages, 'sequence'));
+        self::assertSame([1, 2, 3], array_column($messages, 'sequence'));
         // 발신자 계정 ID는 내보내지 않는다.
         self::assertArrayNotHasKey('sender_id', $messages[0]);
 
-        // 병원 사용자도 같은 대화를 본다.
+        // 병의원 사용자도 같은 대화를 본다.
         $this->login('hospital', $account, 'http://localhost:3002');
         $this->getJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages")
             ->assertOk()
-            ->assertJsonCount(2, 'data');
+            ->assertJsonCount(3, 'data');
 
-        Bus::assertDispatchedTimes(BroadcastHospitalChatBotMessageJob::class, 2);
+        Bus::assertDispatchedTimes(BroadcastHospitalChatBotMessageJob::class, 3);
     }
 
     public function test_the_same_client_message_id_is_stored_once(): void
@@ -92,9 +113,25 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
             ->assertOk()->json('data.id');
 
         self::assertSame($first, $second);
-        self::assertSame(1, HospitalChatBotConsultationMessage::query()->count());
+        self::assertSame(2, HospitalChatBotConsultationMessage::query()->count());
         // 재시도는 다시 발행하지 않는다.
-        Bus::assertDispatchedTimes(BroadcastHospitalChatBotMessageJob::class, 1);
+        Bus::assertDispatchedTimes(BroadcastHospitalChatBotMessageJob::class, 2);
+    }
+
+    public function test_connection_uses_saved_greeting_and_retry_does_not_duplicate_it(): void
+    {
+        Bus::fake();
+        \App\Domains\HospitalChatBot\Models\HospitalChatBotMessageSetting::query()->create([
+            'id' => 1,
+            ...\App\Domains\HospitalChatBot\Models\HospitalChatBotMessageSetting::defaults(),
+            'connection_message' => '안녕하세요. {상담원명} 상담사가 도와드리겠습니다.',
+        ]);
+        [$staff, , $consultationId] = $this->connectedConsultation();
+        $consultation = HospitalChatBotConsultation::query()->findOrFail($consultationId);
+        $message = HospitalChatBotConsultationMessage::query()->where('consultation_id', $consultationId)->firstOrFail();
+        self::assertSame('안녕하세요. '.$consultation->assigned_staff_name_snapshot.' 상담사가 도와드리겠습니다.', $message->content);
+        self::assertFalse(app(\App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationTransition::class)->claim($consultationId, $staff->id, $staff->name));
+        self::assertSame(1, HospitalChatBotConsultationMessage::query()->where('consultation_id', $consultationId)->count());
     }
 
     public function test_messages_are_rejected_outside_a_connected_consultation(): void
@@ -129,7 +166,7 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
             ->assertStatus(409)
             ->assertJsonPath('error.code', 'CONSULTATION_NOT_ACTIVE');
 
-        self::assertSame(0, HospitalChatBotConsultationMessage::query()->count());
+        self::assertSame(1, HospitalChatBotConsultationMessage::query()->count());
     }
 
     public function test_only_the_assigned_agent_can_send_and_other_hospitals_are_blocked(): void
@@ -156,7 +193,7 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
             ->assertStatus(404);
 
         unset($account);
-        self::assertSame(0, HospitalChatBotConsultationMessage::query()->count());
+        self::assertSame(1, HospitalChatBotConsultationMessage::query()->count());
     }
 
     public function test_after_sequence_returns_only_the_missing_tail(): void
@@ -177,16 +214,53 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
             "/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages?after_sequence=1",
         )->assertOk();
 
-        self::assertSame([2, 3], array_column($response->json('data'), 'sequence'));
-        self::assertSame(3, $response->json('meta.last_sequence'));
+        self::assertSame([2, 3, 4], array_column($response->json('data'), 'sequence'));
+        self::assertSame(4, $response->json('meta.last_sequence'));
 
         // 빠진 것이 없으면 빈 목록과 요청한 지점을 그대로 돌려준다.
         $upToDate = $this->getJson(
-            "/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages?after_sequence=3",
+            "/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages?after_sequence=4",
         )->assertOk();
 
         self::assertSame([], $upToDate->json('data'));
-        self::assertSame(3, $upToDate->json('meta.last_sequence'));
+        self::assertSame(4, $upToDate->json('meta.last_sequence'));
+    }
+
+    public function test_both_actors_can_page_back_through_more_than_200_messages(): void
+    {
+        Bus::fake();
+        [$staff, $account, $consultationId] = $this->connectedConsultation();
+        foreach (range(2, 206) as $sequence) {
+            HospitalChatBotConsultationMessage::query()->create([
+                'consultation_id' => $consultationId,
+                'sequence' => $sequence,
+                'sender_type' => 'AGENT',
+                'sender_id' => $staff->id,
+                'message_type' => 'TEXT',
+                'content' => '상담 메시지 '.$sequence,
+                'created_at' => now(),
+            ]);
+        }
+
+        foreach ([['staff', $staff, 'http://localhost:3000'], ['hospital', $account, 'http://localhost:3002']] as [$actor, $user, $origin]) {
+            $this->login($actor, $user, $origin);
+            $url = "/api/v1/{$actor}/hospital-chatbot/consultations/{$consultationId}/messages";
+            $latest = $this->getJson($url)->assertOk()->assertJsonPath('meta.has_older', true);
+            self::assertSame(range(7, 206), array_column($latest->json('data'), 'sequence'));
+            $older = $this->getJson($url.'?before_sequence=7')->assertOk()->assertJsonPath('meta.has_older', false);
+            self::assertSame(range(1, 6), array_column($older->json('data'), 'sequence'));
+            $this->getJson($url.'?before_sequence=7&after_sequence=1')->assertStatus(422);
+            $this->getJson($url.'?before_sequence=0')->assertStatus(422);
+        }
+    }
+
+    public function test_horizon_consumes_the_chatbot_job_queue_in_supported_environments(): void
+    {
+        $job = new BroadcastHospitalChatBotMessageJob(1);
+        self::assertContains($job->queue, config('horizon.defaults.supervisor-hospital-chatbot.queue'));
+        foreach (['local', 'production'] as $environment) {
+            self::assertNotNull(config("horizon.environments.{$environment}.supervisor-hospital-chatbot"));
+        }
     }
 
     public function test_a_message_that_missed_its_broadcast_is_picked_up_again(): void
@@ -246,7 +320,7 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
         [$staff, $account, $consultationId] = $this->connectedConsultation();
 
         /*
-         * 양쪽 경로를 다 본다. Request 클래스가 병원·직원 각각 따로 있어서
+         * 양쪽 경로를 다 본다. Request 클래스가 병의원·직원 각각 따로 있어서
          * 한쪽 규칙만 고쳐도 다른 쪽은 그대로 남는다.
          *
          * 여기서 지키는 것이 생각보다 미묘하다. required가 걸리는 것은 트림된
@@ -274,13 +348,13 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
          * 클라이언트가 갭으로 읽고 없는 구간을 계속 다시 조회한다.
          */
         self::assertSame(
-            0,
+            1,
             (int) HospitalChatBotConsultation::query()->whereKey($consultationId)->value('last_message_sequence'),
         );
 
         $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages", [
             'content' => '안녕하세요',
-        ])->assertOk()->assertJsonPath('data.sequence', 1);
+        ])->assertOk()->assertJsonPath('data.sequence', 2);
     }
 
     /** @return array{0: AccountStaff, 1: AccountHospital, 2: int} */

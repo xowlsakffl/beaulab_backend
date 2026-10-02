@@ -26,8 +26,8 @@ final class HospitalChatBotQnaSeedDataTest extends TestCase
         $keys = [];
         $categoryCounts = [];
         $allowedSheets = [
-            '병원회원',
-            '병원회원 (바비톡으로 바꾸기)',
+            '병의원회원',
+            '병의원회원 (바비톡으로 바꾸기)',
             '의료진 프로필',
             '상담신청',
             '이벤트 등록',
@@ -50,7 +50,7 @@ final class HospitalChatBotQnaSeedDataTest extends TestCase
         }
 
         self::assertEqualsCanonicalizing([
-            '병원회원',
+            '병의원회원',
             '게시물',
             '상담신청',
             '의료진 프로필',

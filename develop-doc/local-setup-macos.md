@@ -97,13 +97,13 @@ Seeder 실행 후 `FRONTEND_SEED_ENABLED=false`로 되돌리고 `php artisan con
 
 - `composer install` 145개 패키지 설치, `package:discover` 정상.
 - 마이그레이션 전체가 MySQL 8.4에서 통과했다.
-- `FrontendDevelopmentSeeder`가 직원·사용자·병원·이벤트·채팅 기본 데이터를 생성했다. 목록은 [개발 데이터 사용 안내](development-data.md)와 같다.
+- `FrontendDevelopmentSeeder`가 직원·사용자·병의원·이벤트·채팅 기본 데이터를 생성했다. 목록은 [개발 데이터 사용 안내](development-data.md)와 같다.
 - `php artisan serve` 기동 후 `GET /up`이 200을 반환했다.
 - `Cache::put`/`Cache::get`으로 Redis 연결을 확인했다.
 
 확인하지 않은 범위는 다음과 같다. 설치 완료 기준의 나머지 항목은 각자 환경에서 이어서 확인한다.
 
-- 브라우저에서의 직원·사용자·병원 로그인과 화면 표시.
+- 브라우저에서의 직원·사용자·병의원 로그인과 화면 표시.
 - 메일 전달. `MAIL_MAILER=array`이고 Mailpit을 설치하지 않았다.
 - Reverb WebSocket 전달, Horizon 큐 처리, Scheduler.
 - iOS 빌드와 실제 기기 연결.

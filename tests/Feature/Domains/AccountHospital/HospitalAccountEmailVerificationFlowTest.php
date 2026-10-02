@@ -44,7 +44,7 @@ final class HospitalAccountEmailVerificationFlowTest extends TestCase
         ]);
 
         $hospital = Hospital::factory()->create([
-            'name' => '뷰랩 테스트 병원',
+            'name' => '뷰랩 테스트 병의원',
             'ad_reception_phone_1' => '010-9999-9999',
         ]);
         $rawInvitationToken = HospitalAccountInvitationToken::make();

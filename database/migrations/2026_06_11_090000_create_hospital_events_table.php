@@ -51,7 +51,7 @@ return new class extends Migration
             // - event_page_image
 
             $table->string('allow_status', 20)->default('PENDING')->comment('검수 상태(신청, 검수, 승인, 반려)');
-            $table->string('hospital_status', 20)->default('PUBLIC')->comment('병원 공개 상태(공개, 비공개)');
+            $table->string('hospital_status', 20)->default('PUBLIC')->comment('병의원 공개 상태(공개, 비공개)');
             $table->string('admin_status', 20)->default('NORMAL')->comment('관리자 운영 상태(정상, 강제중지)');
 
             $table->unsignedBigInteger('view_count')->default(0)->comment('조회수');

@@ -10,7 +10,7 @@ namespace App\Domains\HospitalChatBot\Support;
  */
 final class HospitalChatBotChannel
 {
-    /** 상담 한 건의 메시지와 상태 변화. 해당 병원과 담당 상담원만 구독한다. */
+    /** 상담 한 건의 메시지와 상태 변화. 해당 병의원과 담당 상담원만 구독한다. */
     public static function consultation(int $consultationId): string
     {
         return "hospital-chatbot.consultation.{$consultationId}";

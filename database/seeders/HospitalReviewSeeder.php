@@ -27,7 +27,7 @@ final class HospitalReviewSeeder extends Seeder
         $categoryIdsByDomain = $this->categoryIdsByDomain(HospitalReview::categoryDomains());
 
         if ($authorIds === [] || $hospitalIds === [] || $categoryIdsByDomain === []) {
-            $this->command?->warn('후기 시드 생성을 건너뜁니다: 활성 회원, 승인 병원 또는 후기 카테고리가 없습니다.');
+            $this->command?->warn('후기 시드 생성을 건너뜁니다: 활성 회원, 승인 병의원 또는 후기 카테고리가 없습니다.');
 
             return;
         }

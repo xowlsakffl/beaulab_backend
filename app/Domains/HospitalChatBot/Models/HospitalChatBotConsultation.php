@@ -79,6 +79,11 @@ final class HospitalChatBotConsultation extends Model
         return $this->hasMany(HospitalChatBotConsultationMessage::class, 'consultation_id');
     }
 
+    public function latestMessage(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(HospitalChatBotConsultationMessage::class, 'consultation_id')->latestOfMany('sequence');
+    }
+
     public function statusHistories(): HasMany
     {
         return $this->hasMany(HospitalChatBotConsultationStatusHistory::class, 'consultation_id');

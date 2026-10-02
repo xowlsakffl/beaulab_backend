@@ -9,7 +9,7 @@ use App\Domains\HospitalChatBot\Jobs\BroadcastHospitalChatBotMessageJob;
 use App\Domains\HospitalChatBot\Queries\HospitalChatBotConsultationMessageQuery;
 
 /**
- * 메시지 저장과 발행을 묶는다. 병원 사용자와 상담원이 같은 경로를 쓴다.
+ * 메시지 저장과 발행을 묶는다. 병의원 사용자와 상담원이 같은 경로를 쓴다.
  */
 final class HospitalChatBotConsultationMessageSendAction
 {

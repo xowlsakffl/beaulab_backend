@@ -391,7 +391,7 @@ final class KoreanOpenApiDescriptions
             'average_rating' => '평균 평점',
             'rating_staff_kindness' => '직원친절도 평점',
             'rating_surgery_satisfaction' => '수술만족도 평점',
-            'rating_facility' => '병원시설 평점',
+            'rating_facility' => '병의원시설 평점',
             'rating_aftercare' => '사후관리 평점',
             'rating_cost' => '비용 평점',
             'assessment' => '평가 항목',

@@ -167,7 +167,7 @@ final class HospitalReviewComment extends Model
             }
 
             if ((int) $parent->hospital_review_id !== (int) $comment->hospital_review_id) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '대댓글은 부모 댓글과 같은 병원후기에만 작성할 수 있습니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '대댓글은 부모 댓글과 같은 병의원후기에만 작성할 수 있습니다.');
             }
         });
     }

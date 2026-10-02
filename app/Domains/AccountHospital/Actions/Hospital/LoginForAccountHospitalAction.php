@@ -10,7 +10,7 @@ use App\Domains\AccountHospital\Queries\Hospital\LoginForAccountHospitalQuery;
 use Illuminate\Support\Facades\Log;
 
 /**
- * 병원 계정 로그인 유스케이스.
+ * 병의원 계정 로그인 유스케이스.
  * 계정 검증은 Query에 위임하고 공통 인증 처리 후 API 응답 DTO를 구성한다.
  */
 final class LoginForAccountHospitalAction
@@ -30,7 +30,7 @@ final class LoginForAccountHospitalAction
             $result = $this->query->login($filters);
             $credentials = $this->authentication->login($result['hospital'], AuthActor::HOSPITAL);
         } catch (CustomException $exception) {
-            Log::warning('병원 로그인 실패', [
+            Log::warning('병의원 로그인 실패', [
                 'reason' => $exception->errorCode->value,
                 'nickname_hash' => hash('sha256', (string) ($filters['nickname'] ?? '')),
             ]);
@@ -38,7 +38,7 @@ final class LoginForAccountHospitalAction
             throw $exception;
         }
 
-        Log::info('병원 로그인 성공', [
+        Log::info('병의원 로그인 성공', [
             'hospital_id' => $result['hospital']->id,
             'nickname' => $result['hospital']->nickname,
         ]);

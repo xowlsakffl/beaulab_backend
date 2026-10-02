@@ -1,4 +1,4 @@
--- 병원 챗봇 테이블 8개 (MySQL 8.4)
+-- 병의원 챗봇 테이블 8개 (MySQL 8.4)
 --
 -- 로컬 개발 DB에서 SHOW CREATE TABLE로 뜬 실제 DDL입니다. Laravel 마이그레이션이
 -- 정본이므로 보통은 `php artisan migrate` 를 쓰면 됩니다. 이 파일은 스키마를
@@ -8,7 +8,7 @@
 -- 기존 테이블(hospitals, account_hospitals, account_staffs)이 먼저 있어야 합니다.
 --
 -- 마이그레이션 파일: database/migrations/2026_09_2*_*hospital_chatbot*.php
--- 구조 설명: develop-doc/architecture.md#병원-챗봇-구조
+-- 구조 설명: develop-doc/architecture.md#병의원-챗봇-구조
 
 CREATE TABLE `hospital_chatbot_qna_folders` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'Q&A 폴더 ID',
@@ -30,13 +30,13 @@ CREATE TABLE `hospital_chatbot_qna_folders` (
   CONSTRAINT `hcqf_created_by_fk` FOREIGN KEY (`created_by_staff_id`) REFERENCES `account_staffs` (`id`) ON DELETE SET NULL,
   CONSTRAINT `hcqf_parent_fk` FOREIGN KEY (`parent_id`) REFERENCES `hospital_chatbot_qna_folders` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `hcqf_updated_by_fk` FOREIGN KEY (`updated_by_staff_id`) REFERENCES `account_staffs` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병원 챗봇 Q&A 폴더(2단)';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 Q&A 폴더(2단)';
 
 CREATE TABLE `hospital_chatbot_qnas` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '병원 챗봇 Q&A ID',
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '병의원 챗봇 Q&A ID',
   `folder_id` bigint unsigned DEFAULT NULL COMMENT '속한 Q&A 폴더 ID',
   `category` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Q&A 분류. folder_id가 정본이고 이 값은 사본이다',
-  `question` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '병원 화면에 노출할 질문',
+  `question` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '병의원 화면에 노출할 질문',
   `question_key` char(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '공백·대소문자를 정규화한 질문 해시',
   `answer` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '일반 텍스트 답변',
   `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ACTIVE' COMMENT '노출 상태(ACTIVE, INACTIVE)',
@@ -58,7 +58,7 @@ CREATE TABLE `hospital_chatbot_qnas` (
   CONSTRAINT `hcq_folder_fk` FOREIGN KEY (`folder_id`) REFERENCES `hospital_chatbot_qna_folders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `hospital_chatbot_qnas_created_by_staff_id_foreign` FOREIGN KEY (`created_by_staff_id`) REFERENCES `account_staffs` (`id`) ON DELETE SET NULL,
   CONSTRAINT `hospital_chatbot_qnas_updated_by_staff_id_foreign` FOREIGN KEY (`updated_by_staff_id`) REFERENCES `account_staffs` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병원 관리자 챗봇 공통 Q&A';
+) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 관리자 챗봇 공통 Q&A';
 
 CREATE TABLE `hospital_chatbot_operating_hours` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '상담 운영시간 ID',
@@ -73,7 +73,7 @@ CREATE TABLE `hospital_chatbot_operating_hours` (
   UNIQUE KEY `hospital_chatbot_operating_hours_day_of_week_unique` (`day_of_week`),
   KEY `hospital_chatbot_operating_hours_updated_by_staff_id_foreign` (`updated_by_staff_id`),
   CONSTRAINT `hospital_chatbot_operating_hours_updated_by_staff_id_foreign` FOREIGN KEY (`updated_by_staff_id`) REFERENCES `account_staffs` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병원 챗봇 요일별 상담 운영시간';
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 요일별 상담 운영시간';
 
 CREATE TABLE `hospital_chatbot_closure_dates` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '상담 휴무일 ID',
@@ -86,10 +86,10 @@ CREATE TABLE `hospital_chatbot_closure_dates` (
   UNIQUE KEY `hospital_chatbot_closure_dates_closure_date_unique` (`closure_date`),
   KEY `hospital_chatbot_closure_dates_updated_by_staff_id_foreign` (`updated_by_staff_id`),
   CONSTRAINT `hospital_chatbot_closure_dates_updated_by_staff_id_foreign` FOREIGN KEY (`updated_by_staff_id`) REFERENCES `account_staffs` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병원 챗봇 공휴일·임시휴무 예외';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 공휴일·임시휴무 예외';
 
 CREATE TABLE `hospital_chatbot_settings` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '병원 챗봇 공통 설정 ID',
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '병의원 챗봇 공통 설정 ID',
   `is_force_closed` tinyint(1) NOT NULL DEFAULT '0' COMMENT '상담원 연결 강제 중단 여부',
   `force_closed_reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '강제 중단 사유(내부 확인용)',
   `updated_by_staff_id` bigint unsigned DEFAULT NULL COMMENT '마지막 수정 직원 계정 ID',
@@ -98,19 +98,19 @@ CREATE TABLE `hospital_chatbot_settings` (
   PRIMARY KEY (`id`),
   KEY `hospital_chatbot_settings_updated_by_staff_id_foreign` (`updated_by_staff_id`),
   CONSTRAINT `hospital_chatbot_settings_updated_by_staff_id_foreign` FOREIGN KEY (`updated_by_staff_id`) REFERENCES `account_staffs` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병원 챗봇 공통 설정';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 공통 설정';
 
 CREATE TABLE `hospital_chatbot_consultations` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '상담 ID',
-  `hospital_id` bigint unsigned NOT NULL COMMENT '상담을 요청한 병원 ID',
-  `hospital_name_snapshot` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '요청 당시 병원 표시명',
-  `requested_by_account_hospital_id` bigint unsigned DEFAULT NULL COMMENT '요청한 병원 계정 ID. 감사 용도이며 상담 소유권을 결정하지 않는다',
+  `hospital_id` bigint unsigned NOT NULL COMMENT '상담을 요청한 병의원 ID',
+  `hospital_name_snapshot` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '요청 당시 병의원 표시명',
+  `requested_by_account_hospital_id` bigint unsigned DEFAULT NULL COMMENT '요청한 병의원 계정 ID. 감사 용도이며 상담 소유권을 결정하지 않는다',
   `requester_name_snapshot` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '요청 당시 요청자 표시명',
   `context_qna_id` bigint unsigned DEFAULT NULL COMMENT '상담을 요청하기 직전에 보던 Q&A ID',
   `context_qna_question_snapshot` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '요청 당시 질문 본문',
   `context_qna_answer_snapshot` text COLLATE utf8mb4_unicode_ci COMMENT '요청 당시 답변 본문',
   `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '상담 상태(WAITING, CONNECTED, ENDED, CANCELED)',
-  `active_hospital_id` bigint unsigned DEFAULT NULL COMMENT '활성 상담일 때만 채워지는 병원 ID. 병원당 활성 상담 1건 보장용',
+  `active_hospital_id` bigint unsigned DEFAULT NULL COMMENT '활성 상담일 때만 채워지는 병의원 ID. 병의원당 활성 상담 1건 보장용',
   `assigned_staff_id` bigint unsigned DEFAULT NULL COMMENT '연결된 상담원 직원 계정 ID',
   `assigned_staff_name_snapshot` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '연결 당시 상담원 표시명',
   `requested_at` timestamp NOT NULL COMMENT '상담 요청 시각',
@@ -139,7 +139,7 @@ CREATE TABLE `hospital_chatbot_consultations` (
   CONSTRAINT `hcc_context_qna_fk` FOREIGN KEY (`context_qna_id`) REFERENCES `hospital_chatbot_qnas` (`id`) ON DELETE SET NULL,
   CONSTRAINT `hcc_hospital_fk` FOREIGN KEY (`hospital_id`) REFERENCES `hospitals` (`id`) ON DELETE CASCADE,
   CONSTRAINT `hcc_requester_fk` FOREIGN KEY (`requested_by_account_hospital_id`) REFERENCES `account_hospitals` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병원 챗봇 상담원 연결 세션';
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 상담원 연결 세션';
 
 CREATE TABLE `hospital_chatbot_consultation_messages` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '상담 메시지 ID',
@@ -159,7 +159,7 @@ CREATE TABLE `hospital_chatbot_consultation_messages` (
   KEY `hccm_consultation_created_at_index` (`consultation_id`,`created_at`),
   KEY `hccm_broadcast_pending_index` (`broadcast_pending`),
   CONSTRAINT `hccm_consultation_fk` FOREIGN KEY (`consultation_id`) REFERENCES `hospital_chatbot_consultations` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병원 챗봇 상담 메시지';
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 상담 메시지';
 
 CREATE TABLE `hospital_chatbot_consultation_status_histories` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '상담 상태 이력 ID',
@@ -174,5 +174,5 @@ CREATE TABLE `hospital_chatbot_consultation_status_histories` (
   PRIMARY KEY (`id`),
   KEY `hccsh_consultation_occurred_at_index` (`consultation_id`,`occurred_at`),
   CONSTRAINT `hccsh_consultation_fk` FOREIGN KEY (`consultation_id`) REFERENCES `hospital_chatbot_consultations` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병원 챗봇 상담 상태 전이 이력';
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 상담 상태 전이 이력';
 

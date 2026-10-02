@@ -10,8 +10,8 @@ use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultationMessage;
 use App\Domains\HospitalChatBot\Queries\Hospital\HospitalChatBotConsultationForHospitalQuery;
 
 /**
- * 병원 사용자의 메시지 조회·전송.
- * 어느 쪽이든 먼저 상담이 자기 병원 것인지 확인한다. 아니면 조회 단계에서 404가 난다.
+ * 병의원 사용자의 메시지 조회·전송.
+ * 어느 쪽이든 먼저 상담이 자기 병의원 것인지 확인한다. 아니면 조회 단계에서 404가 난다.
  */
 final class HospitalChatBotConsultationMessageForHospitalAction
 {
@@ -22,12 +22,12 @@ final class HospitalChatBotConsultationMessageForHospitalAction
     ) {}
 
     /** @return array{items: list<array<string, mixed>>, last_sequence: int} */
-    public function index(int $consultationId, ?int $afterSequence, int $limit): array
+    public function index(int $consultationId, ?int $afterSequence, int $limit, ?int $beforeSequence = null): array
     {
         $account = HospitalChatBotConsultationActiveForHospitalAction::account();
         $this->query->findForHospital($consultationId, (int) $account->hospital_id);
 
-        return $this->list->execute($consultationId, $afterSequence, $limit);
+        return $this->list->execute($consultationId, $afterSequence, $limit, $beforeSequence);
     }
 
     /** @return array<string, mixed> */

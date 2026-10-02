@@ -15,9 +15,9 @@ final class HospitalChatBotConsultationMessageListAction
     public function __construct(private readonly HospitalChatBotConsultationMessageQuery $query) {}
 
     /** @return array{items: list<array<string, mixed>>, last_sequence: int, has_older: bool} */
-    public function execute(int $consultationId, ?int $afterSequence, int $limit): array
+    public function execute(int $consultationId, ?int $afterSequence, int $limit, ?int $beforeSequence = null): array
     {
-        $messages = $this->query->list($consultationId, $afterSequence, min($limit, self::MAX_LIMIT));
+        $messages = $this->query->list($consultationId, $afterSequence, min($limit, self::MAX_LIMIT), $beforeSequence);
         $items = HospitalChatBotConsultationMessageDto::fromCollection($messages);
 
         return [

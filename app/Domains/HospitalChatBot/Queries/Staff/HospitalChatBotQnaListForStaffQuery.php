@@ -4,45 +4,44 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Queries\Staff;
 
-use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
+use App\Domains\HospitalChatBot\Queries\HospitalChatBotQnaTreeQuery;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 final class HospitalChatBotQnaListForStaffQuery
 {
+    public function __construct(private readonly HospitalChatBotQnaTreeQuery $tree) {}
+
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $query = HospitalChatBotQna::query()->with('folder:id,parent_id,name');
+        $nodes = $this->items($filters);
+        $page = LengthAwarePaginator::resolveCurrentPage();
 
+        return (new LengthAwarePaginator($nodes->forPage($page, $filters['per_page'])->values(), $nodes->count(), $filters['per_page'], $page, [
+            'path' => LengthAwarePaginator::resolveCurrentPath(),
+        ]))->withQueryString();
+    }
+
+    public function items(array $filters): \Illuminate\Support\Collection
+    {
+        $nodes = $this->tree->ordered($this->tree->all(), direction: $filters['direction'] ?? 'asc');
+        if (! empty($filters['root_id'])) {
+            $rootId = (int) $filters['root_id'];
+            $nodes = $nodes->filter(fn ($node) => ($node->parent_id === null && $node->id === $rootId) || ($node->ancestor_ids[0] ?? null) === $rootId);
+        }
         if (! empty($filters['q'])) {
-            $keyword = addcslashes((string) $filters['q'], '\\%_');
-            $query->where(static function (Builder $builder) use ($keyword): void {
-                $builder->where('question', 'like', "%{$keyword}%")
-                    ->orWhere('answer', 'like', "%{$keyword}%");
-            });
+            $keyword = mb_strtolower($filters['q']);
+            $nodes = $nodes->filter(fn ($node) => str_contains(mb_strtolower($node->question.' '.$node->answer.' '.$node->tree_path), $keyword) || (string) $node->id === $keyword);
+        }
+        if (! empty($filters['status'])) {
+            $nodes = $nodes->whereIn('status', $filters['status']);
+        }
+        if (! empty($filters['depth'])) {
+            $nodes = $nodes->where('depth', (int) $filters['depth']);
+        }
+        if (! empty($filters['sort']) && $filters['sort'] !== 'sort_order') {
+            $nodes = $nodes->sortBy([[$filters['sort'], $filters['direction']], ['id', 'asc']]);
         }
 
-        if (! empty($filters['folder_id'])) {
-            $query->where('folder_id', (int) $filters['folder_id']);
-        }
-
-        if (! empty($filters['category'])) {
-            $query->where('category', (string) $filters['category']);
-        }
-
-        if (is_array($filters['status'] ?? null) && $filters['status'] !== []) {
-            $query->whereIn('status', $filters['status']);
-        }
-
-        if (! empty($filters['sort'])) {
-            $query->orderBy((string) $filters['sort'], (string) $filters['direction']);
-            if ($filters['sort'] !== 'id') {
-                $query->orderBy('id');
-            }
-        } else {
-            $query->orderBy('sort_order')->orderBy('id');
-        }
-
-        return $query->paginate((int) $filters['per_page'])->withQueryString();
+        return $nodes->values();
     }
 }

@@ -26,11 +26,11 @@ final class HospitalChatBotConsultationMessageForStaffAction
     ) {}
 
     /** @return array{items: list<array<string, mixed>>, last_sequence: int} */
-    public function index(int $consultationId, ?int $afterSequence, int $limit): array
+    public function index(int $consultationId, ?int $afterSequence, int $limit, ?int $beforeSequence = null): array
     {
         $this->query->find($consultationId);
 
-        return $this->list->execute($consultationId, $afterSequence, $limit);
+        return $this->list->execute($consultationId, $afterSequence, $limit, $beforeSequence);
     }
 
     /** @return array<string, mixed> */

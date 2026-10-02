@@ -7,6 +7,18 @@ use App\Domains\Chat\Models\ChatParticipant;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use Illuminate\Support\Facades\Broadcast;
 
+// 병의원마다 분리해 다른 병의원의 온라인 정보를 병의원 계정에 공개하지 않는다.
+Broadcast::channel('hospital-chatbot.presence.{hospitalId}', function ($account, int $hospitalId): array|false {
+    if ($account instanceof AccountStaff) {
+        return ['id' => 'staff:'.$account->id, 'actor' => 'staff'];
+    }
+    if ($account instanceof AccountHospital && (int) $account->hospital_id === $hospitalId) {
+        return ['id' => 'hospital:'.$account->id, 'actor' => 'hospital'];
+    }
+
+    return false;
+});
+
 // 앱 사용자 개인 알림 채널. 본인 userId 채널만 구독할 수 있다.
 //
 // 액터별 인가 라우트가 생기면서 앱 사용자가 아닌 계정도 이 콜백에 닿을 수 있다.
@@ -28,7 +40,7 @@ Broadcast::channel('chat.{chatId}', function ($account, int $chatId): bool {
 });
 
 /**
- * 챗봇 상담 채널. 병원 사용자와 상담원이 함께 구독한다.
+ * 챗봇 상담 채널. 병의원 사용자와 상담원이 함께 구독한다.
  *
  * 액터마다 인가 라우트가 다르므로($actor 별 /broadcasting/auth) 여기서는 모델 종류로 갈라
  * 각자의 조건만 본다. 타입을 느슨하게 받는 이유다.
@@ -40,7 +52,7 @@ Broadcast::channel('hospital-chatbot.consultation.{consultationId}', function ($
     }
 
     if ($account instanceof AccountHospital) {
-        // 병원 사용자는 자기 병원의 상담만 본다.
+        // 병의원 사용자는 자기 병의원의 상담만 본다.
         return $account->hospital_id !== null
             && HospitalChatBotConsultation::query()
                 ->whereKey($consultationId)
@@ -51,7 +63,7 @@ Broadcast::channel('hospital-chatbot.consultation.{consultationId}', function ($
     return false;
 });
 
-/** 챗봇 대기 목록 채널. 병원명·요청자가 흐르므로 상담원만 구독한다. */
+/** 챗봇 대기 목록 채널. 병의원명·요청자가 흐르므로 상담원만 구독한다. */
 Broadcast::channel('hospital-chatbot.queue', function ($account): bool {
     return $account instanceof AccountStaff;
 });

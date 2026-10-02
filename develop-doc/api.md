@@ -48,91 +48,97 @@
 
 직원 `GET /api/v1/staff/videos`의 카테고리는 `category_ids` CSV/배열로 다중선택합니다. 선택한 활성 동영상 카테고리 중 하나라도 연결된 영상을 중복 없이 반환하며 최대 100개를 검증합니다. 기존 단일 `category_id`도 입력 별칭으로 지원하고, 미선택/빈 배열은 전체입니다.
 
-## 병원 챗봇 Q&A API
+## 병의원 챗봇 Q&A API
 
-- 직원 API `/api/v1/staff/hospital-chatbot/qnas`는 목록·등록을 제공하고 `/{qna}`에서 조회·수정·삭제합니다. 목록은 `q`, `category`, `status`, `sort`, `direction`, `per_page`를 지원하며 일반 페이지 meta를 반환합니다.
-- 병원 API `GET /api/v1/hospital/hospital-chatbot/qnas`는 로그인한 병원에 활성 Q&A 전건을 `sort_order`, `id` 순으로 반환합니다. 응답에는 `id`, `category`, `question`, `answer`, `sort_order`만 포함하고 직원·상태 정보는 노출하지 않습니다.
-- 질문은 공백·대소문자를 정규화한 키를 기준으로 활성 Q&A끼리 중복될 수 없습니다. 삭제된 Q&A는 초기 데이터 Seeder를 다시 실행해도 복원하거나 같은 질문을 재등록하지 않습니다.
+- 목록의 `root_id`는 최상위 Q&A ID입니다. 해당 최상위와 모든 하위를 페이지네이션 전에 필터링하며 하위 항목 ID나 없는 ID를 지정하면 빈 목록을 반환합니다.
+- 계층 편집 게시판은 `all=1`로 필터에 맞는 전체 목록을 조회합니다. 생략하면 기존 페이지네이션을 유지합니다. `status`는 `ACTIVE,INACTIVE`처럼 다중 선택을 지원합니다.
+- Q&A 수정의 `position`은 이동 항목을 제외한 새 형제 목록의 0 기반 위치입니다. `parent_id`와 함께 전달하면 하위 트리까지 이동하며, 원래·새 형제 순서를 하나의 트랜잭션에서 갱신합니다. 순환 연결, 3단계 초과, 같은 상위의 중복 질문은 거절합니다.
+- 직원 `/api/v1/staff/hospital-chatbot/qnas`는 목록·등록, `/{qna}`는 조회·수정·삭제, `/tree`는 상위 선택용 전체 목록입니다. 목록은 `q`, `depth`, `status`, `sort`, `direction`, `per_page`, `page`를 지원하며 기본 순서는 상위 다음 하위의 깊이 우선 순서입니다.
+- 병의원 `GET /api/v1/hospital/hospital-chatbot/qnas`는 자신과 모든 상위가 노출 상태인 Q&A만 반환합니다. `id`, `parent_id`, `depth`, `question`, `answer`, `sort_order`로 대화 트리를 구성하며 형제 순서는 `sort_order`, `id`입니다. 직원 정보는 반환하지 않습니다.
+- `parent_id`는 상위 Q&A ID이며 null은 1단계입니다. `question`은 필수 선택 문구, `answer`는 선택입니다. 최대 3단계, 순환 연결 금지, 하위가 남은 상위 삭제 금지를 트랜잭션에서 검증합니다. 상위 이동 시 자손의 깊이도 갱신하며 3단계 초과는 거절합니다.
+- 같은 상위 아래의 선택 문구는 공백·대소문자 정규화 기준으로 중복될 수 없습니다. 다른 상위 아래에는 같은 문구를 등록할 수 있습니다. Seeder는 삭제된 동일 키를 복원하지 않습니다.
 - 질문과 답변은 HTML이 아닌 일반 텍스트 계약입니다. 클라이언트는 DOM `textContent`와 동등한 방식으로 렌더링하며 서버 값을 HTML로 실행하지 않습니다.
 - 초기 70건은 `HospitalChatBotQnaSeeder`를 대상으로 지정해 한 번 적재합니다. 전체 `DatabaseSeeder`에서는 자동 실행하지 않으며, 공유·운영 DB에는 적용 전 기존 키와 삭제 이력을 확인합니다.
 
-## 병원 챗봇 상담 운영시간 API
+## 병의원 챗봇 상담 운영시간 API
 
 - 직원 `GET /api/v1/staff/hospital-chatbot/operating-hours`는 `timezone`, `configured`, `is_force_closed`, `force_closed_reason`, 월요일 1~일요일 7의 `weekly_schedule`, `closure_dates`를 반환합니다.
 - `is_force_closed`는 요일·휴무일 설정보다 먼저 검사하는 즉시 중단 스위치입니다. 켜져 있으면 availability가 `FORCE_CLOSED`와 `next_open_at: null`을 반환하며, 다시 끌 때까지 상담원 연결을 닫습니다. 스위치를 끄면 사유는 함께 비웁니다.
 - 직원 `PUT /api/v1/staff/hospital-chatbot/operating-hours`는 7개 요일 설정과 최대 366개 휴무일, 강제 중단 설정을 한 트랜잭션에서 교체합니다. 휴무일을 모두 해제할 때는 빈 배열을 보냅니다. 운영 요일은 `opens_at < closes_at`인 `H:i` 단일 구간이어야 하며 자정을 넘길 수 없습니다.
-- 병원 `GET /api/v1/hospital/hospital-chatbot/availability`는 KST 서버 시각 기준 `checked_at`, `is_available`, `reason`, `message`, `next_open_at`을 반환합니다. 시작 시각은 포함하고 종료 시각은 제외합니다.
+- 병의원 `GET /api/v1/hospital/hospital-chatbot/availability`는 KST 서버 시각 기준 `checked_at`, `is_available`, `reason`, `message`, `next_open_at`을 반환합니다. 시작 시각은 포함하고 종료 시각은 제외합니다.
 - `reason`은 `OPEN`, `FORCE_CLOSED`, `OUTSIDE_HOURS`, `CLOSED_DATE`, `CONFIGURATION_UNAVAILABLE` 중 하나입니다. 날짜별 공휴일·임시휴무는 요일 설정보다 우선해 강제로 닫습니다.
 - 설정이 없거나 7일 구성이 유효하지 않으면 Fail Closed로 상담 연결을 막고 `상담원 연결 시간이 아닙니다.`를 반환합니다. Q&A 조회는 운영시간과 무관하게 계속 허용합니다.
 
-## 병원 챗봇 Q&A 폴더 API
+## 기존 Q&A 데이터 전환
 
-> 전체 구조와 추가된 테이블 8개는 [구조 문서](architecture.md#병원-챗봇-구조)의 그림을 먼저 보면 아래 절들이 빨리 읽힙니다.
+- 폴더 탐색 UI는 사용하지 않습니다. 이전 폴더는 답변 없는 상위 Q&A로 전환하고 기존 질문 ID·답변·상담 스냅샷은 보존합니다.
+- 새 설치는 기존 Q&A 생성 마이그레이션의 `parent_id`, `depth`를 사용합니다. 이미 적용된 개인 로컬 DB는 `php artisan hospital-chatbot:convert-qna-tree`로 대상을 확인한 뒤 `--apply`로 전환합니다. 초기화하거나 전체 Seeder를 실행하지 않습니다.
+- 전환 명령은 변경 전 Q&A·폴더 데이터를 `storage/app/private/qna-tree-backup-*.json`에 백업합니다. 이전 폴더 테이블과 응답의 폴더 필드는 데이터 전환·읽기 호환용으로 유지하며, 관리 기준은 `parent_id`입니다. 이전 `qna-folders` 관리 API는 제공하지 않습니다. Q&A 등록·수정에 비어 있지 않은 `folder_id`를 전달하면 422로 거절합니다.
+- 명령은 개인 로컬 환경만 허용합니다. 공유·운영 환경 전환은 별도 백업·적용·복구 절차를 검토해야 합니다.
 
+## 병의원 챗봇 상담 API
 
-- 폴더는 2단 고정입니다. 대분류 > 소분류 > 질문이며 소분류 아래에는 만들 수 없습니다. 깊이는 `depth` 컬럼으로 들고 있어 트리를 타지 않고 검사합니다.
-- 직원 `GET /api/v1/staff/hospital-chatbot/qna-folders`는 전체 트리를 한 번에 반환합니다. 노드는 `id`, `parent_id`, `depth`, `name`, `sort_order`, `qna_count`, `children`이며 `qna_count`는 그 폴더에 **직접** 달린 Q&A 수입니다. 하위 폴더 것은 포함하지 않되 **소프트 삭제된 Q&A는 포함합니다.** 삭제 차단 규칙과 같은 수를 보여 주려는 것입니다. 다른 수를 보여 주면 0건인데 지워지지 않는 폴더가 생깁니다. 화면에 노출하는 "질문 수"로 쓰면 목록보다 큰 값이 나올 수 있습니다.
-- `POST`, `PATCH /{folder}`, `DELETE /{folder}`, `PATCH /{folder}/move`는 모두 **갱신된 전체 트리**를 반환합니다. 클라이언트가 다시 조회하지 않습니다.
-- `PATCH /{folder}/move`는 `parent_id`(null이면 대분류)와 `position`을 받습니다. `position`은 **자기 자신을 뺀** 형제 목록의 0-based 자리입니다. 형제 수를 넘기면 거절하지 않고 끝으로 접습니다. 화면이 센 자리와 서버가 아는 형제 수는 어긋날 수 있습니다.
-- 이동할 때마다 형제 전체의 `sort_order`를 0부터 다시 매기고, 떠나온 자리도 함께 채웁니다. 번호를 벌려 두지 않습니다.
-- 같은 상위 아래에서 이름은 겹칠 수 없습니다. 최상위는 `parent_id`가 NULL이라 유니크가 걸리지 않으므로 `parent_key` 생성 컬럼으로 0에 접어서 비교합니다.
-- 하위 폴더가 있는 폴더는 소분류가 될 수 없습니다. 손자가 3단이 됩니다. 하위 폴더나 Q&A가 남아 있으면 삭제도 막습니다. 삭제 판정은 소프트 삭제된 Q&A까지 셉니다.
-- Q&A의 `category`는 폴더 이름의 사본입니다. `folder_id`가 정본이며 이름을 바꾸면 사본도 따라갑니다.
-
-## 병원 챗봇 상담 API
-
-- 병원 `POST /api/v1/hospital/hospital-chatbot/consultations`는 운영시간을 검증한 뒤 `WAITING` 상담을 만들고 `{availability, consultation}`을 반환합니다. 이미 활성 상담이 있으면 운영시간과 무관하게 그 상담을 그대로 돌려줍니다. 진행 중인 상담은 마감 뒤에도 이어갈 수 있어야 합니다.
-- 연타와 다중 탭은 한 건으로 수렴합니다. 사전 조회로 한 번, `active_hospital_id` 유니크 위반으로 또 한 번 막습니다. 병원당 활성 상담은 DB 레벨에서 1건입니다.
+- 병의원 `POST /api/v1/hospital/hospital-chatbot/consultations`는 운영시간을 검증한 뒤 `WAITING` 상담을 만들고 `{availability, consultation}`을 반환합니다. 이미 활성 상담이 있으면 운영시간과 무관하게 그 상담을 그대로 돌려줍니다. 진행 중인 상담은 마감 뒤에도 이어갈 수 있어야 합니다.
+- 연타와 다중 탭은 한 건으로 수렴합니다. 사전 조회로 한 번, `active_hospital_id` 유니크 위반으로 또 한 번 막습니다. 병의원당 활성 상담은 DB 레벨에서 1건입니다.
 - 요청 본문의 `context_qna_id`(선택)는 상담을 부르기 직전에 보던 Q&A입니다. 서버가 **요청 시점의 질문·답변 본문을 복사**해 둡니다. Q&A가 뒤에 고쳐지거나 지워져도 상담원이 보는 것은 요청자가 읽던 글입니다. 없는 id를 보내도 상담은 그대로 열립니다.
 - 운영시간 밖이면 422 `CONSULTATION_UNAVAILABLE`이며 `details.availability`에 판정 결과가 들어갑니다.
-- 병원 `GET /consultations/active`는 생성과 **같은 `{availability, consultation}` 봉투**를 반환하며 활성 상담이 없으면 `consultation`이 null입니다. 새로고침 복구용이고, 함께 오는 `availability`로 연결 버튼 상태를 맞춥니다.
-- 병원 `POST /consultations/{consultation}/cancel`은 대기 중에만, `/end`는 연결된 뒤에만 가능합니다. 순서가 어긋나면 409입니다. 다른 병원의 상담은 404입니다.
+- 병의원 `GET /consultations/active`는 생성과 **같은 `{availability, consultation}` 봉투**를 반환하며 활성 상담이 없으면 `consultation`이 null입니다. 새로고침 복구용이고, 함께 오는 `availability`로 연결 버튼 상태를 맞춥니다.
+- 병의원 `POST /consultations/{consultation}/cancel`은 대기 중에만, `/end`는 연결된 뒤에만 가능합니다. 순서가 어긋나면 409입니다. 다른 병의원의 상담은 404입니다.
 - 직원 `GET /api/v1/staff/hospital-chatbot/consultations`는 `status`(CSV), `assigned_staff_id`, `hospital_id`, `consultation_id`, `requester`, `from`, `to`, `sort`, `per_page`를 받습니다. `status`를 주지 않으면 대기·진행만 반환합니다.
 - `from`·`to`는 `Y-m-d`이며 서버가 그날 처음과 끝으로 넓혀 `requested_at`에 겁니다. `to`를 시각 없이 그대로 쓰면 마지막 날이 통째로 빠지기 때문입니다.
 - `requester`는 요청 당시 표시명 부분 일치입니다. 계정을 지워도 기록은 남아야 하므로 스냅샷을 봅니다. LIKE 와일드카드는 이스케이프해 글자 그대로 찾습니다.
-- `sort`는 `queue`(기본)와 `recent`입니다. 대기 목록은 집어야 할 순서(대기 먼저, 오래 기다린 순)고 기록 조회는 최신순입니다. 같은 데이터를 다른 순서로 보는 두 화면이라 클라이언트가 정합니다.
+- `sort`는 `queue`(기본), `recent`, `manage`입니다. `manage`는 대기(요청 오래된 순), 진행(최근 메시지순), 종료·취소(최근 종료순)입니다.
+- `q`는 병의원명 부분 일치 또는 숫자 병의원 ID 일치입니다. `mine=1`은 로그인 직원의 담당 상담과 담당자 없는 대기 상담을 함께 반환합니다. 기간·상태 조건은 그대로 적용됩니다.
+- `feed=1`은 무한스크롤용 커서 목록입니다. `per_page` 기본 20, 최대 100이며 `meta.next_cursor`를 다음 요청의 `cursor`로 보냅니다. 정렬은 `manage` 기준입니다. 조건 변경 또는 실시간 목록 변경 후에는 커서를 버리고 처음부터 조회합니다. `meta.status_counts`는 같은 검색 조건의 전체·대기진행·종료취소 건수입니다.
+- 목록에는 `hospital.logo.path`와 `last_message`가 포함됩니다. 로고와 마지막 메시지는 일괄 조회하며 목록에서 마지막 Q&A는 표시하지 않습니다.
 - 직원 `POST /consultations/{consultation}/claim`은 조건부 UPDATE로 한 명만 통과시킵니다. 이미 다른 상담원이 가져갔으면 409 `CONSULTATION_ALREADY_CLAIMED`입니다. **같은 상담원이 다시 눌러도 성공으로 취급합니다.**
+- 연결 성공 시 담당 직원 이름으로 자동 인사를 상담 연결과 같은 트랜잭션에 한 번만 저장합니다. 자동 인사도 AGENT 메시지이며 순번을 사용합니다. 재연결·동일 요청 재시도에는 인사를 추가하지 않습니다.
+- 목록의 `unread_count`는 현재 직원이 확인하지 않은 병의원 발신 메시지 수입니다. 직원·시스템 메시지는 제외합니다. 직원 `POST /consultations/{consultation}/read`에 `sequence`(0 이상의 정수)를 보내 읽음을 저장하며, 응답은 남은 `unread_count`입니다. 직원 ID는 로그인 계정에서만 얻고 순번은 뒤로 이동하지 않습니다.
+- 읽음 저장은 `hospital_chatbot_consultation_reads` 신규 테이블을 사용합니다. 기존 환경에는 `2026_10_01_150000_create_hospital_chatbot_consultation_reads_table.php`를 먼저 적용한 뒤 새 API를 배포합니다. 기존 메시지·상담을 수정하거나 초기화하지 않습니다.
 - 직원 `POST /consultations/{consultation}/end`는 담당 상담원만 가능합니다. 담당 검사는 조회가 아니라 UPDATE 조건에서 합니다. 담당이 아니면 403입니다.
 - 직원 `GET /consultations/{consultation}`은 목록 항목에 `status_histories`를 더해 반환합니다. 이력은 `from_status`, `to_status`, `actor_type`, `actor_id`, `reason`, `occurred_at`이며 `from_status`가 null이면 상담이 생긴 순간입니다.
 - 상담 DTO의 `waiting_seconds`는 대기 중이면 지금까지, 취소면 취소 시각까지, 나머지는 연결 시각까지입니다. `duration_seconds`는 연결→종료이며 **연결되지 않은 상담은 null**입니다. 0초로 내보내면 바로 끝난 상담과 구분되지 않습니다.
 - `close_reason`은 `AGENT_COMPLETED`, `USER_CANCELED`, `USER_ENDED`, `WAITING_TIMEOUT`입니다. 대기 상담은 `hospital-chatbot:expire-waiting-consultations`가 설정된 시간(기본 30분) 뒤 자동 취소합니다.
 
-## 병원 챗봇 상담 메시지 API
+## 병의원 챗봇 상담 메시지 API
 
-- 병원·직원 모두 `GET /consultations/{consultation}/messages`와 `POST`를 사용합니다. 경로 접두사만 다르고 계약은 같습니다.
-- 목록은 `after_sequence`(0 이상)를 주면 그 뒤만, 주지 않으면 **최신 꼬리**를 반환합니다. meta에 `last_sequence`와 `has_older`가 들어갑니다. 재접속 후 순번 갭을 메울 때 이 파라미터를 씁니다.
+- 병의원·직원 모두 `GET /consultations/{consultation}/messages`와 `POST`를 사용합니다. 경로 접두사만 다르고 계약은 같습니다.
+- 목록은 커서가 없으면 최근 200개까지 반환합니다. `after_sequence`(0 이상)는 이후 메시지 복구용, `before_sequence`(1 이상)는 이전 대화 조회용이며 동시에 지정할 수 없습니다. 이전 조회는 커서보다 작은 순번 중 최근 구간을 오름차순으로 반환합니다. meta의 `has_older`로 이전 대화 존재 여부를 판단합니다. 이전 조회 응답의 `last_sequence`로 최신 메시지 동기화 커서를 덮어쓰지 않습니다.
 - 전송 본문은 `content`(1~2000자)와 `client_message_id`(선택, 64자)입니다. 같은 `client_message_id`로 다시 보내면 새로 만들지 않고 먼저 저장된 메시지를 돌려줍니다. 재시도가 중복을 만들지 않습니다.
 - `sequence`는 상담 안에서 1부터 증가하며 `lockForUpdate` 아래에서 매깁니다. 클라이언트는 이 값으로 정렬·중복 제거·갭 감지를 합니다.
-- 전송은 `throttle:hospital-chatbot-message`(계정당 분당 120건)로 제한합니다. 연결된 상담에서만, 병원은 자기 상담에서만, 직원은 담당 상담에서만 보낼 수 있습니다.
+- 전송은 `throttle:hospital-chatbot-message`(계정당 분당 120건)로 제한합니다. 연결된 상담에서만, 병의원은 자기 상담에서만, 직원은 담당 상담에서만 보낼 수 있습니다.
 
-## 병원 챗봇 상담 기록 내보내기 API
+## 병의원 챗봇 상담 기록 내보내기 API
 
 - 직원 `GET /consultations/export`는 목록과 **같은 필터**를 받아 CSV를 스트림합니다. 화면에서 본 것과 받은 파일이 달라지면 안 되므로 파싱과 검증을 목록과 공유합니다.
 - 라우트는 `/{consultation}`보다 먼저 선언합니다. 뒤에 두면 `export`가 상담 ID로 잡힙니다.
 - `from`·`to`는 **필수**입니다. 전체 기간은 동기 처리로 감당되지 않습니다. 기간은 `hospital_chatbot.export.max_days`(기본 92), 행 수는 `max_rows`(기본 10000)까지이며 넘으면 422와 함께 몇 건인지 알려 줍니다.
 - 응답은 `text/csv; charset=UTF-8`이고 UTF-8 BOM으로 시작합니다. BOM이 없으면 엑셀이 한국어를 깨뜨립니다. `fputcsv`의 escape는 비워 RFC 4180대로 씁니다. PHP 기본 백슬래시 escape는 표준이 아닙니다.
-- 열은 상담 ID, 병원, 요청자, 담당 상담원, 요청·연결·종료 시각, 대기 시간(초), 상담 시간(초), 상태, 종료 사유, 상담 전 질문, 요청 화면입니다. 상태와 사유는 코드가 아니라 한국어입니다. 파일은 화면 없이 혼자 읽힙니다.
+- 열은 상담 ID, 병의원, 요청자, 담당 상담원, 요청·연결·종료 시각, 대기 시간(초), 상담 시간(초), 상태, 종료 사유, 상담 전 질문, 요청 화면입니다. 상태와 사유는 코드가 아니라 한국어입니다. 파일은 화면 없이 혼자 읽힙니다.
 - 스트림이 시작된 뒤의 예외는 되돌릴 수 없으므로, 로그를 남기고 파일 끝에 잘렸다는 행을 붙입니다.
 
-## 병원 챗봇 실시간
+## 병의원 챗봇 실시간
 
 - 채널은 [routes/channels.php](../routes/channels.php)에 있습니다. `hospital-chatbot.consultation.{consultationId}`는 상담 한 건, `hospital-chatbot.queue`는 상담원 대기 목록입니다.
-- 기본 `withBroadcasting`은 user actor 전용이라 직원·병원은 각자의 `/api/v1/{staff|hospital}/broadcasting/auth`를 씁니다. 클라이언트는 Echo의 custom authorizer로 그 경로를 지정하고 쿠키·CSRF를 함께 보냅니다.
-- 상담 채널은 그 상담의 병원 계정과 **모든 직원**이 구독합니다. 상담원은 담당이 아니어도 목록에서 상세로 들어가 볼 수 있어야 합니다. 대기 목록 채널은 직원만입니다.
+- 기본 `withBroadcasting`은 user actor 전용이라 직원·병의원은 각자의 `/api/v1/{staff|hospital}/broadcasting/auth`를 씁니다. 클라이언트는 Echo의 custom authorizer로 그 경로를 지정하고 쿠키·CSRF를 함께 보냅니다.
+- 상담 채널은 그 상담의 병의원 계정과 **모든 직원**이 구독합니다. 상담원은 담당이 아니어도 목록에서 상세로 들어가 볼 수 있어야 합니다. 대기 목록 채널은 직원만입니다.
 - 이벤트는 `.hospital-chatbot.message.created`(상담 채널), `.hospital-chatbot.consultation.changed`(상담 채널), `.hospital-chatbot.queue.changed`(목록 채널)입니다.
 - 메시지 발행은 저장 커밋 뒤에 Job으로 나갑니다. `broadcast_pending` 표식과 발행을 한 트랜잭션에서 처리하므로 중간에 실패하면 표식이 남고 `hospital-chatbot:dispatch-pending-broadcasts`가 매분 다시 집어 갑니다.
-- 상태 변경 발행은 재발행 장치가 없습니다. 실패해도 양쪽 화면이 주기적으로 다시 조회해 결국 맞춰집니다.
-- **폴링이 기본입니다**(메시지 5초, 목록 10초). 운영은 기존 채팅 때문에 Reverb가 켜져 있어 챗봇 이벤트도 발행됩니다. 관리자 화면과 병원 관리자(SDK 호스트) 둘 다 `NEXT_PUBLIC_REVERB_APP_KEY`가 설정되면 구독도 합니다. 키가 없으면 폴링만 합니다. 상태 발행이 실패하면 `hospital_chatbot.consultation.announce_failed` 경고만 남기고 응답은 정상입니다. 전이는 이미 커밋됐고 폴링이 맞춥니다. 로컬처럼 `BROADCAST_CONNECTION=log`면 재발행 커맨드도 아무것도 집지 않습니다. 큐 워커가 없는 환경에서 같은 메시지를 매분 다시 밀어 넣으면 Redis만 부풀기 때문입니다. 이렇게 둔 이유는 [구조 문서](architecture.md#병원-챗봇-구조)에 있습니다.
+- 상태 변경 발행 실패 시 전용 큐의 재시도 Job이 현재 상태를 다시 읽어 발행합니다. 메시지 발행 시 목록 변경 이벤트도 발행합니다.
+- 실시간 채널의 인가·구독 성공 중에는 10초 보완 조회를 중지하고, 연결 단절·구독 실패·미설정 시에만 사용합니다. 재연결과 화면 복귀 시 누락분을 조회합니다. 아래쪽 목록을 읽는 중에는 변경 안내를 표시하고 명시적으로 새 목록을 조회합니다.
+- `hospital-chatbot.presence.{hospitalId}`는 병의원별 Presence 채널입니다. 직원은 조회할 수 있고 병의원 계정은 자기 병의원만 참여할 수 있습니다. 멤버 정보는 `actor`만 제공하며 직원의 방송 식별자는 `staff:{id}`로 구분합니다.
+- 병의원 웹에서 상담 위젯이 열리고 브라우저 탭이 보일 때 참여하며, 닫기·탭 숨김·언마운트 시 나갑니다. 같은 계정의 여러 연결은 Presence 서버가 합산합니다. 직원 화면은 병의원 멤버 존재 시 초록, 마지막 멤버 이탈 후 8초 유예를 거쳐 회색, 연결·인가 미확인 시 점을 숨깁니다.
+- 실행 환경에는 Reverb, `hospital-chatbot` 큐 워커와 양쪽 웹의 `NEXT_PUBLIC_REVERB_*` 설정이 필요합니다. 이 설정이 없으면 온라인 표시는 숨기고 보완 조회로 동작합니다. 재시도까지 실패한 발행은 운영 로그·실패 Job을 확인해야 하며 실시간 전송이 영구 보장되는 것은 아닙니다.
 - 클라이언트는 순번이 아는 값보다 2 이상 앞서면 붙이지 않고 `after_sequence`로 다시 조회합니다. 실시간과 재조회가 같은 메시지를 줘도 순번으로 한 번만 남깁니다.
 
-## 병원 챗봇 로그와 지표
+## 병의원 챗봇 로그와 지표
 
 - 로그는 저장소 관례대로 `Log::info('한국어 문장', [컨텍스트])` 로 남기되, 컨텍스트에 `event` 키를 하나 얹습니다. 문장은 사람이 읽고 `event`는 수집기가 묶습니다. 문장을 고쳐도 집계가 끊기지 않습니다. `event` 값은 [HospitalChatBotLog](../app/Domains/HospitalChatBot/Support/HospitalChatBotLog.php)에 상수로 있습니다. 오타 하나로 그 이벤트만 집계에서 빠지는 것을 막으려는 것입니다.
 - 상담 요청·중복 반환·연결·충돌·종료, 메시지 저장 실패, 발행 실패와 재시도, Export 실패, 운영시간 계산 오류를 남깁니다. Claim 충돌은 성공과 다른 event입니다. 같은 이름으로 묶이면 셀 수 없습니다.
 - `hospital-chatbot:report-metrics`가 5분마다 현재 상태를 남깁니다. 대기 수, 진행 수, 최장 대기 시간, 미발행 메시지 수와 그중 가장 오래된 것, 그리고 발행 사용 여부입니다. 발행이 꺼져 있으면 미발행 수는 줄지 않으므로 숫자만 보고 장애로 읽지 않습니다.
 - 운영시간 계산이 깨지면 500이 아니라 `CONFIGURATION_UNAVAILABLE`로 닫습니다. 여기서 예외를 올리면 SDK가 Q&A조차 열지 못합니다.
 
-## 병원 프로모션 API
+## 병의원 프로모션 API
 
 Staff 접두사는 `/api/v1/staff/hospital-promotions`입니다. `GET /board`는 일반 ApiResponse data에 `{today,left,right}`를 반환합니다. 양쪽은 `current: [{slot,promotion,filtered_out}]` 3개와 `upcoming: {items,meta}`입니다. 예약 자체가 없으면 null/false, 필터에 제외된 현재 예약은 내용 없이 null/true입니다. `GET /`는 ENDED만 data 배열과 최상위 meta로 반환하고 종료일·ID 내림차순입니다. `q`는 제목·등록 직원 이름/닉네임·숫자 ID 검색, 목록의 `status`는 ACTIVE/INACTIVE CSV 또는 배열의 다중선택이며 기존 단일 값도 받습니다. 미선택은 전체, 여러 값은 OR 조건이고 저장 폼의 단일 status와 구분합니다. 날짜 필터는 게시 구간과 교집합입니다. 예정 목록은 시작일·슬롯·ID 오름차순이며 `left_page`/`right_page`는 독립적입니다. 모든 목록은 15개 고정입니다.
 
@@ -140,10 +146,10 @@ Staff 접두사는 `/api/v1/staff/hospital-promotions`입니다. `GET /board`는
 - `GET /{promotion}/operation-histories`는 공통 이력 DTO와 meta이며 `operation_histories_page`(기본 1), `operation_histories_per_page`(기본 10, 최대 50)를 사용합니다.
 - `GET /availability?side=&slot=&start_date=&end_date=&exclude_id=`는 `{available,conflicts,has_more}`를 반환합니다. conflicts는 시작일·ID 순 최대 10개의 `{id,title,side,slot,start_date,end_date}`이며 초과 시 has_more=true입니다. 조회·생성·수정 중 하나의 권한이 필요하고 exclude_id 사용은 해당 건 수정 권한이 추가로 필요합니다. 조회 권한이 없으면 conflicts는 빈 배열, has_more=false로 정보를 제한합니다. 저장 중 겹침도 422 `details.errors.slot`과 동일한 `details.availability`를 반환합니다. 최종 저장 트랜잭션의 검사만 확정적입니다.
 - `POST /editor-images`는 `image,promotion_id?`를 받고 `{url,path}`를 반환합니다. promotion_id가 없으면 생성, 있으면 해당 건 수정 권한이 필요합니다. `DELETE /editor-images`의 `paths`/`urls`는 JSON 배열이며 생략/빈 배열은 아무것도 삭제하지 않습니다. 정리 응답은 `{requested_count,deleted_count,deleted_paths}`이고 물리 삭제는 커밋 후 공통 정리 작업에서 수행합니다.
-- 병원 인증 경로 `/api/v1/hospital/promotions`는 ACTIVE이면서 KST CURRENT인 데이터만 `{left:[],right:[]}`로 반환합니다. 슬롯 오름차순 최대 3개, 빈 슬롯 placeholder는 없습니다. 공개 DTO는 `id,title,side,slot,start_date,end_date,banner`만, `GET /{promotion}`에는 content만 추가합니다. 작성자·직원 메타데이터는 노출하지 않습니다. 비공개/예정/종료 상세는 404입니다.
-- 병원 배너 클릭 시 `POST /{promotion}/click`으로 `click_count`를 원자적으로 증가시키고 `{counted:true}`를 반환합니다. 계정·프로모션당 분당 1회, 계정 전체 분당 30회 제한이며 초과 시 429입니다. 읽기 GET/슬라이드 노출/직원 미리보기는 세지 않고 편집 토큰·감사·운영 히스토리를 변경하지 않습니다. 아직 연결 전인 병원 배너 클라이언트는 기존 개발용 `/view` 대신 `/click`을 사용합니다.
+- 병의원 인증 경로 `/api/v1/hospital/promotions`는 ACTIVE이면서 KST CURRENT인 데이터만 `{left:[],right:[]}`로 반환합니다. 슬롯 오름차순 최대 3개, 빈 슬롯 placeholder는 없습니다. 공개 DTO는 `id,title,side,slot,start_date,end_date,banner`만, `GET /{promotion}`에는 content만 추가합니다. 작성자·직원 메타데이터는 노출하지 않습니다. 비공개/예정/종료 상세는 404입니다.
+- 병의원 배너 클릭 시 `POST /{promotion}/click`으로 `click_count`를 원자적으로 증가시키고 `{counted:true}`를 반환합니다. 계정·프로모션당 분당 1회, 계정 전체 분당 30회 제한이며 초과 시 429입니다. 읽기 GET/슬라이드 노출/직원 미리보기는 세지 않고 편집 토큰·감사·운영 히스토리를 변경하지 않습니다. 아직 연결 전인 병의원 배너 클라이언트는 기존 개발용 `/view` 대신 `/click`을 사용합니다.
 
-권한·동시성·설치 migration은 [프로모션 도메인 규칙](domain-rules.md#병원-프로모션)을 확인하세요.
+권한·동시성·설치 migration은 [프로모션 도메인 규칙](domain-rules.md#병의원-프로모션)을 확인하세요.
 
 ## 웹과 앱 인증
 
@@ -195,19 +201,19 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 권한 Seeder는 역할의 권한을 동기화하고 캐시를 초기화합니다. 기존 역할의 커스텀 배정을 덮어쓸 수 있고 미사용 권한 행을 모두 삭제하는 도구도 아니므로 운영에서 무조건 재실행하지 않습니다.
 프론트 버튼 숨김/비활성화는 편의 UI이며 서버 인가를 대신하지 않습니다.
 
-## 병원 계정 생성
+## 병의원 계정 생성
 
 현재 정책은 아이디(`nickname`)+비밀번호 로그인, 이메일 인증입니다. 인증 연락처로 휴대폰 번호나 PASS를 사용하지 않습니다.
-`AccountHospital.email`과 `email_verified_at`이 인증된 계정 정보이며, `name`은 호환용 병원명입니다. 처리자 표시는 병원 관계의 이름을 사용합니다.
+`AccountHospital.email`과 `email_verified_at`이 인증된 계정 정보이며, `name`은 호환용 병의원명입니다. 처리자 표시는 병의원 관계의 이름을 사용합니다.
 
 초대 발송 UI는 두 흐름에서 같습니다. 이메일을 입력/수정할 수 있고 입점신청의 applicant_email은 기본 제안값일 뿐 강제 수신처가 아닙니다.
 
 | 흐름                 | 초대 전                                | 계정 생성 완료 시                            |
 | -------------------- | -------------------------------------- | -------------------------------------------- |
-| 관리자가 생성한 병원 | 병원 존재, 계정 미연결                 | 해당 병원에 계정 1:1 연결                    |
-| 입점신청 병원        | 입점 승인, 아직 병원으로 전환되지 않음 | 병원·사업자 정보·초기 지갑 생성 후 계정 연결 |
+| 관리자가 생성한 병의원 | 병의원 존재, 계정 미연결                 | 해당 병의원에 계정 1:1 연결                    |
+| 입점신청 병의원        | 입점 승인, 아직 병의원으로 전환되지 않음 | 병의원·사업자 정보·초기 지갑 생성 후 계정 연결 |
 
-입점 전환 시 신규 병원은 검수 `NOT_APPLIED`(미신청), 운영 `ACTIVE`로 시작합니다.
+입점 전환 시 신규 병의원은 검수 `NOT_APPLIED`(미신청), 운영 `ACTIVE`로 시작합니다.
 기본 의료진은 생성하지 않습니다. 사업자등록증은 이전하고 의사면허 파일은 입점신청에 남깁니다.
 이메일 인증 번호를 광고 수신 전화번호로 전용하지 않으며, 전환 직후 비어 있을 수 있는 `ad_reception_phone_1`은 검수 신청 전 등록해야 합니다.
 
@@ -217,7 +223,7 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 2. 사용자가 `GET /hospital/auth/account-invitations/{token}`으로 초대를 확인합니다.
 3. 초대의 `/email-verifications`에 인증번호를 요청하고 `/email-verifications/{emailVerification}/verify`에서 검증합니다.
 4. 검증 증표와 계정 입력값으로 초대를 완료합니다. 대상→초대→인증 기록 순서로 잠그고 유효성·중복·소유권을 재확인합니다.
-5. 계정 연결, 필요한 병원·지갑 생성, 증표 소비, 초대 사용 처리를 함께 커밋합니다.
+5. 계정 연결, 필요한 병의원·지갑 생성, 증표 소비, 초대 사용 처리를 함께 커밋합니다.
 
 이 문서에서 `/hospital`, `/staff`로 시작하는 축약 경로 앞에는 `/api/v1`이 붙습니다. 세부 payload는 [Hospital 인증 Request](../app/Modules/Hospital/Http/Requests/Auth)를 확인합니다.
 
@@ -227,18 +233,18 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 - 초대 이력은 기본 5개, 최대 20개 페이지네이션입니다. 사용 가능/사용/폐기/만료는 저장 시점뿐 아니라 현재 시각과 사용·폐기 기록으로 판정합니다.
 - 가입 후 별도의 이메일 등록 화면은 없습니다. 개발 계정도 Factory에서 인증 이메일이 있는 상태로 생성합니다.
 
-## 병원 비밀번호 재설정
+## 병의원 비밀번호 재설정
 
-- 직원 발송: `POST /staff/hospitals/{hospital}/password-reset-link`. 병원 조회와 재설정 발송 권한이 필요합니다.
+- 직원 발송: `POST /staff/hospitals/{hospital}/password-reset-link`. 병의원 조회와 재설정 발송 권한이 필요합니다.
 - 직원 모달은 인증 이메일을 기본 표시하되 `recipient_email`로 다른 수신처를 지정할 수 있습니다. 인증된 계정 이메일 자체를 변경하지 않습니다.
 - 다른 주소로 재설정 링크를 보낼 수 있는 권한은 계정 접근권을 넘길 수 있는 민감 권한입니다. 실제 수신처와 발송 직원을 기록합니다. 이전 기록의 수신처를 현재 이메일로 추정해 채우지 않습니다.
 - 공개 찾기: `POST /hospital/auth/password-reset-link`. 가입 여부를 노출하지 않는 공통 응답을 사용하고 메일 처리는 큐에서 수행합니다.
-- `POST /hospital/auth/password-reset/verify`는 병원명·마스킹 아이디와 링크 유효성을 반환합니다.
+- `POST /hospital/auth/password-reset/verify`는 병의원명·마스킹 아이디와 링크 유효성을 반환합니다.
 - `POST /hospital/auth/password-reset`는 계정→토큰 잠금 순서로 비밀번호 변경과 토큰 소비를 처리합니다. 기본 링크 수명은 60분입니다.
 - 계정·이메일·비밀번호 상태 변경을 재검증하고 이전 링크 재사용을 막습니다. 비밀번호 변경 후 기존 세션/토큰의 인증도 무효화합니다.
 - 임의 수신처를 지정하는 공통 발송 Action은 Staff 인가 없이 호출할 수 없도록 유지합니다.
 
-병원 인증 메일은 [HospitalAccountMail](../app/Domains/AccountHospital/Support/HospitalAccountMail.php), [메일 템플릿](../resources/views/mail)을 사용합니다.
+병의원 인증 메일은 [HospitalAccountMail](../app/Domains/AccountHospital/Support/HospitalAccountMail.php), [메일 템플릿](../resources/views/mail)을 사용합니다.
 휴대폰 인증에서 전환하는 기존 환경의 데이터·링크 폐기 및 rollback 제한은 [운영 절차](operations.md)의 이메일 인증 전환 항목을 먼저 확인하세요.
 
 ## 직원 비대면 상담 API
@@ -249,13 +255,29 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 | ------ | ------------------------------------------- | ----------------------------------------------------------- |
 | GET    | `/remote-consultations`                     | 목록 / `beaulab.remote_consultation.show`                   |
 | GET    | `/remote-consultations/{id}`                | 신청·이미지·배정 정보 / 동일 조회 권한                      |
-| GET    | `/remote-consultations/{id}/quotes/{quote}` | 해당 신청에 속한 병원 답변 / 동일 조회 권한                 |
+| GET    | `/remote-consultations/{id}/quotes/{quote}` | 해당 신청에 속한 병의원 답변 / 동일 조회 권한                 |
 | POST   | `/remote-consultations/{id}/approve`        | 신청 승인 (기존 배정 유지) / 조회 + `beaulab.remote_consultation.approve` |
 | PATCH  | `/remote-consultations/{id}/status`         | 검수·반려 (`status`: `REVIEWING`/`REJECTED`) / 조회 + 승인 권한 |
-| GET    | `/remote-consultations/{id}/hospitals`      | 배정 가능 병원 검색 (`q`, `page`) / 조회 + 승인 권한 |
+| GET    | `/remote-consultations/{id}/hospitals`      | 배정 가능 병의원 검색 (`q`, `page`) / 조회 + 승인 권한 |
 | POST   | `/remote-consultations/{id}/quotes`         | 다중 직접 배정 (`hospital_ids`: 최대 6개, 기존 `hospital_id` 단건 호환) / 조회 + 승인 권한 |
 | DELETE | `/remote-consultations/{id}/quotes/{quote}` | 미상담 견적 삭제 / 조회 + 승인 권한 |
 
 목록은 `q`(ID·이름·전화번호), `gender`, `approval_status`, `start_date`, `end_date`, `birth_year_from`, `birth_year_to`, `page`로 조회합니다. 날짜 범위는 한국 시간 기준 신청일이며 15건 단위입니다. 목록 응답은 공통 `data: []`, `meta` 페이지 정보 형식, 승인 응답은 갱신된 신청 상세입니다. 잘못된 필터/승인 조건은 422, 권한 없음은 403, 다른 신청의 견적 ID는 404입니다.
 
-회원·병원용 경로는 제공하지 않습니다. 승인 응답의 `assigned_count`는 배정 건수이며 외부 알림 발송 건수가 아닙니다. 데이터와 후속 입력 검증 계약은 [도메인 규칙](domain-rules.md#비대면-상담-db)을 따릅니다.
+회원·병의원용 경로는 제공하지 않습니다. 승인 응답의 `assigned_count`는 배정 건수이며 외부 알림 발송 건수가 아닙니다. 데이터와 후속 입력 검증 계약은 [도메인 규칙](domain-rules.md#비대면-상담-db)을 따릅니다.
+
+## 병의원 상담 문구 설정
+
+직원 `GET /api/v1/staff/hospital-chatbot/message-settings`, `PUT` 동일 경로로 전체 공통 문구를 조회·저장합니다. 기존 직원 로그인·공통 접근 검사를 적용하며 운영시간 API와 별도로 저장합니다.
+
+| 필드 | 계약 |
+| --- | --- |
+| `welcome_message` | 챗봇 첫 안내, 필수 2,000자 이하 |
+| `connection_message` | 연결 시 자동 발송할 인사, 필수 1,000자 이하. `{상담원명}`은 최대 한 번, 실제 연결 직원 이름으로 치환 |
+| `macros` | 최대 50개, 빈 배열 허용. 각 항목은 `shortcut`, `content` |
+| `macros.*.shortcut` | `#` 제외 1~30자. 한글·영문·숫자·밑줄·하이픈, 대소문자를 무시한 중복 금지 |
+| `macros.*.content` | 필수 2,000자 이하, 일반 텍스트 |
+
+`hospital_chatbot_message_settings`의 고정 ID 1에 문구와 매크로 JSON 목록을 원자적으로 저장합니다. 최초 미설정 시 기존 안내와 기본 매크로 4개를 반환합니다. 빈 매크로 목록을 저장하면 기본값으로 복원하지 않습니다.
+병의원 availability 응답에는 `welcome_message`만 추가하며 내부 매크로와 인사 템플릿은 제공하지 않습니다. 연결 인사는 기존 상태 전이 트랜잭션에서 한 번 저장되며, 설정 변경으로 이전 메시지를 수정하지 않습니다.
+적용 전 `2026_10_01_160000_create_hospital_chatbot_message_settings_table.php` 신규 생성 마이그레이션이 필요합니다. 기존 상담·운영시간 테이블과 데이터는 변경하지 않습니다. 복구 시 설정을 보존하려면 테이블을 삭제하지 않고 앱 코드만 되돌립니다.

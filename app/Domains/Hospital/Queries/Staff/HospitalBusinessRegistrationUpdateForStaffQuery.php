@@ -7,7 +7,7 @@ use App\Domains\Hospital\Models\HospitalBusinessRegistration;
 
 /**
  * HospitalBusinessRegistrationUpdateForStaffQuery 역할 정의.
- * 병원 사업자 등록 수정에 필요한 조회/저장을 캡슐화한다.
+ * 병의원 사업자 등록 수정에 필요한 조회/저장을 캡슐화한다.
  */
 final class HospitalBusinessRegistrationUpdateForStaffQuery
 {

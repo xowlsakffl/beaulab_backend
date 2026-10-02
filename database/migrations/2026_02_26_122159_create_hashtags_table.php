@@ -28,7 +28,7 @@ return new class extends Migration
             $table->index(['updated_at', 'id'], 'hashtags_updated_id_idx');
         });
 
-        DB::statement("ALTER TABLE hashtags COMMENT = '공용 해시태그 마스터 테이블(병원/의사/동영상 공통 사용)'");
+        DB::statement("ALTER TABLE hashtags COMMENT = '공용 해시태그 마스터 테이블(병의원/의사/동영상 공통 사용)'");
 
         Schema::create('hashtaggables', function (Blueprint $table) {
             $table->id()->comment('해시태그 매핑 고유 ID');

@@ -42,7 +42,7 @@ final class HospitalForStaffDetailDtoTest extends TestCase
     private function hospital(): Hospital
     {
         $hospital = new Hospital([
-            'name' => '테스트 병원',
+            'name' => '테스트 병의원',
             'department' => Hospital::DEPARTMENT_OTHER,
             'allow_status' => Hospital::ALLOW_APPROVED,
             'status' => Hospital::STATUS_ACTIVE,

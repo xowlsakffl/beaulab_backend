@@ -44,7 +44,7 @@ final class RemoteConsultationApproveForStaffAction
             $eligible = app(RemoteConsultationMatchingQuery::class)->eligible($categoryIds)
                 ->whereIn('id', $hospitalIds)->orderBy('id')->lockForUpdate()->get();
             if (count($hospitalIds) > 6 || $eligible->count() !== count($hospitalIds)) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '배정 병원 중 현재 배정 조건을 충족하지 않는 병원이 있습니다. 견적 목록을 확인해 주세요.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '배정 병의원 중 현재 배정 조건을 충족하지 않는 병의원이 있습니다. 견적 목록을 확인해 주세요.');
             }
             $c->update(['approval_status' => 'APPROVED', 'approved_by_staff_id' => auth()->id(), 'approved_at' => now()]);
             app(OperationHistoryCreateAction::class)->execute(target: $c, action: OperationHistory::ACTION_STATE_UPDATED, actor: auth()->user(), metadata: ['source' => 'staff.remote_consultation.approve'], changes: OperationHistoryChangeSetBuilder::single(key: 'approval_status', label: '승인상태', before: $before, after: 'APPROVED', beforeDisplay: $before === 'PENDING' ? '신청' : '검수', afterDisplay: '승인'));

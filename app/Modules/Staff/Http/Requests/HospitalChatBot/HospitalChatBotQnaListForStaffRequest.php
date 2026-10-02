@@ -28,7 +28,10 @@ final class HospitalChatBotQnaListForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'all' => ['nullable', 'boolean'],
             'q' => ['nullable', 'string', 'max:100'],
+            'depth' => ['nullable', 'integer', 'between:1,3'],
+            'root_id' => ['nullable', 'integer', 'min:1'],
             'category' => ['nullable', 'string', 'max:100'],
             'folder_id' => ['nullable', 'integer', 'min:1'],
             'status' => ['nullable', 'array'],
@@ -44,7 +47,10 @@ final class HospitalChatBotQnaListForStaffRequest extends FormRequest
         $validated = $this->validated();
 
         return [
+            'all' => (bool) ($validated['all'] ?? false),
             'q' => $validated['q'] ?? null,
+            'depth' => $validated['depth'] ?? null,
+            'root_id' => isset($validated['root_id']) ? (int) $validated['root_id'] : null,
             'category' => $validated['category'] ?? null,
             'folder_id' => isset($validated['folder_id']) ? (int) $validated['folder_id'] : null,
             'status' => $validated['status'] ?? null,

@@ -24,7 +24,7 @@ final class HospitalFactory extends Factory
         return [
             'name' => $name,
             'department' => $this->faker->randomElement(Hospital::departments()),
-            'description' => $this->faker->optional(0.7)->randomElement(['충분한 상담을 통해 개인별 진료 계획을 안내합니다.', '상담부터 사후 관리까지 세심하게 안내하는 병원입니다.']),
+            'description' => $this->faker->optional(0.7)->randomElement(['충분한 상담을 통해 개인별 진료 계획을 안내합니다.', '상담부터 사후 관리까지 세심하게 안내하는 병의원입니다.']),
             'youtube_link' => $this->faker->optional(0.5)->randomElement([
                 'https://www.youtube.com/@beaulabclinic',
                 'https://www.youtube.com/@skinclinic',

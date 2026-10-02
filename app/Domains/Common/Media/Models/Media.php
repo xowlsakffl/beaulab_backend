@@ -99,7 +99,7 @@ final class Media extends Model
      |------------------------------------------------------------------------- */
 
     /**
-     * 특정 엔티티(병원 등)에 속한 미디어만 가져옴
+     * 특정 엔티티(병의원 등)에 속한 미디어만 가져옴
      * Media::for($hospital)->get();
      */
     public function scopeFor(Builder $query, Model $owner): Builder
@@ -110,7 +110,7 @@ final class Media extends Model
     }
 
     /**
-     * 특정 엔티티(병원 등)에 속한 미디어만 가져옴
+     * 특정 엔티티(병의원 등)에 속한 미디어만 가져옴
      * Media::for($hospital)->collection('logo')->get();
      */
     public function scopeCollection(Builder $query, string $collection): Builder
@@ -119,7 +119,7 @@ final class Media extends Model
     }
 
     /**
-     * 특정 엔티티(병원 등)에 속한 미디어만 가져옴
+     * 특정 엔티티(병의원 등)에 속한 미디어만 가져옴
      * Media::for($hospital)->collection('thumbnail')->primary()->first();
      */
     public function scopePrimary(Builder $query): Builder

@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('hospital_doctors', function (Blueprint $table) {
             $table->id()->comment('의사 고유 ID');
 
-            $table->foreignId('hospital_id')->comment('소속 병원 ID')->constrained('hospitals')->cascadeOnDelete();
+            $table->foreignId('hospital_id')->comment('소속 병의원 ID')->constrained('hospitals')->cascadeOnDelete();
             $table->unsignedInteger('sort_order')->default(0)->comment('의사 노출 순서');
 
             $table->string('name')->comment('의사 이름');
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->index(['deleted_at', 'career_started_at', 'id'], 'h_doctors_deleted_career_id_idx');
         });
 
-        DB::statement("ALTER TABLE hospital_doctors COMMENT = '병원 소속 의사 테이블'");
+        DB::statement("ALTER TABLE hospital_doctors COMMENT = '병의원 소속 의사 테이블'");
     }
 
     public function down(): void

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 /**
- * 병원 계정 비밀번호 변경 유스케이스.
+ * 병의원 계정 비밀번호 변경 유스케이스.
  * 현재 비밀번호를 검증한 뒤 저장과 기존 토큰 만료를 Query에 위임한다.
  */
 final class PasswordUpdateForAccountHospitalAction
@@ -26,7 +26,7 @@ final class PasswordUpdateForAccountHospitalAction
     public function execute(AccountHospital $hospital, array $filters): array
     {
         if (! Hash::check($filters['current_password'], $hospital->password)) {
-            Log::warning('병원 비밀번호 변경 실패', [
+            Log::warning('병의원 비밀번호 변경 실패', [
                 'reason' => 'current_password_mismatch',
                 'hospital_id' => $hospital->id,
             ]);
@@ -40,7 +40,7 @@ final class PasswordUpdateForAccountHospitalAction
 
         $this->query->update($hospital, (string) $filters['password']);
 
-        Log::info('병원 비밀번호 변경', [
+        Log::info('병의원 비밀번호 변경', [
             'hospital_id' => $hospital->id,
         ]);
 

@@ -14,7 +14,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 final class BeautyListForStaffQuery
 {
     /**
-     * 뷰랩 전용 병원 리스트
+     * 뷰랩 전용 병의원 리스트
      */
     public function paginate(array $filters): LengthAwarePaginator
     {

@@ -53,34 +53,34 @@ Queries에는 기존 저장 메서드도 있으므로 폴더명만으로 읽기 
 | 금액·대화        | [HospitalWallet](../app/Domains/HospitalWallet), [Chat](../app/Domains/Chat), [HospitalChatBot](../app/Domains/HospitalChatBot)                                                                                    |
 | 공통 업무        | [Category, Media, AdminNote, OperationHistory, ContentReport, Notification, Sms 등](../app/Domains/Common)                                                                                                        |
 
-병원 계정과 병원은 1:1입니다. `account_hospitals.hospital_id`의 unique 제약을 유지하며, 뷰티 계정도 같은 관계입니다.
+병의원 계정과 병의원은 1:1입니다. `account_hospitals.hospital_id`의 unique 제약을 유지하며, 뷰티 계정도 같은 관계입니다.
 조회 DTO의 단수 관계를 임의로 배열로 바꾸거나, 계정 표시명을 실제 담당자 이름으로 해석하지 않습니다.
 
-API가 아직 없는 업무도 있습니다. Hospital Module에는 현재 병원 정보 수정·영상 등록 전체 CRUD가 없고, Beauty Module도 전체 파트너 관리 API가 아닙니다. 실제 범위는 각각의 라우트로 판단합니다.
+API가 아직 없는 업무도 있습니다. Hospital Module에는 현재 병의원 정보 수정·영상 등록 전체 CRUD가 없고, Beauty Module도 전체 파트너 관리 API가 아닙니다. 실제 범위는 각각의 라우트로 판단합니다.
 
-## 병원 챗봇 구조
+## 병의원 챗봇 구조
 
 기존 앱에 도메인 하나와 화면 몇 개가 붙은 형태입니다. 새 서비스는 없습니다.
 
-![병원 챗봇 구조 — 구성, 추가된 테이블 8개, 실시간 처리 방식, 운영에 필요한 프로세스](images/hospital-chatbot-architecture.svg)
+![병의원 챗봇 구조 — 구성, 추가된 테이블 8개, 실시간 처리 방식, 운영에 필요한 프로세스](images/hospital-chatbot-architecture.svg)
 
 읽을 때 짚을 것 네 가지입니다.
 
-- **기존 테이블은 바꾸지 않았습니다.** 새 테이블 8개는 전부 `hospital_chatbot_` 접두사이고, `hospitals`·`account_hospitals`·`account_staffs`는 FK로 참조만 합니다. 병원명·요청자명·상담원명은 요청 시점 값을 스냅샷 컬럼에 복사하므로 계정을 지워도 상담 기록이 남습니다.
-- **실시간은 폴링이 기본이고 구독은 덤입니다.** 화면은 메시지 5초, 목록 10초 주기로 다시 조회합니다(2026-09-29 확정). 백엔드는 채널·인가·발행·재발행까지 구현되어 있고, 운영은 기존 채팅 때문에 Reverb가 켜져 있어 챗봇 이벤트도 실제로 발행됩니다. 관리자 화면(staff-web)과 병원 관리자(hospital-web, SDK에 `subscribeConsultation` 어댑터를 주입) 둘 다 `NEXT_PUBLIC_REVERB_APP_KEY`가 있으면 채널을 구독하고, 없으면 폴링만 합니다. 로컬은 Reverb를 띄우지 않아 폴링으로만 돌았고, 운영에서 키를 넣으면 구독이 살아납니다. 발행이 실패해도 전이는 이미 커밋된 뒤라 경고 로그만 남기고 응답은 정상입니다. 로컬은 `BROADCAST_CONNECTION=log`로 두고 개발했습니다.
-- **챗봇이 새로 요구하는 상시 프로세스는 Scheduler뿐입니다.** 대기 상담 자동 만료는 매분, 지표 기록은 5분마다 돕니다. Reverb·Queue Worker는 기존 채팅이 이미 쓰고 있는 것을 그대로 탑니다.
+- **기존 테이블은 바꾸지 않았습니다.** 새 테이블 8개는 전부 `hospital_chatbot_` 접두사이고, `hospitals`·`account_hospitals`·`account_staffs`는 FK로 참조만 합니다. 병의원명·요청자명·상담원명은 요청 시점 값을 스냅샷 컬럼에 복사하므로 계정을 지워도 상담 기록이 남습니다.
+- **실시간 전달:** 메시지 5초·목록 10초 폴링을 기본으로 하고 Reverb 구독을 함께 지원합니다. 종료된 직원 상담창은 폴링을 중단합니다. `NEXT_PUBLIC_REVERB_APP_KEY` 설정과 실제 Reverb·채널 인증 동작을 배포 환경에서 함께 확인해야 하며, 코드 구현만으로 운영 발행을 보장하지 않습니다.
+- **상시 프로세스:** 기존 Reverb와 Scheduler를 사용하고, Horizon에 `hospital-chatbot` 큐를 소비하는 전용 `supervisor-hospital-chatbot`을 둡니다. local은 최대 1개, production은 최대 2개 워커이며 일반 사용자 `chat` 큐와 구분합니다. 대기 만료·미발행 재처리는 매분, 지표 기록은 5분마다 실행합니다. 배포 시 설정 캐시를 갱신하고 기존 프로세스 관리자가 Horizon을 다시 띄우도록 `php artisan horizon:terminate`를 실행해야 새 supervisor가 적용됩니다. 이 작업은 배포 승인 후 수행하며, 롤백 시에도 큐에 남은 메시지 발행 작업을 소비할 워커를 유지해야 합니다.
 - **인증·권한은 기존 것을 그대로 씁니다.** Sanctum 쿠키 세션이고 새 권한을 만들지 않았습니다(`common.access`).
 
 ### 테이블
 
-![병원 챗봇 ERD — 테이블 8개의 컬럼과 관계](images/hospital-chatbot-erd.svg)
+![병의원 챗봇 ERD — 테이블 8개의 컬럼과 관계](images/hospital-chatbot-erd.svg)
 
-- 컬럼 정의는 [schema.dbml](schema.dbml)의 「병원 챗봇」 블록에 있습니다. 나머지 92개 테이블과 같은 파일입니다.
+- 컬럼 정의는 [schema.dbml](schema.dbml)의 「병의원 챗봇」 블록에 있습니다. 나머지 92개 테이블과 같은 파일입니다.
 - 실제 DDL은 [hospital-chatbot-schema.sql](hospital-chatbot-schema.sql)입니다. 마이그레이션이 정본이므로 보통은 `php artisan migrate`를 쓰고, 이 파일은 스키마를 눈으로 확인하거나 마이그레이션을 돌릴 수 없는 환경에서 씁니다.
 - **스냅샷 컬럼**(`*_name_snapshot`, `context_qna_*_snapshot`)은 요청 시점 값을 복사합니다. 계정이나 Q&A를 지워도 상담 기록이 그대로 남습니다.
-- **생성 컬럼 두 개**는 MySQL에 Partial Unique Index가 없어서 둡니다. `parent_key`는 `parent_id`가 NULL인 최상위 폴더끼리도 이름 유니크를 걸려고, `active_question_key`는 살아 있는 Q&A끼리만 질문 중복을 막으려고 씁니다. `active_hospital_id`도 같은 수법으로 병원당 활성 상담 1건을 보장합니다.
+- **생성 컬럼 두 개**는 MySQL에 Partial Unique Index가 없어서 둡니다. `parent_key`는 `parent_id`가 NULL인 최상위 폴더끼리도 이름 유니크를 걸려고, `active_question_key`는 살아 있는 Q&A끼리만 질문 중복을 막으려고 씁니다. `active_hospital_id`도 같은 수법으로 병의원당 활성 상담 1건을 보장합니다.
 
-연동 계약은 [API 문서](api.md)의 「병원 챗봇」 절, 요구사항은 [PRD](hospital-chatbot-prd.md), 확인 항목은 [테스트 케이스](hospital-chatbot-test-cases.md)에 있습니다.
+연동 계약은 [API 문서](api.md)의 「병의원 챗봇」 절, 요구사항은 [PRD](hospital-chatbot-prd.md), 확인 항목은 [테스트 케이스](hospital-chatbot-test-cases.md)에 있습니다.
 
 ## 변경할 때 지킬 기준
 

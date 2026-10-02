@@ -33,7 +33,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Hospital 역할 정의.
- * 병원 도메인의 Eloquent 모델
+ * 병의원 도메인의 Eloquent 모델
  */
 final class Hospital extends Model
 {

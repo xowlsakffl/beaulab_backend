@@ -155,7 +155,7 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('reported-contents.updateReportedContentWarningStatusForStaff');
 
     /**
-     * 병원 관리
+     * 병의원 관리
      **/
     Route::get('hospital-entries', [HospitalEntryForStaffController::class, 'getHospitalEntriesForStaff'])
         ->name('hospital-entries.getHospitalEntriesForStaff');
@@ -468,7 +468,7 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('talk-comments.getTalkCommentOperationHistoriesForStaff');
 
     /**
-     * 병원 프로모션
+     * 병의원 프로모션
      **/
     Route::prefix('hospital-promotions')->name('hospital-promotions.')->group(function (): void {
         Route::get('board', [HospitalPromotionForStaffController::class, 'board'])->name('board');
@@ -535,6 +535,8 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
             ->name('consultations.export');
         Route::get('consultations/{consultation}', [HospitalChatBotConsultationForStaffController::class, 'show'])
             ->whereNumber('consultation')->name('consultations.show');
+        Route::post('consultations/{consultation}/read', [HospitalChatBotConsultationForStaffController::class, 'markRead'])
+            ->whereNumber('consultation')->name('consultations.read');
         Route::post('consultations/{consultation}/claim', [HospitalChatBotConsultationForStaffController::class, 'claim'])
             ->whereNumber('consultation')->name('consultations.claim');
         Route::post('consultations/{consultation}/end', [HospitalChatBotConsultationForStaffController::class, 'end'])
@@ -545,17 +547,12 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
             ->whereNumber('consultation')->middleware('throttle:hospital-chatbot-message')->name('consultations.messages.store');
         Route::get('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'show'])
             ->name('operating-hours.show');
+        Route::get('message-settings', [\App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotMessageSettingForStaffController::class, 'show'])->name('message-settings.show');
+        Route::put('message-settings', [\App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotMessageSettingForStaffController::class, 'update'])->name('message-settings.update');
         Route::put('operating-hours', [HospitalChatBotOperatingHoursForStaffController::class, 'update'])
             ->name('operating-hours.update');
-        Route::get('qna-folders', [HospitalChatBotQnaForStaffController::class, 'folders'])->name('qna-folders.index');
-        Route::post('qna-folders', [HospitalChatBotQnaForStaffController::class, 'storeFolder'])->name('qna-folders.store');
-        Route::match(['put', 'patch'], 'qna-folders/{folder}', [HospitalChatBotQnaForStaffController::class, 'updateFolder'])
-            ->whereNumber('folder')->name('qna-folders.update');
-        Route::patch('qna-folders/{folder}/move', [HospitalChatBotQnaForStaffController::class, 'moveFolder'])
-            ->whereNumber('folder')->name('qna-folders.move');
-        Route::delete('qna-folders/{folder}', [HospitalChatBotQnaForStaffController::class, 'destroyFolder'])
-            ->whereNumber('folder')->name('qna-folders.destroy');
         Route::get('qnas', [HospitalChatBotQnaForStaffController::class, 'index'])->name('qnas.index');
+        Route::get('qnas/tree', [HospitalChatBotQnaForStaffController::class, 'tree'])->name('qnas.tree');
         Route::post('qnas', [HospitalChatBotQnaForStaffController::class, 'store'])->name('qnas.store');
         Route::get('qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'show'])->whereNumber('qna')->name('qnas.show');
         Route::match(['put', 'patch'], 'qnas/{qna}', [HospitalChatBotQnaForStaffController::class, 'update'])->whereNumber('qna')->name('qnas.update');

@@ -32,9 +32,17 @@ final class HospitalChatBotOperatingHoursForStaffQuery
         return HospitalChatBotSetting::current();
     }
 
-    public function saveSetting(bool $isForceClosed, ?string $reason, ?int $staffId): void
+    public function saveSetting(bool $isForceClosed, ?string $reason, ?int $staffId, ?array $holidayCodes = null, ?array $lunch = null): void
     {
-        $setting = HospitalChatBotSetting::query()->orderBy('id')->first() ?? new HospitalChatBotSetting;
+        $id = HospitalChatBotSetting::query()->orderBy('id')->value('id') ?? 1;
+        HospitalChatBotSetting::query()->firstOrCreate(['id' => $id], ['is_force_closed' => false]);
+        $setting = HospitalChatBotSetting::query()->lockForUpdate()->findOrFail($id);
+        if ($holidayCodes !== null) {
+            $setting->public_holiday_codes = $holidayCodes;
+        }
+        if ($lunch !== null) {
+            $setting->fill($lunch);
+        }
         $setting->fill([
             'is_force_closed' => $isForceClosed,
             'force_closed_reason' => $isForceClosed ? $reason : null,
@@ -67,6 +75,7 @@ final class HospitalChatBotOperatingHoursForStaffQuery
                 ['closure_date' => $item['date']],
                 [
                     'reason' => $item['reason'],
+                    'end_date' => $item['end_date'] ?? $item['date'],
                     'updated_by_staff_id' => $staffId,
                 ],
             );

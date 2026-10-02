@@ -23,6 +23,9 @@ final readonly class HospitalChatBotConsultationForStaffDto
             'hospital' => [
                 'id' => (int) $consultation->hospital_id,
                 'name' => self::text($consultation->hospital_name_snapshot),
+                'logo' => $consultation->relationLoaded('hospital') && $consultation->hospital?->logoMedia
+                    ? ['path' => $consultation->hospital->logoMedia->publicPath()]
+                    : null,
             ],
             'requester' => [
                 'account_hospital_id' => $consultation->requested_by_account_hospital_id !== null
@@ -42,6 +45,9 @@ final readonly class HospitalChatBotConsultationForStaffDto
             'waiting_seconds' => self::waitingSeconds($consultation),
             'duration_seconds' => self::durationSeconds($consultation),
             'last_message_at' => self::time($consultation->last_message_at),
+            'last_message' => $consultation->relationLoaded('latestMessage')
+                ? self::text($consultation->latestMessage?->content)
+                : null,
             'last_message_sequence' => (int) $consultation->last_message_sequence,
             'source_page_path' => self::text($consultation->source_page_path),
             'context_qna' => self::contextQna($consultation),

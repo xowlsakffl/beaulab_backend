@@ -35,7 +35,7 @@ final class RemoteConsultationDevelopmentSeeder extends Seeder
         $matching = app(RemoteConsultationMatchingQuery::class);
         $hospitals = $matching->eligible($categories->modelKeys())->orderBy('id')->get();
         if ($hospitals->isEmpty()) {
-            throw new \LogicException('배정 조건을 충족하는 기존 병원이 최소 1곳 필요합니다. 계정과 병원은 새로 생성하지 않습니다.');
+            throw new \LogicException('배정 조건을 충족하는 기존 병의원이 최소 1곳 필요합니다. 계정과 병의원은 새로 생성하지 않습니다.');
         }
 
         $created = 0;

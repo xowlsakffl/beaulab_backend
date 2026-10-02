@@ -15,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
 /**
  * 상담원 대기 목록이 바뀌었다. 상담원만 구독하는 채널로 보낸다.
  *
- * 병원명·요청자 등 상담원에게만 필요한 항목이 실리므로 상담 채널에는 보내지 않는다.
+ * 병의원명·요청자 등 상담원에게만 필요한 항목이 실리므로 상담 채널에는 보내지 않는다.
  */
 final class HospitalChatBotQueueChanged implements ShouldBroadcastNow
 {

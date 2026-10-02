@@ -7,7 +7,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 
 /**
- * 병원 계정 로그아웃 유스케이스.
+ * 병의원 계정 로그아웃 유스케이스.
  * 현재 브라우저의 병의원 세션을 폐기한다.
  */
 final class LogoutForAccountHospitalAction
@@ -23,7 +23,7 @@ final class LogoutForAccountHospitalAction
     {
         $this->authentication->logout($actor);
 
-        Log::info('병원 로그아웃', [
+        Log::info('병의원 로그아웃', [
             'actor_type' => $actor ? get_class($actor) : null,
             'actor_id' => $actor?->getAuthIdentifier(),
         ]);

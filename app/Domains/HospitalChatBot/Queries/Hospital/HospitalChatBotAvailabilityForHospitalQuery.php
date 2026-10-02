@@ -27,7 +27,7 @@ final class HospitalChatBotAvailabilityForHospitalQuery
     public function closures(): Collection
     {
         return HospitalChatBotClosureDate::query()
-            ->where('closure_date', '>=', now(HospitalChatBotAvailabilityResolver::TIMEZONE)->toDateString())
+            ->whereRaw('COALESCE(end_date, closure_date) >= ?', [now(HospitalChatBotAvailabilityResolver::TIMEZONE)->toDateString()])
             ->orderBy('closure_date')
             ->get();
     }

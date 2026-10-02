@@ -11,13 +11,13 @@
 | 작업                                   | 문서                                |
 | -------------------------------------- | ----------------------------------- |
 | 처음 합류, 새 API 개발                 | [구조와 개발 기준](architecture.md) |
-| 프론트 연동, 로그인, 권한, 병원 계정   | [API·인증](api.md)                  |
+| 프론트 연동, 로그인, 권한, 병의원 계정   | [API·인증](api.md)                  |
 | 검수·노출, 이벤트, 신고, 운영 히스토리 | [도메인 규칙](domain-rules.md)      |
 | 충전·소진·환불·현황                    | [충전금](hospital-wallet.md)        |
 | 채팅, 알림, SMS                        | [메시징](messaging.md)              |
 | 배포, 장애 확인, 큐, 파일 이전         | [운영 절차](operations.md)          |
 
-병원관리자 챗봇·상담 기능은 [PRD](hospital-chatbot-prd.md)와 [작업지시서](hospital-chatbot-work-order.md)를 함께 확인합니다. 연동 계약(Q&A·폴더·상담·메시지·내보내기·실시간·로그)은 [API 문서](api.md), 전체 구조와 추가된 테이블은 [구조 문서](architecture.md#병원-챗봇-구조)에 있습니다.
+병의원관리자 챗봇·상담 기능은 [PRD](hospital-chatbot-prd.md)와 [작업지시서](hospital-chatbot-work-order.md)를 함께 확인합니다. 연동 계약(Q&A·폴더·상담·메시지·내보내기·실시간·로그)은 [API 문서](api.md), 전체 구조와 추가된 테이블은 [구조 문서](architecture.md#병의원-챗봇-구조)에 있습니다.
 
 [DB 관계도](schema.dbml)는 탐색용입니다. 실제 제약과 컬럼은 [마이그레이션](../database/migrations)과 각 Model을 확인하세요.
 
@@ -55,7 +55,7 @@
 | `SMS_ENABLED`, `PUSH_ENABLED`     | 실제 발송을 확인하기 전에는 false 유지                            |
 | `MEDIA_*`                         | 공개/비공개 디스크를 구분하고 저장 경로 권한 확인                 |
 
-병원 인증 메일은 인증번호와 링크의 로그 유출을 막기 위해 `log` transport를 거부합니다.
+병의원 인증 메일은 인증번호와 링크의 로그 유출을 막기 위해 `log` transport를 거부합니다.
 로컬에서는 Mailpit 같은 SMTP 수신함을 사용할 수 있습니다. 예를 들어 SMTP 1025, 수신함 UI 8025로 실행했다면 해당 주소를 설정합니다. 이는 프로젝트가 자동 설치·실행하는 서비스가 아닙니다.
 그 밖의 Actor 재설정 URL도 배포한 웹 주소에 맞춰 확인합니다.
 

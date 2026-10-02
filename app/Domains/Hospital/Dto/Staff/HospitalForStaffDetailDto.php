@@ -13,7 +13,7 @@ use App\Domains\HospitalWallet\Models\HospitalWallet;
 
 /**
  * HospitalForStaffDetailDto 역할 정의.
- * 병원 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
+ * 병의원 도메인의 DTO로, 모델 값을 API 응답이나 계층 간 전달에 맞는 단순한 배열/값 구조로 정규화한다.
  */
 final readonly class HospitalForStaffDetailDto
 {

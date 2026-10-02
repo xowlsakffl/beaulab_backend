@@ -74,6 +74,53 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
         self::assertSame(0, HospitalChatBotClosureDate::query()->count());
     }
 
+    public function test_closure_range_is_saved_as_one_record_and_rejects_overlap(): void
+    {
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $payload = $this->payload();
+        $payload['closure_dates'] = [['date' => '2026-10-15', 'end_date' => '2026-10-16', 'reason' => '휴무']];
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertOk()
+            ->assertJsonCount(1, 'data.closure_dates')->assertJsonPath('data.closure_dates.0.end_date', '2026-10-16');
+        self::assertSame(1, HospitalChatBotClosureDate::query()->count());
+        $payload['closure_dates'][] = ['date' => '2026-10-16', 'end_date' => '2026-10-17'];
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertStatus(422);
+        self::assertSame(1, HospitalChatBotClosureDate::query()->count());
+        $payload['closure_dates'] = [];
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertOk();
+        self::assertSame(0, HospitalChatBotClosureDate::query()->count());
+    }
+
+    public function test_saving_lunch_and_public_holidays_and_rejecting_invalid_values(): void
+    {
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $payload = $this->payload();
+        $payload['public_holiday_codes'] = ['CHUSEOK', 'HANGUL_DAY'];
+        $payload['break_starts_at'] = '12:00';
+        $payload['break_ends_at'] = '13:00';
+        $payload['weekly_schedule'][1]['closes_at'] = '12:00';
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertOk()
+            ->assertJsonPath('data.break_starts_at', '12:00')
+            ->assertJsonPath('data.public_holiday_codes', ['CHUSEOK', 'HANGUL_DAY']);
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $this->payload())->assertOk()
+            ->assertJsonPath('data.break_starts_at', '12:00');
+        $legacyPayload = $payload;
+        $legacyPayload['weekly_schedule'][0]['break_starts_at'] = '12:00';
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $legacyPayload)->assertStatus(422);
+        $payload['break_ends_at'] = '11:00';
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertStatus(422);
+        $payload['break_ends_at'] = null;
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertStatus(422);
+        $payload['break_ends_at'] = '13:00';
+        $payload['public_holiday_codes'] = ['UNKNOWN'];
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertStatus(422);
+        $payload['public_holiday_codes'] = [];
+        $payload['break_starts_at'] = null;
+        $payload['break_ends_at'] = null;
+        $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertOk()
+            ->assertJsonPath('data.break_starts_at', null)
+            ->assertJsonPath('data.break_ends_at', null);
+    }
+
     public function test_saving_rejects_an_open_day_without_a_valid_time_range(): void
     {
         $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
@@ -142,6 +189,53 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
             HospitalChatBotAvailabilityResolver::REASON_FORCE_CLOSED,
             app(HospitalChatBotAvailabilityForHospitalAction::class)->execute()['reason'],
         );
+    }
+
+    public function test_message_settings_save_independently_and_only_welcome_is_exposed_to_hospital(): void
+    {
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $endpoint = '/api/v1/staff/hospital-chatbot/message-settings';
+        $this->getJson($endpoint)->assertOk()->assertJsonPath('data.macros.0.shortcut', '확인');
+        $values = ['welcome_message' => '병의원 상담에 오신 것을 환영합니다.', 'connection_message' => '{상담원명} 상담사입니다.', 'macros' => [['shortcut' => '안내', 'content' => '안내해 드리겠습니다.']]];
+        $this->putJson($endpoint, $values)->assertOk()->assertJsonPath('data.macros.0.shortcut', '안내');
+        $this->getJson($endpoint)->assertOk()->assertJsonPath('data.connection_message', '{상담원명} 상담사입니다.');
+        $availability = app(HospitalChatBotAvailabilityForHospitalAction::class)->execute();
+        self::assertSame($values['welcome_message'], $availability['welcome_message']);
+        self::assertArrayNotHasKey('macros', $availability);
+        self::assertArrayNotHasKey('connection_message', $availability);
+        self::assertSame(0, HospitalChatBotOperatingHour::query()->count());
+        $values['macros'] = [];
+        $this->putJson($endpoint, $values)->assertOk()->assertJsonCount(0, 'data.macros');
+        self::assertSame(1, \App\Domains\HospitalChatBot\Models\HospitalChatBotMessageSetting::query()->count());
+    }
+
+    public function test_invalid_macros_do_not_replace_saved_settings(): void
+    {
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $values = \App\Domains\HospitalChatBot\Models\HospitalChatBotMessageSetting::defaults();
+        $values['macros'] = [['shortcut' => '확인', 'content' => '확인합니다.'], ['shortcut' => '확인', 'content' => '중복입니다.']];
+        $this->putJson('/api/v1/staff/hospital-chatbot/message-settings', $values)->assertStatus(422);
+        $values['macros'] = [['shortcut' => '#금지 공백', 'content' => '']];
+        $this->putJson('/api/v1/staff/hospital-chatbot/message-settings', $values)->assertStatus(422);
+        $values['macros'] = [];
+        self::assertSame(0, \App\Domains\HospitalChatBot\Models\HospitalChatBotMessageSetting::query()->count());
+        $values['connection_message'] = '{상담원명}{상담원명}';
+        $this->putJson('/api/v1/staff/hospital-chatbot/message-settings', $values)->assertOk()
+            ->assertJsonPath('data.connection_message', '{상담원명}{상담원명}');
+    }
+
+    public function test_partial_message_settings_preserve_the_other_menu_and_allow_clearing_macros(): void
+    {
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $endpoint = '/api/v1/staff/hospital-chatbot/message-settings';
+        $this->putJson($endpoint, ['welcome_message' => '새 안내', 'connection_message' => '새 연결 인사'])
+            ->assertOk()->assertJsonPath('data.macros.0.shortcut', '확인');
+        $this->putJson($endpoint, ['macros' => [['shortcut' => '안내', 'content' => '새 답변']]])
+            ->assertOk()->assertJsonPath('data.welcome_message', '새 안내')->assertJsonPath('data.connection_message', '새 연결 인사');
+        $this->putJson($endpoint, ['macros' => []])->assertOk()->assertJsonCount(0, 'data.macros')
+            ->assertJsonPath('data.welcome_message', '새 안내');
+        $this->putJson($endpoint, [])->assertStatus(422);
+        $this->putJson($endpoint, ['welcome_message' => '미완성', 'macros' => []])->assertStatus(422);
     }
 
     /** @param list<array{date:string,reason:?string}> $closureDates */

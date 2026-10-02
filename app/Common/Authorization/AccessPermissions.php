@@ -282,7 +282,7 @@ final class AccessPermissions
      * guard별 생성해야 할 permission 목록 (Seeder는 이걸 기준으로 생성)
      *
      * - staff: 내부 직원(뷰랩)
-     * - hospital: 병원 파트너
+     * - hospital: 병의원 파트너
      * - beauty: 뷰티 파트너
      * - user: 일반 사용자(앱)는 Spatie permission을 사용하지 않는다.
      */

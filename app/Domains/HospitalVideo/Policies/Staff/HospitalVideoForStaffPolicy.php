@@ -8,7 +8,7 @@ use App\Domains\HospitalVideo\Models\HospitalVideo;
 
 /**
  * HospitalVideoForStaffPolicy 역할 정의.
- * 병원 동영상 도메인의 권한 정책으로, 현재 actor가 이 리소스에 수행할 수 있는 작업인지 판단하는 권한 규칙을 정의한다.
+ * 병의원 동영상 도메인의 권한 정책으로, 현재 actor가 이 리소스에 수행할 수 있는 작업인지 판단하는 권한 규칙을 정의한다.
  */
 final class HospitalVideoForStaffPolicy
 {

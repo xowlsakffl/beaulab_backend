@@ -12,6 +12,8 @@ final readonly class HospitalChatBotQnaForHospitalDto
     {
         return [
             'id' => (int) $qna->id,
+            'parent_id' => $qna->parent_id,
+            'depth' => (int) ($qna->depth ?? 1),
             'folder_id' => $qna->folder_id !== null ? (int) $qna->folder_id : null,
             'parent_folder_id' => self::folderParentId($qna) !== null ? (int) $qna->folder->parent_id : null,
             // SDK가 폴더 트리를 만들 수 있도록 이름도 함께 준다.

@@ -35,7 +35,7 @@ return new class extends Migration
             $table->index(['consultation_id', 'created_at'], 'hccm_consultation_created_at_index');
         });
 
-        DB::statement("ALTER TABLE hospital_chatbot_consultation_messages COMMENT = '병원 챗봇 상담 메시지'");
+        DB::statement("ALTER TABLE hospital_chatbot_consultation_messages COMMENT = '병의원 챗봇 상담 메시지'");
     }
 
     public function down(): void

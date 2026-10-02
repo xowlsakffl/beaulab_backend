@@ -10,7 +10,7 @@ use App\Domains\Common\Cache\Support\StaffSummaryCache;
 use Illuminate\Support\Facades\DB;
 
 /**
- * 병원 계정 로그인 Query.
+ * 병의원 계정 로그인 Query.
  * nickname/password/계정 상태를 검증한다.
  */
 final class LoginForAccountHospitalQuery

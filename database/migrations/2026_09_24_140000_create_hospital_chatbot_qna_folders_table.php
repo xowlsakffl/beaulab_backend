@@ -39,7 +39,7 @@ return new class extends Migration
             $table->index(['depth', 'sort_order', 'id'], 'hcqf_depth_sort_index');
         });
 
-        DB::statement("ALTER TABLE hospital_chatbot_qna_folders COMMENT = '병원 챗봇 Q&A 폴더(2단)'");
+        DB::statement("ALTER TABLE hospital_chatbot_qna_folders COMMENT = '병의원 챗봇 Q&A 폴더(2단)'");
     }
 
     public function down(): void

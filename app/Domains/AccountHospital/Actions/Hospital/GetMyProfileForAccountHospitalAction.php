@@ -7,7 +7,7 @@ use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountHospital\Queries\Hospital\ProfileForAccountHospitalQuery;
 
 /**
- * 병원 계정 내 프로필 조회 유스케이스.
+ * 병의원 계정 내 프로필 조회 유스케이스.
  * 프로필과 현재 role/permission 스냅샷을 함께 반환한다.
  */
 final class GetMyProfileForAccountHospitalAction

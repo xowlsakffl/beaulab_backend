@@ -8,7 +8,7 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
-use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
+use App\Domains\HospitalChatBot\Queries\HospitalChatBotQnaTreeQuery;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationTransition;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
@@ -22,6 +22,7 @@ final class HospitalChatBotConsultationForHospitalQuery
 {
     public function __construct(
         private readonly HospitalChatBotConsultationTransition $transition,
+        private readonly HospitalChatBotQnaTreeQuery $qnaTree,
     ) {}
 
     public function active(int $hospitalId): ?HospitalChatBotConsultation
@@ -160,7 +161,7 @@ final class HospitalChatBotConsultationForHospitalQuery
             return $empty;
         }
 
-        $qna = HospitalChatBotQna::query()->find($qnaId);
+        $qna = $this->qnaTree->ordered($this->qnaTree->all(), visibleOnly: true)->firstWhere('id', $qnaId);
         if ($qna === null) {
             return $empty;
         }

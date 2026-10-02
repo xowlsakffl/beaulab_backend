@@ -44,7 +44,7 @@ final class AdminNoteUpdateAction
         if (AdminNoteActorRegistry::isPartnerActor($actor) && $isInternal) {
             throw new CustomException(
                 ErrorCode::INVALID_REQUEST,
-                '병원/뷰티 관리자 메모는 공유 메모만 수정할 수 있습니다.'
+                '병의원/뷰티 관리자 메모는 공유 메모만 수정할 수 있습니다.'
             );
         }
 

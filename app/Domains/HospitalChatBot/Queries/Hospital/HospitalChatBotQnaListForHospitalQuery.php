@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\HospitalChatBot\Queries\Hospital;
 
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 final class HospitalChatBotQnaListForHospitalQuery
 {
@@ -14,11 +14,8 @@ final class HospitalChatBotQnaListForHospitalQuery
      */
     public function get(): Collection
     {
-        return HospitalChatBotQna::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->with(['folder:id,parent_id,name', 'folder.parent:id,name'])
-            ->get(['id', 'folder_id', 'category', 'question', 'answer', 'sort_order']);
+        $tree = app(\App\Domains\HospitalChatBot\Queries\HospitalChatBotQnaTreeQuery::class);
+
+        return $tree->ordered($tree->all(), visibleOnly: true);
     }
 }

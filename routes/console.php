@@ -153,7 +153,7 @@ Artisan::command('media:generate-variants {--force} {--limit=500}', function () 
     $this->info("Skipped media: {$skippedCount}");
 })->purpose('Generate thumb and medium variants for existing image media');
 
-// 병원별 병의원 평가 수/평균 평점 집계 보정
+// 병의원별 병의원 평가 수/평균 평점 집계 보정
 Artisan::command('hospital-evaluations:refresh-hospital-ratings {--hospital-id=*}', function () {
     $hospitalIds = collect($this->option('hospital-id') ?? [])
         ->map(static fn ($hospitalId): int => (int) $hospitalId)
@@ -290,7 +290,7 @@ Schedule::command('queue:prune-batches --hours=72 --unfinished=72 --cancelled=16
 // 오래된 실패 작업 기록 정리 (failed_jobs 비대화 방지)
 Schedule::command('queue:prune-failed --hours=168')->dailyAt('03:20');
 
-// 병원별 평가 평점 집계 정합성 보정
+// 병의원별 평가 평점 집계 정합성 보정
 Schedule::command('hospital-evaluations:refresh-hospital-ratings')->dailyAt('03:30');
 
 Schedule::command('hospital-chatbot:dispatch-pending-broadcasts')->everyMinute()->withoutOverlapping();

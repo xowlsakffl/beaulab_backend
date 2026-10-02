@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        DB::statement("ALTER TABLE hospital_chatbot_operating_hours COMMENT = '병원 챗봇 요일별 상담 운영시간'");
+        DB::statement("ALTER TABLE hospital_chatbot_operating_hours COMMENT = '병의원 챗봇 요일별 상담 운영시간'");
     }
 
     public function down(): void

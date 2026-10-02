@@ -39,7 +39,9 @@ final class RemoteConsultationAssignmentForStaffAction
         Gate::authorize('approve', new RemoteConsultation);
         $c = RemoteConsultation::findOrFail($id);
         $this->assertEditable($c);
-        $query = $this->matching->eligible($this->categoryIds($c))->whereNotIn('id', $c->quotes()->pluck('hospital_id'));
+        $query = $this->matching->eligible($this->categoryIds($c))
+            ->with('businessRegistration')
+            ->whereNotIn('id', $c->quotes()->pluck('hospital_id'));
         $term = trim($filters['q'] ?? '');
         if ($term !== '') {
             $query->where(function ($q) use ($term) {
@@ -47,11 +49,17 @@ final class RemoteConsultationAssignmentForStaffAction
                 if (ctype_digit($term) && strlen($term) <= 15) {
                     $q->orWhere('id', (int) $term);
                 }
+                $businessNumber = preg_match('/^[0-9\s-]+$/', $term) ? preg_replace('/\D/', '', $term) : '';
+                if ($businessNumber !== '') {
+                    $q->orWhereHas('businessRegistration', fn ($registration) => $registration
+                        ->whereRaw("REPLACE(REPLACE(business_number, '-', ''), ' ', '') LIKE ?", ['%'.$businessNumber.'%']));
+                }
             });
         }
 
         return PaginatedResponse::fromPaginator($query->orderBy('id')->paginate(15), fn ($h) => [
             'id' => $h->id, 'name' => $h->name,
+            'business_number' => $h->businessRegistration?->business_number,
             'categories' => $h->categories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values()->all(),
         ]);
     }
@@ -69,7 +77,7 @@ final class RemoteConsultationAssignmentForStaffAction
             }
             $hospitals = $this->matching->eligible($this->categoryIds($c))->whereIn('id', $newIds)->orderBy('id')->lockForUpdate()->get();
             if ($hospitals->count() !== count($newIds)) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '관심 진료과목과 일치하는 활성 병원만 배정할 수 있습니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '관심 진료과목과 일치하는 활성 병의원만 배정할 수 있습니다.');
             }
             foreach ($hospitals as $hospital) {
                 $quote = $c->quotes()->create([
@@ -107,7 +115,7 @@ final class RemoteConsultationAssignmentForStaffAction
         app(OperationHistoryCreateAction::class)->execute(
             target: $c, action: OperationHistory::ACTION_STATE_UPDATED, actor: auth()->user(),
             metadata: ['source' => 'staff.remote_consultation.assignment', 'quote_id' => $quoteId],
-            changes: OperationHistoryChangeSetBuilder::single(key: 'assigned_hospital', label: '배정 병원', before: $before, after: $after, beforeDisplay: $before ?? '-', afterDisplay: $after ?? '-'),
+            changes: OperationHistoryChangeSetBuilder::single(key: 'assigned_hospital', label: '배정 병의원', before: $before, after: $after, beforeDisplay: $before ?? '-', afterDisplay: $after ?? '-'),
         );
     }
 }

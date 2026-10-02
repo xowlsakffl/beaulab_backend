@@ -11,7 +11,7 @@ use App\Domains\HospitalChatBot\Queries\Hospital\HospitalChatBotConsultationForH
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
 
 /**
- * 병원 사용자가 상담 중에 직접 종료한다.
+ * 병의원 사용자가 상담 중에 직접 종료한다.
  *
  * PRD D-09는 원래 상담원만 종료하도록 정했으나, 자기가 시작한 대화를 끝내지 못하는 것이
  * 부자연스러워 결정을 바꿨다. 대기 중 취소는 cancel이 따로 담당한다.
@@ -28,7 +28,7 @@ final class HospitalChatBotConsultationEndForHospitalAction
     {
         $account = HospitalChatBotConsultationActiveForHospitalAction::account();
 
-        // 다른 병원의 상담이면 여기서 404가 난다.
+        // 다른 병의원의 상담이면 여기서 404가 난다.
         $consultation = $this->query->findForHospital($consultationId, (int) $account->hospital_id);
 
         if ($this->query->endByUser($consultation, (int) $account->id)) {

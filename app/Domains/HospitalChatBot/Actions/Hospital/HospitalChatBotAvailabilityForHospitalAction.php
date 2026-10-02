@@ -21,12 +21,17 @@ final class HospitalChatBotAvailabilityForHospitalAction
     public function execute(): array
     {
         try {
-            return $this->resolver->resolve(
-                now(HospitalChatBotAvailabilityResolver::TIMEZONE),
-                $this->query->hours(),
-                $this->query->closures(),
-                $this->query->setting(),
-            );
+            $now = now(HospitalChatBotAvailabilityResolver::TIMEZONE);
+            $hours = $this->query->hours();
+            $closures = $this->query->closures();
+            $setting = $this->query->setting();
+
+            return [...$this->resolver->resolve(
+                $now, $hours, $closures, $setting,
+            ),
+                'operating_schedule' => $this->resolver->schedule($now, $hours, $closures, $setting),
+                'welcome_message' => app(\App\Domains\HospitalChatBot\Queries\HospitalChatBotMessageSettingQuery::class)->current()->welcome_message,
+            ];
         } catch (Throwable $exception) {
             /*
              * 운영시간 계산이 깨졌다(PRD 16.6).

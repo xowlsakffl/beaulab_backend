@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * 병원 챗봇 공통 설정.
- * 전체 병원에 하나만 존재하며 상담원 연결을 즉시 중단할 때 사용한다.
+ * 병의원 챗봇 공통 설정.
+ * 전체 병의원에 하나만 존재하며 상담원 연결을 즉시 중단할 때 사용한다.
  */
 final class HospitalChatBotSetting extends Model
 {
@@ -20,13 +20,18 @@ final class HospitalChatBotSetting extends Model
     protected $table = 'hospital_chatbot_settings';
 
     protected $fillable = [
+        'id',
         'is_force_closed',
+        'public_holiday_codes',
+        'break_starts_at',
+        'break_ends_at',
         'force_closed_reason',
         'updated_by_staff_id',
     ];
 
     protected $casts = [
         'is_force_closed' => 'boolean',
+        'public_holiday_codes' => 'array',
         'updated_by_staff_id' => 'integer',
     ];
 

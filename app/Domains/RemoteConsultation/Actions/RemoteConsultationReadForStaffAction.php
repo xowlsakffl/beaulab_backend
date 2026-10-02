@@ -27,7 +27,7 @@ final class RemoteConsultationReadForStaffAction
         Gate::authorize('view', $c);
         $requested = Hospital::withTrashed()->whereIn('id', $c->requested_hospital_ids ?? [])->get(['id', 'name'])->keyBy('id');
 
-        return Dto::detail($c, collect($c->requested_hospital_ids ?? [])->map(fn ($id) => ['id' => $id, 'name' => $requested->get($id)?->name ?? '삭제된 병원'])->all());
+        return Dto::detail($c, collect($c->requested_hospital_ids ?? [])->map(fn ($id) => ['id' => $id, 'name' => $requested->get($id)?->name ?? '삭제된 병의원'])->all());
     }
 
     public function quote(int $id, int $quoteId): array

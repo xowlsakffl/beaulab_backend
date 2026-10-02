@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Gate;
 
 /**
  * HospitalCheckNameForStaffAction 역할 정의.
- * 병원명 중복 확인 유스케이스를 담당하며, 권한 확인과 Query 호출 결과를 응답 구조로 정리한다.
+ * 병의원명 중복 확인 유스케이스를 담당하며, 권한 확인과 Query 호출 결과를 응답 구조로 정리한다.
  */
 final class HospitalCheckNameForStaffAction
 {

@@ -57,6 +57,10 @@ final class BroadcastHospitalChatBotMessageJob implements ShouldQueue
             );
 
             $message->forceFill(['broadcast_pending' => false])->save();
+            \App\Domains\HospitalChatBot\Events\HospitalChatBotQueueChanged::dispatch(
+                (int) $message->consultation_id,
+                (string) \App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation::query()->whereKey($message->consultation_id)->value('status'),
+            );
         });
     }
 

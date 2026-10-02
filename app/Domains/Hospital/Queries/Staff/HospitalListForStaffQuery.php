@@ -13,12 +13,12 @@ use Illuminate\Support\Carbon;
 
 /**
  * HospitalListForStaffQuery 역할 정의.
- * 병원 도메인의 Query 계층으로, Eloquent 조회/저장 조건을 캡슐화해 Action 계층에 DB 쿼리가 흩어지지 않게 한다.
+ * 병의원 도메인의 Query 계층으로, Eloquent 조회/저장 조건을 캡슐화해 Action 계층에 DB 쿼리가 흩어지지 않게 한다.
  */
 final class HospitalListForStaffQuery
 {
     /**
-     * 뷰랩 전용 병원 리스트
+     * 뷰랩 전용 병의원 리스트
      */
     public function paginate(array $filters): LengthAwarePaginator
     {
@@ -87,7 +87,7 @@ final class HospitalListForStaffQuery
             ]);
         }
 
-        // 검색: HID exact match + 병의원명 / 병원아이디 LIKE 검색
+        // 검색: HID exact match + 병의원명 / 병의원아이디 LIKE 검색
         if ($q !== null && $q !== '') {
             $searchId = null;
             if (ctype_digit($q)) {

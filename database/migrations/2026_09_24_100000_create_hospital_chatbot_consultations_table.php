@@ -11,20 +11,20 @@ return new class extends Migration
     {
         Schema::create('hospital_chatbot_consultations', function (Blueprint $table) {
             $table->id()->comment('상담 ID');
-            $table->foreignId('hospital_id')->comment('상담을 요청한 병원 ID');
-            $table->string('hospital_name_snapshot', 191)->nullable()->comment('요청 당시 병원 표시명');
+            $table->foreignId('hospital_id')->comment('상담을 요청한 병의원 ID');
+            $table->string('hospital_name_snapshot', 191)->nullable()->comment('요청 당시 병의원 표시명');
             $table->foreignId('requested_by_account_hospital_id')
                 ->nullable()
-                ->comment('요청한 병원 계정 ID. 감사 용도이며 상담 소유권을 결정하지 않는다');
+                ->comment('요청한 병의원 계정 ID. 감사 용도이며 상담 소유권을 결정하지 않는다');
             $table->string('requester_name_snapshot', 191)->nullable()->comment('요청 당시 요청자 표시명');
             $table->string('status', 20)->comment('상담 상태(WAITING, CONNECTED, ENDED, CANCELED)');
 
             // MySQL은 Partial Unique Index를 지원하지 않는다.
             // 활성(WAITING·CONNECTED) 동안에만 hospital_id를 복사해 두고 종료·취소 시 NULL로 비워
-            // 병원당 활성 상담 1건을 DB 레벨에서 보장한다(PRD D-26).
+            // 병의원당 활성 상담 1건을 DB 레벨에서 보장한다(PRD D-26).
             $table->unsignedBigInteger('active_hospital_id')
                 ->nullable()
-                ->comment('활성 상담일 때만 채워지는 병원 ID. 병원당 활성 상담 1건 보장용');
+                ->comment('활성 상담일 때만 채워지는 병의원 ID. 병의원당 활성 상담 1건 보장용');
 
             $table->foreignId('assigned_staff_id')->nullable()->comment('연결된 상담원 직원 계정 ID');
             $table->string('assigned_staff_name_snapshot', 191)->nullable()->comment('연결 당시 상담원 표시명');
@@ -61,7 +61,7 @@ return new class extends Migration
             $table->index(['assigned_staff_id', 'requested_at'], 'hcc_agent_requested_at_index');
         });
 
-        DB::statement("ALTER TABLE hospital_chatbot_consultations COMMENT = '병원 챗봇 상담원 연결 세션'");
+        DB::statement("ALTER TABLE hospital_chatbot_consultations COMMENT = '병의원 챗봇 상담원 연결 세션'");
     }
 
     public function down(): void

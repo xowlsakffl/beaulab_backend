@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * 상담 메시지 저장과 조회.
  *
- * 병원 사용자와 상담원이 같은 경로를 쓴다. 누가 보냈는지는 호출자가 결정해 넘긴다.
+ * 병의원 사용자와 상담원이 같은 경로를 쓴다. 누가 보냈는지는 호출자가 결정해 넘긴다.
  */
 final class HospitalChatBotConsultationMessageQuery
 {
@@ -133,7 +133,7 @@ final class HospitalChatBotConsultationMessageQuery
      *
      * @return Collection<int, HospitalChatBotConsultationMessage>
      */
-    public function list(int $consultationId, ?int $afterSequence, int $limit): Collection
+    public function list(int $consultationId, ?int $afterSequence, int $limit, ?int $beforeSequence = null): Collection
     {
         if ($afterSequence !== null) {
             return HospitalChatBotConsultationMessage::query()
@@ -147,6 +147,7 @@ final class HospitalChatBotConsultationMessageQuery
         return HospitalChatBotConsultationMessage::query()
             ->where('consultation_id', $consultationId)
             ->orderByDesc('sequence')
+            ->when($beforeSequence !== null, fn ($query) => $query->where('sequence', '<', $beforeSequence))
             ->limit($limit)
             ->get()
             ->sortBy('sequence')

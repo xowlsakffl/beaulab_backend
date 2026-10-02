@@ -159,7 +159,7 @@ final class AccessRoles
             // Hospital (guard: hospital)
             // =========================
             AccessPermissions::GUARD_HOSPITAL => [
-                // 1병원 1계정 정책: 현재 병원 파트너는 owner 단일 role만 사용한다.
+                // 1병의원 1계정 정책: 현재 병의원 파트너는 owner 단일 role만 사용한다.
                 // 다계정 정책 재도입 시 manager/staff role을 새로 정의한다.
                 self::HOSPITAL_OWNER => self::unique([
                     ...$partnerCommon,

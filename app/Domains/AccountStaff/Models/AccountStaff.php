@@ -18,9 +18,14 @@ use Spatie\Permission\Traits\HasRoles;
  */
 final class AccountStaff extends Authenticatable
 {
-    use HasApiTokens, HasRoles, HasFactory, Notifiable, SoftDeletes, HasAuditLogs;
+    use HasApiTokens, HasAuditLogs, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     protected string $guard_name = 'staff';
+
+    public function getAuthIdentifierForBroadcasting(): string
+    {
+        return 'staff:'.$this->getKey();
+    }
 
     protected $table = 'account_staffs';
 
@@ -28,7 +33,9 @@ final class AccountStaff extends Authenticatable
      * 계정 상태 상수 (migration comment: active, suspended, blocked)
      */
     public const string STATUS_ACTIVE = 'ACTIVE';
+
     public const string STATUS_SUSPENDED = 'SUSPENDED';
+
     public const string STATUS_BLOCKED = 'BLOCKED';
 
     /**

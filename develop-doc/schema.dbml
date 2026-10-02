@@ -31,10 +31,10 @@ Table account_beauties {
 }
 
 Table account_hospitals {
-  id bigint [pk, increment, note: '병원 관리자 고유 ID']
-  hospital_id bigint [note: '소속 병원 ID']
+  id bigint [pk, increment, note: '병의원 관리자 고유 ID']
+  hospital_id bigint [note: '소속 병의원 ID']
   name varchar [note: '호환용 병의원명; 표시에는 연결 병의원명 사용']
-  nickname varchar [unique, note: '병원 관리자 로그인 아이디']
+  nickname varchar [unique, note: '병의원 관리자 로그인 아이디']
   email varchar(254) [null, unique, note: '인증 이메일; 기존 계정 전환 전에는 null']
   email_verified_at timestamp [null, note: '이메일 인증 완료 시각']
   phone varchar(50) [null, note: '전환 기간 보존용; 입력/출력/인증에서 사용하지 않음']
@@ -44,8 +44,8 @@ Table account_hospitals {
   last_login_at timestamp [null, note: '마지막 로그인 시각']
   created_at timestamp
   updated_at timestamp
-  deleted_at timestamp [null, note: '병원 관리자 비활성/삭제 시각']
-  Note: '병의원 파트너 계정입니다. 현재 정책은 병원 1개당 계정 1개입니다.'
+  deleted_at timestamp [null, note: '병의원 관리자 비활성/삭제 시각']
+  Note: '병의원 파트너 계정입니다. 현재 정책은 병의원 1개당 계정 1개입니다.'
 }
 
 Table account_staffs {
@@ -401,7 +401,7 @@ Table hashtags {
 
 Table hospital_business_registrations {
   id bigint [pk, increment, note: '사업자 등록증 고유 ID']
-  hospital_id bigint [note: '소속 병원 ID']
+  hospital_id bigint [note: '소속 병의원 ID']
   business_number varchar(20) [unique, note: '사업자 등록번호']
   company_name varchar(255) [note: '상호명']
   ceo_name varchar(100) [note: '대표자명']
@@ -422,7 +422,7 @@ Table hospital_business_registrations {
 
 Table hospital_doctors {
   id bigint [pk, increment, note: '의사 고유 ID']
-  hospital_id bigint [note: '소속 병원 ID']
+  hospital_id bigint [note: '소속 병의원 ID']
   sort_order int [default: `0`, note: '의사 노출 순서']
   name varchar [note: '의사 이름']
   gender varchar(20) [null, note: '의사 성별(남, 여)']
@@ -453,7 +453,7 @@ Table hospital_evaluations {
   cost int [default: `0`, note: '시술/수술 비용(만원 단위)']
   rating_staff_kindness tinyint [note: '직원친절도 평점(1~5)']
   rating_surgery_satisfaction tinyint [note: '수술만족도 평점(1~5)']
-  rating_facility tinyint [note: '병원시설 평점(1~5)']
+  rating_facility tinyint [note: '병의원시설 평점(1~5)']
   rating_aftercare tinyint [note: '사후관리 평점(1~5)']
   rating_cost tinyint [note: '비용 평점(1~5)']
   average_rating decimal [default: `0`, note: '5개 평점 항목 평균']
@@ -850,20 +850,20 @@ Table hospital_events {
 }
 
 Table hospital_feature_assignments {
-  id bigint [pk, increment, note: '병원 특징 연결 고유 ID']
-  hospital_id bigint [note: '병원 ID']
-  hospital_feature_id bigint [note: '병원 특징 ID']
+  id bigint [pk, increment, note: '병의원 특징 연결 고유 ID']
+  hospital_id bigint [note: '병의원 ID']
+  hospital_feature_id bigint [note: '병의원 특징 ID']
   created_at timestamp
   updated_at timestamp
   Note: '병의원과 병의원 정보 항목의 매핑 테이블입니다.'
 }
 
 Table hospital_features {
-  id bigint [pk, increment, note: '병원 정보 고유 ID']
-  code varchar(100) [unique, note: '병원 정보 코드']
-  name varchar(100) [note: '병원 정보명']
+  id bigint [pk, increment, note: '병의원 정보 고유 ID']
+  code varchar(100) [unique, note: '병의원 정보 코드']
+  name varchar(100) [note: '병의원 정보명']
   sort_order int [default: `0`, note: '정렬 순서']
-  status varchar(20) [default: `'ACTIVE'`, note: '병원 정보 상태']
+  status varchar(20) [default: `'ACTIVE'`, note: '병의원 정보 상태']
   created_at timestamp
   updated_at timestamp
   Note: '병의원 정보 체크박스 항목을 정의합니다.'
@@ -919,9 +919,9 @@ Table hospital_reviews {
 
 Table hospital_videos {
   id bigint [pk, increment, note: '동영상 고유 ID']
-  hospital_id bigint [null, note: '병원 ID']
+  hospital_id bigint [null, note: '병의원 ID']
   doctor_id bigint [null, note: '의사 ID']
-  submitted_by_account_id bigint [null, note: '요청 병원 계정 ID']
+  submitted_by_account_id bigint [null, note: '요청 병의원 계정 ID']
   title varchar [note: '동영상 제목']
   description text [null, note: '동영상 설명']
   is_usage_consented boolean [default: `false`, note: '영상 사용 동의 여부']
@@ -947,13 +947,13 @@ Table hospital_videos {
 }
 
 Table hospitals {
-  id bigint [pk, increment, note: '병원 고유 ID']
-  name varchar [unique, note: '병원명']
+  id bigint [pk, increment, note: '병의원 고유 ID']
+  name varchar [unique, note: '병의원명']
   department varchar(30) [default: `'OTHER'`, note: '분과(성형외과, 피부과, 의원, 치과, 안과, 한의원, 기타)']
-  description text [null, note: '병원 소개']
+  description text [null, note: '병의원 소개']
   youtube_link varchar(500) [null, note: '유튜브 링크']
-  address varchar [null, note: '병원 주소']
-  address_detail varchar [null, note: '병원 상세 주소']
+  address varchar [null, note: '병의원 주소']
+  address_detail varchar [null, note: '병의원 상세 주소']
   latitude varchar [null, note: '위도']
   longitude varchar [null, note: '경도']
   tel varchar [null, note: '대표 번호']
@@ -970,7 +970,7 @@ Table hospitals {
   status varchar(20) [default: `'ACTIVE'`, note: '운영 상태(정상, 운영중지, 탈퇴)']
   created_at timestamp
   updated_at timestamp
-  deleted_at timestamp [null, note: '병원 비활성/삭제 시각']
+  deleted_at timestamp [null, note: '병의원 비활성/삭제 시각']
   Note: '병의원 기본 정보, 운영 상태, 검수 상태, 통계 값을 관리합니다.'
 }
 
@@ -1661,9 +1661,9 @@ Table remote_consultation_quotes {
     (hospital_id, status, id)
   }
 }
-// ── 병원 챗봇 ──────────────────────────────────────────────
+// ── 병의원 챗봇 ──────────────────────────────────────────────
 // 기존 테이블은 FK로 참조만 하고 컬럼을 더하지 않았습니다.
-// 병원명·요청자명·상담원명은 요청 시점 값을 스냅샷으로 복사해
+// 병의원명·요청자명·상담원명은 요청 시점 값을 스냅샷으로 복사해
 // 계정을 지워도 상담 기록이 남습니다.
 
 Table hospital_chatbot_qna_folders {
@@ -1690,10 +1690,10 @@ Table hospital_chatbot_qna_folders {
 }
 
 Table hospital_chatbot_qnas {
-  id bigint [pk, increment, note: '병원 챗봇 Q&A ID']
+  id bigint [pk, increment, note: '병의원 챗봇 Q&A ID']
   folder_id bigint [null, note: '속한 폴더 ID. 정본']
   category varchar(100) [null, note: '폴더 이름의 사본. 이관 전 데이터 호환용']
-  question varchar(255) [note: '병원 화면에 노출할 질문']
+  question varchar(255) [note: '병의원 화면에 노출할 질문']
   question_key char(64) [note: '공백·대소문자를 정규화한 질문 해시']
   active_question_key char(64) [unique, null, note: '생성 컬럼 IF(deleted_at IS NULL, question_key, NULL). 살아 있는 Q&A끼리만 질문 중복을 막는다']
   answer text [note: '일반 텍스트 답변. HTML이 아님']
@@ -1745,15 +1745,15 @@ Table hospital_chatbot_settings {
 
 Table hospital_chatbot_consultations {
   id bigint [pk, increment, note: '상담 ID']
-  hospital_id bigint [note: '상담을 요청한 병원 ID']
-  hospital_name_snapshot varchar(191) [null, note: '요청 당시 병원 표시명']
-  requested_by_account_hospital_id bigint [null, note: '요청한 병원 계정. 감사용이며 소유권을 결정하지 않음']
+  hospital_id bigint [note: '상담을 요청한 병의원 ID']
+  hospital_name_snapshot varchar(191) [null, note: '요청 당시 병의원 표시명']
+  requested_by_account_hospital_id bigint [null, note: '요청한 병의원 계정. 감사용이며 소유권을 결정하지 않음']
   requester_name_snapshot varchar(191) [null]
   context_qna_id bigint [null, note: '상담 직전에 보던 Q&A']
   context_qna_question_snapshot varchar(500) [null, note: '요청 당시 질문 본문']
   context_qna_answer_snapshot text [null, note: '요청 당시 답변 본문']
   status varchar(20) [note: 'WAITING, CONNECTED, ENDED, CANCELED']
-  active_hospital_id bigint [null, unique, note: '활성일 때만 채우는 병원 ID. 병원당 활성 상담 1건 보장']
+  active_hospital_id bigint [null, unique, note: '활성일 때만 채우는 병의원 ID. 병의원당 활성 상담 1건 보장']
   assigned_staff_id bigint [null]
   assigned_staff_name_snapshot varchar(191) [null]
   requested_at timestamp
@@ -1777,7 +1777,7 @@ Table hospital_chatbot_consultations {
   Note: '''
   상담 세션입니다.
   MySQL은 Partial Unique Index를 지원하지 않습니다. 활성(WAITING·CONNECTED) 동안에만 active_hospital_id에
-  hospital_id를 복사하고 종료·취소 시 NULL로 비워, 병원당 활성 상담 1건을 DB 레벨에서 보장합니다.
+  hospital_id를 복사하고 종료·취소 시 NULL로 비워, 병의원당 활성 상담 1건을 DB 레벨에서 보장합니다.
   상태 전이는 현재 상태가 아직 기대한 값일 때만 갱신하는 조건부 UPDATE로 처리합니다.
   '''
 }

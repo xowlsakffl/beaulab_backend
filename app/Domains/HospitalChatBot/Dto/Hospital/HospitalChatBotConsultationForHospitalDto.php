@@ -25,7 +25,7 @@ final readonly class HospitalChatBotConsultationForHospitalDto
             'ended_at' => self::time($consultation->ended_at),
             'canceled_at' => self::time($consultation->canceled_at),
             'close_reason' => $consultation->close_reason !== null ? (string) $consultation->close_reason : null,
-            // 병원 사용자에게는 담당 상담원의 표시명만 노출한다. 계정 ID는 내보내지 않는다.
+            // 병의원 사용자에게는 담당 상담원의 표시명만 노출한다. 계정 ID는 내보내지 않는다.
             'assigned_staff_name' => $consultation->assigned_staff_name_snapshot !== null
                 ? (string) $consultation->assigned_staff_name_snapshot
                 : null,

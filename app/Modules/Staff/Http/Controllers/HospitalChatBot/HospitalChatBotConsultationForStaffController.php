@@ -19,6 +19,14 @@ use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationM
 
 final class HospitalChatBotConsultationForStaffController extends Controller
 {
+    public function markRead(
+        int $consultation,
+        \App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotConsultationReadForStaffRequest $request,
+        \App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotConsultationReadForStaffAction $action,
+    ) {
+        return ApiResponse::success($action->execute($consultation, (int) $request->validated('sequence')));
+    }
+
     public function index(
         HospitalChatBotConsultationListForStaffRequest $request,
         HospitalChatBotConsultationListForStaffAction $action,
@@ -56,7 +64,7 @@ final class HospitalChatBotConsultationForStaffController extends Controller
         HospitalChatBotConsultationMessageListForStaffRequest $request,
         HospitalChatBotConsultationMessageForStaffAction $action,
     ) {
-        $result = $action->index($consultation, $request->afterSequence(), $request->limit());
+        $result = $action->index($consultation, $request->afterSequence(), $request->limit(), $request->beforeSequence());
 
         return ApiResponse::success($result['items'], [
             'last_sequence' => $result['last_sequence'],

@@ -17,12 +17,14 @@ final class HospitalChatBotClosureDate extends Model
 
     protected $fillable = [
         'closure_date',
+        'end_date',
         'reason',
         'updated_by_staff_id',
     ];
 
     protected $casts = [
         'closure_date' => 'immutable_date:Y-m-d',
+        'end_date' => 'immutable_date:Y-m-d',
         'updated_by_staff_id' => 'integer',
     ];
 

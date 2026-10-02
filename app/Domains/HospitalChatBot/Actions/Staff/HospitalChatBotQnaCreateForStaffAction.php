@@ -4,54 +4,41 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Actions\Staff;
 
-use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\HospitalChatBot\Dto\Staff\HospitalChatBotQnaForStaffDto;
-use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
+use App\Domains\HospitalChatBot\Queries\HospitalChatBotQnaTreeQuery;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaCreateForStaffQuery;
-use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaDuplicateForStaffQuery;
-use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaFolderForStaffQuery;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class HospitalChatBotQnaCreateForStaffAction
 {
-    public function __construct(
-        private readonly HospitalChatBotQnaCreateForStaffQuery $query,
-        private readonly HospitalChatBotQnaFolderForStaffQuery $folders,
-        private readonly HospitalChatBotQnaDuplicateForStaffQuery $duplicateQuery,
-    ) {}
+    public function __construct(private readonly HospitalChatBotQnaCreateForStaffQuery $query, private readonly HospitalChatBotQnaTreeQuery $tree) {}
 
     public function execute(array $payload): array
     {
-        $question = trim((string) $payload['question']);
-        $questionKey = HospitalChatBotQna::questionKey($question);
-
-        if ($this->duplicateQuery->exists($questionKey)) {
-            throw ValidationException::withMessages(['question' => '동일한 질문이 이미 등록되어 있습니다.']);
-        }
-
-        $actor = auth()->user();
-        $staffId = $actor instanceof AccountStaff ? (int) $actor->id : null;
-
         try {
-            $qna = DB::transaction(fn (): HospitalChatBotQna => $this->query->create([
-                'folder_id' => (int) $payload['folder_id'],
-                // category는 폴더 이름을 따라간다. 목록 필터와 기존 조회가 아직 이 값을 쓴다.
-                'category' => $this->folders->find((int) $payload['folder_id'])->name,
-                'question' => $question,
-                'question_key' => $questionKey,
-                'answer' => trim((string) $payload['answer']),
-                'status' => (string) ($payload['status'] ?? HospitalChatBotQna::STATUS_ACTIVE),
-                'sort_order' => (int) ($payload['sort_order'] ?? 0),
-                'created_by_staff_id' => $staffId,
-                'updated_by_staff_id' => $staffId,
-            ]));
-        } catch (UniqueConstraintViolationException) {
-            throw ValidationException::withMessages(['question' => '동일한 질문이 이미 등록되어 있습니다.']);
-        }
+            return DB::transaction(function () use ($payload): array {
+                $nodes = $this->tree->all(true);
+                $parentId = isset($payload['parent_id']) ? (int) $payload['parent_id'] : null;
+                $question = trim($payload['question']);
+                $qna = $this->query->create([
+                    'parent_id' => $parentId,
+                    'depth' => $this->tree->depth($nodes, $parentId),
+                    'category' => '',
+                    'question' => $question,
+                    'question_key' => HospitalChatBotQnaTreeQuery::questionKey($question, $parentId),
+                    'answer' => trim((string) ($payload['answer'] ?? '')),
+                    'status' => $payload['status'] ?? 'ACTIVE',
+                    'sort_order' => $payload['sort_order'] ?? 0,
+                    'created_by_staff_id' => auth()->id(),
+                    'updated_by_staff_id' => auth()->id(),
+                ]);
 
-        // DTO는 관계를 지연 로드하지 않는다. 폴더 이름을 실으려면 여기서 붙여야 한다.
-        return HospitalChatBotQnaForStaffDto::fromModel($qna->loadMissing('folder:id,parent_id,name'));
+                return HospitalChatBotQnaForStaffDto::fromModel($qna);
+            }, 3);
+        } catch (UniqueConstraintViolationException) {
+            throw ValidationException::withMessages(['question' => '같은 상위 항목에 동일한 질문이 있습니다.']);
+        }
     }
 }

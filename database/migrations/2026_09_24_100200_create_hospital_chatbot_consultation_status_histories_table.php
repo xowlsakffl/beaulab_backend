@@ -27,7 +27,7 @@ return new class extends Migration
             $table->index(['consultation_id', 'occurred_at'], 'hccsh_consultation_occurred_at_index');
         });
 
-        DB::statement("ALTER TABLE hospital_chatbot_consultation_status_histories COMMENT = '병원 챗봇 상담 상태 전이 이력'");
+        DB::statement("ALTER TABLE hospital_chatbot_consultation_status_histories COMMENT = '병의원 챗봇 상담 상태 전이 이력'");
     }
 
     public function down(): void

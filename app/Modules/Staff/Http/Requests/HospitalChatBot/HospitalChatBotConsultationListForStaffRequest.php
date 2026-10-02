@@ -23,6 +23,8 @@ final class HospitalChatBotConsultationListForStaffRequest extends FormRequest
     {
         return HospitalChatBotConsultationFilters::rules() + [
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'feed' => ['nullable', 'boolean'],
+            'cursor' => ['nullable', 'string', 'max:2048'],
         ];
     }
 
@@ -32,6 +34,6 @@ final class HospitalChatBotConsultationListForStaffRequest extends FormRequest
         $validated = $this->validated();
 
         return HospitalChatBotConsultationFilters::fromValidated($validated)
-            + ['per_page' => (int) ($validated['per_page'] ?? 20)];
+            + ['per_page' => (int) ($validated['per_page'] ?? 20), 'feed' => (bool) ($validated['feed'] ?? false)];
     }
 }

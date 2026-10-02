@@ -93,8 +93,8 @@ final class FrontendDevelopmentSeeder extends Seeder
 
         foreach (['alpha' => '가', 'beta' => '나'] as $name => $label) {
             $hospital = Hospital::factory()->approved()->active()->withSeedMedia(1)->create([
-                'name' => '개발 병원 '.$label, 'address' => '개발용 가상 주소',
-                'description' => '실제 병원이 아닌 로컬 테스트 데이터입니다.',
+                'name' => '개발 병의원 '.$label, 'address' => '개발용 가상 주소',
+                'description' => '실제 병의원이 아닌 로컬 테스트 데이터입니다.',
                 'youtube_link' => null, 'tel' => null, 'ad_reception_phone_1' => null,
                 'ad_reception_phone_2' => null, 'ad_reception_phone_3' => null,
             ]);

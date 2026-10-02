@@ -11,7 +11,7 @@ use App\Domains\Beauty\Models\Beauty;
 final class BeautyCreateForStaffQuery
 {
     /**
-     * 뷰랩 직원 전용 병원 생성
+     * 뷰랩 직원 전용 병의원 생성
      */
     public function create(array $data): Beauty
     {

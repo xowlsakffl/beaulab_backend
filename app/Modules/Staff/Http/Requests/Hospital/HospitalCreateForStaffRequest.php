@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * HospitalCreateForStaffRequest 역할 정의.
- * 병원 도메인의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
+ * 병의원 도메인의 HTTP 요청 검증 객체로, 요청 입력값의 정규화, validation rule, 사용자용 필드명을 정의한다.
  */
 final class HospitalCreateForStaffRequest extends FormRequest
 {
@@ -156,8 +156,8 @@ final class HospitalCreateForStaffRequest extends FormRequest
             'issued_at' => '사업자등록일',
             'category_ids' => '진료과목 목록',
             'category_ids.*' => '진료과목',
-            'feature_ids' => '병원 특징 목록',
-            'feature_ids.*' => '병원 특징',
+            'feature_ids' => '병의원 특징 목록',
+            'feature_ids.*' => '병의원 특징',
             'logo' => '로고',
             'gallery' => '대표/내부 이미지',
             'gallery.*' => '대표/내부 이미지',

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
-use App\Domains\HospitalChatBot\Models\HospitalChatBotQnaFolder;
+use App\Domains\HospitalChatBot\Queries\HospitalChatBotQnaTreeQuery;
 use Illuminate\Database\Seeder;
 use JsonException;
 use RuntimeException;
@@ -42,18 +42,24 @@ final class HospitalChatBotQnaSeeder extends Seeder
                 throw new RuntimeException('초기 챗봇 Q&A에 빈 분류·질문·답변이 있습니다.');
             }
 
-            // 분류는 1단 폴더로 만든다. 등록 화면이 폴더를 고르게 되어 있으므로
-            // 시드 데이터도 같은 구조로 들어가야 한다.
-            $folder = HospitalChatBotQnaFolder::query()->firstOrCreate(
-                ['parent_id' => null, 'name' => $category],
-                ['depth' => 1, 'sort_order' => 0],
+            // 이전 형식으로 등록하거나 삭제한 질문도 다시 만들지 않는다.
+            if (HospitalChatBotQna::withTrashed()->where('question_key', HospitalChatBotQna::questionKey($question))->exists()) {
+                continue;
+            }
+            $parent = HospitalChatBotQna::withTrashed()->firstOrCreate(
+                ['question_key' => HospitalChatBotQnaTreeQuery::questionKey($category, null)],
+                ['parent_id' => null, 'question' => $category, 'answer' => '', 'category' => '', 'depth' => 1, 'sort_order' => 0],
             );
+            if ($parent->trashed()) {
+                continue;
+            }
 
             HospitalChatBotQna::withTrashed()->firstOrCreate(
-                ['question_key' => HospitalChatBotQna::questionKey($question)],
+                ['question_key' => HospitalChatBotQnaTreeQuery::questionKey($question, $parent->id)],
                 [
-                    'folder_id' => $folder->id,
-                    'category' => $category,
+                    'parent_id' => $parent->id,
+                    'depth' => 2,
+                    'category' => '',
                     'question' => $question,
                     'answer' => $answer,
                     'status' => HospitalChatBotQna::STATUS_ACTIVE,

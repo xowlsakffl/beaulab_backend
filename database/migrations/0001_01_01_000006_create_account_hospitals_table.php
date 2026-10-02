@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('account_hospitals', function (Blueprint $table) {
-            $table->id()->comment('병원 관리자 고유 ID');
-            $table->foreignId('hospital_id')->comment('소속 병원 ID')->constrained('hospitals')->cascadeOnDelete();
+            $table->id()->comment('병의원 관리자 고유 ID');
+            $table->foreignId('hospital_id')->comment('소속 병의원 ID')->constrained('hospitals')->cascadeOnDelete();
 
             $table->string('name')->comment('연결 병의원명 복제값');
-            $table->string('nickname')->unique()->comment('병원 관리자 로그인 아이디');
+            $table->string('nickname')->unique()->comment('병의원 관리자 로그인 아이디');
             $table->string('email', 254)->nullable()->unique('h_account_email_unique')->comment('인증된 계정 이메일');
             $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
             $table->string('phone', 50)->nullable()->comment('과거 연락처 보존용; 신규 인증에서 사용하지 않음');
@@ -27,14 +27,14 @@ return new class extends Migration
             $table->string('status')->default('SUSPENDED')->comment('계정 상태(ACTIVE, SUSPENDED, BLOCKED, WITHDRAWN)');
             $table->timestamp('last_login_at')->nullable()->comment('마지막 로그인 시각');
             $table->timestamps();
-            $table->softDeletes()->comment('병원 관리자 비활성/삭제 시각');
+            $table->softDeletes()->comment('병의원 관리자 비활성/삭제 시각');
 
             $table->unique('hospital_id');
             $table->index('status');
             $table->index(['last_login_at', 'status', 'hospital_id'], 'account_hospitals_login_status_hospital_idx');
         });
 
-        DB::statement("ALTER TABLE account_hospitals COMMENT = '병원 관리자 계정 테이블'");
+        DB::statement("ALTER TABLE account_hospitals COMMENT = '병의원 관리자 계정 테이블'");
 
         Schema::create('hospital_account_password_resets', function (Blueprint $table) {
             $table->id();

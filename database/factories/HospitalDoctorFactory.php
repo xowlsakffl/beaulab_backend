@@ -37,7 +37,7 @@ final class HospitalDoctorFactory extends Factory
                 ->map(fn (): string => $this->faker->randomElement(['대한의학회 연수 과정 수료', '임상 진료 교육 과정 수료']))
                 ->all(),
             'careers' => collect(range(1, $careerCount))
-                ->map(fn (): string => $this->faker->randomElement(['서울 의료원 근무', '중앙 종합병원 근무']))
+                ->map(fn (): string => $this->faker->randomElement(['서울 의료원 근무', '중앙 의료기관 근무']))
                 ->all(),
             'etc_contents' => collect(range(1, $etcCount))
                 ->map(fn (): string => $this->faker->randomElement(['대한의학회 정회원', '임상 연구 학술대회 발표']))

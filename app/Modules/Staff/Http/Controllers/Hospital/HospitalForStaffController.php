@@ -34,13 +34,13 @@ use App\Modules\Staff\Http\Requests\Hospital\HospitalUpdateForStaffRequest;
 
 /**
  * HospitalForStaffController 역할 정의.
- * 병원 도메인의 HTTP 컨트롤러로, 라우트 요청을 받아 Request 검증 결과와 Action 실행 결과를 API 응답으로 연결한다.
+ * 병의원 도메인의 HTTP 컨트롤러로, 라우트 요청을 받아 Request 검증 결과와 Action 실행 결과를 API 응답으로 연결한다.
  */
 final class HospitalForStaffController extends Controller
 {
     /**
      * GET /api/v1/staff/hospitals
-     * (Beaulab) Staff 전용 병원 목록
+     * (Beaulab) Staff 전용 병의원 목록
      */
     public function getHospitalsForStaff(
         HospitalListForStaffRequest $request,
@@ -62,7 +62,7 @@ final class HospitalForStaffController extends Controller
 
     /**
      * GET /api/v1/staff/hospitals/{hospital}
-     * (Beaulab) Staff 전용 병원 단건 조회
+     * (Beaulab) Staff 전용 병의원 단건 조회
      */
     public function getHospitalForStaff(
         Hospital $hospital,
@@ -86,7 +86,7 @@ final class HospitalForStaffController extends Controller
 
     /**
      * POST /api/v1/staff/hospitals
-     * (Beaulab) Staff 전용 병원 생성
+     * (Beaulab) Staff 전용 병의원 생성
      */
     public function createHospitalForStaff(
         HospitalCreateForStaffRequest $request,
@@ -125,7 +125,7 @@ final class HospitalForStaffController extends Controller
 
     /**
      * PATCH /api/v1/staff/hospitals/{hospital}
-     * (Beaulab) Staff 전용 병원 수정
+     * (Beaulab) Staff 전용 병의원 수정
      */
     public function updateHospitalForStaff(
         Hospital $hospital,
@@ -139,7 +139,7 @@ final class HospitalForStaffController extends Controller
 
     /**
      * PATCH /api/v1/staff/hospitals/{hospital}/status
-     * (Beaulab) Staff 전용 병원 상태 변경
+     * (Beaulab) Staff 전용 병의원 상태 변경
      */
     public function updateHospitalStatusForStaff(
         Hospital $hospital,
@@ -173,7 +173,7 @@ final class HospitalForStaffController extends Controller
 
     /**
      * PATCH /api/v1/staff/hospitals/allow-status
-     * (Beaulab) Staff 전용 병원 검수상태 변경
+     * (Beaulab) Staff 전용 병의원 검수상태 변경
      */
     public function updateHospitalAllowStatusForStaff(
         HospitalAllowStatusUpdateForStaffRequest $request,
@@ -184,7 +184,7 @@ final class HospitalForStaffController extends Controller
 
     /**
      * DELETE /api/v1/staff/hospitals/{hospital}
-     * (Beaulab) Staff 전용 병원 삭제
+     * (Beaulab) Staff 전용 병의원 삭제
      */
     public function deleteHospitalForStaff(
         Hospital $hospital,

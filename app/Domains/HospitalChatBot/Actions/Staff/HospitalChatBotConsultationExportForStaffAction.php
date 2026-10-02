@@ -64,7 +64,7 @@ final class HospitalChatBotConsultationExportForStaffAction
             fwrite($output, "\xEF\xBB\xBF");
             self::writeRow($output, [
                 '상담 ID',
-                '병원',
+                '병의원',
                 '요청자',
                 '담당 상담원',
                 '요청 시각',
@@ -150,7 +150,7 @@ final class HospitalChatBotConsultationExportForStaffAction
     {
         return [
             (string) $consultation->id,
-            self::text($consultation->hospital_name_snapshot) ?? "병원 #{$consultation->hospital_id}",
+            self::text($consultation->hospital_name_snapshot) ?? "병의원 #{$consultation->hospital_id}",
             self::text($consultation->requester_name_snapshot) ?? '',
             self::text($consultation->assigned_staff_name_snapshot) ?? '',
             $this->time($consultation->requested_at),

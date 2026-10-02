@@ -7,6 +7,7 @@ namespace App\Domains\Common\NavigationBadge\Actions\Staff;
 use App\Common\Authorization\AccessPermissions;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\NavigationBadge\Queries\Staff\NavigationBadgeListForStaffQuery;
+use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotConsultationReadForStaffQuery;
 
 final class NavigationBadgeListForStaffAction
 {
@@ -31,6 +32,7 @@ final class NavigationBadgeListForStaffAction
 
     public function __construct(
         private readonly NavigationBadgeListForStaffQuery $query,
+        private readonly HospitalChatBotConsultationReadForStaffQuery $chatbotReads,
     ) {}
 
     /**
@@ -58,6 +60,13 @@ final class NavigationBadgeListForStaffAction
                 'has_new' => $count > 0,
             ];
         }
+
+        // 현재 병의원 상담 API와 동일하게 로그인한 직원에게 제공한다.
+        $chatbotCount = $this->chatbotReads->attentionCount((int) $actor->getKey());
+        $badges['/hospital-chatbot/consultations'] = [
+            'count' => $chatbotCount,
+            'has_new' => $chatbotCount > 0,
+        ];
 
         return [
             'badges' => $badges,

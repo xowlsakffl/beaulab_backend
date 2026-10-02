@@ -38,7 +38,7 @@ final class HospitalChatBotConsultationActiveForHospitalAction
         $account = auth()->user();
 
         if (! $account instanceof AccountHospital || $account->hospital_id === null) {
-            throw new CustomException(ErrorCode::UNAUTHORIZED, '병원 정보를 확인할 수 없습니다.');
+            throw new CustomException(ErrorCode::UNAUTHORIZED, '병의원 정보를 확인할 수 없습니다.');
         }
 
         return $account;

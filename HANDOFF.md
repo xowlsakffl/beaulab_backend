@@ -13,18 +13,18 @@
 
 ## 구조 한눈에
 
-![병원 챗봇 구조 — 구성, 추가된 테이블 8개, 실시간 처리 방식, 운영에 필요한 프로세스](develop-doc/images/hospital-chatbot-architecture.svg)
+![병의원 챗봇 구조 — 구성, 추가된 테이블 8개, 실시간 처리 방식, 운영에 필요한 프로세스](develop-doc/images/hospital-chatbot-architecture.svg)
 
-![병원 챗봇 ERD — 테이블 8개의 컬럼과 관계](develop-doc/images/hospital-chatbot-erd.svg)
+![병의원 챗봇 ERD — 테이블 8개의 컬럼과 관계](develop-doc/images/hospital-chatbot-erd.svg)
 
-세 줄 요약이다. **기존 테이블은 하나도 바꾸지 않았고**, **실시간은 폴링이며**, **상시 프로세스는 Scheduler 하나만 필요하다.** 왜 그렇게 되어 있는지와 스냅샷·생성 컬럼의 근거는 [구조 문서](develop-doc/architecture.md#병원-챗봇-구조)에 있다. 여기서 반복하지 않는다.
+세 줄 요약이다. **기존 테이블은 하나도 바꾸지 않았고**, **실시간은 폴링이며**, **상시 프로세스는 Scheduler 하나만 필요하다.** 왜 그렇게 되어 있는지와 스냅샷·생성 컬럼의 근거는 [구조 문서](develop-doc/architecture.md#병의원-챗봇-구조)에 있다. 여기서 반복하지 않는다.
 
 | 찾는 것 | 문서 |
 |---|---|
-| 구조·테이블·왜 그렇게 했는지 | [architecture.md](develop-doc/architecture.md#병원-챗봇-구조) |
-| 컬럼 정의 | [schema.dbml](develop-doc/schema.dbml) 「병원 챗봇」 블록 |
+| 구조·테이블·왜 그렇게 했는지 | [architecture.md](develop-doc/architecture.md#병의원-챗봇-구조) |
+| 컬럼 정의 | [schema.dbml](develop-doc/schema.dbml) 「병의원 챗봇」 블록 |
 | DDL | [hospital-chatbot-schema.sql](develop-doc/hospital-chatbot-schema.sql) |
-| 연동 계약 (필드·오류코드·채널) | [api.md](develop-doc/api.md) 「병원 챗봇」 절 |
+| 연동 계약 (필드·오류코드·채널) | [api.md](develop-doc/api.md) 「병의원 챗봇」 절 |
 | 확인 항목·배포 전 목록 | [hospital-chatbot-test-cases.md](develop-doc/hospital-chatbot-test-cases.md) |
 | 요구사항 | [hospital-chatbot-prd.md](develop-doc/hospital-chatbot-prd.md) |
 
@@ -49,12 +49,12 @@ PRD 17장 티켓 47개 기준 **완료 40 / 진행중 4 / 남음 2 / 보류 1**�
 
 ### 결정된 것
 
-- **화면은 폴링한다(2026-09-27, 09-29 재확정).** 처음엔 "Reverb를 띄우지 않는다"로 이해했는데, Reverb는 기존 채팅·알림용으로 2026-04부터 운영에 떠 있는 것이었다. 그걸 알고도 폴링을 기본으로 두기로 했다. 관리자 화면(staff-web)과 병원 관리자(hospital-web, SDK에 어댑터 주입) 둘 다 Echo 구독 코드가 이미 있어 `NEXT_PUBLIC_REVERB_APP_KEY`가 있으면 구독한다. 로컬은 Reverb를 안 띄워 폴링으로만 돌았다. 백엔드는 발행까지 하고 발행 실패는 경고 로그로 삼킨다. 느리다는 얘기가 나오면 구독보다 **폴링 주기를 줄이는 쪽을 먼저** 본다. 동작 방식은 [구조 문서](develop-doc/architecture.md#병원-챗봇-구조)에 있다.
+- **화면은 폴링한다(2026-09-27, 09-29 재확정).** 처음엔 "Reverb를 띄우지 않는다"로 이해했는데, Reverb는 기존 채팅·알림용으로 2026-04부터 운영에 떠 있는 것이었다. 그걸 알고도 폴링을 기본으로 두기로 했다. 관리자 화면(staff-web)과 병의원 관리자(hospital-web, SDK에 어댑터 주입) 둘 다 Echo 구독 코드가 이미 있어 `NEXT_PUBLIC_REVERB_APP_KEY`가 있으면 구독한다. 로컬은 Reverb를 안 띄워 폴링으로만 돌았다. 백엔드는 발행까지 하고 발행 실패는 경고 로그로 삼킨다. 느리다는 얘기가 나오면 구독보다 **폴링 주기를 줄이는 쪽을 먼저** 본다. 동작 방식은 [구조 문서](develop-doc/architecture.md#병의원-챗봇-구조)에 있다.
 - **BE-02 Identity Adapter는 보류다.** D-25에 따라 SDK가 같은 오리진에서만 도는 이상 어댑터를 둘 이유가 없다. 지금 만들면 쓰지 않을 추상화만 남는다.
 
 ### 브라우저로 확인한 것 (2026-09-28)
 
-상담원·병원 양쪽에 로그인해 Q&A 탐색 → 상담 요청 → 연결 → 양방향 채팅 → 종료 → 기록 조회 → CSV까지 끝까지 돌렸다. 09-29에는 통합된 상담 관리 화면에서 같은 흐름을 다시 돌리고 조건 검색·CSV 잠금·요청 취소까지 봤다. 폴더 드래그 정렬과 기록 화면 뒤로가기 조건 복원도 확인했다. 종료 전파는 0.7초였다.
+상담원·병의원 양쪽에 로그인해 Q&A 탐색 → 상담 요청 → 연결 → 양방향 채팅 → 종료 → 기록 조회 → CSV까지 끝까지 돌렸다. 09-29에는 통합된 상담 관리 화면에서 같은 흐름을 다시 돌리고 조건 검색·CSV 잠금·요청 취소까지 봤다. 폴더 드래그 정렬과 기록 화면 뒤로가기 조건 복원도 확인했다. 종료 전파는 0.7초였다.
 
 그 과정에서 결함 하나를 찾아 고쳤다(연결 요청 중 끝내기 버튼이 "취소 중"이라고 하던 것, FE #42).
 
@@ -82,9 +82,9 @@ PRD 17장 티켓 47개 기준 **완료 40 / 진행중 4 / 남음 2 / 보류 1**�
 챗봇은 당분간 **이 사이트(hospital-web) 안에서만 돈다**. 따라서 별도 인증 Adapter를 설계하지 않는다.
 
 - 상담 API도 기존 `/api/v1/hospital/hospital-chatbot/*`와 같은 자리에 `Authenticate:sanctum` + `EnsureActor:hospital`로 붙인다.
-- 서버가 쿠키 세션에서 병원을 직접 읽으므로 프론트가 보낸 `hospitalId`를 신뢰하지 않는다. PRD 4.3 요구사항은 이걸로 충족된다.
+- 서버가 쿠키 세션에서 병의원을 직접 읽으므로 프론트가 보낸 `hospitalId`를 신뢰하지 않는다. PRD 4.3 요구사항은 이걸로 충족된다.
 - 같은 오리진이라 Laravel 브로드캐스팅 인가도 기본 세션으로 동작한다. 실시간 채널 인가를 따로 설계할 필요가 없다.
-- **단, SDK가 콜백(`loadQnas` 등)을 주입받는 현재 구조는 그대로 유지한다.** 나중에 병원 쪽 사이트로 독립 배포(D-29)할 일이 생겨도 주입 함수만 교체하면 된다. SDK 내부에서 직접 `fetch`를 호출하기 시작하면 그때 전면 수정이 필요해진다.
+- **단, SDK가 콜백(`loadQnas` 등)을 주입받는 현재 구조는 그대로 유지한다.** 나중에 병의원 쪽 사이트로 독립 배포(D-29)할 일이 생겨도 주입 함수만 교체하면 된다. SDK 내부에서 직접 `fetch`를 호출하기 시작하면 그때 전면 수정이 필요해진다.
 - 크로스 오리진으로 나갈 때가 오면 그때 단기 토큰 발급 방식을 다시 검토한다. 그 경우 `config/sanctum.php`의 `'guard' => []`를 손봐야 Bearer가 동작한다.
 
 남은 필수 결정 3건(D-14 Export 범위, D-15 보존 기간, D-21 Q&A 중복)은 Phase 5 전까지 미뤄도 된다.

@@ -10,17 +10,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('hospitals', function (Blueprint $table) {
-            $table->id()->comment('병원 고유 ID');
+            $table->id()->comment('병의원 고유 ID');
 
-            $table->string('name')->unique()->comment('병원명');
+            $table->string('name')->unique()->comment('병의원명');
             $table->string('department', 30)->default('OTHER')->comment('분과(성형외과, 피부과, 의원, 치과, 안과, 한의원, 기타)');
 
-            $table->text('description')->nullable()->comment('병원 소개');
+            $table->text('description')->nullable()->comment('병의원 소개');
             $table->string('youtube_link', 500)->nullable()->comment('유튜브 링크');
             $table->dateTime('video_consented_at')->nullable()->comment('영상 이용 허용일시');
 
-            $table->string('address')->nullable()->comment('병원 주소');
-            $table->string('address_detail')->nullable()->comment('병원 상세 주소');
+            $table->string('address')->nullable()->comment('병의원 주소');
+            $table->string('address_detail')->nullable()->comment('병의원 상세 주소');
 
             $table->string('latitude')->nullable()->comment('위도');
             $table->string('longitude')->nullable()->comment('경도');
@@ -41,7 +41,7 @@ return new class extends Migration
             $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(정상, 운영중지, 탈퇴)');
 
             $table->timestamps();
-            $table->softDeletes()->comment('병원 비활성/삭제 시각');
+            $table->softDeletes()->comment('병의원 비활성/삭제 시각');
 
             $table->index('allow_status');
             $table->index('status');
@@ -59,7 +59,7 @@ return new class extends Migration
             $table->index(['deleted_at', 'video_consented_at', 'id'], 'hospitals_deleted_video_consent_id_idx');
         });
 
-        DB::statement("ALTER TABLE hospitals COMMENT = '병원 테이블'");
+        DB::statement("ALTER TABLE hospitals COMMENT = '병의원 테이블'");
     }
 
     public function down(): void

@@ -17,7 +17,8 @@ final class HospitalChatBotConsultationMessageListForHospitalRequest extends For
     public function rules(): array
     {
         return [
-            'after_sequence' => ['nullable', 'integer', 'min:0'],
+            'after_sequence' => ['nullable', 'integer', 'min:0', 'prohibits:before_sequence'],
+            'before_sequence' => ['nullable', 'integer', 'min:1', 'prohibits:after_sequence'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:'.HospitalChatBotConsultationMessageListAction::MAX_LIMIT],
         ];
     }
@@ -25,6 +26,13 @@ final class HospitalChatBotConsultationMessageListForHospitalRequest extends For
     public function afterSequence(): ?int
     {
         $value = $this->validated()['after_sequence'] ?? null;
+
+        return $value === null ? null : (int) $value;
+    }
+
+    public function beforeSequence(): ?int
+    {
+        $value = $this->validated()['before_sequence'] ?? null;
 
         return $value === null ? null : (int) $value;
     }

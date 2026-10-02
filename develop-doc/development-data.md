@@ -32,10 +32,10 @@ php artisan db:seed --class=FrontendDevelopmentSeeder
 | 일반 사용자 B  | `bob@frontend.test`       | 상대방 메시지·채팅 동기화               |
 | 빈 사용자      | `empty@frontend.test`     | 채팅·알림 등이 없는 초기 상태           |
 | 정지 사용자    | `suspended@frontend.test` | 로그인 제한·오류 안내                   |
-| 병원 alpha     | `frontend_hospital_alpha` | 본인 병원 범위                          |
-| 병원 beta      | `frontend_hospital_beta`  | 다른 병원 리소스 접근 제한 비교         |
+| 병의원 alpha     | `frontend_hospital_alpha` | 본인 병의원 범위                          |
+| 병의원 beta      | `frontend_hospital_beta`  | 다른 병의원 리소스 접근 제한 비교         |
 
-직원·병원은 **아이디(nickname)**, 일반 사용자는 **이메일(email)**로 로그인한다. 직원 이메일은 admin@frontend.test·restricted@frontend.test, 병원 이메일은 hospital-alpha@frontend.test·hospital-beta@frontend.test로 별도 저장되며 웹 로그인 입력값과 다르다.
+직원·병의원은 **아이디(nickname)**, 일반 사용자는 **이메일(email)**로 로그인한다. 직원 이메일은 admin@frontend.test·restricted@frontend.test, 병의원 이메일은 hospital-alpha@frontend.test·hospital-beta@frontend.test로 별도 저장되며 웹 로그인 입력값과 다르다.
 
 관리자 계정은 로컬 API 문서 열람을 위해 super_admin 역할을 가진다. 실제 업무 계정 권한 정책의 예시가 아니다. restricted 계정에는 업무 권한을 주지 않는다. 로그인과 업무 API 접근 허용은 구분해서 확인한다.
 
@@ -44,12 +44,12 @@ php artisan db:seed --class=FrontendDevelopmentSeeder
 | 데이터             | 수량        | 내용                                                           |
 | ------------------ | ----------- | -------------------------------------------------------------- |
 | 권한·역할          | 기존 정의   | AuthorizationSeeder 기준                                       |
-| 카테고리·병원 특징 | 기존 기본값 | CategorySeeder·HospitalFeatureSeeder 기준                      |
+| 카테고리·병의원 특징 | 기존 기본값 | CategorySeeder·HospitalFeatureSeeder 기준                      |
 | 직원               | 2명         | 관리자·권한 없음                                               |
 | 일반 사용자        | 4명         | 정상 3명·정지 1명                                              |
-| 병원·병원 계정     | 각각 2개    | 승인·정상 병원과 병원별 owner 계정                             |
-| 이벤트             | 4개         | 병원별 기간 제한 없는 이벤트 1개·종료된 이벤트 1개             |
-| 이미지             | 8개         | 병원별 로고·갤러리, 이벤트 썸네일. 저장소의 테스트 이미지 사용 |
+| 병의원·병의원 계정     | 각각 2개    | 승인·정상 병의원과 병의원별 owner 계정                             |
+| 이벤트             | 4개         | 병의원별 기간 제한 없는 이벤트 1개·종료된 이벤트 1개             |
+| 이미지             | 8개         | 병의원별 로고·갤러리, 이벤트 썸네일. 저장소의 테스트 이미지 사용 |
 | 채팅               | 1방·2메시지 | alice와 bob의 텍스트 대화, 실제 발송·푸시 없음                 |
 | 지갑               | 2개         | 잔액 0, 거래 원장 없음                                         |
 
@@ -62,11 +62,11 @@ php artisan db:seed --class=FrontendDevelopmentSeeder
 1. user-web에서 alice 로그인, 프로필 확인 후 로그아웃한다.
 2. 사용자 토큰 API 또는 구현 중인 RN에서 alice·bob의 채팅 목록·메시지를 확인한다.
 3. empty 계정은 빈 목록, suspended 계정은 로그인 거절을 확인한다.
-4. staff-web 관리자 로그인 후 병원 2개·이벤트 4개와 샘플 이미지를 확인한다.
-5. hospital-web에서 각 병원 계정 로그인을 확인한다. 소유권 테스트는 실제 구현된 병원 API로 진행한다.
+4. staff-web 관리자 로그인 후 병의원 2개·이벤트 4개와 샘플 이미지를 확인한다.
+5. hospital-web에서 각 병의원 계정 로그인을 확인한다. 소유권 테스트는 실제 구현된 병의원 API로 진행한다.
 6. 권한 없는 직원으로 보호 API 접근이 거절되는지 확인한다.
 
-현재 user-web에 채팅 UI가 없으므로 웹 화면에서 모든 데이터가 보일 것이라고 가정하지 않는다. 사용자용 병원·이벤트 전체 조회 API도 준비 완료 상태가 아니다. 데이터 존재 여부와 화면·API 구현 완료는 별개다.
+현재 user-web에 채팅 UI가 없으므로 웹 화면에서 모든 데이터가 보일 것이라고 가정하지 않는다. 사용자용 병의원·이벤트 전체 조회 API도 준비 완료 상태가 아니다. 데이터 존재 여부와 화면·API 구현 완료는 별개다.
 
 ## 제공하지 않는 것
 
@@ -75,9 +75,21 @@ php artisan db:seed --class=FrontendDevelopmentSeeder
 - 입점·사업자 서류, 실제 개인정보·계좌, 실서비스용 계정
 - 업무 이력·알림 발송을 실제로 거친 채팅 데이터
 
-이벤트·병원 기본 데이터는 UI 연동용 모델 상태다. 등록 API의 전체 검증·감사 이력까지 재현한 데이터는 아니다. 다른 업무의 테스트는 기존 개별 Seeder의 생성·삭제·갱신 범위를 확인한 뒤 별도 빈 DB에서 준비한다.
+이벤트·병의원 기본 데이터는 UI 연동용 모델 상태다. 등록 API의 전체 검증·감사 이력까지 재현한 데이터는 아니다. 다른 업무의 테스트는 기존 개별 Seeder의 생성·삭제·갱신 범위를 확인한 뒤 별도 빈 DB에서 준비한다.
 
 ## 코드 업데이트와 데이터 보존
+
+### 병의원 챗봇 상담 화면 샘플
+
+`php artisan db:seed --class=HospitalChatBotConsultationSeeder`는 기존 활성 직원·승인된 병의원 계정을 이용해 대기 3건, 상담 중 4건, 종료 12건, 취소 3건을 추가합니다. 계정·권한·운영시간은 변경하지 않습니다. 로컬 또는 테스트 환경의 로컬 DB에서만 실행할 수 있습니다.
+
+- 메시지 없는 상담, 다른 직원 담당 상담, 245개 메시지의 긴 상담, 여러 줄 답변과 상태 이력이 포함됩니다.
+- 기존 활성 상담은 유지하며, 활성 상담이 없는 병의원 7곳이 필요합니다. 부족하면 추가 전체를 취소합니다.
+- `source_application=local-chatbot-scenarios-v1`로 구분합니다. 재실행해도 기존 샘플의 내용·상태·시각을 덮어쓰거나 중복 생성하지 않습니다.
+- 대기 샘플에도 기본 30분 자동 만료 정책이 적용됩니다. Scheduler가 실행 중이면 이후 취소로 이동할 수 있습니다.
+- 실시간 발행 대기 표식을 끈 상태로 메시지를 저장하며 외부 알림·메일은 발송하지 않습니다.
+
+## 기존 데이터 보존
 
 - 평소 재시작에는 migrate나 seed가 필요하지 않다. 서비스를 시작하고 API만 실행한다.
 - 코드를 갱신할 때 composer.lock 변경과 마이그레이션 변경을 확인한다. 기존 생성 migration 수정은 이미 적용된 DB에 자동 반영되지 않는다.

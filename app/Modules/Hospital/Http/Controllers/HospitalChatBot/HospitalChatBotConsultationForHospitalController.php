@@ -44,7 +44,7 @@ final class HospitalChatBotConsultationForHospitalController extends Controller
         HospitalChatBotConsultationMessageListForHospitalRequest $request,
         HospitalChatBotConsultationMessageForHospitalAction $action,
     ) {
-        $result = $action->index($consultation, $request->afterSequence(), $request->limit());
+        $result = $action->index($consultation, $request->afterSequence(), $request->limit(), $request->beforeSequence());
 
         return ApiResponse::success($result['items'], [
             'last_sequence' => $result['last_sequence'],

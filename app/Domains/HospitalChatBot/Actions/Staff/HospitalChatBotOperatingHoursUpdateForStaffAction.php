@@ -23,8 +23,8 @@ final class HospitalChatBotOperatingHoursUpdateForStaffAction
         $staffId = $actor instanceof AccountStaff ? (int) $actor->id : null;
 
         return DB::transaction(function () use ($settings, $staffId): array {
+            $this->query->saveSetting($settings['is_force_closed'], $settings['force_closed_reason'], $staffId, $settings['public_holiday_codes'] ?? null, $settings['lunch'] ?? null);
             $this->query->replace($settings['weekly_schedule'], $settings['closure_dates'], $staffId);
-            $this->query->saveSetting($settings['is_force_closed'], $settings['force_closed_reason'], $staffId);
 
             return HospitalChatBotOperatingHoursForStaffDto::fromCollections(
                 $this->query->hours(),

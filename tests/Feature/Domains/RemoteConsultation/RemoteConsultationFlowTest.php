@@ -181,6 +181,11 @@ final class RemoteConsultationFlowTest extends TestCase
         Queue::fake();
         $category = $this->category('눈');
         $hospital = $this->hospital($category);
+        $hospital->businessRegistration()->create([
+            'business_number' => '123-45-67890',
+            'company_name' => '뷰랩의원',
+            'ceo_name' => '김대표',
+        ]);
         $other = $this->hospital($this->category('코'));
         $c = $this->consultation([$category]);
         $url = "/api/v1/staff/remote-consultations/{$c->id}";
@@ -189,6 +194,11 @@ final class RemoteConsultationFlowTest extends TestCase
         $this->postJson("{$url}/quotes", ['hospital_id' => $hospital->id])->assertForbidden();
         $this->login(true);
         $this->getJson("{$url}/hospitals")->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $hospital->id);
+        foreach (['123-45-67890', '1234567890', '123 45 67890', '45678'] as $term) {
+            $this->getJson("{$url}/hospitals?q=".urlencode($term))->assertOk()
+                ->assertJsonCount(1, 'data')->assertJsonPath('data.0.business_number', '123-45-67890');
+        }
+        $this->getJson("{$url}/hospitals?q=9999999999")->assertOk()->assertJsonCount(0, 'data');
         $this->postJson("{$url}/quotes", ['hospital_id' => $other->id])->assertStatus(422);
         $this->postJson("{$url}/quotes", ['hospital_id' => $hospital->id])->assertOk()->assertJsonCount(1, 'data.quotes');
         $this->postJson("{$url}/quotes", ['hospital_id' => $hospital->id])->assertOk()->assertJsonCount(1, 'data.quotes');

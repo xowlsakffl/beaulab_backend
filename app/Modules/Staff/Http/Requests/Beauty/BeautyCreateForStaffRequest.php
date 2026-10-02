@@ -42,7 +42,7 @@ final class BeautyCreateForStaffRequest extends FormRequest
     {
         return [
             /**
-             * 병원 정보
+             * 병의원 정보
              **/
             // 필수
             'name' => [

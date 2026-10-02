@@ -12,7 +12,7 @@ final class CategoryUpdateForStaffQuery
 {
     public function parent(Category $category): ?Category
     {
-        return $category->parent()->first();
+        return $category->parent()->lockForUpdate()->first();
     }
 
     public function existsSiblingName(Category $category, string $name): bool
@@ -34,41 +34,5 @@ final class CategoryUpdateForStaffQuery
         }
 
         return $category->fresh();
-    }
-
-    public function syncDescendantPaths(string $domain, string $oldPrefix, string $newPrefix): void
-    {
-        $descendants = Category::query()
-            ->domain($domain)
-            ->where('full_path', 'like', $oldPrefix.' > %')
-            ->orderBy('depth')
-            ->get();
-
-        foreach ($descendants as $descendant) {
-            $currentPath = (string) ($descendant->full_path ?? '');
-
-            $nextPath = preg_replace(
-                '/^'.preg_quote($oldPrefix, '/').'/',
-                $newPrefix,
-                $currentPath,
-                1
-            );
-
-            if ($nextPath === null || $nextPath === $currentPath) {
-                continue;
-            }
-
-            $descendant->forceFill([
-                'full_path' => $nextPath,
-            ])->save();
-        }
-    }
-
-    public function syncDescendantGroupCode(string $domain, string $fullPathPrefix, ?string $groupCode): void
-    {
-        Category::query()
-            ->domain($domain)
-            ->where('full_path', 'like', $fullPathPrefix.' > %')
-            ->update(['group_code' => $groupCode]);
     }
 }

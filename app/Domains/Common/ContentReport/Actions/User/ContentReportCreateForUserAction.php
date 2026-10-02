@@ -59,9 +59,12 @@ final class ContentReportCreateForUserAction
         $reporterUserId = (int) $reporter->getKey();
         $targetType = $target::class;
         $targetId = (int) $target->getKey();
-        $reportItems = $this->reportItems($target, $payload);
-
-        DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload, $reportItems): void {
+        DB::transaction(function () use ($reporterUserId, $targetType, $targetId, $target, $payload): void {
+            $target = ContentReportTargetRegistry::lockTarget($target);
+            if ($target instanceof HospitalVideo && ! $target->isVisible()) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '신고할 수 없는 동영상입니다.');
+            }
+            $reportItems = $this->reportItems($target, $payload);
             $state = $this->query->getStateForUpdate($targetType, $targetId);
             if (! $state instanceof ContentReportState) {
                 try {

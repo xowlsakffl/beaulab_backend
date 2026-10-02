@@ -14,15 +14,13 @@ final class CategoryUpdateForStaffRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        $name = $this->input('name');
-        $code = $this->input('code');
-        $groupCode = $this->input('group_code');
-
-        $this->merge([
-            'name' => is_string($name) ? trim($name) : $name,
-            'code' => is_string($code) ? trim($code) : $code,
-            'group_code' => is_string($groupCode) ? trim($groupCode) : $groupCode,
-        ]);
+        $data = $this->all();
+        foreach (['name', 'code', 'group_code'] as $key) {
+            if (array_key_exists($key, $data) && is_string($data[$key])) {
+                $data[$key] = trim($data[$key]);
+            }
+        }
+        $this->replace($data);
     }
 
     public function authorize(): bool

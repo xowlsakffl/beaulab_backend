@@ -6,8 +6,10 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Category\Dto\Staff\CategoryForStaffDto;
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\Category\Queries\CategoryTreeWriteQuery;
 use App\Domains\Common\Category\Queries\Staff\CategoryUpdateForStaffQuery;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -22,6 +24,7 @@ final class CategoryUpdateForStaffAction
         private readonly CategoryUpdateForStaffQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly CategoryUpdateHistoryRecordAction $historyRecordAction,
+        private readonly CategoryTreeWriteQuery $tree,
     ) {}
 
     public function execute(Category $category, array $payload): array
@@ -31,55 +34,55 @@ final class CategoryUpdateForStaffAction
             Gate::authorize('updateStatus', $category);
         }
 
-        $updated = DB::transaction(function () use ($category, $payload) {
-            $category = Category::query()->lockForUpdate()->findOrFail($category->getKey());
-            $parent = $this->query->parent($category);
-            $name = array_key_exists('name', $payload)
-                ? trim((string) $payload['name'])
-                : (string) $category->name;
+        try {
+            $updated = DB::transaction(function () use ($category, $payload) {
+                $category = $this->tree->lockPath((int) $category->getKey());
+                $parent = $this->query->parent($category);
+                $name = array_key_exists('name', $payload)
+                    ? trim((string) $payload['name'])
+                    : (string) $category->name;
 
-            $exists = $this->query->existsSiblingName($category, $name);
+                $exists = $this->query->existsSiblingName($category, $name);
 
-            if ($exists) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 상위 카테고리 아래 동일한 이름이 이미 존재합니다.');
-            }
+                if ($exists) {
+                    throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 상위 카테고리 아래 동일한 이름이 이미 존재합니다.');
+                }
 
-            $parentPath = $parent ? trim((string) ($parent->full_path ?: $parent->name)) : null;
-            $newFullPath = $parentPath ? "{$parentPath} > {$name}" : $name;
-            $oldFullPath = (string) ($category->full_path ?: $category->name);
-            $oldGroupCode = $category->group_code !== null ? (string) $category->group_code : null;
-            $groupCode = $this->resolveGroupCode($payload, $parent, $oldGroupCode);
+                $parentPath = $parent ? trim((string) ($parent->full_path ?: $parent->name)) : null;
+                $newFullPath = $parentPath ? "{$parentPath} > {$name}" : $name;
+                $oldFullPath = (string) ($category->full_path ?: $category->name);
+                $oldGroupCode = $category->group_code !== null ? (string) $category->group_code : null;
+                $groupCode = $this->resolveGroupCode($payload, $parent, $oldGroupCode);
 
-            $normalizedCode = array_key_exists('code', $payload)
-                ? (trim((string) ($payload['code'] ?? '')) ?: null)
-                : $category->code;
+                $normalizedCode = array_key_exists('code', $payload)
+                    ? (trim((string) ($payload['code'] ?? '')) ?: null)
+                    : $category->code;
 
-            $before = $this->historyRecordAction->capture($category);
-            $updatedCategory = $this->query->update($category, [
-                'name' => $name,
-                'code' => $normalizedCode,
-                'full_path' => $newFullPath,
-                'group_code' => $groupCode,
-                'sort_order' => array_key_exists('sort_order', $payload) ? (int) $payload['sort_order'] : $category->sort_order,
-                'status' => array_key_exists('status', $payload) ? (string) $payload['status'] : $category->status,
-                'is_menu_visible' => array_key_exists('is_menu_visible', $payload) ? (bool) $payload['is_menu_visible'] : $category->is_menu_visible,
-            ]);
+                $before = $this->historyRecordAction->capture($category);
+                $updatedCategory = $this->query->update($category, [
+                    'name' => $name,
+                    'code' => $normalizedCode,
+                    'full_path' => $newFullPath,
+                    'group_code' => $groupCode,
+                    'sort_order' => array_key_exists('sort_order', $payload) ? (int) $payload['sort_order'] : $category->sort_order,
+                    'status' => array_key_exists('status', $payload) ? (string) $payload['status'] : $category->status,
+                    'is_menu_visible' => array_key_exists('is_menu_visible', $payload) ? (bool) $payload['is_menu_visible'] : $category->is_menu_visible,
+                ]);
 
-            if ($oldFullPath !== $newFullPath) {
-                $this->query->syncDescendantPaths((string) $updatedCategory->domain, $oldFullPath, $newFullPath);
-            }
+                if ($oldFullPath !== $newFullPath || $oldGroupCode !== $groupCode) {
+                    $this->tree->syncDescendants($updatedCategory);
+                }
 
-            if ($oldGroupCode !== $groupCode) {
-                $this->query->syncDescendantGroupCode((string) $updatedCategory->domain, $newFullPath, $groupCode);
-            }
+                $this->replaceIcon($updatedCategory, $payload);
 
-            $this->replaceIcon($updatedCategory, $payload);
+                $updatedCategory = $updatedCategory->fresh(['parent', 'iconMedia']);
+                $this->historyRecordAction->recordUpdated($updatedCategory, $before);
 
-            $updatedCategory = $updatedCategory->fresh(['parent', 'iconMedia']);
-            $this->historyRecordAction->recordUpdated($updatedCategory, $before);
-
-            return $updatedCategory;
-        });
+                return $updatedCategory;
+            });
+        } catch (UniqueConstraintViolationException) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 상위 카테고리의 이름 또는 카테고리 코드가 이미 사용 중입니다.');
+        }
 
         return [
             'category' => CategoryForStaffDto::fromModel($updated->load('iconMedia'))->toArray(),

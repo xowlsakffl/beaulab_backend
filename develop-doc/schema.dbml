@@ -220,6 +220,7 @@ Table categories {
   id bigint [pk, increment, note: '카테고리 고유 ID']
   domain varchar(40) [note: '카테고리 도메인(HOSPITAL_MEDICAL, HOSPITAL_EVALUATION, TALK, BEAUTY, FAQ)']
   parent_id bigint [null, note: '상위 카테고리 ID(대분류는 null)']
+  parent_scope_id bigint [note: 'COALESCE(parent_id, 0) 가상 생성 컬럼. 대분류 이름 중복 방지용이며 API에 노출하지 않음']
   depth tinyint [note: '카테고리 깊이(1:대분류, 2:중분류, 3:소분류, 4:상세분류)']
   name varchar(120) [note: '카테고리명']
   code varchar(80) [null, note: '카테고리 운영 코드']
@@ -230,6 +231,9 @@ Table categories {
   created_at timestamp
   updated_at timestamp
   Note: '도메인별 카테고리 트리와 노출 상태를 관리합니다.'
+  indexes {
+    (domain, parent_scope_id, name) [unique, name: 'categories_domain_parent_name_unique']
+  }
 }
 
 Table category_assignments {

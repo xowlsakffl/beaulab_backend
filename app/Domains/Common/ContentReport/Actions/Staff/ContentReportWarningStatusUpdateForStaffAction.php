@@ -42,6 +42,7 @@ final class ContentReportWarningStatusUpdateForStaffAction
         $actor = auth()->user();
 
         $result = DB::transaction(function () use ($target, $warningStatus, $actor): array {
+            $target = ContentReportTargetRegistry::lockTarget($target);
             $state = $this->query->getStateForUpdate($target::class, (int) $target->getKey());
 
             if (! $state instanceof ContentReportState || $state->report_status === ContentReportState::STATUS_NONE) {

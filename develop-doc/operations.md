@@ -254,6 +254,41 @@ php artisan serve --host=0.0.0.0 --port=8000
 
 이 문서는 구성 안내이며 실제 VPN 설치, 포트 개방, 서버 배포, 환경변수 변경을 수행한 기록은 아니다.
 
+## 기존 DB의 카테고리 중복 방지 제약 적용
+
+신규 DB는 생성 마이그레이션에서 `parent_scope_id = COALESCE(parent_id, 0)` 가상 컬럼과
+`(domain, parent_scope_id, name)` 유니크 인덱스를 만든다. 대분류도 같은 도메인에서 이름이 중복될 수 없다.
+`parent_scope_id`는 내부 제약용이며 API 입력·응답에 노출하지 않는다.
+기존 DB에는 생성 마이그레이션 수정만으로 적용되지 않는다. 아래 절차는 별도 승인 후 실행한다.
+
+1. 백업과 복구 가능 여부를 확인하고 카테고리 생성·수정을 잠시 중단한다.
+2. 아래 읽기 전용 조회로 중복을 확인한다. 결과가 있으면 참조 관계와 운영 용도를 확인해 병합 방안을 먼저 결정한다. 임의 삭제하지 않는다.
+
+```sql
+SELECT domain, COALESCE(parent_id, 0) AS parent_scope, name,
+       COUNT(*) AS duplicate_count, GROUP_CONCAT(id ORDER BY id) AS category_ids
+FROM categories
+GROUP BY domain, COALESCE(parent_id, 0), name
+HAVING COUNT(*) > 1;
+```
+
+3. `SHOW CREATE TABLE categories`로 기존 인덱스 이름과 새 컬럼 미적용 여부를 확인한다. 중복이 없을 때 아래 변경을 적용한다. 테이블 크기와 장기 트랜잭션에 따라 잠금 대기가 발생할 수 있어 작업 시간을 확보한다.
+
+```sql
+ALTER TABLE categories
+  ADD COLUMN parent_scope_id BIGINT UNSIGNED
+    GENERATED ALWAYS AS (COALESCE(parent_id, 0)) VIRTUAL,
+  DROP INDEX categories_domain_parent_name_unique,
+  ADD UNIQUE INDEX categories_domain_parent_name_unique
+    (domain, parent_scope_id, name);
+```
+
+4. 중복 조회 결과가 없고 인덱스가 적용됐는지 확인한 뒤 쓰기를 재개한다. 격리 환경에서 대분류 중복 거부, 다른 도메인의 동명 허용, 하위 경로 갱신을 검증한다.
+
+MySQL DDL은 애플리케이션 트랜잭션으로 되돌릴 수 없다. 복구가 필요한 경우 쓰기를 중단한 상태에서
+기존 `(domain, parent_id, name)` 유니크 인덱스로 교체한 뒤 가상 컬럼을 제거한다.
+이 복구는 대분류 중복 방지까지 해제하므로 단순한 코드 롤백만으로 제거하지 않는다.
+
 ## 병의원 챗봇 로컬 실시간 실행
 
 로컬 DB·Redis 연결을 확인한 뒤 아래 두 프로세스를 API와 별도로 실행한다.

@@ -98,4 +98,12 @@ final class ContentReportTargetRegistry
 
         throw new CustomException(ErrorCode::INVALID_REQUEST, '지원하지 않는 신고 대상입니다.');
     }
+
+    public static function lockTarget(Model $target): Model
+    {
+        self::assertSupported($target);
+
+        // 공개여부 변경과 동일하게 대상 행을 먼저 잠근 뒤 신고 상태를 잠근다.
+        return $target->newQuery()->lockForUpdate()->findOrFail($target->getKey());
+    }
 }

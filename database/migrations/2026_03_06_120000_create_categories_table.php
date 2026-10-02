@@ -27,7 +27,9 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['domain', 'parent_id', 'name'], 'categories_domain_parent_name_unique');
+            $table->unsignedBigInteger('parent_scope_id')->virtualAs('COALESCE(parent_id, 0)')
+                ->comment('대분류의 NULL 상위 ID를 0으로 정규화한 중복 검사 키');
+            $table->unique(['domain', 'parent_scope_id', 'name'], 'categories_domain_parent_name_unique');
             $table->unique(['domain', 'code'], 'categories_domain_code_unique');
 
             $table->index('parent_id');

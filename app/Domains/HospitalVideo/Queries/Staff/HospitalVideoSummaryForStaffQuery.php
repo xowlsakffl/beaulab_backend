@@ -83,6 +83,7 @@ final class HospitalVideoSummaryForStaffQuery
         $builder->where(function (Builder $query): void {
             $query
                 ->where('hospital_status', HospitalVideo::HOSPITAL_STATUS_PRIVATE)
+                ->orWhere('admin_status', HospitalVideo::ADMIN_STATUS_FORCED_STOPPED)
                 ->orWhereHas('contentReportState', fn (Builder $stateQuery) => $stateQuery
                     ->where('report_status', ContentReportState::STATUS_ADMIN_HIDDEN));
         });

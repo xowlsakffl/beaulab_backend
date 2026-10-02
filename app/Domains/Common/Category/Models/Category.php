@@ -46,6 +46,8 @@ final class Category extends Model
 
     protected $table = 'categories';
 
+    protected $hidden = ['parent_scope_id'];
+
     /**
      * @var array<int, string>
      */

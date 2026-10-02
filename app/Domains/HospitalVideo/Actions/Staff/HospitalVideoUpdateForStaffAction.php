@@ -79,8 +79,12 @@ final class HospitalVideoUpdateForStaffAction
             ? (int) $payload['hospital_id']
             : (int) $video->hospital_id;
 
-        if (array_key_exists('doctor_id', $payload) && ! empty($payload['doctor_id'])) {
-            $doctor = HospitalDoctor::query()->find($payload['doctor_id']);
+        $targetDoctorId = array_key_exists('doctor_id', $payload)
+            ? $payload['doctor_id']
+            : $video->doctor_id;
+
+        if (! empty($targetDoctorId)) {
+            $doctor = HospitalDoctor::query()->find($targetDoctorId);
 
             if (! $doctor || (int) $doctor->hospital_id !== $targetHospitalId) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병의원에 소속된 의료진이 아닙니다.');

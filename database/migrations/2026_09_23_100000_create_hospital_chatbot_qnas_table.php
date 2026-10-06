@@ -11,9 +11,10 @@ return new class extends Migration
     {
         Schema::create('hospital_chatbot_qnas', function (Blueprint $table) {
             $table->id()->comment('병의원 챗봇 Q&A ID');
+            $table->unsignedBigInteger('folder_id')->nullable()->comment('속한 Q&A 폴더 ID');
             $table->foreignId('parent_id')->nullable()->comment('상위 선택 항목 ID')->constrained('hospital_chatbot_qnas')->restrictOnDelete();
             $table->unsignedTinyInteger('depth')->default(1)->comment('대화 선택 단계 1~3');
-            $table->string('category', 100)->comment('Q&A 분류');
+            $table->string('category', 100)->nullable()->comment('Q&A 분류. folder_id가 정본이고 이 값은 사본이다');
             $table->string('question', 255)->comment('병의원 화면에 노출할 질문');
             $table->char('question_key', 64)->comment('상위 ID와 공백·대소문자를 정규화한 선택 문구 해시');
             $table->text('answer')->comment('일반 텍스트 답변');
@@ -36,6 +37,9 @@ return new class extends Migration
                 ->storedAs('IF(deleted_at IS NULL, question_key, NULL)')
                 ->comment('활성 Q&A 질문 중복 방지용 생성 키');
 
+            $table->foreign('folder_id', 'hcq_folder_fk')
+                ->references('id')->on('hospital_chatbot_qna_folders')->nullOnDelete();
+            $table->index(['folder_id', 'status', 'sort_order', 'id'], 'hcq_folder_status_sort_index');
             $table->index(['status', 'sort_order', 'id'], 'hospital_chatbot_qnas_status_sort_idx');
             $table->index(['question_key', 'deleted_at'], 'hospital_chatbot_qnas_question_deleted_idx');
             $table->unique('active_question_key', 'hospital_chatbot_qnas_active_question_unique');

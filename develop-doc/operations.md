@@ -171,6 +171,7 @@ AuthorizationSeeder는 역할 권한을 덮어쓸 수 있고 CategorySeeder는 �
 현재는 컬럼·인덱스 변경을 해당 테이블의 최초 생성 마이그레이션에 합칩니다. 별도 `add`/`alter` 파일은 만들지 않고 신규 테이블만 `create` 파일로 분리합니다. 운영 배포가 시작되면 이미 배포된 스키마의 변경 절차를 별도로 정해야 합니다.
 
 - 활동로그의 `event`·`batch_uuid`, 알림 발송 복구 필드, 채팅 `broadcast_pending`은 각 생성 파일에 포함합니다. `broadcast_pending`의 기본값은 false로 유지합니다.
+- 병의원 챗봇의 메시지 `broadcast_pending`, 상담 `context_qna_*`, Q&A `folder_id`와 nullable `category`도 각 생성 파일에 포함합니다. 폴더 생성 파일은 Q&A 외래키 순서에 맞춰 `2026_09_24_140000_create_hospital_chatbot_qna_folders_table`에서 `2026_09_23_090000_create_hospital_chatbot_qna_folders_table`로 이동했습니다. 기존 DB에서 `migrate`를 실행하기 전 폴더 테이블과 외래키·인덱스·컬럼을 대조하고 기존 이력 이름을 새 이름으로 맞춰야 합니다. 기존 category를 폴더로 옮기는 데이터 변환은 신규 빈 DB 생성에 필요하지 않아 제거했으며, 아직 구형 category 데이터만 있는 DB는 별도 데이터 보존 이관이 필요합니다. 스키마·이력 대조 전에는 `migrate`나 `rollback`을 실행하지 않습니다.
 - 계정 이메일·인증 시각·재설정 수신처는 [병의원 계정 생성 파일](../database/migrations/0001_01_01_000006_create_account_hospitals_table.php)에 포함합니다. [이메일 인증 기록](../database/migrations/2026_09_10_100000_create_hospital_account_email_verifications_table.php)은 별도 테이블입니다. 이전 휴대폰 데이터는 과거 이력 참조를 위해 보존하지만 신규 인증에 사용하지 않습니다.
 - 권한과 기본 역할 매핑은 `AccessPermissions`·`AccessRoles`를 읽는 `AuthorizationSeeder`에서 관리합니다. 권한 추가용 마이그레이션을 만들지 않습니다. 기존 환경에서 전체 Seeder를 실행하면 사용자 지정 권한이 덮어써질 수 있습니다.
 - 이미 적용된 생성 파일을 수정해도 `migrate`가 해당 변경을 재실행하지는 않습니다. 기존 DB는 실제 컬럼·인덱스·제약·권한을 먼저 대조하고 필요한 변경만 적용합니다. 마이그레이션 이력만 고쳐 누락된 스키마를 적용된 것처럼 처리하면 안 됩니다.

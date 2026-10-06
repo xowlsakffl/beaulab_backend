@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('client_message_id', 64)->nullable()->comment('클라이언트 중복 전송 방지 키');
             $table->string('message_type', 20)->default('TEXT')->comment('메시지 종류(TEXT, SYSTEM_TEXT)');
             $table->text('content')->comment('메시지 본문');
+            $table->boolean('broadcast_pending')->default(false)->comment('실시간 발행 대기 여부');
             $table->timestamp('created_at')->comment('서버 저장 시각');
 
             // 인덱스 이름을 직접 지정한다. 테이블명이 길어 자동 생성 이름이 MySQL의 64자 제한을 넘는다.
@@ -33,6 +34,7 @@ return new class extends Migration
                 'hccm_consultation_sender_client_unique',
             );
             $table->index(['consultation_id', 'created_at'], 'hccm_consultation_created_at_index');
+            $table->index('broadcast_pending', 'hccm_broadcast_pending_index');
         });
 
         DB::statement("ALTER TABLE hospital_chatbot_consultation_messages COMMENT = '병의원 챗봇 상담 메시지'");

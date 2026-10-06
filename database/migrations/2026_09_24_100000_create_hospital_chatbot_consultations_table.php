@@ -17,6 +17,9 @@ return new class extends Migration
                 ->nullable()
                 ->comment('요청한 병의원 계정 ID. 감사 용도이며 상담 소유권을 결정하지 않는다');
             $table->string('requester_name_snapshot', 191)->nullable()->comment('요청 당시 요청자 표시명');
+            $table->unsignedBigInteger('context_qna_id')->nullable()->comment('상담을 요청하기 직전에 보던 Q&A ID');
+            $table->string('context_qna_question_snapshot', 500)->nullable()->comment('요청 당시 질문 본문');
+            $table->text('context_qna_answer_snapshot')->nullable()->comment('요청 당시 답변 본문');
             $table->string('status', 20)->comment('상담 상태(WAITING, CONNECTED, ENDED, CANCELED)');
 
             // MySQL은 Partial Unique Index를 지원하지 않는다.
@@ -47,6 +50,8 @@ return new class extends Migration
             // 인덱스 이름을 직접 지정한다. 테이블명이 길어 자동 생성 이름이 MySQL의 64자 제한을 넘는다.
             $table->foreign('hospital_id', 'hcc_hospital_fk')
                 ->references('id')->on('hospitals')->cascadeOnDelete();
+            $table->foreign('context_qna_id', 'hcc_context_qna_fk')
+                ->references('id')->on('hospital_chatbot_qnas')->nullOnDelete();
             $table->foreign('requested_by_account_hospital_id', 'hcc_requester_fk')
                 ->references('id')->on('account_hospitals')->nullOnDelete();
             $table->foreign('assigned_staff_id', 'hcc_assigned_staff_fk')

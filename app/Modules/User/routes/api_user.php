@@ -18,6 +18,26 @@ use Illuminate\Support\Facades\Route;
 
 // 앱 사용자 API
 
+Route::get('event-exposures', [\App\Modules\User\Http\Controllers\EventExposure\EventExposureForUserController::class, 'index'])
+    ->middleware('throttle:120,1')->name('event-exposures.index');
+Route::post('event-exposures/{placement}/{sourceKey}/click', [\App\Modules\User\Http\Controllers\EventExposure\EventExposureForUserController::class, 'click'])
+    ->middleware(['signed:relative', 'throttle:60,1'])->where('sourceKey', '(ad|event):[1-9][0-9]*')->name('event-exposures.click');
+
+Route::get('review-exposures', [\App\Modules\User\Http\Controllers\ReviewExposure\ReviewExposureForUserController::class, 'index'])
+    ->middleware('throttle:120,1')->name('review-exposures.index');
+Route::post('review-exposures/{placement}/{sourceKey}/click', [\App\Modules\User\Http\Controllers\ReviewExposure\ReviewExposureForUserController::class, 'click'])
+    ->middleware(['signed:relative', 'throttle:60,1'])->where('sourceKey', 'review:[1-9][0-9]*')->name('review-exposures.click');
+
+Route::get('video-exposures', [\App\Modules\User\Http\Controllers\VideoExposure\VideoExposureForUserController::class, 'index'])
+    ->middleware('throttle:120,1')->name('video-exposures.index');
+Route::post('video-exposures/{placement}/{sourceKey}/click', [\App\Modules\User\Http\Controllers\VideoExposure\VideoExposureForUserController::class, 'click'])
+    ->middleware(['signed:relative', 'throttle:60,1'])->where('sourceKey', 'video:[1-9][0-9]*')->name('video-exposures.click');
+
+Route::get('banner-exposures', [\App\Modules\User\Http\Controllers\BannerExposure\BannerExposureForUserController::class, 'index'])
+    ->middleware('throttle:120,1')->name('banner-exposures.index');
+Route::post('banner-exposures/{placement}/{sourceKey}/click', [\App\Modules\User\Http\Controllers\BannerExposure\BannerExposureForUserController::class, 'click'])
+    ->middleware(['signed:relative', 'throttle:60,1'])->where('sourceKey', '(ad|banner):[1-9][0-9]*')->name('banner-exposures.click');
+
 Route::post('visits', [\App\Modules\User\Http\Controllers\SiteVisit\SiteVisitController::class, 'store'])
     ->middleware('throttle:60,1')->name('visits.store');
 

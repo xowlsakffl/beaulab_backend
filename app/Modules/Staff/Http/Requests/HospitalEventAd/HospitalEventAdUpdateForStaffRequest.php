@@ -74,6 +74,13 @@ final class HospitalEventAdUpdateForStaffRequest extends FormRequest
 
             $startDate = $this->input('start_date');
             if (is_string($startDate) && $startDate !== '') {
+                $ad = $this->route('hospitalEventAd');
+                if ($ad instanceof HospitalEventAd
+                    && $startDate === $ad->start_at?->toDateString()
+                    && (! $this->has('placement') || $placement === $ad->placement)) {
+                    // 변경하지 않은 일정은 잠금 후 Action에서 최종 비교한다.
+                    return;
+                }
                 try {
                     $date = Carbon::createFromFormat('Y-m-d', $startDate);
                 } catch (\Throwable) {

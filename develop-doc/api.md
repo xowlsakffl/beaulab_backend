@@ -266,6 +266,72 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 
 회원·병의원용 경로는 제공하지 않습니다. 승인 응답의 `assigned_count`는 배정 건수이며 외부 알림 발송 건수가 아닙니다. 데이터와 후속 입력 검증 계약은 [도메인 규칙](domain-rules.md#비대면-상담-db)을 따릅니다.
 
+## 메인 배너/팝업 노출설정
+
+직원 경로는 `/api/v1/staff/banner-exposures`이며 `beaulab.banner_exposure`의 조회/등록/수정/삭제 권한으로 구분합니다.
+
+| 메서드 / 하위 경로 | 내용 |
+| --- | --- |
+| `GET /board` | `placement` 필수. `q`, `connection_type`, `start_date`, `end_date`, `page` 선택. 활성 전체 목록, 비활성 15건 페이지, 전체 활성 키, 수량/한도, 등록 가능 여부, 정렬 버전 반환 |
+| `GET /targets` | `target_type`은 CATEGORY/HOSPITAL/EVENT/NOTICE. `q`, `category_id`, `page`로 검색, 20건 페이지 |
+| `POST /` | 기획전/페이지 직접 등록. 배너 이미지 필수, PNG/JPG/WEBP 10MB 이하 |
+| `GET /{id}` | 직접 등록 상세 |
+| `PATCH /{id}` | 수정. 파일 포함 시 POST와 `_method=PATCH` 사용, `expected_updated_at` 필수 |
+| `PATCH /{id}/status` | ACTIVE/INACTIVE 전환, `expected_updated_at` 필수 |
+| `DELETE /{id}` | 소프트 삭제, `expected_updated_at` 필수 |
+| `PUT /order` | `placement`, `revision`, 전체 활성 `keys` 배열. `banner:ID`와 `ad:ID`를 함께 정렬 |
+| `GET /{id}/operation-histories` | 공통 운영 이력, `operation_histories_page`로 조회 |
+
+기간/용량/수정 충돌은 422 오류로 반환합니다. 광고는 직접 등록 API의 수정 대상이 아니며 원본 광고 관리에서 처리합니다.
+
+등록·수정 시 `start_at`, `end_at`은 필수입니다. 신규 등록 또는 시작 시각 변경 시 과거는 허용하지 않으며, 수정에서 기존 시작 시각을 그대로 유지하는 것은 허용합니다. 종료는 시작 시각 이상이어야 하고 연결 이벤트 기간과 예약 용량 검사를 적용합니다.
+
+사용자 `GET /api/v1/user/banner-exposures?placement=MAIN_POPUP`은 노출 항목과 `landing: {type,id,url,open_mode}`, 30분 유효한 상대 서명 `click_url`을 반환합니다. 위치는 MAIN_POPUP/MAIN_VERTICAL_BANNER/MAIN_HORIZONTAL_BANNER 및 기타의 CONSULT_MEMO(상담메모장)/SEARCH(검색창)입니다. 직원 API도 동일한 5개 위치 코드를 받습니다. 클릭 시 해당 URL에 POST하며 서버는 현재 노출 여부와 서명을 검사합니다. 앱은 내부 대상은 유형/ID로 화면 전환하고 외부 주소는 IN_APP/BROWSER에 따라 열어야 합니다. 클릭수는 요청 횟수이며 중복 제거된 사용자 수가 아닙니다.
+
+## 성형·쁘띠 이벤트 노출설정
+
+직원 기본 경로는 `/api/v1/staff/event-exposures`입니다. 조회/등록/수정은 각각 `beaulab.event_exposure.show/create/update` 권한을 사용합니다.
+
+| 메서드 / 하위 경로 | 내용 |
+| --- | --- |
+| `GET /categories` | 활성 성형·쁘띠 대분류 `id/name/group_code` 목록 |
+| `GET /board` | `placement` 필수. 카테고리별 위치의 `category_id` 생략은 독립된 전체 탭. `q/start_date/end_date/page` 선택. 노출중 전체, 미노출 15건 페이지, `count/limit/active_keys/revision` 반환 |
+| `GET /targets` | 동일 위치 조건과 `q/page`로 등록 가능한 이벤트 검색. 이벤트 ID·이벤트명·병의원명, 20건 페이지 |
+| `POST /` | 위치 조건, `hospital_event_id`, `start_at/end_at` 필수. 공개 상태로 등록 |
+| `GET /{id}` | 직접 등록 상세. 광고 ID가 아닌 노출설정 ID |
+| `PATCH /{id}` | 이벤트·게시기간 수정, `expected_updated_at` 필수. 위치 변경 불가 |
+| `PATCH /{id}/status` | `status=ACTIVE/INACTIVE`, `expected_updated_at` 필수 |
+| `PUT /order` | 위치 조건, `revision`, 현재 전체 활성 `keys` 배열 (`event:ID` / `ad:ID`) |
+
+위치 코드는 `SURGERY_TOP_BANNER`, `SURGERY_HOT_EVENT`, `SURGERY_CATEGORY_BANNER`, `PETIT_TOP_BANNER`, `PETIT_HOT_EVENT`, `PETIT_CATEGORY_BANNER`입니다. 카테고리별 위치만 해당 그룹의 활성 대분류 ID를 받습니다. ID를 생략하면 해당 성형/쁘띠 전체 탭의 독립 노출 위치이며, 개별 카테고리 목록을 합산하는 의미가 아닙니다. 전체 탭의 등록·정렬·공개 전환·사용자 조회에도 동일한 계약을 적용합니다.
+날짜는 ISO 8601 입력 후 한국 시간으로 저장합니다. 신규/변경 시작 시각은 과거 불가, 기존 시작 시각 그대로 수정은 허용합니다. 이벤트 기간·중복·예약 용량·동시 수정 위반은 422입니다. 기간 종료는 지정한 초까지 포함합니다.
+사용자 `GET /api/v1/user/event-exposures`는 동일 위치 조건으로 현재 노출 항목의 `source_key/event_id/name/hospital_name/image/click_url`을 순서대로 반환합니다. 앱에서는 `event_id`를 이벤트 상세로 연결하고 클릭 시 `click_url`에 POST합니다. URL은 30분 유효한 상대 서명이며 위치·카테고리·항목을 서명에 포함합니다. `POST /api/v1/user/event-exposures/{placement}/{sourceKey}/click`은 서명과 현재 노출 여부를 검사하고 분당 60회 요청 제한을 적용합니다. 현재 미노출 또는 다른 위치의 항목은 404이며 집계하지 않습니다. 내부 담당자·예약·권한 정보는 사용자 응답에 반환하지 않습니다. 직원 목록은 위치별 `click_count`를 반환하며 기존 `view_count`는 사용하지 않습니다.
+
+## 동영상 노출설정
+
+직원 기본 경로는 `/api/v1/staff/video-exposures`, 권한은 `beaulab.video_exposure.show/create/update`입니다.
+
+- `GET categories`, `GET board`, `GET targets`: 위치 `placement=SURGERY|PETIT`, 선택적 `category_id`, 검색 `q`, 페이지 `page`. 목록은 게시기간 겹침 필터 `start_date/end_date`도 받습니다. 전체는 다른 카테고리를 합산하지 않는 독립 위치입니다.
+- `POST /`: 위치와 `hospital_video_id`, `start_at`, `end_at`으로 등록합니다. `GET {videoExposure}`, `PATCH {videoExposure}`는 조회·수정이며 수정은 `expected_updated_at` 필수입니다.
+- `PATCH {videoExposure}/status`: 공개여부 `ACTIVE|INACTIVE` 및 `expected_updated_at`. `PUT order`: 위치, 현재 노출 항목 전체 `keys` (`video:ID`), `revision`.
+- 사용자 `GET /api/v1/user/video-exposures`는 현재 노출되는 항목의 `source_key/video_id/name/hospital_name/image/click_url`을 반환합니다. 앱은 `video_id`로 동영상 상세를 열고 30분 유효한 상대 서명 `click_url`에 POST하여 클릭을 집계합니다. 실제 앱 연동은 소비 측 작업입니다.
+
+등록·수정 시 적격 영상, 6개 예약 한도, 동일 영상 중복, 과거 시작 시각, 버전을 검증합니다. 비공개·강제중지·신고 차단·삭제된 원본은 실제 노출과 클릭 집계에서 제외합니다. 클릭 API는 서명 검증 및 분당 60회 제한을 적용합니다.
+
+## 후기 노출설정
+
+직원 경로는 `/api/v1/staff/review-exposures`이며 `beaulab.review_exposure.show/create/update` 권한을 사용합니다.
+
+- `GET categories`: 기존 후기 usage의 활성 대분류. 페이지 진입 시 조회하고 카테고리 전환마다 재조회하지 않습니다.
+- `GET board`, `GET targets`: `placement=SURGERY|PETIT`, 선택적 `category_id`, `q`, `page`. 게시판은 게시기간 겹침 필터 `start_date/end_date`를 추가로 받습니다. 검색은 후기 ID·제목·병의원명이며 목록은 담당자 검색도 지원합니다.
+- `POST /`: `placement`, 선택적 `category_id`, `hospital_review_id`, `start_at`, `end_at`으로 등록합니다. 연결유형이나 이미지 업로드는 받지 않습니다.
+- `GET {reviewExposure}`, `PATCH {reviewExposure}`: 모달 조회·수정. 수정은 `expected_updated_at`을 요구하고 위치는 변경할 수 없습니다.
+- `PATCH {reviewExposure}/status`: `status=ACTIVE|INACTIVE`, `expected_updated_at`으로 공개여부 변경.
+- `PUT order`: 위치와 현재 노출 항목 전체 `keys` (`review:ID`), `revision`으로 순서 저장.
+
+기간·중복·6개 예약 한도·버전 충돌은 422로 반환합니다. 정상 노출 가능한 후기만 등록할 수 있으며 후기 원본의 게시 상태를 변경하지 않습니다.
+사용자 `GET /api/v1/user/review-exposures`는 동일 위치 조건으로 `source_key/review_id/name/hospital_name/image/image_count/click_url`을 반환합니다. `review_id`로 후기 상세 이동을 연결합니다. 클릭은 30분 유효한 상대 서명 URL에 POST하며 현재 노출 여부와 분당 60회 제한을 확인합니다. 실제 앱의 상세 이동·클릭 전송 연동은 이 API 소비 측에서 구현해야 합니다.
+
 ## 병의원 상담 문구 설정
 
 직원 `GET /api/v1/staff/hospital-chatbot/message-settings`, `PUT` 동일 경로로 전체 공통 문구를 조회·저장합니다. 기존 직원 로그인·공통 접근 검사를 적용하며 운영시간 API와 별도로 저장합니다.

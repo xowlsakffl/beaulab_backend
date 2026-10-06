@@ -482,6 +482,51 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         Route::patch('{promotion}', [HospitalPromotionForStaffController::class, 'update'])->whereNumber('promotion')->name('update');
     });
 
+    Route::prefix('event-exposures')->name('event-exposures.')->controller(\App\Modules\Staff\Http\Controllers\EventExposure\EventExposureForStaffController::class)->group(function (): void {
+        Route::get('categories', 'categories')->name('categories');
+        Route::get('board', 'board')->name('board');
+        Route::get('targets', 'targets')->name('targets');
+        Route::put('order', 'order')->name('order');
+        Route::post('', 'store')->name('store');
+        Route::patch('{eventExposure}/status', 'update')->whereNumber('eventExposure')->name('status');
+        Route::get('{eventExposure}', 'show')->whereNumber('eventExposure')->name('show');
+        Route::patch('{eventExposure}', 'update')->whereNumber('eventExposure')->name('update');
+    });
+
+    Route::prefix('review-exposures')->name('review-exposures.')->controller(\App\Modules\Staff\Http\Controllers\ReviewExposure\ReviewExposureForStaffController::class)->group(function (): void {
+        Route::get('categories', 'categories')->name('categories');
+        Route::get('board', 'board')->name('board');
+        Route::get('targets', 'targets')->name('targets');
+        Route::put('order', 'order')->name('order');
+        Route::post('', 'store')->name('store');
+        Route::patch('{reviewExposure}/status', 'update')->whereNumber('reviewExposure')->name('status');
+        Route::get('{reviewExposure}', 'show')->whereNumber('reviewExposure')->name('show');
+        Route::patch('{reviewExposure}', 'update')->whereNumber('reviewExposure')->name('update');
+    });
+
+    Route::prefix('video-exposures')->name('video-exposures.')->controller(\App\Modules\Staff\Http\Controllers\VideoExposure\VideoExposureForStaffController::class)->group(function (): void {
+        Route::get('categories', 'categories')->name('categories');
+        Route::get('board', 'board')->name('board');
+        Route::get('targets', 'targets')->name('targets');
+        Route::put('order', 'order')->name('order');
+        Route::post('', 'store')->name('store');
+        Route::patch('{videoExposure}/status', 'update')->whereNumber('videoExposure')->name('status');
+        Route::get('{videoExposure}', 'show')->whereNumber('videoExposure')->name('show');
+        Route::patch('{videoExposure}', 'update')->whereNumber('videoExposure')->name('update');
+    });
+
+    Route::prefix('banner-exposures')->name('banner-exposures.')->controller(\App\Modules\Staff\Http\Controllers\BannerExposure\BannerExposureForStaffController::class)->group(function (): void {
+        Route::get('board', 'board')->name('board');
+        Route::get('targets', 'targets')->name('targets');
+        Route::put('order', 'reorder')->name('reorder');
+        Route::post('', 'store')->name('store');
+        Route::get('{bannerExposure}/operation-histories', 'histories')->whereNumber('bannerExposure')->name('histories');
+        Route::patch('{bannerExposure}/status', 'status')->whereNumber('bannerExposure')->name('status');
+        Route::get('{bannerExposure}', 'show')->whereNumber('bannerExposure')->name('show');
+        Route::patch('{bannerExposure}', 'update')->whereNumber('bannerExposure')->name('update');
+        Route::delete('{bannerExposure}', 'destroy')->whereNumber('bannerExposure')->name('destroy');
+    });
+
     /**
      * 공지사항
      **/

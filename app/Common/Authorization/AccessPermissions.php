@@ -224,6 +224,32 @@ final class AccessPermissions
 
     public const BEAULAB_NOTICE_SHOW = 'beaulab.notice.show';
 
+    public const BEAULAB_BANNER_EXPOSURE_SHOW = 'beaulab.banner_exposure.show';
+
+    public const BEAULAB_VIDEO_EXPOSURE_SHOW = 'beaulab.video_exposure.show';
+
+    public const BEAULAB_VIDEO_EXPOSURE_CREATE = 'beaulab.video_exposure.create';
+
+    public const BEAULAB_VIDEO_EXPOSURE_UPDATE = 'beaulab.video_exposure.update';
+
+    public const BEAULAB_REVIEW_EXPOSURE_SHOW = 'beaulab.review_exposure.show';
+
+    public const BEAULAB_REVIEW_EXPOSURE_CREATE = 'beaulab.review_exposure.create';
+
+    public const BEAULAB_REVIEW_EXPOSURE_UPDATE = 'beaulab.review_exposure.update';
+
+    public const BEAULAB_EVENT_EXPOSURE_SHOW = 'beaulab.event_exposure.show';
+
+    public const BEAULAB_EVENT_EXPOSURE_CREATE = 'beaulab.event_exposure.create';
+
+    public const BEAULAB_EVENT_EXPOSURE_UPDATE = 'beaulab.event_exposure.update';
+
+    public const BEAULAB_BANNER_EXPOSURE_CREATE = 'beaulab.banner_exposure.create';
+
+    public const BEAULAB_BANNER_EXPOSURE_UPDATE = 'beaulab.banner_exposure.update';
+
+    public const BEAULAB_BANNER_EXPOSURE_DELETE = 'beaulab.banner_exposure.delete';
+
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
 
     public const BEAULAB_NOTICE_UPDATE = 'beaulab.notice.update';
@@ -421,6 +447,19 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_PROMOTION_CREATE,
             self::BEAULAB_HOSPITAL_PROMOTION_UPDATE,
             self::BEAULAB_NOTICE_SHOW,
+            self::BEAULAB_BANNER_EXPOSURE_SHOW,
+            self::BEAULAB_VIDEO_EXPOSURE_SHOW,
+            self::BEAULAB_VIDEO_EXPOSURE_CREATE,
+            self::BEAULAB_VIDEO_EXPOSURE_UPDATE,
+            self::BEAULAB_REVIEW_EXPOSURE_SHOW,
+            self::BEAULAB_REVIEW_EXPOSURE_CREATE,
+            self::BEAULAB_REVIEW_EXPOSURE_UPDATE,
+            self::BEAULAB_EVENT_EXPOSURE_SHOW,
+            self::BEAULAB_EVENT_EXPOSURE_CREATE,
+            self::BEAULAB_EVENT_EXPOSURE_UPDATE,
+            self::BEAULAB_BANNER_EXPOSURE_CREATE,
+            self::BEAULAB_BANNER_EXPOSURE_UPDATE,
+            self::BEAULAB_BANNER_EXPOSURE_DELETE,
             self::BEAULAB_NOTICE_CREATE,
             self::BEAULAB_NOTICE_UPDATE,
             self::BEAULAB_NOTICE_DELETE,

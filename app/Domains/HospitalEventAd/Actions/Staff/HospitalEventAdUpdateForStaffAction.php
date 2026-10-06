@@ -104,8 +104,13 @@ final class HospitalEventAdUpdateForStaffAction
             'cost' => $this->resolveCost($ad, $placement, $payload),
         ];
 
-        if (array_key_exists('start_date', $payload)) {
-            $period = $this->periodResolver->resolve((string) $payload['start_date'], $placement);
+        $startDate = (string) ($payload['start_date'] ?? $ad->start_at?->toDateString());
+        $scheduleChanged = $startDate !== $ad->start_at?->toDateString()
+            || $placement !== (string) $ad->placement
+            || ($categoryId !== null ? (int) $categoryId : null) !== $this->categoryId($ad);
+
+        if ($scheduleChanged) {
+            $period = $this->periodResolver->resolve($startDate, $placement);
             $normalized['start_at'] = $period['start_at'];
             $normalized['end_at'] = $period['end_at'];
         } else {

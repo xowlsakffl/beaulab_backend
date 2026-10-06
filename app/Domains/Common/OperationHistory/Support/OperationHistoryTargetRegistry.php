@@ -78,6 +78,10 @@ final class OperationHistoryTargetRegistry
      * @var array<string, class-string<Model>>
      */
     private const MAP = [
+        'banner_exposure' => \App\Domains\BannerExposure\Models\BannerExposure::class,
+        'video_exposure' => \App\Domains\VideoExposure\Models\VideoExposure::class,
+        'review_exposure' => \App\Domains\ReviewExposure\Models\ReviewExposure::class,
+        'event_exposure' => \App\Domains\EventExposure\Models\EventExposure::class,
         'remote_consultation' => \App\Domains\RemoteConsultation\Models\RemoteConsultation::class,
         self::ALIAS_HOSPITAL => Hospital::class,
         self::ALIAS_HOSPITAL_DOCTOR => HospitalDoctor::class,

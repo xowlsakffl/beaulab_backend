@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use Database\Factories\Support\SeedMediaFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -20,12 +19,11 @@ final class HospitalEvaluationFactory extends Factory
     public function definition(): array
     {
         $postStatus = $this->faker->randomElement(HospitalEvaluation::postStatuses());
-        $hospitalId = $this->randomHospitalId();
 
         return [
-            'author_id' => $this->randomAuthorId(),
-            'hospital_id' => $hospitalId,
-            'doctor_id' => $this->randomDoctorId($hospitalId),
+            'author_id' => AccountUser::factory(),
+            'hospital_id' => Hospital::factory()->active()->approved(),
+            'doctor_id' => null,
             'content' => $this->faker->randomElement(['예약 시간에 방문해 상담받았습니다. 직원 안내가 친절했고 진료 과정에 대한 설명을 충분히 들었습니다.', '시설이 깔끔하고 상담 내용과 예상 비용을 자세히 안내받았습니다.']),
             'phone' => $this->faker->phoneNumber(),
             'author_ip' => $this->faker->ipv4(),
@@ -148,76 +146,5 @@ final class HospitalEvaluationFactory extends Factory
                 true,
             );
         });
-    }
-
-    private function randomAuthorId(): int
-    {
-        /** @var array<int, int>|null $userIds */
-        static $userIds = null;
-
-        if ($userIds === null) {
-            $userIds = AccountUser::query()
-                ->where('status', AccountUser::STATUS_ACTIVE)
-                ->pluck('id')
-                ->map(static fn ($id): int => (int) $id)
-                ->all();
-        }
-
-        if ($userIds === []) {
-            $created = AccountUser::factory()->create();
-            $userIds[] = (int) $created->id;
-
-            return (int) $created->id;
-        }
-
-        return $userIds[array_rand($userIds)];
-    }
-
-    private function randomHospitalId(): int
-    {
-        /** @var array<int, int>|null $hospitalIds */
-        static $hospitalIds = null;
-
-        if ($hospitalIds === null) {
-            $hospitalIds = Hospital::query()
-                ->where('status', Hospital::STATUS_ACTIVE)
-                ->where('allow_status', Hospital::ALLOW_APPROVED)
-                ->pluck('id')
-                ->map(static fn ($id): int => (int) $id)
-                ->all();
-        }
-
-        if ($hospitalIds === []) {
-            $created = Hospital::factory()->active()->approved()->create();
-            $hospitalIds[] = (int) $created->id;
-
-            return (int) $created->id;
-        }
-
-        return $hospitalIds[array_rand($hospitalIds)];
-    }
-
-    private function randomDoctorId(int $hospitalId): ?int
-    {
-        $doctorIds = HospitalDoctor::query()
-            ->where('hospital_id', $hospitalId)
-            ->where('status', HospitalDoctor::STATUS_ACTIVE)
-            ->where('allow_status', HospitalDoctor::ALLOW_APPROVED)
-            ->pluck('id')
-            ->map(static fn ($id): int => (int) $id)
-            ->all();
-
-        if ($doctorIds === []) {
-            $created = HospitalDoctor::factory()
-                ->forHospital($hospitalId)
-                ->active()
-                ->approved()
-                ->withSeedMedia()
-                ->create();
-
-            return (int) $created->id;
-        }
-
-        return $doctorIds[array_rand($doctorIds)];
     }
 }

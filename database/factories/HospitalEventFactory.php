@@ -27,8 +27,8 @@ final class HospitalEventFactory extends Factory
         $consultationPrice = $baseConsultationPrice + ($this->faker->boolean(25) ? $this->faker->randomElement([2500, 5000, 10000]) : 0);
 
         return [
-            'hospital_id' => $this->randomHospitalId(),
-            'manager_staff_id' => AccountStaff::query()->inRandomOrder()->value('id'),
+            'hospital_id' => Hospital::factory()->active()->approved(),
+            'manager_staff_id' => fn () => AccountStaff::query()->where('status', 'ACTIVE')->orderBy('id')->value('id'),
             'event_type' => $this->faker->randomElement(HospitalEvent::types()),
             'is_male_targeted' => $this->faker->boolean(15),
             'name' => $this->faker->randomElement([
@@ -200,29 +200,5 @@ final class HospitalEventFactory extends Factory
                 );
             }
         });
-    }
-
-    private function randomHospitalId(): int
-    {
-        /** @var array<int, int>|null $hospitalIds */
-        static $hospitalIds = null;
-
-        if ($hospitalIds === null) {
-            $hospitalIds = Hospital::query()
-                ->where('status', Hospital::STATUS_ACTIVE)
-                ->where('allow_status', Hospital::ALLOW_APPROVED)
-                ->pluck('id')
-                ->map(static fn (int|string $id): int => (int) $id)
-                ->all();
-        }
-
-        if ($hospitalIds === []) {
-            $created = Hospital::factory()->active()->approved()->withBusinessRegistration()->withSeedMedia()->create();
-            $hospitalIds[] = (int) $created->id;
-
-            return (int) $created->id;
-        }
-
-        return $hospitalIds[array_rand($hospitalIds)];
     }
 }

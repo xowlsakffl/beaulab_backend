@@ -18,14 +18,13 @@ final class HospitalEventRealModelDBFactory extends Factory
 
     public function definition(): array
     {
-        $event = $this->randomEvent();
         $status = $this->faker->randomElement(HospitalEventRealModelDB::statuses());
         $createdAt = $this->faker->dateTimeBetween('-60 days', 'now');
 
         return [
-            'account_user_id' => $this->randomAccountUserId(),
-            'hospital_id' => (int) $event->hospital_id,
-            'hospital_event_id' => (int) $event->id,
+            'account_user_id' => AccountUser::factory(),
+            'hospital_event_id' => HospitalEvent::factory()->active()->approved(),
+            'hospital_id' => fn (array $attributes) => HospitalEvent::findOrFail($attributes['hospital_event_id'])->hospital_id,
             'name' => fake('ko_KR')->name(),
             'gender' => $this->faker->randomElement(HospitalEventRealModelDB::genders()),
             'birth_date' => $this->faker->dateTimeBetween('-45 years', '-19 years')->format('Y-m-d'),
@@ -73,50 +72,6 @@ final class HospitalEventRealModelDBFactory extends Factory
                 true,
             );
         });
-    }
-
-    private function randomEvent(): HospitalEvent
-    {
-        /** @var array<int, int>|null $eventIds */
-        static $eventIds = null;
-
-        if ($eventIds === null) {
-            $eventIds = HospitalEvent::query()
-                ->pluck('id')
-                ->map(static fn (int|string $id): int => (int) $id)
-                ->all();
-        }
-
-        if ($eventIds === []) {
-            $event = HospitalEvent::factory()->active()->approved()->withSeedMedia()->create();
-            $eventIds[] = (int) $event->id;
-
-            return $event;
-        }
-
-        return HospitalEvent::query()->findOrFail($eventIds[array_rand($eventIds)]);
-    }
-
-    private function randomAccountUserId(): int
-    {
-        /** @var array<int, int>|null $userIds */
-        static $userIds = null;
-
-        if ($userIds === null) {
-            $userIds = AccountUser::query()
-                ->pluck('id')
-                ->map(static fn (int|string $id): int => (int) $id)
-                ->all();
-        }
-
-        if ($userIds === []) {
-            $user = AccountUser::factory()->create();
-            $userIds[] = (int) $user->id;
-
-            return (int) $user->id;
-        }
-
-        return $userIds[array_rand($userIds)];
     }
 
     /**

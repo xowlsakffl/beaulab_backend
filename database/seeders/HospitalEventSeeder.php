@@ -2,19 +2,20 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
-use Database\Factories\CategoryFactory;
 use Illuminate\Database\Seeder;
 
 final class HospitalEventSeeder extends Seeder
 {
     public function run(): void
     {
-        CategoryFactory::seedHospitalCategories();
+        DevelopmentDataGuard::assertEnabled();
+        DevelopmentDataGuard::requireCategories(Category::DOMAIN_HOSPITAL_MEDICAL);
         $this->ensureHospitalsAndDoctors();
 
         $hospitalIds = $this->approvedHospitalIds();

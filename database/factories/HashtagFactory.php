@@ -14,7 +14,7 @@ final class HashtagFactory extends Factory
 
     public function definition(): array
     {
-        $name = strtolower($this->faker->unique()->lexify('tag??????'));
+        $name = '테스트태그'.$this->faker->unique()->numerify('######');
 
         return [
             'name' => $name,

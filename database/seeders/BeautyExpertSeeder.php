@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\Common\Category\Models\Category;
@@ -11,6 +12,7 @@ final class BeautyExpertSeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         $fallbackCategoryIds = Category::query()
             ->where('domain', Category::DOMAIN_BEAUTY)
             ->whereDoesntHave('children')

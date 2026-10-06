@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,7 @@ final class AccountUserStatisticsDevelopmentSeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         if (! app()->environment(['local', 'testing'])) {
             throw new \LogicException('회원 현황 샘플은 local/testing 환경에서만 생성할 수 있습니다.');
         }

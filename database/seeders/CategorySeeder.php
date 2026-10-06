@@ -2,17 +2,17 @@
 
 namespace Database\Seeders;
 
-use Database\Factories\CategoryFactory;
+use Database\Seeders\Support\CategoryDefaults;
 use Illuminate\Database\Seeder;
 
 final class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        CategoryFactory::seedHospitalCategories();
-        CategoryFactory::seedHospitalEvaluationCategories();
-        CategoryFactory::seedBeautyCategories();
-        CategoryFactory::seedTalkCategories();
-        CategoryFactory::seedFaqCategories();
+        CategoryDefaults::seedHospitalCategories();
+        CategoryDefaults::seedHospitalEvaluationCategories();
+        CategoryDefaults::seedBeautyCategories();
+        CategoryDefaults::seedTalkCategories();
+        CategoryDefaults::seedFaqCategories();
     }
 }

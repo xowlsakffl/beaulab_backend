@@ -17,8 +17,6 @@ final class HospitalEventDBFactory extends Factory
 
     public function definition(): array
     {
-        $event = $this->randomEvent();
-        $doctorId = $this->randomDoctorId($event);
         $status = $this->faker->randomElement([
             HospitalEventDB::STATUS_NEW,
             HospitalEventDB::STATUS_CONFIRMED,
@@ -29,16 +27,16 @@ final class HospitalEventDBFactory extends Factory
             : null;
 
         return [
-            'account_user_id' => $this->randomAccountUserId(),
-            'hospital_id' => (int) $event->hospital_id,
-            'hospital_event_id' => (int) $event->id,
-            'hospital_doctor_id' => $doctorId,
+            'account_user_id' => AccountUser::factory(),
+            'hospital_event_id' => HospitalEvent::factory()->active()->approved(),
+            'hospital_id' => fn (array $attributes) => HospitalEvent::findOrFail($attributes['hospital_event_id'])->hospital_id,
+            'hospital_doctor_id' => null,
             'name' => fake('ko_KR')->name(),
             'phone' => $this->faker->numerify('010-####-####'),
             'contact_method' => $this->faker->randomElement(HospitalEventDB::contactMethods()),
             'preferred_time' => $this->faker->randomElement(HospitalEventDB::preferredTimes()),
-            'event_price' => (int) $event->event_price,
-            'consultation_price' => (int) $event->consultation_price,
+            'event_price' => fn (array $attributes) => HospitalEvent::findOrFail($attributes['hospital_event_id'])->event_price,
+            'consultation_price' => fn (array $attributes) => HospitalEvent::findOrFail($attributes['hospital_event_id'])->consultation_price,
             'status' => $status,
             'allow_status' => $this->faker->randomElement(HospitalEventDB::allowStatuses()),
             'contacted_at' => $processedAt,
@@ -69,28 +67,6 @@ final class HospitalEventDBFactory extends Factory
         });
     }
 
-    private function randomEvent(): HospitalEvent
-    {
-        /** @var array<int, int>|null $eventIds */
-        static $eventIds = null;
-
-        if ($eventIds === null) {
-            $eventIds = HospitalEvent::query()
-                ->pluck('id')
-                ->map(static fn (int|string $id): int => (int) $id)
-                ->all();
-        }
-
-        if ($eventIds === []) {
-            $event = HospitalEvent::factory()->active()->approved()->withSeedMedia()->create();
-            $eventIds[] = (int) $event->id;
-
-            return $event;
-        }
-
-        return HospitalEvent::query()->findOrFail($eventIds[array_rand($eventIds)]);
-    }
-
     private function randomDoctorId(HospitalEvent $event): ?int
     {
         $doctorIds = $event->doctors()
@@ -111,27 +87,5 @@ final class HospitalEventDBFactory extends Factory
         }
 
         return $doctorIds->random();
-    }
-
-    private function randomAccountUserId(): int
-    {
-        /** @var array<int, int>|null $userIds */
-        static $userIds = null;
-
-        if ($userIds === null) {
-            $userIds = AccountUser::query()
-                ->pluck('id')
-                ->map(static fn (int|string $id): int => (int) $id)
-                ->all();
-        }
-
-        if ($userIds === []) {
-            $user = AccountUser::factory()->create();
-            $userIds[] = (int) $user->id;
-
-            return (int) $user->id;
-        }
-
-        return $userIds[array_rand($userIds)];
     }
 }

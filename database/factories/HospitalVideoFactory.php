@@ -21,13 +21,12 @@ final class HospitalVideoFactory extends Factory
 
     public function definition(): array
     {
-        $hospital = $this->randomHospital();
         $externalVideoId = $this->youtubeVideoId();
 
         return [
-            'hospital_id' => (int) $hospital->id,
-            'doctor_id' => $this->randomDoctorId($hospital),
-            'manager_staff_id' => $this->randomManagerStaffId(),
+            'hospital_id' => Hospital::factory()->active()->approved(),
+            'doctor_id' => null,
+            'manager_staff_id' => fn () => $this->randomManagerStaffId(),
             'title' => $this->faker->randomElement([
                 '대표 의료진 인터뷰',
                 '병의원 시설 소개',
@@ -82,7 +81,7 @@ final class HospitalVideoFactory extends Factory
         return $this->active();
     }
 
-    public function withSeedMedia(bool $includeVideoFile = true): self
+    public function withSeedMedia(): self
     {
         return $this->afterCreating(function (HospitalVideo $video): void {
             app(MediaAttachDeleteAction::class)->attachOne(
@@ -123,40 +122,12 @@ final class HospitalVideoFactory extends Factory
         });
     }
 
-    private function randomHospital(): Hospital
-    {
-        /** @var array<int, int>|null $hospitalIds */
-        static $hospitalIds = null;
-
-        if ($hospitalIds === null) {
-            $hospitalIds = Hospital::query()
-                ->where('status', Hospital::STATUS_ACTIVE)
-                ->where('allow_status', Hospital::ALLOW_APPROVED)
-                ->pluck('id')
-                ->map(static fn (int|string $id): int => (int) $id)
-                ->all();
-        }
-
-        if ($hospitalIds === []) {
-            $hospital = Hospital::factory()
-                ->active()
-                ->approved()
-                ->withBusinessRegistration()
-                ->withAccountHospital()
-                ->withSeedMedia()
-                ->create();
-            $hospitalIds[] = (int) $hospital->id;
-
-            return $hospital;
-        }
-
-        return Hospital::query()->findOrFail($hospitalIds[array_rand($hospitalIds)]);
-    }
-
     private function randomDoctorId(Hospital $hospital): ?int
     {
         $doctorId = HospitalDoctor::query()
             ->where('hospital_id', $hospital->id)
+            ->where('status', HospitalDoctor::STATUS_ACTIVE)
+            ->where('allow_status', HospitalDoctor::ALLOW_APPROVED)
             ->inRandomOrder()
             ->value('id');
 
@@ -164,14 +135,7 @@ final class HospitalVideoFactory extends Factory
             return (int) $doctorId;
         }
 
-        $doctor = HospitalDoctor::factory()
-            ->forHospital($hospital)
-            ->active()
-            ->approved()
-            ->withSeedMedia()
-            ->create();
-
-        return (int) $doctor->id;
+        return null;
     }
 
     private function randomManagerStaffId(): ?int

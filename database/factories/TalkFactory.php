@@ -18,7 +18,7 @@ final class TalkFactory extends Factory
     public function definition(): array
     {
         return [
-            'author_id' => $this->randomAuthorId(),
+            'author_id' => AccountUser::factory(),
             'title' => $this->faker->randomElement(['상담 전에 준비할 사항이 궁금해요', '회복 기간 동안 관리 방법을 공유해요', '병의원 상담 경험을 이야기해 주세요']),
             'content' => $this->faker->randomElement(['상담을 예약했는데 미리 준비할 사항이 있을까요? 경험을 공유해 주세요.', '시술 이후 일상생활로 돌아가기까지의 관리 방법이 궁금합니다.']),
             'status' => Talk::STATUS_ACTIVE,
@@ -71,24 +71,5 @@ final class TalkFactory extends Factory
                 true,
             );
         });
-    }
-
-    private function randomAuthorId(): int
-    {
-        /** @var array<int, int>|null $userIds */
-        static $userIds = null;
-
-        if ($userIds === null) {
-            $userIds = AccountUser::query()->pluck('id')->map(static fn ($id): int => (int) $id)->all();
-        }
-
-        if ($userIds === []) {
-            $created = AccountUser::factory()->create();
-            $userIds[] = (int) $created->id;
-
-            return (int) $created->id;
-        }
-
-        return $userIds[array_rand($userIds)];
     }
 }

@@ -97,7 +97,7 @@ final class HospitalWalletOperationFactory extends Factory
     public function serviceReclaim(HospitalWallet $wallet, int $amount): self
     {
         if ($amount > (int) $wallet->fresh()->service_balance) {
-            throw new InvalidArgumentException('Service reclaim amount exceeds the wallet balance.');
+            throw new InvalidArgumentException('회수액이 서비스 잔액을 초과합니다.');
         }
 
         return $this->operation($wallet, HospitalWalletOperation::TYPE_SERVICE_RECLAIM, HospitalWalletOperation::STATUS_COMPLETED, $amount);
@@ -106,7 +106,7 @@ final class HospitalWalletOperationFactory extends Factory
     public function usage(HospitalWallet $wallet, int $amount, string $referenceLabel): self
     {
         if ($amount > $wallet->fresh()->availableTotalBalance()) {
-            throw new InvalidArgumentException('Usage amount exceeds the available wallet balance.');
+            throw new InvalidArgumentException('사용액이 사용 가능한 잔액을 초과합니다.');
         }
 
         return $this->operation($wallet, HospitalWalletOperation::TYPE_USAGE, HospitalWalletOperation::STATUS_COMPLETED, $amount)
@@ -116,7 +116,7 @@ final class HospitalWalletOperationFactory extends Factory
     public function refundCompleted(HospitalWallet $wallet, int $amount): self
     {
         if ($amount > $wallet->fresh()->availablePaidBalance()) {
-            throw new InvalidArgumentException('Refund amount exceeds the available paid balance.');
+            throw new InvalidArgumentException('환불액이 사용 가능한 유상 잔액을 초과합니다.');
         }
 
         return $this->operation($wallet, HospitalWalletOperation::TYPE_REFUND, HospitalWalletOperation::STATUS_COMPLETED, $amount);
@@ -125,7 +125,7 @@ final class HospitalWalletOperationFactory extends Factory
     public function refundPending(HospitalWallet $wallet, int $amount): self
     {
         if ($amount > $wallet->fresh()->availablePaidBalance()) {
-            throw new InvalidArgumentException('Refund amount exceeds the available paid balance.');
+            throw new InvalidArgumentException('환불액이 사용 가능한 유상 잔액을 초과합니다.');
         }
 
         return $this->operation($wallet, HospitalWalletOperation::TYPE_REFUND, HospitalWalletOperation::STATUS_PENDING, $amount);
@@ -188,7 +188,7 @@ final class HospitalWalletOperationFactory extends Factory
     private function operation(HospitalWallet $wallet, string $type, string $status, int $amount): self
     {
         if ($amount <= 0) {
-            throw new InvalidArgumentException('Wallet operation amount must be positive.');
+            throw new InvalidArgumentException('충전금 처리 금액은 0보다 커야 합니다.');
         }
 
         $processedAt = in_array($status, [
@@ -307,7 +307,9 @@ final class HospitalWalletOperationFactory extends Factory
         if ($serviceAfter !== $serviceBefore) {
             $entries[] = $this->entry(HospitalWalletTransactionEntry::BALANCE_TYPE_SERVICE, $serviceAfter - $serviceBefore);
         }
-        $transaction->entries()->createMany($entries);
+        $transaction->entries()->createMany(array_map(static fn (array $entry): array => [
+            ...$entry, 'created_at' => $transaction->created_at, 'updated_at' => $transaction->updated_at,
+        ], $entries));
 
         $wallet->update([
             'paid_balance' => $paidAfter,
@@ -330,8 +332,8 @@ final class HospitalWalletOperationFactory extends Factory
             HospitalWalletOperation::TYPE_SERVICE_GRANT => [$paid, $reservedPaid, $service + $amount],
             HospitalWalletOperation::TYPE_SERVICE_RECLAIM => [$paid, $reservedPaid, $service - $amount],
             HospitalWalletOperation::TYPE_USAGE => $this->usageBalances($paid, $reservedPaid, $service, $amount),
-            HospitalWalletOperation::TYPE_REFUND => [$paid - $amount, max(0, $reservedPaid - $amount), $service],
-            default => throw new InvalidArgumentException('Unsupported completed wallet operation type.'),
+            HospitalWalletOperation::TYPE_REFUND => [$paid - $amount, $reservedPaid, $service],
+            default => throw new InvalidArgumentException('지원하지 않는 완료 업무 유형입니다.'),
         };
     }
 
@@ -341,7 +343,7 @@ final class HospitalWalletOperationFactory extends Factory
         $paidUsage = $amount - $serviceUsage;
 
         if ($paidUsage > $paid - $reservedPaid) {
-            throw new InvalidArgumentException('Usage amount exceeds the available paid balance.');
+            throw new InvalidArgumentException('사용액이 사용 가능한 유상 잔액을 초과합니다.');
         }
 
         return [$paid - $paidUsage, $reservedPaid, $service - $serviceUsage];

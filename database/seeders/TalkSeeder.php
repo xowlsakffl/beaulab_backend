@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use App\Domains\Talk\Models\TalkCommentMention;
-use Database\Factories\CategoryFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 
@@ -15,7 +15,8 @@ final class TalkSeeder extends Seeder
 {
     public function run(): void
     {
-        CategoryFactory::seedTalkCategories();
+        DevelopmentDataGuard::assertEnabled();
+        DevelopmentDataGuard::requireCategories(Category::DOMAIN_TALK);
 
         $usersById = AccountUser::query()
             ->where('status', AccountUser::STATUS_ACTIVE)
@@ -38,12 +39,7 @@ final class TalkSeeder extends Seeder
             ->count(160)
             ->active()
             ->withSeedMedia(random_int(1, Talk::MAX_IMAGE_COUNT))
-            ->create()
-            ->each(function (Talk $talk) use ($authorIds): void {
-                $talk->forceFill([
-                    'author_id' => $authorIds[array_rand($authorIds)],
-                ])->save();
-            });
+            ->create(['author_id' => fn () => $authorIds[array_rand($authorIds)]]);
         $talks = $normalTalks;
 
         $this->attachRandomCategories($talks, $talkCategoryIds);

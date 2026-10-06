@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'development' => [
+        'enabled' => env('DEVELOPMENT_SEED_ENABLED', false),
+        'database' => env('DEVELOPMENT_SEED_DATABASE', ''),
+    ],
     'frontend' => [
         'enabled' => env('FRONTEND_SEED_ENABLED', false),
         'password' => env('FRONTEND_SEED_PASSWORD', ''),

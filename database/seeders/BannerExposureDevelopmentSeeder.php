@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\BannerExposure\Models\BannerExposure;
 use App\Domains\BannerExposure\Queries\BannerExposureTargetQuery;
@@ -19,6 +20,7 @@ final class BannerExposureDevelopmentSeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         $connection = config('database.default');
         $disk = config('media.disk', 'public');
         if (! app()->environment(['local', 'testing'])

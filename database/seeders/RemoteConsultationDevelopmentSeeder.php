@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
@@ -18,6 +19,7 @@ final class RemoteConsultationDevelopmentSeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         if (! app()->environment(['local', 'testing'])) {
             throw new \LogicException('비대면 상담 시드는 local/testing 환경에서만 생성할 수 있습니다.');
         }

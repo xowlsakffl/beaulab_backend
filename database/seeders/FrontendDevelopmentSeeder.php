@@ -3,9 +3,11 @@
 namespace Database\Seeders;
 
 use App\Common\Authorization\AccessRoles;
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\BannerExposure\Models\BannerExposure;
 use App\Domains\Chat\Models\Chat;
 use App\Domains\Chat\Support\ChatMatchKey;
 use App\Domains\Hospital\Models\Hospital;
@@ -16,7 +18,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
-/** One-time, synthetic fixtures for a new frontend developer's empty local database. */
+/** 신규 개발자의 빈 로컬 DB에 한 번만 생성하는 합성 데이터. */
 final class FrontendDevelopmentSeeder extends Seeder
 {
     public function run(): void
@@ -32,6 +34,7 @@ final class FrontendDevelopmentSeeder extends Seeder
             throw new LogicException('시드 생성 전에 SMS_ENABLED와 PUSH_ENABLED를 비활성화해 주세요.');
         }
 
+        DevelopmentDataGuard::assertLocalResources();
         $connection = DB::connection();
         if ($connection->getDriverName() !== 'mysql'
             || ! in_array($connection->getConfig('host'), ['127.0.0.1', 'localhost', '::1'], true)) {
@@ -47,14 +50,25 @@ final class FrontendDevelopmentSeeder extends Seeder
         }
 
         try {
-            // Reject existing data before AuthorizationSeeder can change roles or permissions.
+            // 권한 동기화 전에 기존 업무 데이터가 없는지 검사한다.
             foreach ($connection->select("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'") as $table) {
                 $name = (string) array_values((array) $table)[0];
+                if ($name === 'banner_exposure_placements') {
+                    $rows = $connection->table($name)->get();
+                    $codes = $rows->pluck('code')->all();
+                    if (count($codes) !== count(BannerExposure::PLACEMENTS)
+                        || array_diff(BannerExposure::PLACEMENTS, $codes)
+                        || $rows->contains(fn ($row) => $row->ordered_keys !== null || (int) $row->revision !== 0)) {
+                        throw new LogicException('배너 노출위치 설정이 변경된 DB입니다. 초기 시딩을 중단합니다.');
+                    }
+
+                    continue;
+                }
                 if (! in_array($name, ['migrations', 'hospital_event_ad_booking_locks', 'hospital_promotion_slot_locks'], true) && $connection->table($name)->exists()) {
                     throw new LogicException("데이터베이스가 비어 있지 않습니다({$name}). 기존 데이터는 변경하지 않았습니다.");
                 }
             }
-            // Fixtures must not trigger observers, notifications or outbound delivery.
+            // 샘플 계정과 대화 생성 시 외부 발송 이벤트를 발생시키지 않는다.
             $result = $connection->transaction(function () use ($password): array {
                 $this->call([AuthorizationSeeder::class, CategorySeeder::class, HospitalFeatureSeeder::class]);
 
@@ -104,7 +118,7 @@ final class FrontendDevelopmentSeeder extends Seeder
             ]);
             $owner->syncRoles([AccessRoles::HOSPITAL_OWNER]);
             $rows[] = ['병의원 계정', $owner->id, $owner->nickname];
-            // A zero wallet is consistent with an empty ledger; do not invent paid balance.
+            // 원장이 없는 초기 지갑은 잔액도 0으로 생성한다.
             HospitalWallet::query()->create([
                 'hospital_id' => $hospital->id, 'paid_balance' => 0,
                 'reserved_paid_balance' => 0, 'service_balance' => 0,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
@@ -17,6 +18,7 @@ final class HospitalChatBotConsultationSeeder extends Seeder
 
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         $connection = DB::connection();
         if (! app()->environment(['local', 'testing'])
             || ! in_array($connection->getConfig('host'), ['127.0.0.1', 'localhost', '::1'], true)) {

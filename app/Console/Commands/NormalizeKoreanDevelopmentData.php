@@ -1,17 +1,28 @@
 <?php
 
-namespace Database\Seeders;
+namespace App\Console\Commands;
 
-use Illuminate\Database\Seeder;
+use App\Common\Support\DevelopmentDataGuard;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 /** 기존 로컬 개발 DB의 영문 표시값만 보정하며 계정 식별자와 업무 상태는 보존한다. */
-final class KoreanDisplayDataSeeder extends Seeder
+final class NormalizeKoreanDevelopmentData extends Command
 {
-    public function run(): void
+    protected $signature = 'development:normalize-korean {--apply : 백업 후 기존 표시값을 변경합니다}';
+
+    protected $description = '로컬 개발 데이터의 영문 표시값을 백업하고 한국어로 보정합니다';
+
+    public function handle(): int
     {
+        if (! $this->option('apply')) {
+            $this->warn('기존 표시값을 변경하는 작업입니다. 대상 DB를 확인한 뒤 --apply를 지정해 주세요.');
+
+            return self::FAILURE;
+        }
+        DevelopmentDataGuard::assertEnabled();
         if (! app()->environment('local')) {
             throw new RuntimeException('기존 표시값 보정은 로컬 개발 환경에서만 실행할 수 있습니다.');
         }
@@ -85,7 +96,7 @@ final class KoreanDisplayDataSeeder extends Seeder
             }
 
             if ($changes === []) {
-                $this->command?->info('보정할 영문 표시값이 없습니다.');
+                $this->info('보정할 영문 표시값이 없습니다.');
 
                 return;
             }
@@ -107,9 +118,11 @@ final class KoreanDisplayDataSeeder extends Seeder
                 foreach ($rows as $id => $change) {
                     DB::table($table)->where('id', $id)->update($change['after']);
                 }
-                $this->command?->info($table.': '.count($rows).'건 보정');
+                $this->info($table.': '.count($rows).'건 보정');
             }
-            $this->command?->info('변경 전·후 값은 비공개 maintenance-backups 디렉터리에 백업했습니다.');
+            $this->info('변경 전·후 값은 비공개 maintenance-backups 디렉터리에 백업했습니다.');
         });
+
+        return self::SUCCESS;
     }
 }

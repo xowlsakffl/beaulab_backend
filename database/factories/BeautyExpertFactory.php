@@ -34,7 +34,7 @@ final class BeautyExpertFactory extends Factory
             'careers' => collect(range(1, $careerCount))
                 ->map(fn (): string => $this->faker->randomElement(['뷰랩 피부관리실 근무', '중앙 뷰티센터 근무']))
                 ->all(),
-            'etc_contents' => collect(range(1, $etcCount))
+            'etc_contents' => collect($etcCount > 0 ? range(1, $etcCount) : [])
                 ->map(fn (): string => $this->faker->randomElement(['피부 관리 전문가 과정 이수', '미용 실무 교육 강사']))
                 ->all(),
             'status' => $this->faker->randomElement([

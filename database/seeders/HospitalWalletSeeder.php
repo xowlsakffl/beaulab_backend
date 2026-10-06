@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalWallet\Models\HospitalWallet;
@@ -17,6 +18,7 @@ final class HospitalWalletSeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         if (! app()->environment(['local', 'testing'])) {
             throw new \LogicException('충전금 데모 데이터는 local/testing 환경에서만 생성할 수 있습니다.');
         }
@@ -79,7 +81,7 @@ final class HospitalWalletSeeder extends Seeder
             );
         }
 
-        $pendingAt = now()->subDays(random_int(0, 10))->setTime(random_int(9, 17), random_int(0, 59));
+        $pendingAt = now()->subHours(2);
         $this->create(
             HospitalWalletOperationFactory::new()->chargePending($wallet, random_int(10, 100) * 10000),
             $pendingAt,
@@ -88,18 +90,18 @@ final class HospitalWalletSeeder extends Seeder
         );
 
         if (random_int(0, 2) === 0) {
-            $canceledAt = now()->subDays(random_int(3, 20))->setTime(random_int(9, 17), random_int(0, 59));
+            $canceledAt = $pendingAt->copy()->addHour();
             $this->create(
                 HospitalWalletOperationFactory::new()->chargeCanceled($wallet, random_int(10, 100) * 10000),
                 $canceledAt,
-                '입금 기한 만료',
+                '입금 전 충전 요청 취소',
                 status: HospitalWalletOperation::STATUS_CANCELED,
             );
         }
 
         $wallet->refresh();
         if ($wallet->availablePaidBalance() >= 30000) {
-            $refundAt = now()->subDays(random_int(1, 25))->setTime(random_int(9, 17), random_int(0, 59));
+            $refundAt = $pendingAt->copy()->addMinutes(90);
             $refundAmount = min(random_int(1, 3) * 10000, $wallet->availablePaidBalance());
             $refundStatus = collect([
                 HospitalWalletOperation::STATUS_PENDING,

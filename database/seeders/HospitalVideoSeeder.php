@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use Illuminate\Database\Seeder;
@@ -10,6 +11,7 @@ final class HospitalVideoSeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         if (Hospital::query()->doesntExist()) {
             $this->call(HospitalSeeder::class);
         }
@@ -32,7 +34,7 @@ final class HospitalVideoSeeder extends Seeder
                 $factory = HospitalVideo::factory()
                     ->forHospital($hospital)
                     ->withSeedCategories(random_int(1, 3))
-                    ->withSeedMedia(includeVideoFile: ($hospitalIndex + $index) % 4 !== 0);
+                    ->withSeedMedia();
 
                 if (($hospitalIndex + $index) % 2 === 0) {
                     $factory = $factory->active()->approved();

@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
-use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -35,21 +34,6 @@ final class HospitalEventAdFactory extends Factory
 
     public function definition(): array
     {
-        $hospital = Hospital::query()->inRandomOrder()->first()
-            ?? Hospital::factory()->create();
-
-        $event = HospitalEvent::query()
-            ->where('hospital_id', $hospital->id)
-            ->where('allow_status', HospitalEvent::ALLOW_APPROVED)
-            ->where('admin_status', HospitalEvent::ADMIN_STATUS_NORMAL)
-            ->inRandomOrder()
-            ->first()
-            ?? HospitalEvent::factory()->create([
-                'hospital_id' => $hospital->id,
-                'allow_status' => HospitalEvent::ALLOW_APPROVED,
-                'admin_status' => HospitalEvent::ADMIN_STATUS_NORMAL,
-            ]);
-
         $placement = $this->faker->randomElement(HospitalEventAd::placements());
         if (HospitalEventAd::requiresCategory($placement)) {
             if ($this->adCategoryId($placement) === null) {
@@ -65,9 +49,9 @@ final class HospitalEventAdFactory extends Factory
             ->setTime(11, 0);
 
         return [
-            'hospital_id' => (int) $hospital->id,
-            'hospital_event_id' => (int) $event->id,
-            'manager_staff_id' => AccountStaff::query()->inRandomOrder()->value('id'),
+            'hospital_event_id' => HospitalEvent::factory()->active()->approved(),
+            'hospital_id' => fn (array $attributes) => HospitalEvent::findOrFail($attributes['hospital_event_id'])->hospital_id,
+            'manager_staff_id' => fn () => AccountStaff::query()->where('status', 'ACTIVE')->orderBy('id')->value('id'),
             'placement' => $placement,
             'cost' => HospitalEventAd::placementCost($placement),
             'start_at' => $startAt,

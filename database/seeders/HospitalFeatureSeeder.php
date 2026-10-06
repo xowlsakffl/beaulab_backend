@@ -21,13 +21,8 @@ final class HospitalFeatureSeeder extends Seeder
             HospitalFeatureDefinitions::all(),
         );
 
-        HospitalFeature::query()->upsert($features, ['code'], ['name', 'sort_order', 'status', 'updated_at']);
-
-        HospitalFeature::query()
-            ->whereNotIn('code', HospitalFeatureDefinitions::codes())
-            ->update([
-                'status' => HospitalFeature::STATUS_INACTIVE,
-                'updated_at' => $now,
-            ]);
+        foreach ($features as $feature) {
+            HospitalFeature::firstOrCreate(['code' => $feature['code']], $feature);
+        }
     }
 }

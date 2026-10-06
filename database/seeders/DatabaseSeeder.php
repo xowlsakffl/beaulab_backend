@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use Illuminate\Database\Seeder;
 
 final class DatabaseSeeder extends Seeder
@@ -11,6 +12,11 @@ final class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $withDemo = (bool) config('seeding.development.enabled');
+        if ($withDemo) {
+            DevelopmentDataGuard::assertEnabled();
+            DevelopmentDataGuard::assertDemoEmpty();
+        }
         $this->call([
             AuthorizationSeeder::class,
             AccountStaffSeeder::class,
@@ -18,7 +24,7 @@ final class DatabaseSeeder extends Seeder
             HospitalFeatureSeeder::class,
         ]);
 
-        if (app()->environment(['local', 'testing'])) {
+        if ($withDemo) {
             $this->call(DemoSeeder::class);
         }
     }

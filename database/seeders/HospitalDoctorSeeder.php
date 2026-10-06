@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Hospital\Models\Hospital;
@@ -12,6 +13,7 @@ final class HospitalDoctorSeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         $specialistFields = HospitalDoctor::specialistFields();
         $specialistFieldIndex = 0;
         $doctorCategoryIds = Category::query()

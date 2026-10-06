@@ -19,7 +19,7 @@ final class HospitalReviewCommentFactory extends Factory
         return [
             'hospital_review_id' => null,
             'parent_id' => null,
-            'author_id' => $this->randomAuthorId(),
+            'author_id' => AccountUser::factory(),
             'content' => $this->faker->randomElement(['후기 잘 읽었습니다. 회복 과정도 궁금해요.', '자세한 후기 공유 감사합니다.', '상담받을 때 참고하겠습니다.']),
             'status' => HospitalReviewComment::STATUS_ACTIVE,
             'author_ip' => $this->faker->ipv4(),
@@ -73,28 +73,5 @@ final class HospitalReviewCommentFactory extends Factory
     public function userDeleted(): self
     {
         return $this->inactive();
-    }
-
-    private function randomAuthorId(): int
-    {
-        /** @var array<int, int>|null $userIds */
-        static $userIds = null;
-
-        if ($userIds === null) {
-            $userIds = AccountUser::query()
-                ->where('status', AccountUser::STATUS_ACTIVE)
-                ->pluck('id')
-                ->map(static fn ($id): int => (int) $id)
-                ->all();
-        }
-
-        if ($userIds === []) {
-            $created = AccountUser::factory()->create();
-            $userIds[] = (int) $created->id;
-
-            return (int) $created->id;
-        }
-
-        return $userIds[array_rand($userIds)];
     }
 }

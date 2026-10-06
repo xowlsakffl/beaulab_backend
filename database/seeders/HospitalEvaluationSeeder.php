@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
-use Database\Factories\CategoryFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 
@@ -15,7 +15,8 @@ final class HospitalEvaluationSeeder extends Seeder
 {
     public function run(): void
     {
-        CategoryFactory::seedHospitalEvaluationCategories();
+        DevelopmentDataGuard::assertEnabled();
+        DevelopmentDataGuard::requireCategories(Category::DOMAIN_HOSPITAL_EVALUATION);
         $this->ensureSeedUsers();
         $this->ensureSeedHospitals();
 

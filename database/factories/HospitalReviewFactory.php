@@ -6,7 +6,6 @@ use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Hospital\Models\Hospital;
-use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use Database\Factories\Support\SeedMediaFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -20,12 +19,11 @@ final class HospitalReviewFactory extends Factory
 
     public function definition(): array
     {
-        $hospitalId = $this->randomHospitalId();
 
         return [
-            'author_id' => $this->randomAuthorId(),
-            'hospital_id' => $hospitalId,
-            'doctor_id' => $this->randomDoctorId($hospitalId),
+            'author_id' => AccountUser::factory(),
+            'hospital_id' => Hospital::factory()->active()->approved(),
+            'doctor_id' => null,
             'category_domain' => $this->faker->randomElement(HospitalReview::categoryDomains()),
             'title' => $this->faker->randomElement(['상담부터 회복까지의 후기입니다', '시술 후 경과를 공유합니다', '꼼꼼하게 상담받고 결정했어요']),
             'content' => $this->faker->randomElement(['상담에서 시술 방법과 회복 과정을 자세히 안내받았습니다. 안내받은 주의사항을 지키며 경과를 확인하고 있습니다.', '궁금한 점을 충분히 질문할 수 있었고 시술 후 관리 방법도 안내받았습니다.']),
@@ -72,9 +70,9 @@ final class HospitalReviewFactory extends Factory
     public function withSmallCategories(?int $count = null): self
     {
         return $this->afterCreating(function (HospitalReview $review) use ($count): void {
-            $categoryIds = $this->smallCategoryIdsByDomain((string) $review->category_domain);
+            $categoryIds = $this->loadSmallCategoryIdsByDomain((string) $review->category_domain);
             if ($categoryIds === []) {
-                return;
+                throw new \LogicException('후기 카테고리를 먼저 준비해 주세요.');
             }
 
             $selectedIds = collect($categoryIds)
@@ -117,100 +115,6 @@ final class HospitalReviewFactory extends Factory
         });
     }
 
-    private function randomAuthorId(): int
-    {
-        /** @var array<int, int>|null $userIds */
-        static $userIds = null;
-
-        if ($userIds === null) {
-            $userIds = AccountUser::query()
-                ->where('status', AccountUser::STATUS_ACTIVE)
-                ->pluck('id')
-                ->map(static fn ($id): int => (int) $id)
-                ->all();
-        }
-
-        if ($userIds === []) {
-            $created = AccountUser::factory()->create();
-            $userIds[] = (int) $created->id;
-
-            return (int) $created->id;
-        }
-
-        return $userIds[array_rand($userIds)];
-    }
-
-    private function randomHospitalId(): int
-    {
-        /** @var array<int, int>|null $hospitalIds */
-        static $hospitalIds = null;
-
-        if ($hospitalIds === null) {
-            $hospitalIds = Hospital::query()
-                ->where('status', Hospital::STATUS_ACTIVE)
-                ->where('allow_status', Hospital::ALLOW_APPROVED)
-                ->pluck('id')
-                ->map(static fn ($id): int => (int) $id)
-                ->all();
-        }
-
-        if ($hospitalIds === []) {
-            $created = Hospital::factory()->active()->approved()->create();
-            $hospitalIds[] = (int) $created->id;
-
-            return (int) $created->id;
-        }
-
-        return $hospitalIds[array_rand($hospitalIds)];
-    }
-
-    private function randomDoctorId(int $hospitalId): ?int
-    {
-        $doctorIds = HospitalDoctor::query()
-            ->where('hospital_id', $hospitalId)
-            ->where('status', HospitalDoctor::STATUS_ACTIVE)
-            ->where('allow_status', HospitalDoctor::ALLOW_APPROVED)
-            ->pluck('id')
-            ->map(static fn ($id): int => (int) $id)
-            ->all();
-
-        if ($doctorIds === []) {
-            $created = HospitalDoctor::factory()
-                ->forHospital($hospitalId)
-                ->active()
-                ->approved()
-                ->withSeedMedia()
-                ->create();
-
-            return (int) $created->id;
-        }
-
-        return $doctorIds[array_rand($doctorIds)];
-    }
-
-    /**
-     * @return array<int, int>
-     */
-    private function smallCategoryIdsByDomain(string $domain): array
-    {
-        /** @var array<string, array<int, int>> $categoryIdsByDomain */
-        static $categoryIdsByDomain = [];
-
-        if (! array_key_exists($domain, $categoryIdsByDomain)) {
-            $categoryIdsByDomain[$domain] = $this->loadSmallCategoryIdsByDomain($domain);
-        }
-
-        if ($categoryIdsByDomain[$domain] === []) {
-            CategoryFactory::seedHospitalCategories();
-            $categoryIdsByDomain[$domain] = $this->loadSmallCategoryIdsByDomain($domain);
-        }
-
-        return $categoryIdsByDomain[$domain];
-    }
-
-    /**
-     * @return array<int, int>
-     */
     private function loadSmallCategoryIdsByDomain(string $domain): array
     {
         $rootPaths = HospitalReview::categoryRootPathsByDomain()[$domain] ?? [];

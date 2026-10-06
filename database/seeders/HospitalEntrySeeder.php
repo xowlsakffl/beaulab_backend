@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
 use Illuminate\Database\Seeder;
 
@@ -9,6 +10,7 @@ final class HospitalEntrySeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         $statuses = [
             HospitalEntry::ALLOW_PENDING,
             HospitalEntry::ALLOW_PENDING,

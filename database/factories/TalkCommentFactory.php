@@ -19,7 +19,7 @@ final class TalkCommentFactory extends Factory
         return [
             'talk_id' => null,
             'parent_id' => null,
-            'author_id' => $this->randomAuthorId(),
+            'author_id' => AccountUser::factory(),
             'content' => $this->faker->randomElement(['자세한 경험 공유 감사합니다.', '상담 때 회복 기간도 함께 확인해 보세요.', '저도 같은 부분이 궁금했어요.']),
             'status' => TalkComment::STATUS_ACTIVE,
             'author_ip' => $this->faker->ipv4(),
@@ -78,24 +78,5 @@ final class TalkCommentFactory extends Factory
     public function adminStopped(): self
     {
         return $this->inactive();
-    }
-
-    private function randomAuthorId(): int
-    {
-        /** @var array<int, int>|null $userIds */
-        static $userIds = null;
-
-        if ($userIds === null) {
-            $userIds = AccountUser::query()->pluck('id')->map(static fn ($id): int => (int) $id)->all();
-        }
-
-        if ($userIds === []) {
-            $created = AccountUser::factory()->create();
-            $userIds[] = (int) $created->id;
-
-            return (int) $created->id;
-        }
-
-        return $userIds[array_rand($userIds)];
     }
 }

@@ -179,7 +179,7 @@ WSL·사설망·HTTPS 개발 서버 연결은 [운영 절차](operations.md#프�
 
 ## 비대면 상담 개발 적용
 
-기존 로컬 개발 DB의 영문 표시값 보정은 `php artisan db:seed --class=KoreanDisplayDataSeeder`로 별도 실행합니다. 병의원·의료진·고객 DB·후기 등의 표시 필드만 변경하며 ID, 로그인 정보, 금액, 상태, 생성일과 운영 이력은 유지합니다. 변경 전·후 값은 `storage/app/private/maintenance-backups`에 비공개 파일로 저장됩니다. 개인정보가 포함될 수 있으므로 백업을 저장소에 추가하거나 외부에 공유하지 않습니다. 이미 한국어인 값은 보존하며 기본 시더에서는 자동 호출하지 않습니다.
+`DEVELOPMENT_SEED_ENABLED=true`, `DEVELOPMENT_SEED_DATABASE=<실제 로컬 DB 이름>`을 지정하고 [개발 데이터 실행 정책](development-data.md#실행-정책)을 확인합니다. 기존 로컬 개발 DB의 영문 표시값 보정은 `php artisan development:normalize-korean --apply`로 별도 실행합니다. 병의원·의료진·고객 DB·후기 등의 표시 필드만 변경하며 ID, 로그인 정보, 금액, 상태, 생성일과 운영 이력은 유지합니다. 변경 전·후 값은 `storage/app/private/maintenance-backups`에 비공개 파일로 저장됩니다. 개인정보가 포함될 수 있으므로 백업을 저장소에 추가하거나 외부에 공유하지 않습니다. 이미 한국어인 값은 보존하며 기본 시더에서는 자동 호출하지 않습니다.
 
 기존 DB는 초기화하지 않습니다. 대상 환경과 백업을 확인한 뒤 신규 테이블 migration을 적용합니다.
 

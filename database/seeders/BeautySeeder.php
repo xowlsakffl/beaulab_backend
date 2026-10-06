@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\Beauty\Models\Beauty;
 use App\Domains\Common\Category\Models\Category;
 use Illuminate\Database\Seeder;
@@ -10,6 +11,7 @@ final class BeautySeeder extends Seeder
 {
     public function run(): void
     {
+        DevelopmentDataGuard::assertEnabled();
         $approvedBeauties = Beauty::factory()
             ->count(10)
             ->approved()

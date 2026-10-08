@@ -1,4 +1,4 @@
--- 병의원 챗봇 테이블 8개 (MySQL 8.4)
+-- 병의원 챗봇 테이블 9개 (MySQL 8.4)
 --
 -- 로컬 개발 DB에서 SHOW CREATE TABLE로 뜬 실제 DDL입니다. Laravel 마이그레이션이
 -- 정본이므로 보통은 `php artisan migrate` 를 쓰면 됩니다. 이 파일은 스키마를
@@ -176,3 +176,21 @@ CREATE TABLE `hospital_chatbot_consultation_status_histories` (
   CONSTRAINT `hccsh_consultation_fk` FOREIGN KEY (`consultation_id`) REFERENCES `hospital_chatbot_consultations` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 상담 상태 전이 이력';
 
+-- 이용 이벤트(열람·질문 클릭). 대시보드 집계용. 보관 180일.
+CREATE TABLE `hospital_chatbot_events` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '이용 이벤트 ID',
+  `event_type` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '이벤트 종류(WIDGET_OPENED, QNA_VIEWED)',
+  `hospital_id` bigint unsigned NOT NULL COMMENT '세션의 병의원 ID. 본문 값이 아니라 인증 계정에서 정한다',
+  `account_hospital_id` bigint unsigned DEFAULT NULL COMMENT '세션의 병의원 계정 ID. 감사용',
+  `qna_id` bigint unsigned DEFAULT NULL COMMENT 'QNA_VIEWED일 때 본 Q&A ID. Q&A가 삭제돼도 유지한다',
+  `source_page_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '이벤트 당시 호스트 화면 경로',
+  `occurred_at` timestamp NOT NULL COMMENT '서버 수신 시각. 클라이언트 시계를 믿지 않는다',
+  PRIMARY KEY (`id`),
+  KEY `hce_occurred_idx` (`occurred_at`),
+  KEY `hce_type_occurred_idx` (`event_type`,`occurred_at`),
+  KEY `hce_qna_occurred_idx` (`qna_id`,`occurred_at`),
+  KEY `hce_hospital_occurred_idx` (`hospital_id`,`occurred_at`),
+  KEY `hce_account_fk` (`account_hospital_id`),
+  CONSTRAINT `hce_account_fk` FOREIGN KEY (`account_hospital_id`) REFERENCES `account_hospitals` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `hce_hospital_fk` FOREIGN KEY (`hospital_id`) REFERENCES `hospitals` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='병의원 챗봇 이용 이벤트(열람·질문 클릭)';

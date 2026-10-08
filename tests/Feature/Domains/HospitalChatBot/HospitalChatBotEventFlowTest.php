@@ -83,6 +83,29 @@ final class HospitalChatBotEventFlowTest extends TestCase
         self::assertSame($qna->id, $rows[1]->qna_id);
     }
 
+    public function test_clicks_on_folder_nodes_are_dropped(): void
+    {
+        // SDK 트리에서 분류를 펼치는 것도 question-selected로 온다. 분류는 세지 않는다.
+        $folder = $this->qna('충전금');
+        $leaf = HospitalChatBotQna::query()->create([
+            'parent_id' => $folder->id,
+            'category' => '충전금',
+            'question' => '충전금 환불 받고 싶어요',
+            'question_key' => HospitalChatBotQna::questionKey('충전금 환불 받고 싶어요'),
+            'answer' => '테스트 답변',
+        ]);
+
+        $account = $this->hospitalAccount();
+        $this->login('hospital', $account, 'http://localhost:3002');
+
+        $this->postJson('/api/v1/hospital/hospital-chatbot/events', [
+            ['event_type' => 'QNA_VIEWED', 'qna_id' => $folder->id],
+            ['event_type' => 'QNA_VIEWED', 'qna_id' => $leaf->id],
+        ])->assertStatus(202)->assertJsonPath('data.accepted', 1);
+
+        self::assertSame([$leaf->id], HospitalChatBotEvent::query()->pluck('qna_id')->all());
+    }
+
     public function test_invalid_batches_are_rejected(): void
     {
         $account = $this->hospitalAccount();

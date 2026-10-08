@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\HospitalChatBot\Queries;
 
 use App\Domains\HospitalChatBot\Models\HospitalChatBotEvent;
+use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use Carbon\CarbonInterface;
 
 /**
@@ -27,6 +28,29 @@ final class HospitalChatBotEventQuery
         HospitalChatBotEvent::query()->insert($rows);
 
         return count($rows);
+    }
+
+    /**
+     * 주어진 Q&A 중 분류 노드(자식이 있는 것)의 ID.
+     *
+     * SDK는 트리를 내려가는 클릭도 질문 선택으로 알린다. 분류 클릭은 세지 않는다(대시보드 PRD DD-08).
+     * 삭제된 자식까지 본다. 자식이 전부 지워졌어도 분류였던 노드가 질문이 되지는 않는다.
+     *
+     * @param  list<int>  $qnaIds
+     * @return list<int>
+     */
+    public function folderIds(array $qnaIds): array
+    {
+        if ($qnaIds === []) {
+            return [];
+        }
+
+        return HospitalChatBotQna::withTrashed()
+            ->whereIn('parent_id', $qnaIds)
+            ->distinct()
+            ->pluck('parent_id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
     }
 
     /**

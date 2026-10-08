@@ -238,6 +238,16 @@ Artisan::command('hospital-chatbot:report-metrics', function () {
 })->purpose('Log current hospital chatbot gauges for the metrics pipeline');
 
 // 상담원이 아무도 잡지 않은 대기 상담을 자동으로 취소한다(PRD D-07).
+// 보관 기간이 지난 챗봇 이용 이벤트를 지운다. 집계만 읽는 행이라 영구 보관할 이유가 없다.
+Artisan::command('hospital-chatbot:prune-events {--chunk=}', function () {
+    $days = max(1, (int) config('hospital_chatbot.events.retention_days', 180));
+    $chunk = max(1, min((int) ($this->option('chunk') ?: config('hospital_chatbot.events.prune_chunk', 10000)), 50000));
+    $deleted = app(\App\Domains\HospitalChatBot\Queries\HospitalChatBotEventQuery::class)
+        ->pruneBefore(now()->subDays($days), $chunk);
+
+    $this->info("Pruned hospital chatbot events older than {$days} days: {$deleted}");
+})->purpose('Delete hospital chatbot usage events past the retention period');
+
 Artisan::command('hospital-chatbot:expire-waiting-consultations {--limit=500}', function () {
     $minutes = max(1, (int) config('hospital_chatbot.waiting_timeout_minutes', 30));
     $limit = max(1, min((int) $this->option('limit'), 1000));
@@ -304,6 +314,9 @@ Schedule::command('hospital-chatbot:report-metrics')->everyFiveMinutes()->withou
 Schedule::command('hospital-chatbot:expire-waiting-consultations')
     ->everyMinute()
     ->withoutOverlapping();
+
+// 이용 이벤트 원본은 보관 기간이 지나면 지운다(기본 180일)
+Schedule::command('hospital-chatbot:prune-events')->dailyAt('03:50')->withoutOverlapping();
 
 Schedule::command('hospital-wallet:audit-integrity')
     ->dailyAt('03:40')

@@ -36,6 +36,13 @@ final class RateLimitServiceProvider extends ServiceProvider
             return [Limit::perMinute(120)->by("hospital-chatbot-message:{$account}")];
         });
 
+        // 이용 이벤트는 사람이 눌러서 나오는 양이다. 분당 120을 넘기면 사람이 아니다.
+        RateLimiter::for('hospital-chatbot-event', function (Request $request) {
+            $account = $request->user()?->getAuthIdentifier() ?? $request->ip();
+
+            return [Limit::perMinute(120)->by("hospital-chatbot-event:{$account}")];
+        });
+
         RateLimiter::for('auth-login', function (Request $request) {
             $actor = $this->actor($request);
             $identifier = $this->loginIdentifier($request);

@@ -266,15 +266,12 @@ final class Hospital extends Model
      */
     public static function departments(): array
     {
-        return [
-            self::DEPARTMENT_PLASTIC_SURGERY,
-            self::DEPARTMENT_DERMATOLOGY,
-            self::DEPARTMENT_CLINIC,
-            self::DEPARTMENT_DENTISTRY,
-            self::DEPARTMENT_OPHTHALMOLOGY,
-            self::DEPARTMENT_KOREAN_MEDICINE,
-            self::DEPARTMENT_OTHER,
-        ];
+        return array_keys(self::departmentLabels());
+    }
+
+    public static function activeDepartments(): array
+    {
+        return array_keys(\App\Domains\Common\Category\Support\HospitalDepartment::labels(true));
     }
 
     /**
@@ -318,15 +315,7 @@ final class Hospital extends Model
      */
     public static function departmentLabels(): array
     {
-        return [
-            self::DEPARTMENT_PLASTIC_SURGERY => '성형외과',
-            self::DEPARTMENT_DERMATOLOGY => '피부과',
-            self::DEPARTMENT_CLINIC => '의원',
-            self::DEPARTMENT_DENTISTRY => '치과',
-            self::DEPARTMENT_OPHTHALMOLOGY => '안과',
-            self::DEPARTMENT_KOREAN_MEDICINE => '한의원',
-            self::DEPARTMENT_OTHER => '기타',
-        ];
+        return \App\Domains\Common\Category\Support\HospitalDepartment::labels();
     }
 
     public function departmentLabel(): string

@@ -16,12 +16,14 @@ final class HospitalEventCategoryFilterOptionsForStaffQuery
         return Category::query()
             ->join('category_usages', 'category_usages.category_id', '=', 'categories.id')
             ->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->whereNull('categories.parent_id')
             ->where('categories.status', Category::STATUS_ACTIVE)
             ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
             ->whereIn('category_usages.usage', CategoryUsage::hospitalEventUsages())
             ->select([
                 'categories.id',
                 'categories.domain',
+                'categories.group_code',
                 'categories.parent_id',
                 'categories.depth',
                 'categories.name',
@@ -55,9 +57,11 @@ final class HospitalEventCategoryFilterOptionsForStaffQuery
             ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
             ->whereIn('parent_id', array_values($parentIds))
+            ->whereIn('id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->idsForUsages(CategoryUsage::hospitalEventUsages()))
             ->select([
                 'id',
                 'domain',
+                'group_code',
                 'parent_id',
                 'depth',
                 'name',

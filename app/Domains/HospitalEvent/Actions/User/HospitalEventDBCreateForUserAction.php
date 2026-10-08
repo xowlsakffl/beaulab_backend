@@ -5,6 +5,7 @@ namespace App\Domains\HospitalEvent\Actions\User;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\Notification\Actions\StaffNotificationPublisher;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalEvent\Queries\User\HospitalEventDBCreateForUserQuery;
@@ -14,6 +15,7 @@ final class HospitalEventDBCreateForUserAction
 {
     public function __construct(
         private readonly HospitalEventDBCreateForUserQuery $query,
+        private readonly StaffNotificationPublisher $notifications,
     ) {}
 
     public function execute(AccountUser $user, HospitalEvent $event, array $payload): array
@@ -40,7 +42,7 @@ final class HospitalEventDBCreateForUserAction
                 (string) $payload['phone'],
             );
 
-            $this->query->create([
+            $application = $this->query->create([
                 'account_user_id' => (int) $user->id,
                 'hospital_id' => (int) $event->hospital_id,
                 'hospital_event_id' => (int) $event->id,
@@ -50,7 +52,7 @@ final class HospitalEventDBCreateForUserAction
                 'contact_method' => $payload['contact_method'],
                 'preferred_time' => $payload['preferred_time'],
                 'event_price' => (int) $event->event_price,
-                'consultation_price' => (int) $event->consultation_price,
+                'consultation_price' => app(\App\Domains\ConsultationPricing\Support\ConsultationPricingResolver::class)->forEvent($event)['price'],
                 'status' => $isDuplicate
                     ? HospitalEventDB::STATUS_DUPLICATE
                     : HospitalEventDB::STATUS_NEW,
@@ -61,6 +63,18 @@ final class HospitalEventDBCreateForUserAction
                 'privacy_agreed_at' => now(),
                 'marketing_agreed_at' => ! empty($payload['marketing_agreed']) ? now() : null,
             ]);
+
+            $this->notifications->record(
+                eventType: 'staff.hospital_event_db.created',
+                eventKey: 'hospital-event-db:created:'.$application->id,
+                targetType: 'hospital_event_db',
+                targetId: (int) $application->id,
+                payload: array_filter([
+                    'hospital_id' => (int) $event->hospital_id,
+                    'hospital_name' => $event->hospital?->name,
+                    'target_name' => $event->name,
+                ], static fn (mixed $value): bool => $value !== null),
+            );
         });
 
         return [

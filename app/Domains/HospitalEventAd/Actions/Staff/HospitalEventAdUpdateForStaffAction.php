@@ -10,6 +10,7 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Dto\Staff\HospitalEventAdForStaffDetailDto;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
+use App\Domains\HospitalEventAd\Queries\HospitalEventAdPricingQuery;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdSlotAvailabilityForStaffQuery;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdUpdateForStaffQuery;
 use App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache;
@@ -25,6 +26,7 @@ final class HospitalEventAdUpdateForStaffAction
         private readonly HospitalEventAdSlotAvailabilityForStaffQuery $slotQuery,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalEventAdUpdateHistoryRecordAction $historyRecordAction,
+        private readonly HospitalEventAdPricingQuery $pricingQuery,
     ) {}
 
     public function execute(HospitalEventAd $ad, array $payload): array
@@ -41,6 +43,11 @@ final class HospitalEventAdUpdateForStaffAction
 
             $before = $this->historyRecordAction->capture($locked);
             $normalized = $this->normalizePayload($locked, $payload);
+            if ($locked->allow_status === HospitalEventAd::ALLOW_APPROVED) {
+                app(\App\Domains\HospitalEventAd\Support\HospitalEventAdCategoryGuard::class)->assertAvailable(
+                    (int) $normalized['hospital_event_id'], (string) $normalized['placement'], $normalized['category_id'],
+                );
+            }
             $this->assertAdImageWillExist($locked, $normalized);
 
             if ($this->isSlotChanged($locked, $normalized)) {
@@ -123,14 +130,18 @@ final class HospitalEventAdUpdateForStaffAction
 
     private function resolveCost(HospitalEventAd $ad, string $placement, array $payload): int
     {
-        if (array_key_exists('is_free_event', $payload)) {
-            return filter_var($payload['is_free_event'], FILTER_VALIDATE_BOOL)
-                ? 0
-                : HospitalEventAd::placementCost($placement);
+        $free = array_key_exists('is_free_event', $payload)
+            ? filter_var($payload['is_free_event'], FILTER_VALIDATE_BOOL) : null;
+        if ($free === true) {
+            return 0;
         }
+        if ((string) $ad->placement !== $placement || ($free === false && (int) $ad->cost === 0)) {
+            $cost = $this->pricingQuery->cost($placement);
+            if (isset($payload['cost']) && (int) $payload['cost'] !== $cost) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '광고 기본 비용이 변경되었습니다. 화면을 새로 연 뒤 수정해 주세요.');
+            }
 
-        if ((string) $ad->placement !== $placement) {
-            return HospitalEventAd::placementCost($placement);
+            return $cost;
         }
 
         return (int) $ad->cost;

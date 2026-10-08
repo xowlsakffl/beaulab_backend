@@ -55,6 +55,13 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
 
     public function rules(): array
     {
+        $event = $this->route('hospitalEvent');
+        $existingIds = $event instanceof HospitalEvent ? $event->categories()->pluck('categories.id')->all() : [];
+        $categoryRule = Rule::exists('categories', 'id')->where(function ($query) use ($existingIds): void {
+            $query->where(fn ($category) => $category
+                ->where(fn ($active) => Category::constrainActiveLeafHospitalMedicalCategory($active))
+                ->orWhereIn('categories.id', $existingIds));
+        });
         $allowedTextPattern = '/^[\pL\pN\s\.,\-・_:()\[\]&°+\/。"“”]+$/u';
 
         return [
@@ -81,12 +88,12 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
             'category_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('categories', 'id')->where(static fn ($query) => Category::constrainActiveLeafHospitalMedicalCategory($query)),
+                $categoryRule,
             ],
             'primary_category_id' => [
                 'required_with:category_ids',
                 'integer',
-                Rule::exists('categories', 'id')->where(static fn ($query) => Category::constrainActiveLeafHospitalMedicalCategory($query)),
+                $categoryRule,
             ],
 
             'doctor_ids' => ['nullable', 'array', 'max:3'],

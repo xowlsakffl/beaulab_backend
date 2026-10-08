@@ -35,9 +35,13 @@ final class AuthorizationSeeder extends Seeder
         /**
          * 2) Roles: guard별로 생성
          */
+        $newRoles = [];
         foreach (AccessRoles::roleNamesByGuard() as $guard => $roleNames) {
             foreach ($roleNames as $roleName) {
-                Role::findOrCreate($roleName, $guard);
+                $role = Role::findOrCreate($roleName, $guard);
+                if ($role->wasRecentlyCreated) {
+                    $newRoles[] = $role->id;
+                }
             }
         }
 
@@ -50,7 +54,9 @@ final class AuthorizationSeeder extends Seeder
                 $role = Role::findOrCreate($roleName, $guard);
 
                 // 같은 guard의 permission만 연결 (Spatie가 내부적으로도 guard 체크함)
-                $role->syncPermissions($rolePermissionNames);
+                if ($guard !== AccessPermissions::GUARD_STAFF || in_array($role->id, $newRoles, true)) {
+                    $role->syncPermissions($rolePermissionNames);
+                }
             }
         }
 

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Common\Authorization\AccessRoles;
+use App\Common\Authorization\AccessPermissions;
 use App\Common\OpenApi\Scramble\AddSanctumSecurityScheme;
 use App\Common\OpenApi\Scramble\ApplyKoreanOperationDocumentation;
 use App\Common\OpenApi\Scramble\ApplyKoreanSchemaDescriptions;
@@ -31,10 +31,7 @@ class InternalToolServiceProvider extends ServiceProvider
                 return false;
             }
 
-            if (! $user->hasAnyRole([
-                AccessRoles::BEAULAB_SUPER_ADMIN,
-                AccessRoles::BEAULAB_DEV,
-            ])) {
+            if (! $user->can(AccessPermissions::BEAULAB_INTERNAL_TOOL_SHOW)) {
                 return false;
             }
 

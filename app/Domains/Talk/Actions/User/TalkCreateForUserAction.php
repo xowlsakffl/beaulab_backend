@@ -5,6 +5,7 @@ namespace App\Domains\Talk\Actions\User;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\HarmfulWord\Support\HarmfulWordMatcher;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\Talk\Dto\User\TalkForUserDetailDto;
 use App\Domains\Talk\Models\Talk;
@@ -17,11 +18,18 @@ final class TalkCreateForUserAction
 {
     public function __construct(
         private readonly TalkCreateForUserQuery $query,
+        private readonly HarmfulWordMatcher $harmfulWords,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
     ) {}
 
     public function execute(AccountUser $user, array $payload): array
     {
+        $fields = ['title' => $payload['title'], 'content' => $payload['content']];
+        foreach ($payload['poll']['options'] ?? [] as $index => $option) {
+            $fields["poll.options.$index"] = $option;
+        }
+        $this->harmfulWords->assertFields('TALK', $fields);
+
         $normalized = $payload;
         $normalized['author_id'] = (int) $user->id;
         $normalized['category_id'] = $this->resolveCategoryId($normalized['category_code'] ?? null);
@@ -75,7 +83,7 @@ final class TalkCreateForUserAction
     }
 
     /**
-     * @param array<int, UploadedFile> $images
+     * @param  array<int, UploadedFile>  $images
      */
     private function attachImages(Talk $talk, array $images): void
     {

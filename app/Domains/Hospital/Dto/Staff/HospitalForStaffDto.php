@@ -127,7 +127,7 @@ final readonly class HospitalForStaffDto
 
         return $hospital->categories
             ->map(fn (Category $category): array => [
-                'name' => (string) $category->name,
+                'name' => (string) $category->displayNameFor('HOSPITAL_SUBJECT'),
             ])
             ->values()
             ->all();

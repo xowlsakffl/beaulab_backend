@@ -85,8 +85,10 @@ final class HospitalDoctorUpdateForStaffRequest extends FormRequest
             'category_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('categories', 'id')->where(static function ($query): void {
-                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+                Rule::exists('categories', 'id')->where(function ($query): void {
+                    $doctor = $this->route('doctor');
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_DOCTOR_SUBJECT,
+                        $doctor instanceof HospitalDoctor ? $doctor->categories()->pluck('categories.id')->all() : []);
                 }),
             ],
             'status' => ['nullable', Rule::in(HospitalDoctor::statuses())],

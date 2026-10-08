@@ -8,12 +8,14 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Cache\Support\StaffSummaryCache;
+use App\Domains\Common\Notification\Actions\StaffNotificationPublisher;
+use App\Domains\Common\Notification\Models\NotificationInbox;
 use App\Domains\Hospital\Dto\Staff\HospitalStatusChangeRequestForStaffDto;
-use App\Domains\Hospital\Jobs\HospitalStatusChangeRequestNotificationJob;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalStatusChangeRequest;
 use App\Domains\Hospital\Queries\Staff\HospitalStatusChangeRequestForStaffQuery;
 use App\Domains\Hospital\Queries\Staff\HospitalStatusUpdateForStaffQuery;
+use App\Domains\Hospital\Support\HospitalStatusChangeRequestNotificationPublisher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -23,6 +25,8 @@ final class HospitalStatusChangeRequestProcessForStaffAction
         private readonly HospitalStatusChangeRequestForStaffQuery $requestQuery,
         private readonly HospitalStatusUpdateForStaffQuery $statusQuery,
         private readonly HospitalUpdateHistoryRecordAction $historyRecordAction,
+        private readonly HospitalStatusChangeRequestNotificationPublisher $notifications,
+        private readonly StaffNotificationPublisher $publisher,
     ) {}
 
     /** @return array{request: array, message: string} */
@@ -80,17 +84,15 @@ final class HospitalStatusChangeRequestProcessForStaffAction
                 'processed_at' => now(),
             ])->save();
 
+            $this->publisher->invalidateTarget(NotificationInbox::TARGET_HOSPITAL_STATUS_CHANGE_REQUEST, (int) $request->id);
+            $this->notifications->processed($request);
+
             return $this->requestQuery->loadDetail($request->refresh());
         });
 
         if ($processed->status === HospitalStatusChangeRequest::STATUS_APPROVED) {
             StaffSummaryCache::forget(StaffSummaryCache::DOMAIN_HOSPITAL);
         }
-
-        HospitalStatusChangeRequestNotificationJob::dispatch(
-            (int) $processed->getKey(),
-            HospitalStatusChangeRequestNotificationJob::EVENT_PROCESSED,
-        )->afterCommit();
 
         return [
             'request' => HospitalStatusChangeRequestForStaffDto::fromModel($processed),

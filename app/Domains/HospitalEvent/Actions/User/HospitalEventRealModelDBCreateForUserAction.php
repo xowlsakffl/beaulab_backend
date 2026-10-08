@@ -8,6 +8,7 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
+use App\Domains\Common\Notification\Actions\StaffNotificationPublisher;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use App\Domains\HospitalEvent\Queries\User\HospitalEventRealModelDBCreateForUserQuery;
@@ -18,6 +19,7 @@ final class HospitalEventRealModelDBCreateForUserAction
     public function __construct(
         private readonly HospitalEventRealModelDBCreateForUserQuery $query,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
+        private readonly StaffNotificationPublisher $notifications,
     ) {}
 
     public function execute(AccountUser $user, HospitalEvent $event, array $payload): array
@@ -54,6 +56,18 @@ final class HospitalEventRealModelDBCreateForUserAction
                 'hospital-event-real-model-db',
                 'images',
                 true,
+            );
+
+            $this->notifications->record(
+                eventType: 'staff.real_model.requested',
+                eventKey: 'real-model:requested:'.$application->id,
+                targetType: 'hospital_event_real_model_db',
+                targetId: (int) $application->id,
+                payload: array_filter([
+                    'hospital_id' => (int) $event->hospital_id,
+                    'hospital_name' => $event->hospital?->name,
+                    'target_name' => $event->name,
+                ], static fn (mixed $value): bool => $value !== null),
             );
         });
 

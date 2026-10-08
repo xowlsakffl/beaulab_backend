@@ -193,7 +193,7 @@ final readonly class HospitalReviewForStaffDetailDto
                     'id' => (int) $category->id,
                     'code' => (string) ($attributes['code'] ?? ''),
                     'domain' => (string) ($attributes['domain'] ?? $review->category_domain),
-                    'name' => (string) $category->name,
+                    'name' => (string) $category->displayNameFor('HOSPITAL_REVIEW'),
                     'full_path' => (string) ($attributes['full_path'] ?? ''),
                     'parent_id' => $category->parent_id ? (int) $category->parent_id : null,
                     'depth' => isset($attributes['depth']) ? (int) $attributes['depth'] : null,

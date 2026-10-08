@@ -58,7 +58,7 @@ final class HospitalSeeder extends Seeder
         $categoryIds = Category::query()
             ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->whereHas('usages', static fn ($query) => $query
-                ->where('usage', CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT)
+                ->where('usage', CategoryUsage::USAGE_HOSPITAL_SUBJECT)
                 ->where('status', CategoryUsage::STATUS_ACTIVE))
             ->pluck('id')
             ->all();

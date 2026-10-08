@@ -27,7 +27,7 @@ final class RemoteConsultationAssignOnSubmissionAction
             }
             $categoryIds = $c->categories()->pluck('categories.id')->map(fn ($id) => (int) $id)->all();
             $valid = Category::whereIn('id', $categoryIds);
-            CategoryUsage::constrainActiveCategoryExists($valid, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+            CategoryUsage::constrainActiveCategoryExists($valid, CategoryUsage::USAGE_HOSPITAL_SUBJECT);
             if (! $categoryIds || $valid->count() !== count($categoryIds)) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '관심 진료과목이 없거나 현재 사용할 수 없습니다.');
             }
@@ -40,7 +40,15 @@ final class RemoteConsultationAssignOnSubmissionAction
             if (array_diff($selected, $hospitals->modelKeys())) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '선택 병의원 중 배정 조건을 충족하지 않는 병의원이 있습니다.');
             }
+            $price = app(\App\Domains\ConsultationPricing\Support\ConsultationPricingResolver::class)->fixed('REMOTE')['price'];
             foreach ($hospitals as $hospital) {
+                if (! $this->matching->lockBalance((int) $hospital->id, $price)) {
+                    if (in_array($hospital->id, $selected, true)) {
+                        throw new CustomException(ErrorCode::INVALID_REQUEST, '선택한 병의원의 충전금 잔액이 부족합니다.');
+                    }
+
+                    continue;
+                }
                 $c->quotes()->create([
                     'hospital_id' => $hospital->id,
                     'hospital_name' => $hospital->name,

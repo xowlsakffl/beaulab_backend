@@ -103,6 +103,7 @@ return [
         'redis:chat' => 15,
         'redis:hospital-chatbot' => 15,
         'redis:notifications' => 15,
+        'redis:staff-notifications' => 15,
         'redis:default' => 60,
         'redis:maintenance' => 180,
     ],
@@ -282,6 +283,19 @@ return [
             'timeout' => 30,
             'nice' => 0,
         ],
+        'supervisor-staff-notifications' => [
+            'connection' => 'redis',
+            'queue' => ['staff-notifications'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 70,
+            'nice' => 0,
+        ],
         'supervisor-default' => [
             'connection' => 'redis',
             'queue' => ['default'],
@@ -312,6 +326,11 @@ return [
 
     'environments' => [
         'production' => [
+            'supervisor-staff-notifications' => [
+                'maxProcesses' => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
             'supervisor-hospital-chatbot' => [
                 'maxProcesses' => 2,
                 'balanceMaxShift' => 1,
@@ -355,6 +374,9 @@ return [
         ],
 
         'local' => [
+            'supervisor-staff-notifications' => [
+                'maxProcesses' => 1,
+            ],
             'supervisor-hospital-chatbot' => [
                 'maxProcesses' => 1,
             ],

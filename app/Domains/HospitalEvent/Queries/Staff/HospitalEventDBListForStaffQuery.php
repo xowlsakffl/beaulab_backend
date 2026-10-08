@@ -69,6 +69,10 @@ final class HospitalEventDBListForStaffQuery
 
     private function applyFilters(Builder $builder, array $filters): void
     {
+        if (! empty($filters['hospital_event_db_id'])) {
+            $builder->whereKey((int) $filters['hospital_event_db_id']);
+        }
+
         if (! empty($filters['q'])) {
             $this->applySearch($builder, (string) $filters['q']);
         }

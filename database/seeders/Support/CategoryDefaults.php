@@ -11,6 +11,14 @@ use RuntimeException;
 /** 기존 운영 설정은 보존하고 누락된 기본 분류만 추가한다. */
 final class CategoryDefaults
 {
+    public static function seedHospitalDepartments(): void
+    {
+        DB::transaction(fn () => self::seedDomainTree(
+            Category::DOMAIN_HOSPITAL_DEPARTMENT,
+            CategoryDefinitions::tree(Category::DOMAIN_HOSPITAL_DEPARTMENT),
+        ));
+    }
+
     public static function seedHospitalCategories(): void
     {
         DB::transaction(function (): void {

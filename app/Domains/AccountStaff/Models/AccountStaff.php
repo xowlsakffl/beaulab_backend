@@ -18,7 +18,11 @@ use Spatie\Permission\Traits\HasRoles;
  */
 final class AccountStaff extends Authenticatable
 {
-    use HasApiTokens, HasAuditLogs, HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use HasApiTokens, HasAuditLogs, HasFactory, Notifiable, SoftDeletes;
+    use HasRoles {
+        hasPermissionViaRole as private inheritedPermissionViaRole;
+        getAllPermissions as private inheritedAllPermissions;
+    }
 
     protected string $guard_name = 'staff';
 
@@ -49,6 +53,7 @@ final class AccountStaff extends Authenticatable
         'name',
         'nickname',
         'email',
+        'phone',
         'password',
         'status',
         'email_verified_at',
@@ -67,12 +72,32 @@ final class AccountStaff extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
+            'permissions_initialized_at' => 'datetime',
+            'lock_version' => 'integer',
         ];
     }
 
     protected static function newFactory(): Factory
     {
         return AccountStaffFactory::new();
+    }
+
+    protected function hasPermissionViaRole(\Spatie\Permission\Contracts\Permission $permission): bool
+    {
+        // 아직 전환하지 않은 계정만 기존 유효 권한을 보존한다.
+        return $this->permissions_initialized_at === null && $this->inheritedPermissionViaRole($permission);
+    }
+
+    public function getAllPermissions(): \Illuminate\Support\Collection
+    {
+        return $this->permissions_initialized_at === null
+            ? $this->inheritedAllPermissions()
+            : $this->permissions;
+    }
+
+    public function operationHistories(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\App\Domains\Common\OperationHistory\Models\OperationHistory::class, 'target')->latest('id');
     }
 
     /**

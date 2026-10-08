@@ -28,12 +28,9 @@ final class HospitalEventPayloadResolver
             throw new CustomException(ErrorCode::INVALID_REQUEST, '할인율은 49%를 초과할 수 없습니다.');
         }
 
-        $baseConsultationPrice = HospitalEvent::consultationBasePrice($eventPrice);
-        $consultationPrice = $this->intValue($payload['consultation_price'] ?? $event?->consultation_price ?? $baseConsultationPrice);
-
-        if ($consultationPrice < $baseConsultationPrice) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '상담 신청 단가는 기준 단가보다 낮게 설정할 수 없습니다.');
-        }
+        $primaryCategoryId = (int) ($payload['primary_category_id'] ?? $event?->categories()->wherePivot('is_primary', true)->value('categories.id') ?? 0);
+        $pricing = app(\App\Domains\ConsultationPricing\Support\ConsultationPricingResolver::class)->event($primaryCategoryId, $eventPrice);
+        $baseConsultationPrice = $consultationPrice = $pricing['price'];
 
         $eventType = (string) ($payload['event_type'] ?? $event?->event_type ?? HospitalEvent::TYPE_IMAGE);
         $isUnlimited = $this->boolValue($payload['is_event_period_unlimited'] ?? $event?->is_event_period_unlimited ?? true);
@@ -77,7 +74,7 @@ final class HospitalEventPayloadResolver
     /**
      * @return array{usage:string,payload:array<int, array{is_primary:bool}>}
      */
-    public function resolveCategorySyncPayload(array $categoryIds, int $primaryCategoryId): array
+    public function resolveCategorySyncPayload(array $categoryIds, int $primaryCategoryId, array $existingIds = []): array
     {
         $categoryIds = collect($categoryIds)
             ->map(static fn (int|string $categoryId): int => (int) $categoryId)
@@ -97,15 +94,18 @@ final class HospitalEventPayloadResolver
         $categories = Category::query()
             ->whereIn('id', $categoryIds)
             ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->where('status', Category::STATUS_ACTIVE)
-            ->get(['id', 'full_path', 'name', 'depth']);
+            ->where(fn ($query) => $query->where('status', Category::STATUS_ACTIVE)->orWhereIn('id', $existingIds))
+            ->get(['id', 'full_path', 'name', 'depth', 'group_code']);
 
         if ($categories->count() !== count($categoryIds)) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '선택한 카테고리 값이 올바르지 않습니다.');
         }
 
+        $usage = $this->resolveSingleCategoryUsage($categories);
+        $available = app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids($usage);
         $hasActiveChildren = Category::query()
-            ->whereIn('parent_id', $categoryIds)
+            ->whereIn('id', $available)
+            ->whereIn('parent_id', array_diff($categoryIds, $existingIds))
             ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
             ->exists();
@@ -114,7 +114,9 @@ final class HospitalEventPayloadResolver
             throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 자식 없는 카테고리만 선택할 수 있습니다.');
         }
 
-        $usage = $this->resolveSingleCategoryUsage($categories);
+        if (array_diff($categoryIds, $available, $existingIds) !== []) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '사용 중지된 이벤트 카테고리는 새로 선택할 수 없습니다.');
+        }
 
         if ($usage === CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION && count($categoryIds) !== 1) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '기획전 카테고리는 1개만 선택해 주세요.');
@@ -268,27 +270,14 @@ final class HospitalEventPayloadResolver
      */
     private function resolveSingleCategoryUsage($categories): string
     {
-        $pathsByUsage = CategoryUsage::activeCategoryFullPathsByUsage(CategoryUsage::hospitalEventUsages());
-
         $matchedUsages = [];
         foreach ($categories as $category) {
-            $categoryPath = trim((string) ($category->full_path ?: $category->name));
-            $matchedForCategory = [];
-
-            foreach ($pathsByUsage as $usage => $rootPaths) {
-                foreach ($rootPaths as $rootPath) {
-                    if ($categoryPath === $rootPath || str_starts_with($categoryPath, $rootPath.' > ')) {
-                        $matchedForCategory[] = $usage;
-                        break;
-                    }
-                }
-            }
-
-            if (count($matchedForCategory) !== 1) {
+            $usage = CategoryUsage::eventUsageForGroup($category->group_code);
+            if ($usage === null) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '이벤트 카테고리는 성형, 쁘띠, 기획전 중 하나에만 속해야 합니다.');
             }
 
-            $matchedUsages[] = $matchedForCategory[0];
+            $matchedUsages[] = $usage;
         }
 
         $uniqueUsages = array_values(array_unique($matchedUsages));

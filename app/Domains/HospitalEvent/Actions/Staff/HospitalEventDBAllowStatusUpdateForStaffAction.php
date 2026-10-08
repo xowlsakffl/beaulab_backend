@@ -2,6 +2,8 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
+use App\Domains\AccountStaff\Models\AccountStaff;
+use App\Domains\Common\Notification\Actions\StaffNotificationPublisher;
 use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventDBStatusUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +14,7 @@ final class HospitalEventDBAllowStatusUpdateForStaffAction
     public function __construct(
         private readonly HospitalEventDBStatusUpdateForStaffQuery $query,
         private readonly HospitalEventDBUpdateHistoryRecordAction $historyRecordAction,
+        private readonly StaffNotificationPublisher $notifications,
     ) {}
 
     public function execute(array $payload): array
@@ -38,13 +41,31 @@ final class HospitalEventDBAllowStatusUpdateForStaffAction
                     continue;
                 }
 
-                $this->historyRecordAction->recordAllowStatusUpdated(
+                $history = $this->historyRecordAction->recordAllowStatusUpdated(
                     $eventDB,
                     (string) $eventDB->allow_status,
                     $allowStatus,
                     $payload['reason'] ?? null,
                     count($existingIds) > 1,
                 );
+
+                $this->notifications->invalidateTarget('hospital_event_db', (int) $eventDB->id);
+
+                if ($allowStatus === HospitalEventDB::ALLOW_STATUS_UNVERIFIED_REPORTED && $history !== null) {
+                    $actor = auth()->user();
+                    $this->notifications->record(
+                        eventType: 'staff.hospital_event_db.reported',
+                        eventKey: 'hospital-event-db:reported:history:'.$history->id,
+                        targetType: 'hospital_event_db',
+                        targetId: (int) $eventDB->id,
+                        payload: array_filter([
+                            'hospital_id' => (int) $eventDB->hospital_id,
+                            'hospital_name' => $eventDB->hospital?->name,
+                            'target_name' => $eventDB->event?->name,
+                        ], static fn (mixed $value): bool => $value !== null),
+                        actorStaffId: $actor instanceof AccountStaff ? (int) $actor->id : null,
+                    );
+                }
             }
 
             return [

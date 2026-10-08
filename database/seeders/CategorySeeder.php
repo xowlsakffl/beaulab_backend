@@ -9,6 +9,7 @@ final class CategorySeeder extends Seeder
 {
     public function run(): void
     {
+        CategoryDefaults::seedHospitalDepartments();
         CategoryDefaults::seedHospitalCategories();
         CategoryDefaults::seedHospitalEvaluationCategories();
         CategoryDefaults::seedBeautyCategories();

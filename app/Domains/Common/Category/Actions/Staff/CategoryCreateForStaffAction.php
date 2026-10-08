@@ -53,6 +53,9 @@ final class CategoryCreateForStaffAction
                 }
 
                 $depth = $parent ? ((int) $parent->depth + 1) : 1;
+                if ($domain === Category::DOMAIN_HOSPITAL_DEPARTMENT && ($parent || strlen((string) ($payload['code'] ?? '')) > 30)) {
+                    throw new CustomException(ErrorCode::INVALID_REQUEST, '분과는 단일 분류이며 코드는 30자 이하여야 합니다.');
+                }
                 $groupCode = $this->resolveGroupCode($payload, $parent);
                 $fullPath = $parent
                     ? trim((string) ($parent->full_path ?: $parent->name)).' > '.$name

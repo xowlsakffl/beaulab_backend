@@ -55,7 +55,7 @@ final class HospitalListForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static function ($query): void {
-                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_SUBJECT);
                 }),
             ],
             'include' => ['nullable', 'array'],

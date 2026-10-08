@@ -78,6 +78,9 @@ final class OperationHistoryTargetRegistry
      * @var array<string, class-string<Model>>
      */
     private const MAP = [
+        'harmful_word' => \App\Domains\Common\HarmfulWord\Models\HarmfulWord::class,
+        'nickname_word' => \App\Domains\Nickname\Models\NicknameWord::class,
+        'account_staff' => \App\Domains\AccountStaff\Models\AccountStaff::class,
         'banner_exposure' => \App\Domains\BannerExposure\Models\BannerExposure::class,
         'video_exposure' => \App\Domains\VideoExposure\Models\VideoExposure::class,
         'review_exposure' => \App\Domains\ReviewExposure\Models\ReviewExposure::class,

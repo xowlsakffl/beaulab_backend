@@ -63,8 +63,10 @@ final class HospitalVideoUpdateForStaffRequest extends FormRequest
             'category_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('categories', 'id')->where(static function ($query): void {
-                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY);
+                Rule::exists('categories', 'id')->where(function ($query): void {
+                    $video = $this->route('video');
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY,
+                        $video instanceof HospitalVideo ? $video->categories()->pluck('categories.id')->all() : []);
                 }),
             ],
             'hashtag_ids' => ['sometimes', 'array', 'max:30'],

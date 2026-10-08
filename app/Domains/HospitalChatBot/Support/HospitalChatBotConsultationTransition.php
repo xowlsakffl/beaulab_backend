@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Support;
 
+use App\Domains\Common\Notification\Actions\StaffNotificationPublisher;
 use App\Domains\HospitalChatBot\Events\HospitalChatBotConsultationChanged;
 use App\Domains\HospitalChatBot\Events\HospitalChatBotQueueChanged;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
@@ -143,6 +144,8 @@ final class HospitalChatBotConsultationTransition
             reason: null,
             occurredAt: CarbonImmutable::instance($consultation->requested_at ?? CarbonImmutable::now()),
         );
+
+        app(HospitalChatBotNotificationPublisher::class)->requested($consultation);
     }
 
     /**
@@ -225,6 +228,8 @@ final class HospitalChatBotConsultationTransition
                 reason: $reason,
                 occurredAt: $occurredAt,
             );
+
+            app(StaffNotificationPublisher::class)->invalidateTarget('hospital_chatbot_consultation', $consultationId);
 
             /*
              * 발행과 로그 모두 커밋된 뒤에 한다.

@@ -21,6 +21,10 @@ final class AccessPermissions
 
     public const COMMON_ADMIN_NOTE_WRITE = 'common.admin_note.write';
 
+    public const BEAULAB_STAFF_PERMISSIONS_MANAGE = 'beaulab.staff.permissions_manage';
+
+    public const BEAULAB_INTERNAL_TOOL_SHOW = 'beaulab.internal_tool.show';
+
     public const BEAULAB_REMOTE_CONSULTATION_SHOW = 'beaulab.remote_consultation.show';
 
     public const BEAULAB_REMOTE_CONSULTATION_APPROVE = 'beaulab.remote_consultation.approve';
@@ -270,6 +274,14 @@ final class AccessPermissions
 
     public const BEAULAB_CATEGORY_MANAGE = 'beaulab.category.manage';
 
+    public const BEAULAB_NICKNAME_SHOW = 'beaulab.nickname.show';
+
+    public const BEAULAB_NICKNAME_MANAGE = 'beaulab.nickname.manage';
+
+    public const BEAULAB_HARMFUL_WORD_SHOW = 'beaulab.harmful_word.show';
+
+    public const BEAULAB_HARMFUL_WORD_MANAGE = 'beaulab.harmful_word.manage';
+
     public const BEAULAB_CATEGORY_STATUS_UPDATE = 'beaulab.category.status_update';
 
     public const BEAULAB_HASHTAG_MANAGE = 'beaulab.hashtag.manage';
@@ -469,6 +481,10 @@ final class AccessPermissions
             self::BEAULAB_FAQ_DELETE,
 
             self::BEAULAB_CATEGORY_MANAGE,
+            self::BEAULAB_NICKNAME_SHOW,
+            self::BEAULAB_NICKNAME_MANAGE,
+            self::BEAULAB_HARMFUL_WORD_SHOW,
+            self::BEAULAB_HARMFUL_WORD_MANAGE,
             self::BEAULAB_HASHTAG_MANAGE,
             self::COMMON_ADMIN_NOTE_WRITE,
 
@@ -481,6 +497,8 @@ final class AccessPermissions
     public static function beaulabSuperAdminOnly(): array
     {
         return [
+            self::BEAULAB_STAFF_PERMISSIONS_MANAGE,
+            self::BEAULAB_INTERNAL_TOOL_SHOW,
             self::BEAULAB_STAFF_SHOW,
             self::BEAULAB_STAFF_CREATE,
             self::BEAULAB_STAFF_UPDATE,

@@ -29,7 +29,7 @@ final class RemoteConsultationAssignmentForStaffAction
     private function categoryIds(RemoteConsultation $c): array
     {
         $query = Category::whereIn('id', $c->categories()->pluck('categories.id'));
-        CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+        CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_SUBJECT);
 
         return $query->pluck('id')->all();
     }
@@ -39,8 +39,9 @@ final class RemoteConsultationAssignmentForStaffAction
         Gate::authorize('approve', new RemoteConsultation);
         $c = RemoteConsultation::findOrFail($id);
         $this->assertEditable($c);
-        $query = $this->matching->eligible($this->categoryIds($c))
-            ->with('businessRegistration')
+        $price = app(\App\Domains\ConsultationPricing\Support\ConsultationPricingResolver::class)->fixed('REMOTE')['price'];
+        $query = $this->matching->eligible($this->categoryIds($c), false)
+            ->with(['businessRegistration', 'wallet'])
             ->whereNotIn('id', $c->quotes()->pluck('hospital_id'));
         $term = trim($filters['q'] ?? '');
         if ($term !== '') {
@@ -60,7 +61,9 @@ final class RemoteConsultationAssignmentForStaffAction
         return PaginatedResponse::fromPaginator($query->orderBy('id')->paginate(15), fn ($h) => [
             'id' => $h->id, 'name' => $h->name,
             'business_number' => $h->businessRegistration?->business_number,
-            'categories' => $h->categories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values()->all(),
+            'can_assign' => $h->wallet !== null && $h->wallet->availableTotalBalance() >= $price,
+            'disabled_reason' => $h->wallet !== null && $h->wallet->availableTotalBalance() >= $price ? null : '잔액 부족',
+            'categories' => $h->categories->map(fn ($c) => ['id' => $c->id, 'name' => $c->displayNameFor('HOSPITAL_SUBJECT')])->values()->all(),
         ]);
     }
 
@@ -77,9 +80,13 @@ final class RemoteConsultationAssignmentForStaffAction
             }
             $hospitals = $this->matching->eligible($this->categoryIds($c))->whereIn('id', $newIds)->orderBy('id')->lockForUpdate()->get();
             if ($hospitals->count() !== count($newIds)) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '관심 진료과목과 일치하는 활성 병의원만 배정할 수 있습니다.');
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '진료과목·운영 상태·충전금 잔액을 확인해 주세요. 배정 조건이 변경된 병의원이 있습니다.');
             }
+            $price = app(\App\Domains\ConsultationPricing\Support\ConsultationPricingResolver::class)->fixed('REMOTE')['price'];
             foreach ($hospitals as $hospital) {
+                if (! $this->matching->lockBalance((int) $hospital->id, $price)) {
+                    throw new CustomException(ErrorCode::INVALID_REQUEST, '충전금 잔액이 부족한 병의원은 배정할 수 없습니다.');
+                }
                 $quote = $c->quotes()->create([
                     'hospital_id' => $hospital->id, 'hospital_name' => $hospital->name,
                     'selection_type' => 'SELECTED', 'matching_version' => 'staff-selected-v1',

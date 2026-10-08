@@ -33,7 +33,7 @@ final class RemoteConsultationApproveForStaffAction
             $before = $c->approval_status;
             $categoryIds = $c->categories()->pluck('categories.id')->map(fn ($id) => (int) $id)->all();
             $valid = Category::whereIn('id', $categoryIds);
-            CategoryUsage::constrainActiveCategoryExists($valid, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+            CategoryUsage::constrainActiveCategoryExists($valid, CategoryUsage::USAGE_HOSPITAL_SUBJECT);
             if (! $categoryIds || $valid->count() !== count($categoryIds)) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '관심 진료과목이 없거나 현재 사용할 수 없습니다.');
             }

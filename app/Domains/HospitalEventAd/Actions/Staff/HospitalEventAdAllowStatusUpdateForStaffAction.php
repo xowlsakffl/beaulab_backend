@@ -100,6 +100,9 @@ final class HospitalEventAdAllowStatusUpdateForStaffAction
             if ($ad->adImage === null) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '광고 이미지가 없는 광고는 승인할 수 없습니다.');
             }
+            app(\App\Domains\HospitalEventAd\Support\HospitalEventAdCategoryGuard::class)->assertAvailable(
+                (int) $ad->hospital_event_id, (string) $ad->placement, $this->categoryId($ad),
+            );
         }
     }
 

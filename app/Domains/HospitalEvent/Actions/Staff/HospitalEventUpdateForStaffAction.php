@@ -50,6 +50,7 @@ final class HospitalEventUpdateForStaffAction
                 $categorySync = $this->payloadResolver->resolveCategorySyncPayload(
                     $payload['category_ids'] ?? [],
                     (int) ($payload['primary_category_id'] ?? 0),
+                    $event->categories()->pluck('categories.id')->all(),
                 );
             }
 
@@ -133,7 +134,7 @@ final class HospitalEventUpdateForStaffAction
         $primaryCategoryId = (int) ($event->categories()->wherePivot('is_primary', true)->value('categories.id') ?? 0);
         $categoryIds = $event->categories()->pluck('categories.id')->map(static fn ($id): int => (int) $id)->all();
 
-        return $this->payloadResolver->resolveCategorySyncPayload($categoryIds, $primaryCategoryId)['usage'];
+        return $this->payloadResolver->resolveCategorySyncPayload($categoryIds, $primaryCategoryId, $categoryIds)['usage'];
     }
 
     private function shouldForgetSummary(array $payload): bool

@@ -16,7 +16,10 @@ return new class extends Migration
 
             $table->string('name')->comment('뷰랩 관리자 실명');
             $table->string('nickname')->unique()->comment('뷰랩 관리자 로그인 아이디');
-            $table->string('email')->unique()->comment('뷰랩 관리자 이메일');
+            $table->string('email')->nullable()->unique()->comment('뷰랩 관리자 이메일');
+            $table->string('phone', 20)->nullable()->comment('직원 연락처');
+            $table->timestamp('permissions_initialized_at')->nullable()->comment('개인 권한 전환 시각');
+            $table->unsignedInteger('lock_version')->default(0)->comment('직원 관리 수정 버전');
 
             $table->timestamp('email_verified_at')->nullable()->comment('이메일 인증 완료 시각');
             $table->string('password')->comment('암호화된 비밀번호');

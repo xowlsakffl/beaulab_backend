@@ -9,6 +9,10 @@ final class CategoryUsage extends Model
 {
     public const USAGE_HOSPITAL_DOCTOR_SUBJECT = 'HOSPITAL_DOCTOR_SUBJECT';
 
+    public const USAGE_HOSPITAL_SUBJECT = 'HOSPITAL_SUBJECT';
+
+    public const USAGE_DOCTOR_SUBJECT = 'DOCTOR_SUBJECT';
+
     public const USAGE_HOSPITAL_REVIEW_SURGERY = 'HOSPITAL_REVIEW_SURGERY';
 
     public const USAGE_HOSPITAL_REVIEW_TREATMENT = 'HOSPITAL_REVIEW_TREATMENT';
@@ -37,16 +41,25 @@ final class CategoryUsage extends Model
     protected $fillable = [
         'usage',
         'category_id',
+        'display_name',
         'sort_order',
         'status',
+        'is_menu_visible',
     ];
 
     protected $casts = [
         'category_id' => 'integer',
         'sort_order' => 'integer',
+        'is_menu_visible' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        self::saved(fn () => \App\Domains\Common\Category\Support\CategoryUsageAvailability::forgetRequestCache());
+        self::deleted(fn () => \App\Domains\Common\Category\Support\CategoryUsageAvailability::forgetRequestCache());
+    }
 
     public function category(): BelongsTo
     {
@@ -60,6 +73,8 @@ final class CategoryUsage extends Model
     {
         return [
             self::USAGE_HOSPITAL_DOCTOR_SUBJECT,
+            self::USAGE_HOSPITAL_SUBJECT,
+            self::USAGE_DOCTOR_SUBJECT,
             self::USAGE_HOSPITAL_REVIEW_SURGERY,
             self::USAGE_HOSPITAL_REVIEW_TREATMENT,
             self::USAGE_HOSPITAL_EVENT_SURGERY,
@@ -83,37 +98,29 @@ final class CategoryUsage extends Model
         ];
     }
 
-    public static function constrainActiveCategoryExists($query, string $usage): void
+    public static function eventUsageForGroup(?string $group): ?string
     {
-        $query
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->where('status', Category::STATUS_ACTIVE)
-            ->whereExists(static function ($usageQuery) use ($usage): void {
-                $usageQuery
-                    ->selectRaw('1')
-                    ->from('category_usages')
-                    ->whereColumn('category_usages.category_id', 'categories.id')
-                    ->where('category_usages.usage', $usage)
-                    ->where('category_usages.status', self::STATUS_ACTIVE);
-            });
+        return match ($group) {
+            'SURGERY' => self::USAGE_HOSPITAL_EVENT_SURGERY,
+            'TREATMENT' => self::USAGE_HOSPITAL_EVENT_TREATMENT,
+            'PROMOTION' => self::USAGE_HOSPITAL_EVENT_PROMOTION,
+            default => null,
+        };
+    }
+
+    public static function constrainActiveCategoryExists($query, string $usage, array $existingIds = []): void
+    {
+        self::constrainActiveCategoryExistsAny($query, [$usage], $existingIds);
     }
 
     /**
      * @param  array<int, string>  $usages
      */
-    public static function constrainActiveCategoryExistsAny($query, array $usages): void
+    public static function constrainActiveCategoryExistsAny($query, array $usages, array $existingIds = []): void
     {
-        $query
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->where('status', Category::STATUS_ACTIVE)
-            ->whereExists(static function ($usageQuery) use ($usages): void {
-                $usageQuery
-                    ->selectRaw('1')
-                    ->from('category_usages')
-                    ->whereColumn('category_usages.category_id', 'categories.id')
-                    ->whereIn('category_usages.usage', array_values($usages))
-                    ->where('category_usages.status', self::STATUS_ACTIVE);
-            });
+        $ids = app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->idsForUsages($usages);
+        $query->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->whereIn('categories.id', array_values(array_unique([...$ids, ...$existingIds])));
     }
 
     /**

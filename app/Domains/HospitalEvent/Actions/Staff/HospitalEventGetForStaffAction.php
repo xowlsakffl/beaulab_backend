@@ -12,6 +12,11 @@ final class HospitalEventGetForStaffAction
     {
         Gate::authorize('view', $event);
 
+        [$expression, $bindings] = app(\App\Domains\ConsultationPricing\Queries\HospitalEventPricingQuery::class)->expression();
+        $price = HospitalEvent::whereKey($event->id)->selectRaw('('.$expression.') as resolved_price', $bindings)->firstOrFail()->resolved_price;
+        $event->setAttribute('consultation_price', (int) $price);
+        $event->setAttribute('base_consultation_price', (int) $price);
+
         return [
             'event' => HospitalEventForStaffDetailDto::fromModel($event->load([
                 'hospital.businessRegistration',

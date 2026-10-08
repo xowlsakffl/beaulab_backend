@@ -3,7 +3,7 @@
 namespace App\Domains\Common\Category\Queries\Staff;
 
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Category\Models\CategoryUsage;
+use App\Domains\Common\Category\Support\CategoryUsageAvailability;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -23,7 +23,17 @@ final class CategorySelectorListForStaffQuery
             $builder->limit($limit);
         }
 
-        return $builder->get();
+        $items = $builder->get();
+        if (! empty($filters['usage'])) {
+            $available = app(CategoryUsageAvailability::class)->ids($filters['usage'], (bool) ($filters['is_menu_visible'] ?? false));
+            $parents = Category::query()->whereIn('id', $available)->whereNotNull('parent_id')->pluck('parent_id')->all();
+            foreach ($items as $category) {
+                $category->setAttribute('presentation_usage', $filters['usage']);
+                $category->setAttribute('has_children', in_array($category->id, $parents, true));
+            }
+        }
+
+        return $items;
     }
 
     private function buildQuery(array $filters): Builder
@@ -55,39 +65,14 @@ final class CategorySelectorListForStaffQuery
                 'categories.status',
             ]);
 
-        if ($usage && $q) {
-            $builder->whereExists(function ($exists) use ($usage): void {
-                $exists
-                    ->selectRaw('1')
-                    ->from('category_usages')
-                    ->where('category_usages.usage', (string) $usage)
-                    ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
-                    ->where(function ($w): void {
-                        $w->whereColumn('category_usages.category_id', 'categories.id')
-                            ->orWhereColumn('category_usages.category_id', 'categories.parent_id')
-                            ->orWhereExists(function ($parent): void {
-                                $parent
-                                    ->selectRaw('1')
-                                    ->from('categories as c_parent_1')
-                                    ->whereColumn('c_parent_1.id', 'categories.parent_id')
-                                    ->whereColumn('category_usages.category_id', 'c_parent_1.parent_id');
-                            })
-                            ->orWhereExists(function ($grandParent): void {
-                                $grandParent
-                                    ->selectRaw('1')
-                                    ->from('categories as c_parent_1')
-                                    ->join('categories as c_parent_2', 'c_parent_2.id', '=', 'c_parent_1.parent_id')
-                                    ->whereColumn('c_parent_1.id', 'categories.parent_id')
-                                    ->whereColumn('category_usages.category_id', 'c_parent_2.parent_id');
-                            });
-                    });
-            });
-        } elseif ($usage) {
-            $builder
-                ->join('category_usages', 'category_usages.category_id', '=', 'categories.id')
-                ->where('category_usages.usage', (string) $usage)
-                ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
-                ->addSelect('category_usages.sort_order as usage_sort_order');
+        if ($usage) {
+            $builder->whereIn('categories.id', app(CategoryUsageAvailability::class)->ids($usage, (bool) $isMenuVisible));
+            if ($isMenuVisible !== null && ! $isMenuVisible) {
+                $builder->whereNotIn('categories.id', app(CategoryUsageAvailability::class)->ids($usage, true));
+            }
+            $builder->selectRaw('COALESCE((SELECT cu.sort_order FROM category_usages cu WHERE cu.category_id = categories.id AND cu.usage = ? LIMIT 1), categories.sort_order) as usage_sort_order', [$usage]);
+        } elseif ($status === [Category::STATUS_ACTIVE] || $isMenuVisible) {
+            $builder->whereIn('categories.id', app(CategoryUsageAvailability::class)->activeIdsForDomain($domain, (bool) $isMenuVisible));
         }
 
         $builder->selectRaw(
@@ -103,10 +88,13 @@ final class CategorySelectorListForStaffQuery
         );
 
         if ($q) {
-            $builder->where(function ($w) use ($q): void {
+            $builder->where(function ($w) use ($q, $usage): void {
                 $w->where('categories.name', 'like', "%{$q}%")
                     ->orWhere('categories.code', 'like', "%{$q}%")
                     ->orWhere('categories.full_path', 'like', "%{$q}%");
+                if ($usage) {
+                    $w->orWhereIn('categories.id', app(CategoryUsageAvailability::class)->searchIds($usage, $q));
+                }
             });
         }
 
@@ -127,7 +115,7 @@ final class CategorySelectorListForStaffQuery
 
         if ($depth !== null) {
             $builder->where('categories.depth', (int) $depth);
-        } elseif ($parentId === null && ! $parentCode && ! $q && ! $usage) {
+        } elseif ($parentId === null && ! $parentCode && ! $q) {
             $builder->whereNull('categories.parent_id');
         }
 
@@ -139,12 +127,12 @@ final class CategorySelectorListForStaffQuery
             $builder->whereIn('categories.status', $status);
         }
 
-        if ($isMenuVisible !== null) {
+        if ($isMenuVisible !== null && ! $usage) {
             $builder->where('categories.is_menu_visible', (bool) $isMenuVisible);
         }
 
         if ($usage && ! $q && $sort === 'sort_order') {
-            $builder->orderBy('category_usages.sort_order', $direction);
+            $builder->orderBy('usage_sort_order', $direction);
         } else {
             $builder->orderBy("categories.{$sort}", $direction);
         }

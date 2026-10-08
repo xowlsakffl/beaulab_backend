@@ -43,8 +43,8 @@ final class HospitalEventDBUpdateHistoryRecordAction
         string $afterStatus,
         ?string $reason = null,
         bool $bulk = false,
-    ): void {
-        $this->record(
+    ): ?OperationHistory {
+        return $this->record(
             eventDB: $eventDB,
             source: 'staff.hospital_event_db.allow_status',
             changes: OperationHistoryChangeSetBuilder::single(
@@ -69,14 +69,14 @@ final class HospitalEventDBUpdateHistoryRecordAction
         array $changes,
         ?string $reason,
         bool $bulk,
-    ): void {
+    ): ?OperationHistory {
         if ($changes === []) {
-            return;
+            return null;
         }
 
         $actor = auth()->user();
 
-        $this->historyCreateAction->execute(
+        return $this->historyCreateAction->execute(
             target: $eventDB,
             action: OperationHistory::ACTION_STATE_UPDATED,
             actor: $actor instanceof Model ? $actor : null,

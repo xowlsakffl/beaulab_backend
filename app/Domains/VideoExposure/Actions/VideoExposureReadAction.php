@@ -17,7 +17,10 @@ final class VideoExposureReadAction
     {
         Gate::authorize('viewAny', VideoExposure::class);
 
-        return $this->query->categories()->get(['id', 'name', 'group_code'])->toArray();
+        return $this->query->categories()->get(['id', 'name', 'group_code'])
+            ->filter(fn ($row) => app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->presentation($row, 'HOSPITAL_VIDEO_CATEGORY')['enabled'])
+            ->sortBy(fn ($row) => app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->presentation($row, 'HOSPITAL_VIDEO_CATEGORY')['sort_order'])
+            ->map(fn ($row) => ['id' => $row->id, 'name' => $row->displayNameFor('HOSPITAL_VIDEO_CATEGORY'), 'group_code' => $row->group_code])->values()->all();
     }
 
     public function board(array $filters): array

@@ -104,10 +104,10 @@ final readonly class HospitalDoctorForStaffDto
 
         return $doctor->categories
             ->map(static function (Category $category): string {
-                $fullPath = trim((string) ($category->full_path ?: $category->name));
+                $fullPath = trim((string) ($category->displayPathFor('DOCTOR_SUBJECT') ?: $category->displayNameFor('DOCTOR_SUBJECT')));
                 $rootName = trim(explode('>', $fullPath)[0] ?? '');
 
-                return $rootName !== '' ? $rootName : (string) $category->name;
+                return $rootName !== '' ? $rootName : (string) $category->displayNameFor('DOCTOR_SUBJECT');
             })
             ->filter(static fn (string $name): bool => $name !== '')
             ->unique()

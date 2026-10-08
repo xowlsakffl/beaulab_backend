@@ -32,9 +32,9 @@ final readonly class CategorySelectorForStaffDto
             depth: (int) $category->depth,
             groupCode: $category->group_code !== null ? (string) $category->group_code : null,
             groupLabel: Category::groupLabel($category->group_code !== null ? (string) $category->group_code : null),
-            name: (string) $category->name,
+            name: $category->presentation_usage ? $category->displayNameFor($category->presentation_usage) : (string) $category->name,
             code: (string) $category->code,
-            fullPath: $category->full_path,
+            fullPath: $category->presentation_usage ? $category->displayPathFor($category->presentation_usage) : $category->full_path,
             status: (string) $category->status,
             hasChildren: (bool) $category->getAttribute('has_children'),
         );

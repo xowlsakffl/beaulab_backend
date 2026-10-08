@@ -48,6 +48,7 @@ final class HospitalEventAdUpdateForStaffRequest extends FormRequest
             'manager_staff_id' => ['nullable', 'integer', Rule::exists('account_staffs', 'id')],
             'placement' => ['sometimes', 'required', Rule::in(HospitalEventAd::placements())],
             'is_free_event' => ['sometimes', 'boolean'],
+            'cost' => ['sometimes', 'integer', 'min:0', 'max:2000000000'],
             'start_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
             'ad_image_file' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
             'existing_ad_image_id' => ['nullable', 'integer', $this->mediaBelongsToAdRule()],

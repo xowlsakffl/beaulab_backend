@@ -89,8 +89,8 @@ final readonly class HospitalEventAdForStaffDto
         return [
             'id' => (int) $category->id,
             'code' => (string) ($category->code ?? ''),
-            'name' => (string) $category->name,
-            'full_path' => (string) ($category->full_path ?? ''),
+            'name' => (string) $category->displayNameFor('HOSPITAL_EVENT_AD'),
+            'full_path' => (string) ($category->displayPathFor('HOSPITAL_EVENT_AD') ?? ''),
             'depth' => (int) ($category->depth ?? 0),
         ];
     }
@@ -105,8 +105,8 @@ final readonly class HospitalEventAdForStaffDto
             ->map(static fn (Category $category): array => [
                 'id' => (int) $category->id,
                 'code' => (string) ($category->code ?? ''),
-                'name' => (string) $category->name,
-                'full_path' => (string) ($category->full_path ?? ''),
+                'name' => (string) $category->displayNameFor('HOSPITAL_EVENT_AD'),
+                'full_path' => (string) ($category->displayPathFor('HOSPITAL_EVENT_AD') ?? ''),
                 'depth' => (int) ($category->depth ?? 0),
                 'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
             ])

@@ -26,6 +26,15 @@ final class HospitalEventCategoryFilterOptionsForStaffAction
                 ->all(),
         );
 
+        foreach ($majorCategories->concat($middleCategories) as $category) {
+            $category->setAttribute('presentation_usage', 'HOSPITAL_EVENT');
+        }
+        $middleCategories = $middleCategories->sortBy(fn ($category) => [
+            $category->parent_id,
+            app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->presentation($category, 'HOSPITAL_EVENT')['sort_order'],
+            $category->id,
+        ]);
+
         return [
             'major_categories' => $majorCategories
                 ->map(fn (Category $category): array => CategorySelectorForStaffDto::fromModel($category)->toArray())

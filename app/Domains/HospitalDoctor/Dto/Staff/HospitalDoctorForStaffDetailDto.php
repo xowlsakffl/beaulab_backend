@@ -176,8 +176,8 @@ final readonly class HospitalDoctorForStaffDetailDto
             ->map(fn (Category $category): array => [
                 'id' => (int) $category->id,
                 'domain' => (string) $category->domain,
-                'name' => (string) $category->name,
-                'full_path' => (string) ($category->full_path ?: $category->name),
+                'name' => (string) $category->displayNameFor('DOCTOR_SUBJECT'),
+                'full_path' => (string) ($category->displayPathFor('DOCTOR_SUBJECT') ?: $category->displayNameFor('DOCTOR_SUBJECT')),
                 'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
             ])
             ->values()

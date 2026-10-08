@@ -119,8 +119,8 @@ final readonly class HospitalVideoForHospitalDetailDto
                 'id' => (int) $category->id,
                 'code' => (string) ($category->code ?? ''),
                 'domain' => (string) ($category->domain ?? ''),
-                'name' => (string) $category->name,
-                'full_path' => (string) ($category->full_path ?? ''),
+                'name' => (string) $category->displayNameFor('HOSPITAL_VIDEO_CATEGORY'),
+                'full_path' => (string) ($category->displayPathFor('HOSPITAL_VIDEO_CATEGORY') ?? ''),
             ])
             ->values()
             ->all();

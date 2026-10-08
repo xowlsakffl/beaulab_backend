@@ -3,7 +3,25 @@
 실행 환경 확인 없이 복구 명령·Seeder·마이그레이션을 실행하지 않습니다.
 아래 명령은 운영 절차를 설명하는 예시이며 일괄 실행 스크립트가 아닙니다.
 
+## 직원 권한 전환
+
+- 새 설치는 기존 직원 생성 마이그레이션의 `phone`, `permissions_initialized_at`, `lock_version`을 사용합니다. 이미 적용된 DB에는 전체 마이그레이션·Seeder를 재실행하지 않습니다.
+- 기존 환경은 대상 DB 확인 및 직원·역할·권한 연결 테이블 백업 후 `php artisan staff:prepare-management --apply`로 전환합니다. 이 명령 자체가 백업을 생성하지는 않습니다. MySQL 전용이며 스키마 DDL은 롤백되지 않으므로 점검 시간에 수행합니다.
+- 전환 전 유효 권한을 개인 권한으로 복사합니다. 기존 총괄에는 역할·권한 관리, 기존 총괄·개발자에는 내부 도구 권한을 보존합니다. 전환 완료 직원과 이미 편집한 템플릿은 반복 실행으로 초기화하지 않습니다.
+- 적용 후 직원 수, 기존 유효 권한 보존, 개인 권한 해제 시 차단, 직원 관리 접근 가능 계정을 확인합니다. 코드 롤백만으로 역할 상속을 되살리면 회수한 권한이 다시 허용될 수 있으므로 권한 데이터와 코드를 함께 검토합니다.
+- `AuthorizationSeeder`는 기존 직원 역할 템플릿을 덮어쓰지 않습니다. 새 권한 도입 시 기존 역할·직원에 대한 부여 정책을 별도로 결정합니다.
+
 ## 프로세스와 설정
+
+### 직원 인앱 알림 적용
+
+1. 대상 DB를 확인하고 신규 `2026_10_08_180000_create_staff_notification_tables.php`만 적용한다. 기존 테이블·직원 권한을 초기화하거나 Seeder를 실행할 필요는 없다.
+2. 직원 알림 코드와 프론트를 배포하고 `staff-notifications` 큐 소비자 및 Reverb를 확인한다. Horizon 구성에는 전용 supervisor가 있으며 기존 mail/sms/notifications 큐와 역할을 구분한다.
+3. `staff-notifications:dispatch-pending --limit=500`은 미처리 outbox와 미방송 버전을 전용 큐에 다시 넣는다. 운영 Scheduler에 매분 등록하며 전체 큐 재시도와 다르다. 실제 인앱 알림을 생성·방송하므로 읽기 전용 검사가 아니다.
+4. 정상적인 알림 저장, 수신 직원별 미읽음, 다른 직원 채널 접근 거부, 읽음 후 새 메시지, 큐·실시간 재연결 복구를 확인한다. 미처리 outbox의 `attempts/last_error/next_dispatch_at`과 상태 테이블의 `version > broadcast_version`으로 실패 범위를 좁힌다.
+5. 코드 롤백 시 신규 테이블과 기록은 보존하고 소비자를 중지한다. 업무 데이터와 연결된 발행 기록을 `migrate:rollback`으로 삭제하지 않는다.
+
+로컬 인앱 검증은 `php artisan queue:work redis --queue=staff-notifications --sleep=1 --tries=3 --timeout=60`과 `php artisan reverb:start --host=127.0.0.1 --port=8080`만으로 진행할 수 있다. 전체 Horizon·Scheduler를 검증 목적으로 실행하지 않는다. 기존 외부 발송 큐나 SMS·Push 설정을 바꿀 필요는 없다.
 
 | 프로세스  | 역할                            |
 | --------- | ------------------------------- |

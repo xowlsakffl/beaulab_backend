@@ -46,6 +46,7 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
+    Route::put('remote-consultation-quotes/{quote}/answer', [\App\Modules\Hospital\Http\Controllers\RemoteConsultation\RemoteConsultationAnswerController::class, 'update'])->whereNumber('quote')->name('remote-consultation-quotes.answer');
     Route::get('promotions', [HospitalPromotionForHospitalController::class, 'index'])->name('promotions.index');
     Route::get('promotions/{promotion}', [HospitalPromotionForHospitalController::class, 'show'])->whereNumber('promotion')->name('promotions.show');
     Route::post('promotions/{promotion}/click', [HospitalPromotionForHospitalController::class, 'click'])

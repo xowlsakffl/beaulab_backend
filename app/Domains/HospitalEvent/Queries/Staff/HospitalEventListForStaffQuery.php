@@ -12,8 +12,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class HospitalEventListForStaffQuery
 {
+    private array $pricingExpression;
+
     public function paginate(array $filters): LengthAwarePaginator
     {
+        $this->pricingExpression = app(\App\Domains\ConsultationPricing\Queries\HospitalEventPricingQuery::class)->expression();
         $builder = $this->baseBuilder();
 
         $this->applyFilters($builder, $filters);
@@ -49,8 +52,6 @@ final class HospitalEventListForStaffQuery
                 'event_price',
                 'is_vat_included',
                 'discount_rate',
-                'base_consultation_price',
-                'consultation_price',
                 'has_options',
                 'allow_status',
                 'hospital_status',
@@ -59,11 +60,13 @@ final class HospitalEventListForStaffQuery
                 'created_at',
                 'updated_at',
             ])
+            ->selectRaw('('.$this->pricingExpression[0].') as consultation_price', $this->pricingExpression[1])
+            ->selectRaw('('.$this->pricingExpression[0].') as base_consultation_price', $this->pricingExpression[1])
             ->with([
                 'hospital:id,name',
                 'managerStaff:id,name,email',
                 'categories' => fn ($query) => $query
-                    ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order'])
+                    ->select(['categories.id', 'categories.code', 'categories.domain', 'categories.name', 'categories.full_path', 'categories.depth', 'categories.sort_order', 'categories.group_code'])
                     ->orderBy('depth')
                     ->orderBy('sort_order')
                     ->orderBy('id'),
@@ -337,6 +340,17 @@ final class HospitalEventListForStaffQuery
         $builder->where(function ($query) use ($columns, $min, $max): void {
             foreach ($columns as $column) {
                 $query->orWhere(function ($nested) use ($column, $min, $max): void {
+                    if ($column === 'consultation_price') {
+                        [$expression, $bindings] = $this->pricingExpression;
+                        if ($min !== null) {
+                            $nested->whereRaw('('.$expression.') >= ?', [...$bindings, (int) $min]);
+                        }
+                        if ($max !== null) {
+                            $nested->whereRaw('('.$expression.') <= ?', [...$bindings, (int) $max]);
+                        }
+
+                        return;
+                    }
                     if ($min !== null) {
                         $nested->where($column, '>=', (int) $min);
                     }

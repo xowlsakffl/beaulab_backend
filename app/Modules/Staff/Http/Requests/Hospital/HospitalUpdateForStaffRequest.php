@@ -100,7 +100,8 @@ final class HospitalUpdateForStaffRequest extends FormRequest
         return [
             'description' => ['nullable', 'string', 'max:5000'],
             'youtube_link' => ['nullable', 'url:http,https', 'max:500'],
-            'department' => ['nullable', 'string', Rule::in(Hospital::departments())],
+            'department' => ['sometimes', 'required', 'string', Rule::in(array_merge(Hospital::activeDepartments(),
+                $this->route('hospital') instanceof Hospital ? [$this->route('hospital')->department] : []))],
             'consulting_hours' => ['nullable', 'string', 'max:5000'],
             'direction' => ['nullable', 'string', 'max:5000'],
             'address' => ['sometimes', 'required', 'string', 'max:255'],
@@ -138,8 +139,10 @@ final class HospitalUpdateForStaffRequest extends FormRequest
             'category_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('categories', 'id')->where(static function ($query): void {
-                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+                Rule::exists('categories', 'id')->where(function ($query): void {
+                    $hospital = $this->route('hospital');
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_SUBJECT,
+                        $hospital instanceof Hospital ? $hospital->categories()->pluck('categories.id')->all() : []);
                 }),
             ],
             'feature_ids' => ['sometimes', 'required', 'array', 'min:1', 'max:100'],

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
 use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\AccountStaff\Models\AccountStaff;
@@ -67,11 +66,7 @@ final class AccountStaffSeeder extends Seeder
             'status' => AccountStaff::STATUS_ACTIVE, 'email_verified_at' => now(),
         ]);
         $staff->syncRoles([$role]);
-        if ($role === AccessRoles::BEAULAB_STAFF) {
-            $staff->syncPermissions(array_values(array_filter(
-                AccessPermissions::byGuard()[AccessPermissions::GUARD_STAFF],
-                static fn (string $permission): bool => str_ends_with($permission, '.show'),
-            )));
-        }
+        $staff->syncPermissions(\Spatie\Permission\Models\Role::findByName($role, 'staff')->permissions);
+        $staff->forceFill(['permissions_initialized_at' => now()])->saveQuietly();
     }
 }

@@ -10,6 +10,7 @@ use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Dto\Staff\HospitalEventAdForStaffDetailDto;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
+use App\Domains\HospitalEventAd\Queries\HospitalEventAdPricingQuery;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdCreateForStaffQuery;
 use App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdSlotAvailabilityForStaffQuery;
 use App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache;
@@ -25,6 +26,7 @@ final class HospitalEventAdCreateForStaffAction
         private readonly HospitalEventAdSlotAvailabilityForStaffQuery $slotQuery,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
         private readonly HospitalEventAdUpdateHistoryRecordAction $historyRecordAction,
+        private readonly HospitalEventAdPricingQuery $pricingQuery,
     ) {}
 
     public function execute(array $payload): array
@@ -100,9 +102,14 @@ final class HospitalEventAdCreateForStaffAction
 
     private function resolveCost(string $placement, array $payload): int
     {
-        return filter_var($payload['is_free_event'] ?? false, FILTER_VALIDATE_BOOL)
+        $cost = filter_var($payload['is_free_event'] ?? false, FILTER_VALIDATE_BOOL)
             ? 0
-            : HospitalEventAd::placementCost($placement);
+            : $this->pricingQuery->cost($placement);
+        if (isset($payload['cost']) && (int) $payload['cost'] !== $cost) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '광고 기본 비용이 변경되었습니다. 광고 위치를 다시 선택한 뒤 등록해 주세요.');
+        }
+
+        return $cost;
     }
 
     private function assertEventAdvertisable(int $eventId, int $hospitalId): void

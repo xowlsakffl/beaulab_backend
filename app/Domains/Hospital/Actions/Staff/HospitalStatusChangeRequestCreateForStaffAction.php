@@ -8,10 +8,10 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Dto\Staff\HospitalStatusChangeRequestForStaffDto;
-use App\Domains\Hospital\Jobs\HospitalStatusChangeRequestNotificationJob;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalStatusChangeRequest;
 use App\Domains\Hospital\Queries\Staff\HospitalStatusChangeRequestForStaffQuery;
+use App\Domains\Hospital\Support\HospitalStatusChangeRequestNotificationPublisher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -19,6 +19,7 @@ final class HospitalStatusChangeRequestCreateForStaffAction
 {
     public function __construct(
         private readonly HospitalStatusChangeRequestForStaffQuery $query,
+        private readonly HospitalStatusChangeRequestNotificationPublisher $notifications,
     ) {}
 
     /** @return array{request: array, message: string} */
@@ -50,20 +51,19 @@ final class HospitalStatusChangeRequestCreateForStaffAction
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '이미 처리 대기 중인 운영상태 변경 신청이 있습니다.');
             }
 
-            return $this->query->loadDetail($this->query->create([
+            $request = $this->query->create([
                 'hospital_id' => (int) $lockedHospital->getKey(),
                 'previous_status' => (string) $lockedHospital->status,
                 'target_status' => $targetStatus,
                 'status' => HospitalStatusChangeRequest::STATUS_PENDING,
                 'reason' => trim((string) $payload['reason']),
                 'requested_by_staff_id' => (int) $actor->getKey(),
-            ]));
-        });
+            ]);
 
-        HospitalStatusChangeRequestNotificationJob::dispatch(
-            (int) $request->getKey(),
-            HospitalStatusChangeRequestNotificationJob::EVENT_REQUESTED,
-        )->afterCommit();
+            $this->notifications->requested($request);
+
+            return $this->query->loadDetail($request);
+        });
 
         return [
             'request' => HospitalStatusChangeRequestForStaffDto::fromModel($request),

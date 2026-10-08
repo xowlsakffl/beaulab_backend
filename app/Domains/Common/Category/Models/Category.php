@@ -26,6 +26,8 @@ final class Category extends Model
 
     public const DOMAIN_HOSPITAL_MEDICAL = 'HOSPITAL_MEDICAL';
 
+    public const DOMAIN_HOSPITAL_DEPARTMENT = 'HOSPITAL_DEPARTMENT';
+
     public const DOMAIN_HOSPITAL_EVALUATION = 'HOSPITAL_EVALUATION';
 
     public const DOMAIN_TALK = 'TALK';
@@ -74,6 +76,12 @@ final class Category extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        self::saved(fn () => \App\Domains\Common\Category\Support\CategoryUsageAvailability::forgetRequestCache());
+        self::deleted(fn () => \App\Domains\Common\Category\Support\CategoryUsageAvailability::forgetRequestCache());
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
@@ -121,6 +129,7 @@ final class Category extends Model
     {
         return [
             self::DOMAIN_HOSPITAL_MEDICAL,
+            self::DOMAIN_HOSPITAL_DEPARTMENT,
             self::DOMAIN_HOSPITAL_EVALUATION,
             self::DOMAIN_TALK,
             self::DOMAIN_BEAUTY,
@@ -140,6 +149,16 @@ final class Category extends Model
         ];
     }
 
+    public function displayNameFor(string $usage): string
+    {
+        return app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->presentation($this, $usage)['name'];
+    }
+
+    public function displayPathFor(string $usage): string
+    {
+        return app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->presentation($this, $usage)['full_path'];
+    }
+
     public static function groupLabel(?string $groupCode): ?string
     {
         return match ($groupCode) {
@@ -152,14 +171,17 @@ final class Category extends Model
 
     public static function constrainActiveLeafHospitalMedicalCategory($query): void
     {
+        $available = app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->idsForUsages(CategoryUsage::hospitalEventUsages());
         $query
             ->where('domain', self::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', self::STATUS_ACTIVE)
-            ->whereNotExists(static function ($children): void {
+            ->whereIn('id', $available)
+            ->whereNotExists(static function ($children) use ($available): void {
                 $children
                     ->selectRaw('1')
                     ->from('categories as child_categories')
                     ->whereColumn('child_categories.parent_id', 'categories.id')
+                    ->whereIn('child_categories.id', $available)
                     ->where('child_categories.domain', self::DOMAIN_HOSPITAL_MEDICAL)
                     ->where('child_categories.status', self::STATUS_ACTIVE);
             });

@@ -88,8 +88,8 @@ final readonly class HospitalEventForStaffDetailDto
                 'id' => (int) $category->id,
                 'code' => (string) ($category->code ?? ''),
                 'domain' => (string) ($category->domain ?? ''),
-                'name' => (string) $category->name,
-                'full_path' => (string) ($category->full_path ?? ''),
+                'name' => (string) $category->displayNameFor('HOSPITAL_EVENT'),
+                'full_path' => (string) ($category->displayPathFor('HOSPITAL_EVENT') ?? ''),
                 'depth' => (int) ($category->depth ?? 0),
                 'usage' => self::categoryUsage($category),
                 'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
@@ -191,28 +191,6 @@ final readonly class HospitalEventForStaffDetailDto
 
     private static function categoryUsage(Category $category): ?string
     {
-        static $pathsByUsage = null;
-
-        $pathsByUsage ??= CategoryUsage::activeCategoryFullPathsByUsage(CategoryUsage::hospitalEventUsages());
-
-        $fullPath = trim((string) ($category->full_path ?? ''));
-        if ($fullPath === '') {
-            $fullPath = trim((string) $category->name);
-        }
-
-        foreach ($pathsByUsage as $usage => $rootPaths) {
-            foreach ($rootPaths as $rootPath) {
-                $rootPath = trim((string) $rootPath);
-                if ($rootPath === '') {
-                    continue;
-                }
-
-                if ($fullPath === $rootPath || str_starts_with($fullPath, $rootPath.' > ')) {
-                    return (string) $usage;
-                }
-            }
-        }
-
-        return null;
+        return CategoryUsage::eventUsageForGroup($category->group_code);
     }
 }

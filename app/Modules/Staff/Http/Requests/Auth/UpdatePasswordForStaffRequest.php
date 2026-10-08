@@ -3,6 +3,7 @@
 namespace App\Modules\Staff\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 /**
  * UpdatePasswordForStaffRequest 역할 정의.
@@ -19,7 +20,7 @@ final class UpdatePasswordForStaffRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string', 'max:255'],
-            'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
+            'password' => ['required', 'string', 'max:72', Password::min(12)->letters()->numbers(), 'confirmed', 'different:current_password'],
         ];
     }
 

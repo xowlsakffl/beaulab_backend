@@ -388,8 +388,8 @@ final readonly class HospitalForStaffDetailDto
                 'domain' => (string) $rootCategory->domain,
                 'parent_id' => $rootCategory->parent_id !== null ? (int) $rootCategory->parent_id : null,
                 'depth' => (int) $rootCategory->depth,
-                'name' => (string) $rootCategory->name,
-                'full_path' => (string) ($rootCategory->full_path ?: $rootCategory->name),
+                'name' => (string) $rootCategory->displayNameFor('HOSPITAL_SUBJECT'),
+                'full_path' => (string) ($rootCategory->displayPathFor('HOSPITAL_SUBJECT') ?: $rootCategory->displayNameFor('HOSPITAL_SUBJECT')),
                 'is_primary' => false,
             ];
 

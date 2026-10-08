@@ -29,6 +29,7 @@ final class HospitalEventDBListForStaffRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:100'],
+            'hospital_event_db_id' => ['nullable', 'integer', 'min:1'],
             'account_user_id' => ['nullable', 'integer', 'min:1'],
             'hospital_id' => ['nullable', 'integer', Rule::exists('hospitals', 'id')->whereNull('deleted_at')],
             'hospital_event_id' => ['nullable', 'integer', Rule::exists('hospital_events', 'id')->whereNull('deleted_at')],
@@ -58,6 +59,7 @@ final class HospitalEventDBListForStaffRequest extends FormRequest
 
         return [
             'q' => $validated['q'] ?? null,
+            'hospital_event_db_id' => $validated['hospital_event_db_id'] ?? null,
             'account_user_id' => $validated['account_user_id'] ?? null,
             'hospital_id' => $validated['hospital_id'] ?? null,
             'hospital_event_id' => $validated['hospital_event_id'] ?? null,
@@ -81,6 +83,7 @@ final class HospitalEventDBListForStaffRequest extends FormRequest
     {
         return [
             'q' => '검색어',
+            'hospital_event_db_id' => '이벤트 DB ID',
             'account_user_id' => '회원',
             'hospital_id' => '병의원',
             'hospital_event_id' => '이벤트',

@@ -2,13 +2,13 @@
 
 namespace App\Domains\AccountStaff\Actions\Staff\Auth;
 
-use App\Common\Exceptions\CustomException;
-use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountStaff\Queries\Staff\Auth\PasswordUpdateForStaffQuery;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 /**
  * 스태프 비밀번호 변경 유스케이스.
@@ -28,27 +28,28 @@ final class PasswordUpdateForStaffAction
     {
         Gate::authorize('updateProfile', $staff);
 
-        if (! Hash::check($filters['current_password'], $staff->password)) {
-            Log::warning('뷰랩 직원 비밀번호 변경 실패', [
-                'reason' => 'current_password_mismatch',
-                'staff_id' => $staff->id,
-            ]);
+        DB::transaction(function () use ($staff, $filters): void {
+            $current = AccountStaff::query()->whereKey($staff->id)->lockForUpdate()->firstOrFail();
+            abort_unless($current->isActive(), 403);
+            Gate::forUser($current)->authorize('updateProfile', $current);
+            if (! Hash::check($filters['current_password'], $current->password)) {
+                Log::warning('뷰랩 직원 비밀번호 변경 실패', [
+                    'reason' => 'current_password_mismatch',
+                    'staff_id' => $staff->id,
+                ]);
 
-            throw new CustomException(
-                errorCode: ErrorCode::INVALID_REQUEST,
-                message: '현재 비밀번호가 올바르지 않습니다.',
-                details: ['field' => 'current_password']
-            );
-        }
+                throw ValidationException::withMessages(['current_password' => '현재 비밀번호가 올바르지 않습니다.']);
+            }
 
-        $this->query->update($staff, (string) $filters['password']);
+            $this->query->update($current, (string) $filters['password']);
+        });
 
         Log::info('뷰랩 직원 비밀번호 변경', [
             'staff_id' => $staff->id,
         ]);
 
         return [
-            'message' => 'Password updated',
+            'message' => '비밀번호가 변경되었습니다. 다시 로그인해 주세요.',
         ];
     }
 }

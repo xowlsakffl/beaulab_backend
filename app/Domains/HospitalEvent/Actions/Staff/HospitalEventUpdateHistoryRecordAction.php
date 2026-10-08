@@ -2,17 +2,20 @@
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Domains\HospitalEvent\Support\HospitalEventNotificationPublisher;
 use Illuminate\Database\Eloquent\Model;
 
 final class HospitalEventUpdateHistoryRecordAction
 {
     public function __construct(
         private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalEventNotificationPublisher $notifications,
     ) {}
 
     /**
@@ -317,7 +320,7 @@ final class HospitalEventUpdateHistoryRecordAction
 
         $actor = auth()->user();
 
-        $this->historyCreateAction->execute(
+        $history = $this->historyCreateAction->execute(
             target: $event,
             action: $action,
             actor: $actor instanceof Model ? $actor : null,
@@ -325,5 +328,25 @@ final class HospitalEventUpdateHistoryRecordAction
             metadata: ['source' => $source] + $metadata,
             changes: $changes,
         );
+
+        $actorStaffId = $actor instanceof AccountStaff ? (int) $actor->id : null;
+        if ($action === OperationHistory::ACTION_CREATED) {
+            $this->notifications->created($event, $actorStaffId);
+
+            return;
+        }
+
+        // 일반 수정과 일괄 상태 변경은 같은 상태 이력 ID로 신청 알림을 기록한다.
+        foreach ($changes as $change) {
+            if ($change['field_key'] === 'allow_status') {
+                $this->notifications->allowStatusChanged(
+                    $event,
+                    (string) $change['before_value'],
+                    (string) $change['after_value'],
+                    (int) $history->id,
+                    $actorStaffId,
+                );
+            }
+        }
     }
 }

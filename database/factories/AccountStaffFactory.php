@@ -47,6 +47,8 @@ final class AccountStaffFactory extends Factory
         return $this->afterCreating(function (AccountStaff $staff) use ($role): void {
             app(PermissionRegistrar::class)->forgetCachedPermissions();
             $staff->syncRoles([$role]);
+            $staff->syncPermissions(\Spatie\Permission\Models\Role::findByName($role, 'staff')->permissions);
+            $staff->forceFill(['permissions_initialized_at' => now()])->saveQuietly();
         });
     }
 

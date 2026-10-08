@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalEvent\Actions\Staff;
 
+use App\Domains\Common\Notification\Actions\StaffNotificationPublisher;
 use App\Domains\HospitalEvent\Models\HospitalEventRealModelDB;
 use App\Domains\HospitalEvent\Queries\Staff\HospitalEventRealModelDBStatusUpdateForStaffQuery;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ final class HospitalEventRealModelDBStatusUpdateForStaffAction
     public function __construct(
         private readonly HospitalEventRealModelDBStatusUpdateForStaffQuery $query,
         private readonly HospitalEventRealModelDBUpdateHistoryRecordAction $historyRecordAction,
+        private readonly StaffNotificationPublisher $notifications,
     ) {}
 
     public function execute(array $payload): array
@@ -41,6 +43,10 @@ final class HospitalEventRealModelDBStatusUpdateForStaffAction
                     $payload['reason'] ?? null,
                     count($existingIds) > 1,
                 );
+
+                if ((string) $application->status !== $status) {
+                    $this->notifications->invalidateTarget('hospital_event_real_model_db', (int) $application->id);
+                }
             }
 
             return [

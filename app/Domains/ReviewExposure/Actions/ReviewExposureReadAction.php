@@ -18,7 +18,10 @@ final class ReviewExposureReadAction
     {
         Gate::authorize('viewAny', ReviewExposure::class);
 
-        return $this->query->categories()->get(['id', 'name', 'group_code'])->toArray();
+        return $this->query->categories()->get(['id', 'name', 'group_code'])
+            ->filter(fn ($row) => app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->presentation($row, 'HOSPITAL_REVIEW')['enabled'])
+            ->sortBy(fn ($row) => app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->presentation($row, 'HOSPITAL_REVIEW')['sort_order'])
+            ->map(fn ($row) => ['id' => $row->id, 'name' => $row->displayNameFor('HOSPITAL_REVIEW'), 'group_code' => $row->group_code])->values()->all();
     }
 
     public function board(array $filters): array

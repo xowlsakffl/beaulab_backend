@@ -46,7 +46,7 @@ final class HospitalDoctorListForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static function ($query): void {
-                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_DOCTOR_SUBJECT);
                 }),
             ],
             'metric' => ['nullable', Rule::in(['career_years', 'review_count', 'consultation_count'])],

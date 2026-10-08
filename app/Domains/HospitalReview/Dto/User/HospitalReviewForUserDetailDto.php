@@ -165,7 +165,7 @@ final readonly class HospitalReviewForUserDetailDto
             'id' => (int) $category->id,
             'code' => (string) ($attributes['code'] ?? ''),
             'domain' => (string) ($attributes['domain'] ?? $review->category_domain),
-            'name' => (string) $category->name,
+            'name' => (string) $category->displayNameFor('HOSPITAL_REVIEW'),
             'full_path' => (string) ($attributes['full_path'] ?? ''),
             'is_primary' => (bool) ($category->pivot?->is_primary ?? false),
         ];

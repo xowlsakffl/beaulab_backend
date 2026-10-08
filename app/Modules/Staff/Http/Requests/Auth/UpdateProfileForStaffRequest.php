@@ -18,9 +18,17 @@ final class UpdateProfileForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'string', 'max:255'],
-            'department' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'job_title' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'name' => ['sometimes', 'required', 'string', 'max:100'],
+            'phone' => ['sometimes', 'required', 'string', 'regex:/^0[0-9]{8,10}$/'],
+            'version' => ['required', 'integer', 'min:0'],
+            'nickname' => ['prohibited'],
+            'email' => ['prohibited'],
+            'department' => ['prohibited'],
+            'job_title' => ['prohibited'],
+            'role' => ['prohibited'],
+            'roles' => ['prohibited'],
+            'permissions' => ['prohibited'],
+            'status' => ['prohibited'],
         ];
     }
 
@@ -28,22 +36,28 @@ final class UpdateProfileForStaffRequest extends FormRequest
     {
         return [
             'name' => '이름',
+            'phone' => '전화번호',
+            'version' => '정보 버전',
+            'nickname' => '직원 ID',
+            'email' => '이메일',
+            'role' => '역할',
+            'roles' => '역할',
+            'permissions' => '권한',
+            'status' => '계정 상태',
             'department' => '부서',
-            'job_title' => '직함/직무',
+            'job_title' => '직급',
         ];
     }
 
     public function filters(): array
     {
-        $data = $this->validated();
+        return $this->validated();
+    }
 
-        // 빈 문자열 -> null (nullable 필드)
-        foreach (['department', 'job_title'] as $key) {
-            if (array_key_exists($key, $data) && $data[$key] === '') {
-                $data[$key] = null;
-            }
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('phone'))) {
+            $this->merge(['phone' => preg_replace('/[\s()-]/', '', $this->input('phone'))]);
         }
-
-        return $data;
     }
 }

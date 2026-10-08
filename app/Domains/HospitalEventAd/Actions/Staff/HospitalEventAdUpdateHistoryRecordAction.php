@@ -2,17 +2,20 @@
 
 namespace App\Domains\HospitalEventAd\Actions\Staff;
 
+use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryChangeSetBuilder;
 use App\Domains\Common\OperationHistory\Support\OperationHistoryDisplayValue;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
+use App\Domains\HospitalEventAd\Support\HospitalEventAdNotificationPublisher;
 use Illuminate\Database\Eloquent\Model;
 
 final class HospitalEventAdUpdateHistoryRecordAction
 {
     public function __construct(
         private readonly OperationHistoryCreateAction $historyCreateAction,
+        private readonly HospitalEventAdNotificationPublisher $notifications,
     ) {}
 
     /**
@@ -169,7 +172,7 @@ final class HospitalEventAdUpdateHistoryRecordAction
 
         $actor = auth()->user();
 
-        $this->historyCreateAction->execute(
+        $history = $this->historyCreateAction->execute(
             target: $ad,
             action: $action,
             actor: $actor instanceof Model ? $actor : null,
@@ -177,5 +180,24 @@ final class HospitalEventAdUpdateHistoryRecordAction
             metadata: ['source' => $source, ...$metadata],
             changes: $changes,
         );
+
+        $actorStaffId = $actor instanceof AccountStaff ? (int) $actor->id : null;
+        if ($action === OperationHistory::ACTION_CREATED) {
+            $this->notifications->created($ad, $actorStaffId);
+
+            return;
+        }
+
+        foreach ($changes as $change) {
+            if ($change['field_key'] === 'allow_status') {
+                $this->notifications->allowStatusChanged(
+                    $ad,
+                    (string) $change['before_value'],
+                    (string) $change['after_value'],
+                    (int) $history->id,
+                    $actorStaffId,
+                );
+            }
+        }
     }
 }

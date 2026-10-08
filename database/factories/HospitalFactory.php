@@ -20,10 +20,14 @@ final class HospitalFactory extends Factory
     public function definition(): array
     {
         $name = '뷰랩'.fake()->unique()->numerify('######').'의원';
+        $departments = Hospital::activeDepartments();
+        if ($departments === []) {
+            throw new \RuntimeException('활성 분과가 없습니다. CategorySeeder의 기본 분과 준비 여부를 확인해 주세요.');
+        }
 
         return [
             'name' => $name,
-            'department' => $this->faker->randomElement(Hospital::departments()),
+            'department' => $this->faker->randomElement($departments),
             'description' => $this->faker->optional(0.7)->randomElement(['충분한 상담을 통해 개인별 진료 계획을 안내합니다.', '상담부터 사후 관리까지 세심하게 안내하는 병의원입니다.']),
             'youtube_link' => $this->faker->optional(0.5)->randomElement([
                 'https://www.youtube.com/@beaulabclinic',

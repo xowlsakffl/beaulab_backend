@@ -2,6 +2,86 @@
 
 프론트엔드 연동과 새 API 개발의 공통 계약입니다. 개별 필드·선택값·권한 이름의 최종 기준은 각 Request, DTO, Policy입니다.
 
+## 직원 알림
+
+기본 경로는 `/api/v1/staff/notifications`입니다. 직원 웹 세션·CSRF·`common.access`를 사용하며 항목별 현재 업무 권한으로 수신함을 제한합니다. 다른 직원의 ID를 입력받는 API는 없습니다.
+
+| 메서드·하위 경로 | 입력 / 응답 data |
+| --- | --- |
+| GET 기본 경로 | `unread_only`, `event_type`, `start_date/end_date`, `cursor`, `limit`(기본 20, 최대 50). `{items,next_cursor,unread_count,read_all_token,types}` |
+| GET `/unread-count` | `{unread_count,read_all_token}`. 개수는 미읽음 행 수이며 메시지 집계 수 합계가 아님 |
+| PATCH `/{id}/read` | `expected_event_count`, 선택적 `latest_message_id`. `{notification,changed,unread_count}` |
+| POST `/read-all` | 조회 응답의 `read_all_token`. `{updated_count,unread_count}` |
+| GET `/preferences` | `{preferences:[{event_type,title,target_type,in_app}]}` |
+| PUT `/preferences` | `{preferences:[{event_type,in_app}]}`. 자기 수신 설정만 저장 |
+
+날짜는 한국 시간 기준 날짜 경계를 사용합니다. 커서와 전체 읽음 토큰은 직원·권한·필터에 묶인 불투명 값으로 만료되거나 조건이 달라지면 422입니다. 클라이언트는 토큰을 해석하지 않고 목록을 다시 조회합니다. 개별 읽음 버전이 달라졌으면 `changed:false`이며 새로운 미읽음을 보존합니다.
+
+항목의 `target_route`는 기존 직원 화면의 상대 경로입니다. 삭제된 대상은 `target_available:false`, `target_route:null`을 반환합니다. 원본의 최신 상태와 `target_actionable`은 읽음과 독립적입니다. 개인정보 본문을 알림에 복제하지 않으며 메타데이터는 병의원·대상 이름과 식별자로 제한합니다. 저장·중복 방지·실시간·배포 순서는 [메시징](messaging.md#직원-업무-알림)을 따릅니다.
+
+## 금지어 설정
+
+- 직원 `/api/v1/staff/harmful-words` GET은 `q`, `scopes[]`, `statuses[]`, `page`를 받는 20개 단위 목록이다. `beaulab.harmful_word.show` 또는 `manage` 권한으로 조회하며 변경은 `manage`만 허용한다. 역할 우회는 없다.
+- POST `/validate`는 줄바꿈·쉼표로 구분한 최대 200개 단어의 신규·중복·오류를 분석한다. POST 기본 경로는 `text`, `scopes`, `matching_mode`, `detect_variants`, `status`, `exceptions`를 받으며 다시 검증한다. 정규화 후 중복은 제외하고 미사용 단어를 자동 활성화하지 않는다. 입력 오류가 있으면 전체 등록을 거절한다.
+- PUT은 `operation=edit|enable|disable|delete`, `items=[{id,lock_version}]`를 받는다. edit은 한 개이며 `word`와 위 설정값을 모두 지정한다. 일괄 변경은 최대 50개, 버전 확인·행 잠금·운영 이력을 같은 트랜잭션에 포함한다. 기존 조회 화면은 현재 페이지의 선택만 전송한다.
+- POST `/check`는 조회 권한으로 `scope/text`를 검사하는 읽기 전용 API다. `allowed`, `active_rule_count`, 최대 20개의 `matches`(rule_id, word, expression)를 반환한다. 표현은 정규화된 검사 사본이므로 원문의 위치 인덱스가 아니다. 분당 60회로 제한하며 검사 문장을 이력·로그에 저장하지 않는다.
+- 영역은 `REVIEW/TALK/EVALUATION/COMMENT/NICKNAME`이다. 공통 검사기는 후기·토크 제목/본문, 토크 투표 항목, 후기·토크 댓글/답글, 변경된 프로필 닉네임과 자동 생성 조합에 연결했다. 현재 평가 작성 API, 일반회원 게시물 수정 API, 일반회원 가입 API가 없어 해당 연결은 향후 구현 시 필요하다. 평가 사전 설정이 존재해도 작성 기능 구현을 의미하지 않는다.
+- 차단은 저장·파일 첨부 전에 `INVALID_REQUEST` 422와 `details.errors`의 필드별 오류로 응답한다. 예: `title`, `content`, `poll.options.0`, `nickname`. 원문을 치환하거나 기존 게시물·회원 닉네임을 소급 수정하지 않는다. 새 소비자는 실패 시 초안·첨부 선택을 유지하고 해당 필드 오류를 표시해야 한다.
+- `2026_10_08_120000_create_harmful_words_tables.php`는 금지어·영역·예외 테이블을 새로 만든다. 초기 사전은 비워 두며 Seeder를 자동 실행하지 않는다. 배포 전 테이블과 권한을 준비해야 하며 사전 조회 실패를 정상 통과로 취급하지 않는다. 실제 단어와 예외의 적절성은 운영자가 문장 검사로 확인한다.
+
+## 자동 닉네임
+
+- 직원 `/api/v1/staff/nickname-words`의 GET은 `type=ADJECTIVE|NOUN`, `q`, `status=ACTIVE|INACTIVE`, `page`를 받으며 20개 단위 목록·전체/사용 개수를 반환한다. 조회는 `beaulab.nickname.show` 또는 `beaulab.nickname.manage`, 모든 변경은 `beaulab.nickname.manage`가 필요하다. 역할에 의한 우회는 없다.
+- POST `/validate`는 `type/text`를 읽기 전용으로 분석한다. 공백·줄바꿈·쉼표로 구분해 최대 200개를 처리하며 한글 완성형 1~20자만 허용한다. 입력 내 중복과 기존 단어는 제외 대상으로 반환한다. POST 기본 경로는 같은 입력을 다시 검증하고, 잘못된 단어가 하나라도 있으면 전체 등록을 거절한다. 미사용 단어도 중복으로 취급하며 자동 활성화하지 않는다.
+- PUT은 `type`, `operation=edit|enable|disable|delete`, `items=[{id,lock_version}]`를 받는다. edit은 한 개만 지정하고 `word`가 필요하다. 같은 종류의 행 잠금과 버전 검사로 동시 덮어쓰기 및 마지막 활성 단어 제거를 차단하며, 변경·운영 이력을 한 트랜잭션으로 저장한다. 종류 변경은 지원하지 않는다.
+- GET `/preview`는 실제 생성 규칙에 따른 최대 5개 예시이며 닉네임을 예약하지 않는다. 생성은 활성 형용사+명사, 기본 숫자 없음이다. 기존 회원(소프트 삭제 포함)과 중복된 조합에만 1~999999 숫자를 붙인다. 최대 길이는 46자이며 기존 프로필의 50자 제한 안이다. 단어 변경은 기존 회원을 수정하지 않는다. 생성 단어 풀의 영속 캐시는 두지 않아 다음 요청부터 현재 설정을 읽는다.
+- `AccountUserCreateWithNicknameAction::execute($validatedAttributes)`는 가입 자격·필수값을 검증한 내부 가입 흐름에서 호출할 진입점이다. 최종 회원 INSERT의 닉네임 고유키 충돌만 제한적으로 재시도하며 다른 고유키 오류는 보존한다. 현재 일반회원 가입·소셜가입 API는 없으므로 해당 API가 생길 때 이 Action을 연결해야 한다. 인증 없는 가입 API를 추가하지 않았다. 금지어 검사는 `NICKNAME` 영역의 활성 규칙으로 완성된 조합과 숫자 접미사 결과를 모두 검사한다. 금지어에 걸린 기본 조합을 숫자로 우회하지 않으며, 최대 30회 시도 후 실패하면 설정 확인 오류를 반환한다.
+- 신규 테이블은 `2026_10_07_200000_create_nickname_words_table.php`로 생성한다. `NicknameWordSeeder`는 해당 종류가 완전히 비어 있을 때만 초기 형용사·명사 각각 20개를 넣고, 기존 단어·사용 여부를 덮어쓰거나 삭제한 단어를 재추가하지 않는다. 기존 DB 적용은 승인된 대상에서 이 마이그레이션과 이 Seeder만 지정한다. 신규 권한은 기존 AuthorizationSeeder 정의에 포함되며, 전환된 기존 직원에게는 승인된 권한만 별도 부여한다.
+
+## 카테고리 관리
+
+- `GET /api/v1/staff/categories/management?domain=...`는 해당 도메인의 전체 트리, 연결 콘텐츠 수, 사용처별 직접 설정과 상위 상태를 반영한 유효 설정, 수정 버전을 반환한다.
+- `POST /api/v1/staff/categories/management`는 조회한 `version`, `domain`, `operation=create|update|delete|reorder|usage|label`을 받는다. 등록·이름 수정·삭제·순서는 `beaulab.category.manage`, 사용처 설정은 `beaulab.category.status_update`가 필요하다. 공통 상태 변경은 기존 수정 Policy에 따라 두 권한이 모두 필요하다. 화면 조회는 둘 중 하나로 가능하다.
+- 이름·코드·부모·그룹은 `categories`, 업무별 표시명(`display_name`)·사용·메뉴 노출·순서는 `category_usages`, 기존 콘텐츠 연결은 `category_assignments`를 유지한다. 의료 분류는 성형·쁘띠·기획전을 구분하며 최대 3단계다. 토크·뷰티·FAQ·병의원 평가·분과와 챗봇 Q&A는 의료 분류와 섞지 않는다.
+- `label`은 `usage/id/display_name`으로 해당 업무의 이름만 바꾼다. 빈 값은 공통 이름을 따른다. selector와 콘텐츠 응답은 업무별 이름·경로를 반환하지만 DB의 공통 이름·ID·경로와 가격 판정은 바꾸지 않는다. 의료 분류의 공통 수정·삭제는 `confirm_global=true`가 필요하다.
+- 병의원 진료과목(`HOSPITAL_SUBJECT`)과 의료진 진료분야(`DOCTOR_SUBJECT`)는 별도 설정이다. 기존 `HOSPITAL_DOCTOR_SUBJECT`를 복사해 시작하며, 구형 계약은 유지하지만 새 화면은 이를 변경하지 않는다. 분과는 `HOSPITAL_DEPARTMENT` 단층 트리이며 `categories.code`와 기존 `hospitals.department` 코드로 연결한다. 코드 변경 및 사용 중인 분과 삭제는 금지하고, 비활성 분과는 새 선택에서 제외하되 기존 병의원의 값을 유지한다.
+- 기존 사용처 행이 없는 하위 분류는 부모의 사용 설정을 상속한다. 신규 분류는 선택한 사용처만 사용하도록 명시적으로 저장한다. 부모 중지·숨김은 하위의 유효 상태에 반영하되 하위의 직접 설정을 덮어쓰지 않는다.
+- 메뉴 노출은 사용 여부와 별개이며 콘텐츠 연결·공개 상태를 변경하지 않는다. selector는 `usage`를 모든 단계에 전달하고, `is_menu_visible=true`를 지정한 조회만 메뉴에서 숨긴 항목을 제외한다. 사용자 앱의 메뉴 UI 연결은 별도 소비자가 이 계약을 사용해야 한다.
+- 순서는 같은 도메인·그룹·부모의 전체 형제 ID로만 변경한다. 부모 이동·병합은 제공하지 않는다. 삭제 시 하위 분류, 다형 연결, 비대면 상담, 노출설정, 상담 단가 참조를 검사한다. 이름·상태·사용처·순서 변경은 기존 운영 이력에 기록한다.
+- 광고 예약 잠금과 분류 잠금, 버전 비교로 관리 화면의 동시 덮어쓰기를 차단한다. 예약·진행 중인 승인 유료 광고가 연결된 분류는 중지·숨김을 거절한다. 광고 승인 및 승인 광고 수정도 잠금 안에서 현재 분류의 사용·노출을 재확인한다.
+- 기존 DB에는 `category_usages.is_menu_visible` (`boolean NOT NULL DEFAULT true`)와 `display_name` (`varchar(120) NULL`)이 필요하다. 생성 마이그레이션에 반영했으며, 기존 DB는 승인된 대상에서 `php artisan category:prepare-management --apply`로 준비한다. 먼저 `storage/app/private/category-management`에 연결 데이터까지 JSON 백업하고 누락 컬럼·분과 7개·병의원/의료진 사용처만 추가한다. 재실행은 기존 설정을 덮어쓰지 않는다. MySQL DDL은 트랜잭션 롤백 대상이 아니므로 실패 시 남은 스키마를 확인하고 재실행한다. `migrate:fresh`, 전체 재시딩·초기화는 하지 않는다.
+
+## 상담신청 단가
+
+상담신청 단가 설정은 별도 `/api/v1/staff/consultation-pricing`의 GET/PUT/DELETE로 제공한다. `beaulab.db_pricing.manage` 권한이 필요하며 PUT은 즉시/예약 저장, DELETE는 `pending_id`와 `lock_version`이 일치하는 미래 예약 취소다. GET `/consultation-pricing/preview`는 이벤트 조회·등록·수정 중 하나의 권한으로 대표 카테고리와 가격의 현재 단가를 확인한다. 단가 계약과 초기화는 [충전금](hospital-wallet.md#상담신청-단가)을 따른다.
+
+병의원 답변 저장은 PUT `/api/v1/hospital/remote-consultation-quotes/{quote}/answer`다. 활성 병의원 계정의 소유 견적이며 관리자 승인이 완료된 신청에만 허용한다. 입력은 `answer`, `total_amount`이며 단가·과금 여부는 서버가 결정한다. 실제 소진은 최초 답변 시에만 발생한다.
+
+## 광고비용 설정
+
+- `/api/v1/staff/ad-pricing` GET/PUT/DELETE는 `beaulab.ad_pricing.manage` 권한으로 보호한다. 역할명에 의한 우회는 없다.
+- `group`은 기존 광고 그룹 `main/surgery/petit/etc`다. GET은 현재 가격표, 서버 시각, `lock_version`, `current_version_id`, 미래 예약을 반환한다.
+- PUT은 그룹 내 모든 위치의 `prices` 맵, `lock_version`, `current_version_id`(최초 0), 선택적인 `effective_at`(시간대 포함)을 받는다. 미지정 시 즉시 적용한다. DELETE는 같은 버전 정보와 `pending_id`로 아직 적용되지 않은 예약만 취소한다.
+- 위치별 상세 설정 API는 아직 제공하지 않는다. 가격 단위·기존 광고 보존 정책은 [광고 기본 비용](hospital-wallet.md#광고-기본-비용)을 따른다.
+
+## 직원 내 프로필
+
+- `GET /api/v1/staff/profile`은 `common.profile.show`로 본인 정보와 현재 권한을 조회합니다. 기존 필드에 `phone`, `department`, `job_title`, `version`을 포함합니다. 다른 직원 ID는 입력받지 않습니다.
+- `PATCH|PUT /api/v1/staff/profile`은 `common.profile.update`로 이름·전화번호만 수정합니다. 조회 응답의 `version`은 필수이고 `name/phone`은 변경한 필드만 전달합니다. 전화번호의 공백·괄호·하이픈을 제거한 뒤 직원 등록과 같은 형식을 검사합니다. 직원 ID·이메일·부서·직급·역할·권한·상태 변경은 직원 관리 API를 사용합니다.
+- 저장 시 계정 행을 잠그고 현재 계정 상태·권한·`lock_version`을 재검사합니다. 변경이 있으면 버전을 증가시키며 오래된 요청은 `details.errors.version` 422로 거절합니다. 응답은 `{profile}`입니다. 기존 프로필 수정 소비자는 필수 버전과 수정 허용 필드 변경에 맞춰 함께 배포해야 합니다. 스키마 변경은 없습니다.
+- `PATCH|PUT /api/v1/staff/password`은 같은 수정 권한으로 `current_password`, `password`, `password_confirmation`을 받습니다. 새 비밀번호는 직원 등록과 같은 최소 12자·문자·숫자·최대 72자 조건이며 현재 비밀번호와 달라야 합니다. 현재 비밀번호 확인·저장·기존 Sanctum 토큰 삭제를 한 트랜잭션에서 처리하고 수정 버전을 증가시킵니다. 현재 비밀번호 불일치는 `details.errors.current_password`로 반환합니다.
+- 변경 후 기존 웹 세션은 비밀번호 지문 불일치로 다음 인증 요청에서 거절됩니다. 클라이언트는 메모리 세션을 지우고 다른 탭에 인증 변경을 알린 뒤 로그인으로 이동합니다. 실제 비밀번호는 로그·응답에 포함하지 않습니다.
+
+## 직원 관리
+
+- 기본 경로는 `/api/v1/staff/staffs`입니다. GET 목록, POST 등록, GET/PUT/DELETE `/{staff}`, GET `/options`, PUT `/role-template`, GET `/{staff}/operation-histories`를 제공합니다.
+- 조회·등록·수정·삭제는 기존 `beaulab.staff.*` 권한으로 검사합니다. 역할·개인 권한·역할 템플릿 변경은 추가로 `beaulab.staff.permissions_manage`가 필요하며 자신에게 없는 권한을 부여할 수 없습니다.
+- 역할은 총괄(`beaulab.super_admin`), 매니저(`beaulab.admin`), 사원(`beaulab.staff`), 개발자(`beaulab.dev`)입니다. 등록과 역할 변경 시에만 해당 역할 기본권한을 개인 권한으로 복사합니다. 같은 역할의 개인 권한 변경은 그대로 저장하며, 역할 템플릿 변경은 기존 직원에게 소급하지 않습니다.
+- 전환 완료 직원(`permissions_initialized_at` 존재)의 `can()`과 인증 응답은 개인 권한만 사용합니다. 총괄·개발자도 우회하지 않습니다. 내부 도구 접근은 `beaulab.internal_tool.show`와 기존 도구 허용 설정을 함께 검사합니다.
+- 수정은 응답의 `version`과 `updated_at`을 보내야 합니다. 템플릿 수정은 해당 템플릿 `version` 해시가 필요합니다. 오래된 요청은 422로 거절합니다.
+- 다른 직원의 비밀번호·이메일 변경과 재활성화는 역할·권한 관리 권한 및 대상의 기존 권한을 모두 보유해야 합니다. 본인 삭제·차단 및 마지막 권한 관리 가능 직원의 접근 제거는 차단합니다. 삭제는 소프트 삭제이며 운영 이력을 남깁니다.
+- 부서·직급은 기존 `department/job_title`, 전화번호는 `phone`입니다. 등록에는 역할만 선택하고 권한표는 수정 화면에서 편집합니다. 관리자 메모·히스토리 조회는 대상 도메인의 기존 조회 권한을 유지합니다.
+
 ## 경로와 응답
 
 기본 경로는 `/api/v1/{staff|hospital|beauty|user}`입니다.

@@ -11,6 +11,7 @@ final class CategoryDefinitions
 {
     private const TREES = [
         Category::DOMAIN_HOSPITAL_MEDICAL => 'hospital_medical',
+        Category::DOMAIN_HOSPITAL_DEPARTMENT => 'hospital_department',
         Category::DOMAIN_HOSPITAL_EVALUATION => 'hospital_evaluation',
         Category::DOMAIN_BEAUTY => 'beauty',
         Category::DOMAIN_TALK => 'talk',
@@ -19,6 +20,8 @@ final class CategoryDefinitions
 
     private const HOSPITAL_MEDICAL_USAGES = [
         CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT => 'hospital_doctor_subject',
+        CategoryUsage::USAGE_HOSPITAL_SUBJECT => 'hospital_doctor_subject',
+        CategoryUsage::USAGE_DOCTOR_SUBJECT => 'hospital_doctor_subject',
         CategoryUsage::USAGE_HOSPITAL_REVIEW_SURGERY => 'hospital_review_surgery',
         CategoryUsage::USAGE_HOSPITAL_REVIEW_TREATMENT => 'hospital_review_treatment',
         CategoryUsage::USAGE_HOSPITAL_EVENT_SURGERY => 'hospital_event_surgery',

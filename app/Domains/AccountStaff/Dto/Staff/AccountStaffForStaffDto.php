@@ -13,11 +13,15 @@ final readonly class AccountStaffForStaffDto
         public int $id,
         public string $name,
         public string $nickname,
-        public string $email,
+        public ?string $email,
         public string $status,
         public ?string $lastLoginAt,
         public string $createdAt,
         public string $updatedAt,
+        public ?string $phone,
+        public ?string $department,
+        public ?string $jobTitle,
+        public int $version,
     ) {}
 
     public static function fromModel(AccountStaff $staff): self
@@ -31,6 +35,10 @@ final readonly class AccountStaffForStaffDto
             lastLoginAt: $staff->last_login_at?->toISOString(),
             createdAt: $staff->created_at?->toISOString() ?? '',
             updatedAt: $staff->updated_at?->toISOString() ?? '',
+            phone: $staff->phone,
+            department: $staff->department,
+            jobTitle: $staff->job_title,
+            version: (int) $staff->lock_version,
         );
     }
 
@@ -45,6 +53,10 @@ final readonly class AccountStaffForStaffDto
             'last_login_at' => $this->lastLoginAt,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
+            'phone' => $this->phone,
+            'department' => $this->department,
+            'job_title' => $this->jobTitle,
+            'version' => $this->version,
         ];
     }
 }

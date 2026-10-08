@@ -22,7 +22,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
         $featureIds = $this->normalizeIdList($this->input('feature_ids'));
         $operationHours = $this->normalizeOperationHours($this->input('operation_hours'));
 
-        $mergePayload = [];
+        $mergePayload = ['department' => $this->input('department') ?: Hospital::DEPARTMENT_OTHER];
 
         if (is_string($businessNumber)) {
             $mergePayload['business_number'] = BusinessNumber::normalize($businessNumber);
@@ -54,7 +54,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:hospitals,name'],
-            'department' => ['nullable', 'string', Rule::in(Hospital::departments())],
+            'department' => ['required', 'string', Rule::in(Hospital::activeDepartments())],
             'description' => ['nullable', 'string', 'max:5000'],
             'youtube_link' => ['nullable', 'url:http,https', 'max:500'],
             'consulting_hours' => ['nullable', 'string', 'max:5000'],
@@ -95,7 +95,7 @@ final class HospitalCreateForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static function ($query): void {
-                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+                    CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_SUBJECT);
                 }),
             ],
             'feature_ids' => ['required', 'array', 'min:1', 'max:100'],

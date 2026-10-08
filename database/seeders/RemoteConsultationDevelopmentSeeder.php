@@ -25,7 +25,7 @@ final class RemoteConsultationDevelopmentSeeder extends Seeder
         }
 
         $categories = Category::query();
-        CategoryUsage::constrainActiveCategoryExists($categories, CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT);
+        CategoryUsage::constrainActiveCategoryExists($categories, CategoryUsage::USAGE_HOSPITAL_SUBJECT);
         $categories = $categories->orderBy('id')->get();
         if ($categories->isEmpty()) {
             throw new \LogicException('병의원 진료과목 카테고리 시드를 먼저 생성해 주세요.');

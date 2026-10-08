@@ -27,6 +27,11 @@ Broadcast::channel('user.{userId}', function ($account, int $userId): bool {
     return $account instanceof AccountUser && (int) $account->id === $userId;
 });
 
+Broadcast::channel('staff.{staffId}', function ($account, int $staffId): bool {
+    return $account instanceof AccountStaff && (int) $account->id === $staffId
+        && app(\App\Domains\Common\Notification\Support\StaffNotificationTypeRegistry::class)->canAccess($account);
+});
+
 // 채팅방 실시간 채널. 해당 채팅방 participant만 구독할 수 있다.
 Broadcast::channel('chat.{chatId}', function ($account, int $chatId): bool {
     if (! $account instanceof AccountUser) {

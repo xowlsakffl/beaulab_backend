@@ -58,6 +58,47 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermissions::COMMON_ACCESS])->group(function () {
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        $controller = \App\Modules\Staff\Http\Controllers\Notification\NotificationForStaffController::class;
+        Route::get('/', [$controller, 'index'])->name('index');
+        Route::get('unread-count', [$controller, 'unreadCount'])->name('unread-count');
+        Route::get('preferences', [$controller, 'preferences'])->name('preferences');
+        Route::put('preferences', [$controller, 'updatePreferences'])->name('preferences.update');
+        Route::post('read-all', [$controller, 'readAll'])->name('read-all');
+        Route::patch('{notification}/read', [$controller, 'read'])->whereNumber('notification')->name('read');
+    });
+    Route::prefix('harmful-words')->name('harmful-words.')->group(function () {
+        $controller = \App\Modules\Staff\Http\Controllers\HarmfulWord\HarmfulWordController::class;
+        Route::get('/', [$controller, 'index'])->name('index');
+        Route::post('check', [$controller, 'check'])->name('check')->middleware('throttle:60,1');
+        Route::post('validate', [$controller, 'validateWords'])->name('validate');
+        Route::post('/', [$controller, 'store'])->name('store');
+        Route::put('/', [$controller, 'update'])->name('update');
+    });
+    Route::prefix('nickname-words')->name('nickname-words.')->group(function () {
+        $controller = \App\Modules\Staff\Http\Controllers\Nickname\NicknameWordController::class;
+        Route::get('/', [$controller, 'index'])->name('index');
+        Route::get('preview', [$controller, 'preview'])->name('preview');
+        Route::post('validate', [$controller, 'validateWords'])->name('validate');
+        Route::post('/', [$controller, 'store'])->name('store');
+        Route::put('/', [$controller, 'update'])->name('update');
+    });
+    Route::get('consultation-pricing', [\App\Modules\Staff\Http\Controllers\ConsultationPricing\ConsultationPricingController::class, 'show'])->name('consultation-pricing.show');
+    Route::get('ad-pricing', [\App\Modules\Staff\Http\Controllers\HospitalEventAd\HospitalEventAdPricingController::class, 'show'])->name('ad-pricing.show');
+    Route::match(['put', 'delete'], 'ad-pricing', [\App\Modules\Staff\Http\Controllers\HospitalEventAd\HospitalEventAdPricingController::class, 'save'])->name('ad-pricing.save');
+    Route::match(['put', 'delete'], 'consultation-pricing', [\App\Modules\Staff\Http\Controllers\ConsultationPricing\ConsultationPricingController::class, 'save'])->name('consultation-pricing.save');
+    Route::get('consultation-pricing/preview', [\App\Modules\Staff\Http\Controllers\ConsultationPricing\ConsultationPricingController::class, 'preview'])->name('consultation-pricing.preview');
+
+    Route::prefix('staffs')->name('staffs.')->controller(\App\Modules\Staff\Http\Controllers\AccountStaff\StaffManagementController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/options', 'options')->name('options');
+        Route::put('/role-template', 'template')->name('template');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{staff}', 'show')->whereNumber('staff')->name('show');
+        Route::put('/{staff}', 'update')->whereNumber('staff')->name('update');
+        Route::delete('/{staff}', 'destroy')->whereNumber('staff')->name('destroy');
+        Route::get('/{staff}/operation-histories', 'histories')->whereNumber('staff')->name('histories');
+    });
 
     // 인증
     Route::prefix('auth')->group(function () {
@@ -232,6 +273,8 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
      **/
     Route::get('categories/selector', [CategoryForStaffController::class, 'getCategorySelectorForStaff'])
         ->name('categories.getCategorySelectorForStaff');
+    Route::get('categories/management', [\App\Modules\Staff\Http\Controllers\Category\CategoryManagementController::class, 'show'])->name('categories.management.show');
+    Route::post('categories/management', [\App\Modules\Staff\Http\Controllers\Category\CategoryManagementController::class, 'save'])->name('categories.management.save');
     Route::get('categories', [CategoryForStaffController::class, 'getCategoriesForStaff'])
         ->name('categories.getCategoriesForStaff');
     Route::get('categories/{category}', [CategoryForStaffController::class, 'getCategoryForStaff'])

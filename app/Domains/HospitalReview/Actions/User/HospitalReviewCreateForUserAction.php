@@ -6,6 +6,7 @@ use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
+use App\Domains\Common\HarmfulWord\Support\HarmfulWordMatcher;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalReview\Dto\User\HospitalReviewForUserDetailDto;
 use App\Domains\HospitalReview\Models\HospitalReview;
@@ -18,11 +19,14 @@ final class HospitalReviewCreateForUserAction
 {
     public function __construct(
         private readonly HospitalReviewCreateForUserQuery $query,
+        private readonly HarmfulWordMatcher $harmfulWords,
         private readonly MediaAttachDeleteAction $mediaAttachAction,
     ) {}
 
     public function execute(AccountUser $user, array $payload): array
     {
+        $this->harmfulWords->assertFields('REVIEW', ['title' => $payload['title'], 'content' => $payload['content']]);
+
         if (! empty($payload['doctor_id'])) {
             if (! $this->query->doctorBelongsToHospital((int) $payload['doctor_id'], (int) $payload['hospital_id'])) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '요청하신 병의원에 소속된 의료진이 아닙니다.');
@@ -66,6 +70,13 @@ final class HospitalReviewCreateForUserAction
         $codes = array_values($categoryCodes);
 
         $categoriesByCode = $this->query->categoriesByCodes($codes)->keyBy('code');
+        $allowed = app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->idsForUsages(HospitalReview::categoryDomains());
+        if ($categoriesByCode->count() !== count(array_unique($codes)) || array_diff($categoriesByCode->pluck('id')->all(), $allowed) !== []) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '사용 가능한 후기 카테고리를 선택해 주세요.');
+        }
+        if ($categoriesByCode->pluck('group_code')->unique()->count() !== 1) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '성형과 쁘띠 카테고리는 섞어서 선택할 수 없습니다.');
+        }
 
         return collect($codes)
             ->map(static fn (string $code) => $categoriesByCode->get($code))

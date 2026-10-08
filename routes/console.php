@@ -277,6 +277,7 @@ Schedule::command('horizon:snapshot')->everyFiveMinutes();
 Schedule::command('media:cleanup-files')->everyFiveMinutes()->withoutOverlapping();
 
 Schedule::command('notifications:send-pending-push --limit=500')->everyMinute()->withoutOverlapping();
+Schedule::command('staff-notifications:dispatch-pending --limit=500')->everyMinute()->withoutOverlapping();
 Schedule::command('chat:dispatch-pending-broadcasts')->everyMinute()->withoutOverlapping();
 
 // 문자 원장 생성 후 Redis 큐 등록 자체가 누락된 건만 자동 복구한다.

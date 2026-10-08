@@ -14,7 +14,7 @@ final class PasswordUpdateForStaffQuery
     public function update(AccountStaff $staff, string $password): void
     {
         DB::transaction(function () use ($staff, $password): void {
-            $staff->forceFill(['password' => $password])->save();
+            $staff->forceFill(['password' => $password, 'lock_version' => (int) $staff->lock_version + 1])->save();
             $staff->tokens()->delete();
         });
     }

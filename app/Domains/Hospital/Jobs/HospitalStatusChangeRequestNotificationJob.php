@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domains\Hospital\Jobs;
 
-use App\Common\Authorization\AccessPermissions;
-use App\Domains\AccountStaff\Models\AccountStaff;
-use App\Domains\Common\Notification\Actions\CreateNotificationAction;
-use App\Domains\Common\Notification\Models\NotificationDelivery;
-use App\Domains\Common\Notification\Models\NotificationInbox;
 use App\Domains\Hospital\Models\HospitalStatusChangeRequest;
+use App\Domains\Hospital\Support\HospitalStatusChangeRequestNotificationPublisher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 
 final class HospitalStatusChangeRequestNotificationJob implements ShouldQueue
 {
@@ -36,80 +33,24 @@ final class HospitalStatusChangeRequestNotificationJob implements ShouldQueue
         $this->onQueue('notifications');
     }
 
-    public function handle(CreateNotificationAction $notificationAction): void
+    public function handle(HospitalStatusChangeRequestNotificationPublisher $publisher): void
     {
-        $request = HospitalStatusChangeRequest::query()
-            ->with(['hospital:id,name', 'requester:id,name', 'processor:id,name'])
-            ->find($this->requestId);
-
-        if (! $request) {
+        if (! in_array($this->event, [self::EVENT_REQUESTED, self::EVENT_PROCESSED], true)) {
             return;
         }
 
-        if ($this->event === self::EVENT_REQUESTED) {
-            $this->notifyReviewers($request, $notificationAction);
+        // 배포 전 notifications 큐에 남은 Job도 신규 Action과 같은 멱등 키를 사용한다.
+        DB::transaction(function () use ($publisher): void {
+            $request = HospitalStatusChangeRequest::query()->lockForUpdate()->find($this->requestId);
+            if ($request === null) {
+                return;
+            }
 
-            return;
-        }
-
-        if ($this->event === self::EVENT_PROCESSED && $request->requester) {
-            $this->createNotification(
-                $notificationAction,
-                $request,
-                $request->requester,
-                NotificationInbox::EVENT_HOSPITAL_STATUS_CHANGE_PROCESSED,
-                '병의원 운영상태 변경 신청 처리',
-                sprintf('%s 운영상태 변경 신청이 처리되었습니다.', $request->hospital?->name ?? '병의원'),
-                $request->processor?->getKey(),
-            );
-        }
-    }
-
-    private function notifyReviewers(
-        HospitalStatusChangeRequest $request,
-        CreateNotificationAction $notificationAction,
-    ): void {
-        AccountStaff::query()
-            ->permission(AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_PROCESS)
-            ->where('status', AccountStaff::STATUS_ACTIVE)
-            ->eachById(function (AccountStaff $reviewer) use ($request, $notificationAction): void {
-                $this->createNotification(
-                    $notificationAction,
-                    $request,
-                    $reviewer,
-                    NotificationInbox::EVENT_HOSPITAL_STATUS_CHANGE_REQUESTED,
-                    '병의원 운영중지 신청',
-                    sprintf('%s 운영중지 신청이 접수되었습니다.', $request->hospital?->name ?? '병의원'),
-                    $request->requester?->getKey(),
-                );
-            });
-    }
-
-    private function createNotification(
-        CreateNotificationAction $notificationAction,
-        HospitalStatusChangeRequest $request,
-        AccountStaff $recipient,
-        string $eventType,
-        string $title,
-        string $body,
-        mixed $actorId,
-    ): void {
-        $notificationAction->execute([
-            'recipient_type' => NotificationInbox::RECIPIENT_STAFF,
-            'recipient_id' => (int) $recipient->getKey(),
-            'actor_type' => NotificationInbox::ACTOR_STAFF,
-            'actor_id' => $actorId ? (int) $actorId : null,
-            'event_type' => $eventType,
-            'title' => $title,
-            'body' => $body,
-            'target_type' => NotificationInbox::TARGET_HOSPITAL_STATUS_CHANGE_REQUEST,
-            'target_id' => (int) $request->getKey(),
-            'payload' => [
-                'hospital_id' => (int) $request->hospital_id,
-                'request_status' => (string) $request->status,
-                'target_status' => (string) $request->target_status,
-            ],
-            'channels' => [NotificationDelivery::CHANNEL_IN_APP],
-        ]);
+            if ($this->event === self::EVENT_REQUESTED) {
+                $publisher->requested($request);
+            } else {
+                $publisher->processed($request);
+            }
+        });
     }
 }

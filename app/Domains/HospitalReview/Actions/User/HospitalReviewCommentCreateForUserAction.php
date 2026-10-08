@@ -5,6 +5,7 @@ namespace App\Domains\HospitalReview\Actions\User;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\HarmfulWord\Support\HarmfulWordMatcher;
 use App\Domains\HospitalReview\Dto\User\HospitalReviewCommentForUserDto;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
@@ -15,10 +16,13 @@ final class HospitalReviewCommentCreateForUserAction
 {
     public function __construct(
         private readonly HospitalReviewCommentCreateForUserQuery $query,
+        private readonly HarmfulWordMatcher $harmfulWords,
     ) {}
 
     public function execute(AccountUser $user, HospitalReview $review, array $payload): array
     {
+        $this->harmfulWords->assertFields('COMMENT', ['content' => $payload['content']]);
+
         $normalized = [
             'hospital_review_id' => (int) $review->id,
             'parent_id' => $this->normalizeParentId($payload['parent_id'] ?? null),

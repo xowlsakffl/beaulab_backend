@@ -21,6 +21,8 @@ final class DatabaseSeeder extends Seeder
             AuthorizationSeeder::class,
             AccountStaffSeeder::class,
             CategorySeeder::class,
+            NicknameWordSeeder::class,
+            ConsultationPricingSeeder::class,
             HospitalFeatureSeeder::class,
         ]);
 

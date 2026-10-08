@@ -5,6 +5,7 @@ namespace App\Domains\Talk\Actions\User;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountUser\Models\AccountUser;
+use App\Domains\Common\HarmfulWord\Support\HarmfulWordMatcher;
 use App\Domains\Talk\Dto\User\TalkCommentForUserDto;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
@@ -15,10 +16,13 @@ final class TalkCommentCreateForUserAction
 {
     public function __construct(
         private readonly TalkCommentCreateForUserQuery $query,
+        private readonly HarmfulWordMatcher $harmfulWords,
     ) {}
 
     public function execute(AccountUser $user, Talk $talk, array $payload): array
     {
+        $this->harmfulWords->assertFields('COMMENT', ['content' => $payload['content']]);
+
         $normalized = [
             'talk_id' => (int) $talk->id,
             'parent_id' => $this->normalizeParentId($payload['parent_id'] ?? null),

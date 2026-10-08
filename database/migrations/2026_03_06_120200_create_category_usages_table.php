@@ -14,8 +14,10 @@ return new class extends Migration
 
             $table->string('usage', 60)->comment('카테고리 사용처 코드');
             $table->foreignId('category_id')->comment('카테고리 ID')->constrained('categories')->restrictOnDelete();
+            $table->string('display_name', 120)->nullable()->comment('업무별 표시명(null이면 공통 이름 사용)');
             $table->unsignedInteger('sort_order')->default(0)->comment('사용처 내 노출 순서');
             $table->string('status', 20)->default('ACTIVE')->comment('운영 상태(ACTIVE, INACTIVE)');
+            $table->boolean('is_menu_visible')->default(true)->comment('사용처 메뉴 노출 여부');
 
             $table->timestamps();
 

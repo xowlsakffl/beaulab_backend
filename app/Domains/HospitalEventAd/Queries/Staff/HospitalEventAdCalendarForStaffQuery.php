@@ -189,7 +189,7 @@ final class HospitalEventAdCalendarForStaffQuery
             'id' => (int) $ad->id,
             'hospital_name' => (string) ($ad->hospital?->name ?? '-'),
             'event_name' => (string) ($ad->hospitalEvent?->name ?? '-'),
-            'category_name' => $category ? (string) $category->name : null,
+            'category_name' => $category ? (string) $category->displayNameFor('HOSPITAL_EVENT_AD') : null,
             'allow_status' => (string) $ad->allow_status,
             'allow_status_label' => HospitalEventAd::allowStatusLabel((string) $ad->allow_status),
             'ad_status' => $adStatus,
@@ -245,20 +245,21 @@ final class HospitalEventAdCalendarForStaffQuery
             ->where('category_usages.usage', $usage)
             ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
             ->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->whereNull('categories.parent_id')
             ->where('categories.status', Category::STATUS_ACTIVE)
             ->orderBy('category_usages.sort_order')
             ->orderBy('categories.id')
             ->get()
             ->map(
                 static function (Category $category): array {
-                    $name = (string) $category->name;
+                    $name = (string) $category->displayNameFor('HOSPITAL_EVENT_AD');
 
                     return [
                         'id' => (int) $category->id,
                         'name' => $name,
                         'display_name' => $name,
                         'code' => (string) ($category->code ?? ''),
-                        'full_path' => (string) ($category->full_path ?? ''),
+                        'full_path' => (string) ($category->displayPathFor('HOSPITAL_EVENT_AD') ?? ''),
                     ];
                 }
             )

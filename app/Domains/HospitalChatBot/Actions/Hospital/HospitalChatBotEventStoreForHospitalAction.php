@@ -22,6 +22,13 @@ final class HospitalChatBotEventStoreForHospitalAction
         // 시각은 서버가 찍는다. 클라이언트 시계 오차가 집계에 들어오면 안 된다.
         $now = CarbonImmutable::now();
 
+        // 분류 노드를 펼친 클릭은 질문을 본 게 아니다. 버린다(대시보드 PRD DD-08).
+        $folderIds = $this->query->folderIds(array_values(array_filter(array_column($events, 'qna_id'))));
+        $events = array_values(array_filter(
+            $events,
+            static fn (array $event): bool => $event['qna_id'] === null || ! in_array($event['qna_id'], $folderIds, true),
+        ));
+
         $rows = array_map(static fn (array $event): array => [
             'event_type' => $event['event_type'],
             'hospital_id' => (int) $account->hospital_id,

@@ -15,6 +15,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 /**
  * 이용 이벤트 수집(대시보드 PRD §10, §15.1).
@@ -76,11 +77,14 @@ final class HospitalChatBotEventFlowTest extends TestCase
         $this->postJson('/api/v1/hospital/hospital-chatbot/events', [
             ['event_type' => 'WIDGET_OPENED', 'qna_id' => $qna->id],
             ['event_type' => 'QNA_VIEWED', 'qna_id' => $qna->id],
-        ])->assertStatus(202)->assertJsonPath('data.accepted', 2);
+            // 열람에 실린 qna_id는 검증조차 하지 않는다. 0이어도 묶음을 깨지 않는다.
+            ['event_type' => 'WIDGET_OPENED', 'qna_id' => 0],
+        ])->assertStatus(202)->assertJsonPath('data.accepted', 3);
 
         $rows = HospitalChatBotEvent::query()->orderBy('id')->get();
         self::assertNull($rows[0]->qna_id);
         self::assertSame($qna->id, $rows[1]->qna_id);
+        self::assertNull($rows[2]->qna_id);
     }
 
     public function test_clicks_on_folder_nodes_are_dropped(): void
@@ -106,6 +110,33 @@ final class HospitalChatBotEventFlowTest extends TestCase
         self::assertSame([$leaf->id], HospitalChatBotEvent::query()->pluck('qna_id')->all());
     }
 
+    public function test_nodes_whose_children_are_all_hidden_count_as_questions(): void
+    {
+        // 병의원 트리는 삭제·비활성 자식을 숨긴다. 그러면 부모가 답변을 보이는 질문이 되고, 그 클릭은 세야 한다.
+        $deletedChildParent = $this->qna('자식이 지워진 질문');
+        $this->child($deletedChildParent, '지워질 자식')->delete();
+
+        $inactiveChildParent = $this->qna('자식이 꺼진 질문');
+        $this->child($inactiveChildParent, '꺼진 자식')->update(['status' => HospitalChatBotQna::STATUS_INACTIVE]);
+
+        $stillFolder = $this->qna('아직 분류');
+        $this->child($stillFolder, '살아 있는 자식');
+
+        $account = $this->hospitalAccount();
+        $this->login('hospital', $account, 'http://localhost:3002');
+
+        $this->postJson('/api/v1/hospital/hospital-chatbot/events', [
+            ['event_type' => 'QNA_VIEWED', 'qna_id' => $deletedChildParent->id],
+            ['event_type' => 'QNA_VIEWED', 'qna_id' => $inactiveChildParent->id],
+            ['event_type' => 'QNA_VIEWED', 'qna_id' => $stillFolder->id],
+        ])->assertStatus(202)->assertJsonPath('data.accepted', 2);
+
+        self::assertEqualsCanonicalizing(
+            [$deletedChildParent->id, $inactiveChildParent->id],
+            HospitalChatBotEvent::query()->pluck('qna_id')->all(),
+        );
+    }
+
     public function test_invalid_batches_are_rejected(): void
     {
         $account = $this->hospitalAccount();
@@ -127,10 +158,25 @@ final class HospitalChatBotEventFlowTest extends TestCase
         $this->postJson('/api/v1/hospital/hospital-chatbot/events', ['event_type' => 'WIDGET_OPENED'])
             ->assertStatus(422);
 
+        // 빈 배열. 빈 본문·깨진 JSON도 같은 길을 탄다.
+        $this->postJson('/api/v1/hospital/hospital-chatbot/events', [])
+            ->assertStatus(422)
+            ->assertJsonPath('error.details.errors.events.0', '이벤트가 없습니다.');
+
         // 21건
         $this->postJson('/api/v1/hospital/hospital-chatbot/events', array_fill(0, 21, ['event_type' => 'WIDGET_OPENED']))
             ->assertStatus(422)
             ->assertJsonPath('error.details.errors.events.0', '한 번에 최대 20건까지 보낼 수 있습니다.');
+
+        // 건수를 넘긴 묶음은 건마다 Q&A 존재 조회를 돌리기 전에 거절한다
+        $qna = $this->qna('존재 조회를 부르면 안 되는 질문');
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->postJson('/api/v1/hospital/hospital-chatbot/events', array_fill(0, 200, ['event_type' => 'QNA_VIEWED', 'qna_id' => $qna->id]))
+            ->assertStatus(422);
+        $qnaLookups = array_filter(DB::getQueryLog(), static fn (array $q): bool => str_contains($q['query'], 'hospital_chatbot_qnas'));
+        DB::disableQueryLog();
+        self::assertSame([], array_values($qnaLookups));
 
         self::assertSame(0, HospitalChatBotEvent::query()->count());
     }
@@ -164,6 +210,7 @@ final class HospitalChatBotEventFlowTest extends TestCase
 
     public function test_prune_removes_only_events_past_retention_in_chunks(): void
     {
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-10-12 12:00:00'));
         $account = $this->hospitalAccount();
         config(['hospital_chatbot.events.retention_days' => 180]);
 
@@ -171,7 +218,8 @@ final class HospitalChatBotEventFlowTest extends TestCase
         foreach ([181, 200, 365] as $daysAgo) {
             $rows[] = $this->eventRow($account, CarbonImmutable::now()->subDays($daysAgo));
         }
-        foreach ([179, 30, 0] as $daysAgo) {
+        // 정확히 180일 된 행은 남는다(§15.1 경계). "지난" 것만 지운다.
+        foreach ([180, 179, 30, 0] as $daysAgo) {
             $rows[] = $this->eventRow($account, CarbonImmutable::now()->subDays($daysAgo));
         }
         HospitalChatBotEvent::query()->insert($rows);
@@ -180,8 +228,24 @@ final class HospitalChatBotEventFlowTest extends TestCase
         Artisan::call('hospital-chatbot:prune-events', ['--chunk' => 1]);
 
         self::assertStringContainsString('older than 180 days: 3', Artisan::output());
-        self::assertSame(3, HospitalChatBotEvent::query()->count());
+        self::assertSame(4, HospitalChatBotEvent::query()->count());
         self::assertSame(0, HospitalChatBotEvent::query()->where('occurred_at', '<', CarbonImmutable::now()->subDays(180))->count());
+    }
+
+    public function test_prune_refuses_a_misconfigured_retention_instead_of_clamping_it(): void
+    {
+        $account = $this->hospitalAccount();
+        HospitalChatBotEvent::query()->insert([$this->eventRow($account, CarbonImmutable::now()->subDays(30))]);
+
+        // 잘못 적힌 값을 1일로 뭉개면 보관 중인 이벤트가 하룻밤에 사라진다.
+        foreach (['180d', '', 0, -5] as $broken) {
+            config(['hospital_chatbot.events.retention_days' => $broken]);
+
+            self::assertSame(1, Artisan::call('hospital-chatbot:prune-events'), var_export($broken, true));
+            self::assertStringContainsString('Nothing pruned', Artisan::output());
+        }
+
+        self::assertSame(1, HospitalChatBotEvent::query()->count());
     }
 
     /** @return array<string, mixed> */
@@ -200,6 +264,17 @@ final class HospitalChatBotEventFlowTest extends TestCase
     private function qna(string $question): HospitalChatBotQna
     {
         return HospitalChatBotQna::query()->create([
+            'category' => '충전금',
+            'question' => $question,
+            'question_key' => HospitalChatBotQna::questionKey($question),
+            'answer' => '테스트 답변',
+        ]);
+    }
+
+    private function child(HospitalChatBotQna $parent, string $question): HospitalChatBotQna
+    {
+        return HospitalChatBotQna::query()->create([
+            'parent_id' => $parent->id,
             'category' => '충전금',
             'question' => $question,
             'question_key' => HospitalChatBotQna::questionKey($question),

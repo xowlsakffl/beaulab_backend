@@ -25,14 +25,18 @@ final class HospitalChatBotEventStoreForHospitalRequest extends FormRequest
 
     public function rules(): array
     {
+        // 20건을 넘는 본문은 after()가 거절한다. 그 전에 건마다 Q&A 존재 조회를 돌리지 않는다.
+        $oversized = count($this->all()) > self::MAX_BATCH;
+
         return [
             '*' => ['required', 'array'],
             '*.event_type' => ['required', 'string', Rule::in(HospitalChatBotEvent::TYPES)],
-            // 소프트 삭제된 Q&A도 허용한다. 삭제 직후에 열려 있던 화면에서 온 클릭을 버릴 이유가 없다.
+            // 열람 이벤트에 실려 온 qna_id는 뜻이 없다. 검증하지 않고 버린다.
+            // 소프트 삭제된 Q&A는 허용한다. 삭제 직후에 열려 있던 화면에서 온 클릭을 버릴 이유가 없다.
             '*.qna_id' => [
-                'nullable', 'integer', 'min:1',
-                'required_if:*.event_type,'.HospitalChatBotEvent::TYPE_QNA_VIEWED,
-                Rule::exists('hospital_chatbot_qnas', 'id'),
+                'exclude_unless:*.event_type,'.HospitalChatBotEvent::TYPE_QNA_VIEWED,
+                'required', 'integer', 'min:1',
+                ...($oversized ? [] : [Rule::exists('hospital_chatbot_qnas', 'id')]),
             ],
             '*.source_page_path' => ['nullable', 'string', 'max:255'],
         ];
@@ -47,6 +51,13 @@ final class HospitalChatBotEventStoreForHospitalRequest extends FormRequest
 
                 if (! array_is_list($payload)) {
                     $validator->errors()->add('events', '이벤트는 배열로 보내야 합니다.');
+
+                    return;
+                }
+
+                // 빈 배열·빈 본문·깨진 JSON은 전부 빈 목록으로 들어온다. 202로 덮지 않는다.
+                if ($payload === []) {
+                    $validator->errors()->add('events', '이벤트가 없습니다.');
 
                     return;
                 }

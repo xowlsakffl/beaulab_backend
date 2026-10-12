@@ -139,6 +139,8 @@ final class HospitalChatBotDashboardFlowTest extends TestCase
         $this->getJson('/api/v1/staff/hospital-chatbot/dashboard?from=2025-10-05&to=2026-10-07')->assertStatus(422);
         $this->getJson('/api/v1/staff/hospital-chatbot/dashboard?from=2025-10-07&to=2026-10-07')->assertOk();
         $this->getJson('/api/v1/staff/hospital-chatbot/dashboard?from=abc')->assertStatus(422);
+        // to 없이 from만 미래면 to가 오늘로 채워져 기간이 뒤집힌다. 빈 200이 아니라 422여야 한다.
+        $this->getJson('/api/v1/staff/hospital-chatbot/dashboard?from=2027-01-01')->assertStatus(422);
     }
 
     public function test_dashboard_requires_a_staff_session(): void

@@ -42,6 +42,13 @@ final class HospitalChatBotDashboardForStaffRequest extends FormRequest
                 }
 
                 $filters = $this->filters();
+                // to를 비우고 from만 미래로 주면 after_or_equal이 돌지 않는다. 뒤집힌 기간은 여기서 막는다.
+                if ($filters['from']->gt($filters['to'])) {
+                    $validator->errors()->add('from', '시작일이 종료일보다 늦습니다.');
+
+                    return;
+                }
+
                 if ($filters['from']->diffInDays($filters['to']->startOfDay()) + 1 > self::MAX_DAYS) {
                     $validator->errors()->add('to', '조회 기간은 최대 '.self::MAX_DAYS.'일입니다.');
                 }

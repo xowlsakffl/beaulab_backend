@@ -270,7 +270,7 @@
 <text x="932" y="1061" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
 <text x="898" y="1061" font-size="10" fill="#5B6C68" text-anchor="end">세션의 병의원 계정 ID. 감사용 · bigint unsigned</text>
 <text x="490" y="1082" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">qna_id</text>
-<text x="932" y="1082" font-size="10" fill="#5B6C68" text-anchor="end">QNA_VIEWED일 때 본 Q&A ID. FK 없음, 삭제돼도 유지 · bigint unsigned</text>
+<text x="932" y="1082" font-size="10" fill="#5B6C68" text-anchor="end">QNA_VIEWED일 때 본 Q&amp;A ID. FK 없음, 삭제돼도 유지 · bigint unsigned</text>
 <text x="490" y="1103" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">source_page_path</text>
 <text x="932" y="1103" font-size="10" fill="#5B6C68" text-anchor="end">이벤트 당시 호스트 화면 경로 · varchar(255)</text>
 <text x="490" y="1124" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">occurred_at</text>

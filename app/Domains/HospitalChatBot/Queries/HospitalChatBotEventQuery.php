@@ -31,10 +31,11 @@ final class HospitalChatBotEventQuery
     }
 
     /**
-     * 주어진 Q&A 중 분류 노드(자식이 있는 것)의 ID.
+     * 주어진 Q&A 중 병의원 화면에서 분류로 보이는 노드(살아 있는 활성 자식이 있는 것)의 ID.
      *
      * SDK는 트리를 내려가는 클릭도 질문 선택으로 알린다. 분류 클릭은 세지 않는다(대시보드 PRD DD-08).
-     * 삭제된 자식까지 본다. 자식이 전부 지워졌어도 분류였던 노드가 질문이 되지는 않는다.
+     * 병의원 트리는 삭제·비활성 자식을 숨기므로, 자식이 전부 지워졌거나 꺼진 노드는 답변을 보이는
+     * 질문이다. 그 클릭은 세야 한다. 화면이 보는 것과 같은 기준으로 판단한다.
      *
      * @param  list<int>  $qnaIds
      * @return list<int>
@@ -45,8 +46,9 @@ final class HospitalChatBotEventQuery
             return [];
         }
 
-        return HospitalChatBotQna::withTrashed()
+        return HospitalChatBotQna::query()
             ->whereIn('parent_id', $qnaIds)
+            ->where('status', HospitalChatBotQna::STATUS_ACTIVE)
             ->distinct()
             ->pluck('parent_id')
             ->map(static fn ($id): int => (int) $id)

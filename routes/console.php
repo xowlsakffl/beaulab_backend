@@ -240,7 +240,16 @@ Artisan::command('hospital-chatbot:report-metrics', function () {
 // 상담원이 아무도 잡지 않은 대기 상담을 자동으로 취소한다(PRD D-07).
 // 보관 기간이 지난 챗봇 이용 이벤트를 지운다. 집계만 읽는 행이라 영구 보관할 이유가 없다.
 Artisan::command('hospital-chatbot:prune-events {--chunk=}', function () {
-    $days = max(1, (int) config('hospital_chatbot.events.retention_days', 180));
+    $retention = config('hospital_chatbot.events.retention_days', 180);
+
+    // 잘못 적힌 값을 1일로 뭉개면 보관 중인 이벤트를 하룻밤에 다 지운다. 숫자가 아니면 아무것도 지우지 않는다.
+    if (! is_numeric($retention) || (int) $retention < 1) {
+        $this->error('hospital_chatbot.events.retention_days must be a positive integer. Nothing pruned.');
+
+        return Command::FAILURE;
+    }
+
+    $days = (int) $retention;
     $chunk = max(1, min((int) ($this->option('chunk') ?: config('hospital_chatbot.events.prune_chunk', 10000)), 50000));
     $deleted = app(\App\Domains\HospitalChatBot\Queries\HospitalChatBotEventQuery::class)
         ->pruneBefore(now()->subDays($days), $chunk);

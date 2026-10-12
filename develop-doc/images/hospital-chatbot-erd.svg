@@ -2,7 +2,7 @@
 <defs><marker id="one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5B6C68"/></marker></defs>
 <rect width="1422" height="1375" fill="#F1F5F3"/>
 <text x="40" y="48" font-size="13" font-weight="600" fill="#0B6E5A" letter-spacing="1.6">ERD</text>
-<text x="40" y="84" font-size="26" font-weight="700" fill="#13201D">병의원 챗봇 테이블 8개</text>
+<text x="40" y="84" font-size="26" font-weight="700" fill="#13201D">병의원 챗봇 테이블 9개</text>
 <text x="40" y="112" font-size="13.5" fill="#5B6C68">컬럼 설명은 DB COMMENT를 그대로 옮긴 것입니다. 점선 상자는 기존 테이블이며 참조만 합니다.</text>
 <rect x="40" y="152" width="400" height="286" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
 <path d="M40 164 a12 12 0 0 1 12 -12 h376 a12 12 0 0 1 12 12 v22 h-400 z" fill="#E0F0EA"/>
@@ -254,6 +254,31 @@
 <text x="1368" y="1055" font-size="10" fill="#5B6C68" text-anchor="end">생성 일시 · timestamp</text>
 <text x="996" y="1076" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">updated_at</text>
 <text x="1368" y="1076" font-size="10" fill="#5B6C68" text-anchor="end">수정 일시 · timestamp</text>
+<rect x="476" y="950" width="470" height="229" rx="12" fill="#FFFFFF" stroke="#BCCBC6" stroke-width="1.4"/>
+<path d="M476 962 a12 12 0 0 1 12 -12 h446 a12 12 0 0 1 12 12 v22 h-470 z" fill="#E0F0EA"/>
+<text x="490" y="972" font-size="12.5" font-weight="700" fill="#0B6E5A" font-family="ui-monospace, Menlo, monospace">events</text>
+<text x="932" y="972" font-size="11" fill="#0B6E5A" text-anchor="end">이용 이벤트 · 열람·질문 클릭 · 180일 보관</text>
+<text x="490" y="998" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">id</text>
+<text x="932" y="998" font-size="8.5" font-weight="700" fill="#0B6E5A" text-anchor="end">PK</text>
+<text x="898" y="998" font-size="10" fill="#5B6C68" text-anchor="end">이용 이벤트 ID · bigint unsigned</text>
+<text x="490" y="1019" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">event_type</text>
+<text x="932" y="1019" font-size="10" fill="#5B6C68" text-anchor="end">이벤트 종류(WIDGET_OPENED, QNA_VIEWED) · varchar(30)</text>
+<text x="490" y="1040" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">hospital_id</text>
+<text x="932" y="1040" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="898" y="1040" font-size="10" fill="#5B6C68" text-anchor="end">세션의 병의원 ID. 본문 값이 아니라 … · bigint unsigned</text>
+<text x="490" y="1061" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">account_hospital_id</text>
+<text x="932" y="1061" font-size="8.5" font-weight="700" fill="#5B6C68" text-anchor="end">FK</text>
+<text x="898" y="1061" font-size="10" fill="#5B6C68" text-anchor="end">세션의 병의원 계정 ID. 감사용 · bigint unsigned</text>
+<text x="490" y="1082" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">qna_id</text>
+<text x="932" y="1082" font-size="10" fill="#5B6C68" text-anchor="end">QNA_VIEWED일 때 본 Q&amp;A ID. FK 없음, 삭제돼도 유지 · bigint unsigned</text>
+<text x="490" y="1103" font-size="11" fill="#5B6C68" font-weight="400" font-family="ui-monospace, Menlo, monospace">source_page_path</text>
+<text x="932" y="1103" font-size="10" fill="#5B6C68" text-anchor="end">이벤트 당시 호스트 화면 경로 · varchar(255)</text>
+<text x="490" y="1124" font-size="11" fill="#13201D" font-weight="600" font-family="ui-monospace, Menlo, monospace">occurred_at</text>
+<text x="932" y="1124" font-size="10" fill="#5B6C68" text-anchor="end">서버 수신 시각. 클라이언트 시계를 믿지 않는다 · timestamp</text>
+<rect x="486" y="1139" width="450" height="22" rx="5" fill="#F7FAF9" stroke="#DBE4E1"/>
+<text x="494" y="1154" font-size="10" fill="#9C5410" font-weight="600">INDEX (occurred_at) · (event_type, occurred_at) · (qna_id, occurred_at) · (hospital_id, occurred_at)</text>
+<path d="M946 1040 h14 V790 h-14" fill="none" stroke="#5B6C68" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#one)"/>
+<path d="M946 1061 h22 V842 h-22" fill="none" stroke="#5B6C68" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#one)"/>
 <rect x="476" y="768" width="470" height="44" rx="10" fill="#FFFFFF" stroke="#DBE4E1" stroke-dasharray="5 4"/>
 <text x="490" y="795" font-size="12" fill="#5B6C68" font-family="ui-monospace, Menlo, monospace">hospitals</text>
 <text x="932" y="795" font-size="10.5" fill="#5B6C68" text-anchor="end">기존 · 참조만</text>

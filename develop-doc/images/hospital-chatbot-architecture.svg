@@ -61,7 +61,7 @@
   <text x="756" y="286" font-size="11.5" fill="#5B6C68">/api/v1/staff</text>
 
   <!-- ══════════ 2. 테이블 ══════════ -->
-  <text x="40" y="432" font-size="17" font-weight="700" fill="#13201D">2. 추가된 테이블 8개</text>
+  <text x="40" y="432" font-size="17" font-weight="700" fill="#13201D">2. 추가된 테이블 9개</text>
   <text x="40" y="456" font-size="13.5" fill="#5B6C68">전부 <tspan font-family="ui-monospace, Menlo, monospace" font-size="12.5">hospital_chatbot_</tspan> 접두사입니다. 기존 테이블은 하나도 바꾸지 않았습니다.</text>
 
   <!-- Q&A 그룹 -->

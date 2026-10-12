@@ -177,7 +177,7 @@
 | URL    | `?from=Y-M-D&to=Y-M-D`. 기본값이면 비운다. 뒤로가기·새로고침·링크 공유가 그대로 되어야 한다       |
 | 새로고침 | 버튼 하나. 자동 갱신은 「지금 대기 중」 카드만 30초 주기. 대시보드 전체를 다시 세지 않고 기존 상담 목록 API(`status=WAITING&sort=queue&per_page=1`)의 `meta.total`과 첫 행의 `waiting_seconds`를 읽는다 |
 
-**1행 — 카드 7개**
+**1행 — 카드 8개 (4×2)**
 
 | 카드             | 값                                 | 보조 표기                        | 출처 |
 | ---------------- | ---------------------------------- | -------------------------------- | ---- |
@@ -186,6 +186,7 @@
 | 대기 초과율      | 대기 초과 ÷ 요청                    | 놓친 건수                         | 상담 |
 | 대기 시간 중앙값 | 연결된 건의 `connected_at − requested_at` 중앙값 | P90                | 상담 |
 | 첫 응답 중앙값   | 연결 → 상담원 첫 메시지 중앙값       | "연결 → 첫 상담원 메시지"           | 상담 |
+| 상담 시간 중앙값 | `status='ENDED'`인 건의 `ended_at − connected_at` 중앙값 | P90                    | 상담 |
 | 챗봇 → 상담 전환 | 상담 요청 ÷ 열람                    | 열람 N → 질문 N → 상담 N 깔때기     | 이용+상담 |
 | 지금 대기 중     | 현재 `WAITING` 건수                 | 최장 대기 시간. 0이 아니면 강조색    | 상담, 실시간 |
 
@@ -195,7 +196,7 @@
 
 | 차트           | 요구                                                                                                        |
 | -------------- | ----------------------------------------------------------------------------------------------------------- |
-| 일별 상담 요청 | 날짜별 누적 막대. 구간: `연결` `대기 초과` `사용자 취소` `진행 중`(아직 활성). 범례 필수. 막대 hover에 날짜·구간별 건수 |
+| 일별 상담 요청 | 날짜별 누적 막대. 구간 넷은 서로 겹치지 않고 합치면 요청 수다: `종료`(연결됐다 끝남, `ended`) `대기 초과` `사용자 취소` `진행 중`(아직 활성). 범례 필수. 막대 hover에 날짜·구간별 건수 |
 | 요일 × 시간대  | 7×24 히트맵. 요청 시각의 `Asia/Seoul` 요일·시. 한 색상의 명도 5단계. 셀 hover에 요일·시·건수. CSS grid로 그린다 — 칸 하나가 숫자 하나라 차트 라이브러리가 필요 없다 |
 
 **3행 — 표**
@@ -208,7 +209,7 @@
 
 **빈 상태·로딩·오류** — §14.
 
-**반응형** — 내부 관리자 레이아웃이 `min-width 1370px`이므로 모바일 대응은 하지 않는다. 카드는 7개를 한 줄에 둔다(각 최소 160px).
+**반응형** — 내부 관리자 레이아웃이 `min-width 1370px`이므로 모바일 대응은 하지 않는다. 카드는 공용 `DashboardSummary`의 4칸 그리드에 8개(4×2)를 둔다.
 
 **접근성** — 차트 색만으로 구분하지 않는다. 범례와 hover 값, 표가 함께 있어야 한다. 사용하는 색은 색각 이상 검증을 통과한 조합을 쓴다(시안의 세 색: `#2a78d6` `#eb6834` `#1baf7a`).
 
@@ -226,8 +227,8 @@
 | 사용자 취소 수       | `close_reason = 'USER_CANCELED'`                                                                        |                                            |
 | 진행 중 수           | `status IN ('WAITING','CONNECTED')`                                                                     | 일별 차트의 네 번째 구간                    |
 | 대기 시간            | 연결된 건의 `connected_at − requested_at`                                                               | 중앙값·P90. 연결 안 된 건은 제외             |
-| 첫 응답 시간         | 연결된 건 중 상담원 메시지(`sender_type='AGENT'`)가 1건 이상인 건의 `MIN(messages.created_at) − connected_at` | 상담원이 한마디도 안 한 건은 제외          |
-| 상담 시간            | `status='ENDED'`인 건의 `ended_at − connected_at`                                                       | 카드엔 없고 표·hover에만                    |
+| 첫 응답 시간         | 연결된 건 중 상담원이 **직접 친** 메시지(`sender_type='AGENT'`, `message_type='TEXT'`, `client_message_id`가 `greeting:`으로 시작하지 않음)가 1건 이상인 건의 `MIN(messages.created_at) − connected_at` | 연결 시 자동 인사가 AGENT 메시지로 먼저 들어가므로 그걸 빼지 않으면 전부 0초다. 인사만 있는 건은 제외 |
+| 상담 시간            | `status='ENDED'`인 건의 `ended_at − connected_at`                                                       | 중앙값·P90. 카드 8번째                      |
 | 지금 대기 중         | **현재** `status='WAITING'` 건수와 `NOW() − MIN(requested_at)`                                            | 기간 무관                                   |
 | 직전 기간 대비       | 같은 길이의 바로 앞 기간 요청 수와 비교한 증감 %                                                          | 앞 기간이 0이면 `—`                          |
 | 상담 유발 질문       | `context_qna_id`별 `COUNT(*)`. NULL(질문 안 보고 요청)은 제외하되 **별도 한 줄로 "질문 없이 요청 N건"**     | 질문 본문은 `qnas`를 조인. 삭제된 Q&A도 조인 |
@@ -335,7 +336,7 @@
     },
     "live": { "waiting": 2, "longest_waiting_seconds": 185, "checked_at": "2026-10-07T09:12:00+09:00" },
     "funnel": { "collected_since": "2026-10-01", "opened": 1240, "qna_viewed": 860, "requested": 142 },
-    "daily": [ { "date": "2026-09-08", "connected": 6, "timed_out": 0, "user_canceled": 0, "active": 0 } ],
+    "daily": [ { "date": "2026-09-08", "ended": 6, "timed_out": 0, "user_canceled": 0, "active": 0 } ],
     "heatmap": [ { "dow": 1, "hour": 10, "count": 7 } ],
     "top_context_qnas": [ { "qna_id": 17, "question": "충전금 환불 받고 싶어요", "requested": 31, "viewed": 410, "deleted": false } ],
     "requested_without_context": 23,

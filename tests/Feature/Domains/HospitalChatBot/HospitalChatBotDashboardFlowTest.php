@@ -143,6 +143,33 @@ final class HospitalChatBotDashboardFlowTest extends TestCase
         $this->getJson('/api/v1/staff/hospital-chatbot/dashboard?from=2027-01-01')->assertStatus(422);
     }
 
+    public function test_period_edges_are_whole_days_and_null_client_ids_still_count_as_replies(): void
+    {
+        $alpha = $this->hospitalAccount('알파의원');
+        $this->loginStaff($this->staff());
+
+        // 기간 10/1~10/3. 양 끝의 첫 초·마지막 초는 들어오고, 바로 앞뒤 초는 빠진다. 직전 기간은 9/28~9/30.
+        $this->consultation($alpha, '알파의원', 'WAITING', '2026-09-30 23:59:59');
+        $this->consultation($alpha, '알파의원', 'WAITING', '2026-10-01 00:00:00');
+        $this->consultation($alpha, '알파의원', 'WAITING', '2026-10-03 23:59:59');
+        $this->consultation($alpha, '알파의원', 'WAITING', '2026-10-04 00:00:00');
+        $this->consultation($alpha, '알파의원', 'WAITING', '2026-09-27 23:59:59');
+
+        // client_message_id가 NULL인 상담원 답장도 직접 친 메시지다. 인사만 빼야 한다.
+        $connected = $this->consultation($alpha, '알파의원', 'ENDED', '2026-10-02 09:00:00', [
+            'connected_at' => '2026-10-02 09:00:10', 'ended_at' => '2026-10-02 09:05:00', 'close_reason' => 'AGENT_COMPLETED',
+        ]);
+        $this->message($connected, 1, 'AGENT', '2026-10-02 09:00:10', "greeting:{$connected}");
+        $this->message($connected, 2, 'AGENT', '2026-10-02 09:00:40', null);
+
+        $summary = $this->getJson('/api/v1/staff/hospital-chatbot/dashboard?from=2026-10-01&to=2026-10-03')
+            ->assertOk()->json('data.summary');
+
+        self::assertSame(3, $summary['requested']);
+        self::assertSame(1, $summary['requested_previous']);
+        self::assertSame(['median' => 30, 'p90' => 30, 'sample' => 1], $summary['first_response_seconds']);
+    }
+
     public function test_dashboard_requires_a_staff_session(): void
     {
         $this->withHeaders(['X-Beaulab-Client' => 'web', 'Origin' => 'http://localhost:3000'])
@@ -234,7 +261,7 @@ final class HospitalChatBotDashboardFlowTest extends TestCase
         ], $extra));
     }
 
-    private function message(int $consultationId, int $sequence, string $sender, string $createdAt, string $clientMessageId): void
+    private function message(int $consultationId, int $sequence, string $sender, string $createdAt, ?string $clientMessageId): void
     {
         DB::table('hospital_chatbot_consultation_messages')->insert([
             'consultation_id' => $consultationId,

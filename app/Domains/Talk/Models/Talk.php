@@ -34,17 +34,17 @@ final class Talk extends Model
 
     public const CATEGORY_DOMAIN = Category::DOMAIN_TALK;
 
-    public const CATEGORY_CODE_PLASTIC_PETIT = 'TALK_PLASTIC_PETIT';
+    public const CATEGORY_CODE_PLASTIC = 'TALK_PLASTIC';
 
-    public const CATEGORY_CODE_BEAUTY = 'TALK_BEAUTY';
+    public const CATEGORY_CODE_PETIT = 'TALK_PETIT';
 
     public const CATEGORY_CODE_DAILY = 'TALK_DAILY';
 
     public const CATEGORY_CODE_SECRET = 'TALK_SECRET';
 
     public const array CATEGORY_CODES = [
-        self::CATEGORY_CODE_PLASTIC_PETIT,
-        self::CATEGORY_CODE_BEAUTY,
+        self::CATEGORY_CODE_PLASTIC,
+        self::CATEGORY_CODE_PETIT,
         self::CATEGORY_CODE_DAILY,
         self::CATEGORY_CODE_SECRET,
     ];

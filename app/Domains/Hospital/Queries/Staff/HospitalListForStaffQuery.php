@@ -60,6 +60,7 @@ final class HospitalListForStaffQuery
             ])
             ->withCount([
                 'hospitalEvents as event_count',
+                'hospitalEventDBs as consultation_count',
                 'hospitalReviews as surgery_review_count' => fn (Builder $query) => $query
                     ->where('category_domain', HospitalReview::CATEGORY_DOMAIN_SURGERY)
                     ->where('status', HospitalReview::STATUS_ACTIVE),
@@ -151,6 +152,8 @@ final class HospitalListForStaffQuery
 
         if ($sort === null) {
             $this->applyDefaultSort($builder);
+        } elseif (in_array($sort, ['event_count', 'consultation_count'], true)) {
+            $builder->orderBy($sort, $direction)->orderByDesc('id');
         } elseif ($sort === 'last_login_at') {
             $builder->orderBy(
                 AccountHospital::query()

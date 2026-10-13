@@ -51,6 +51,12 @@
 - 광고 예약 잠금과 분류 잠금, 버전 비교로 관리 화면의 동시 덮어쓰기를 차단한다. 예약·진행 중인 승인 유료 광고가 연결된 분류는 중지·숨김을 거절한다. 광고 승인 및 승인 광고 수정도 잠금 안에서 현재 분류의 사용·노출을 재확인한다.
 - 기존 DB에는 `category_usages.is_menu_visible` (`boolean NOT NULL DEFAULT true`)와 `display_name` (`varchar(120) NULL`)이 필요하다. 생성 마이그레이션에 반영했으며, 기존 DB는 승인된 대상에서 `php artisan category:prepare-management --apply`로 준비한다. 먼저 `storage/app/private/category-management`에 연결 데이터까지 JSON 백업하고 누락 컬럼·분과 7개·병의원/의료진 사용처만 추가한다. 재실행은 기존 설정을 덮어쓰지 않는다. MySQL DDL은 트랜잭션 롤백 대상이 아니므로 실패 시 남은 스키마를 확인하고 재실행한다. `migrate:fresh`, 전체 재시딩·초기화는 하지 않는다.
 
+## 직원 병의원 목록
+
+`GET /api/v1/staff/hospitals`의 `event_count`는 삭제되지 않은 병의원 이벤트 수, `consultation_count`는 해당 병의원에 연결된 삭제되지 않은 이벤트 상담신청 DB 수다. 신청 상태와 무관한 전체 건수이며 비대면 상담·리얼모델·직원 챗봇 상담은 합산하지 않는다.
+
+`sort=event_count|consultation_count`와 `direction=asc|desc`를 지원하며 페이지네이션 전에 전체 필터 결과를 정렬한다. 같은 건수는 `id desc`로 정렬한다. 정렬을 지정하지 않으면 기존 신청·검수 우선 정렬을 유지한다.
+
 ## 상담신청 단가
 
 상담신청 단가 설정은 별도 `/api/v1/staff/consultation-pricing`의 GET/PUT/DELETE로 제공한다. `beaulab.db_pricing.manage` 권한이 필요하며 PUT은 즉시/예약 저장, DELETE는 `pending_id`와 `lock_version`이 일치하는 미래 예약 취소다. GET `/consultation-pricing/preview`는 이벤트 조회·등록·수정 중 하나의 권한으로 대표 카테고리와 가격의 현재 단가를 확인한다. 단가 계약과 초기화는 [충전금](hospital-wallet.md#상담신청-단가)을 따른다.

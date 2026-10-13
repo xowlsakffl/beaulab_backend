@@ -61,7 +61,7 @@ final class HospitalListForStaffRequest extends FormRequest
             'include' => ['nullable', 'array'],
             'include.*' => ['in:categories,features'],
 
-            'sort' => ['nullable', 'in:id,name,view_count,allow_status,status,created_at,updated_at,last_login_at,evaluation_count,evaluation_average_rating'],
+            'sort' => ['nullable', 'in:id,name,view_count,event_count,consultation_count,allow_status,status,created_at,updated_at,last_login_at,evaluation_count,evaluation_average_rating'],
             'direction' => ['nullable', 'in:asc,desc'],
 
             'page' => ['nullable', 'integer', 'min:1'],

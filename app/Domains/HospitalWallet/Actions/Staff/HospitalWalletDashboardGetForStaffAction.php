@@ -14,7 +14,7 @@ final class HospitalWalletDashboardGetForStaffAction
 
     public function execute(array $filters): array
     {
-        Gate::authorize('viewAny', HospitalWallet::class);
+        Gate::authorize('viewDashboard', HospitalWallet::class);
 
         return $this->query->overview((int) $filters['year']);
     }

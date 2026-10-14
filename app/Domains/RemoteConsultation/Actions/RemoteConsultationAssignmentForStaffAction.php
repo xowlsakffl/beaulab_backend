@@ -36,7 +36,7 @@ final class RemoteConsultationAssignmentForStaffAction
 
     public function candidates(int $id, array $filters): array
     {
-        Gate::authorize('approve', new RemoteConsultation);
+        Gate::authorize('assign', new RemoteConsultation);
         $c = RemoteConsultation::findOrFail($id);
         $this->assertEditable($c);
         $price = app(\App\Domains\ConsultationPricing\Support\ConsultationPricingResolver::class)->fixed('REMOTE')['price'];
@@ -69,7 +69,7 @@ final class RemoteConsultationAssignmentForStaffAction
 
     public function add(int $id, array $hospitalIds): array
     {
-        Gate::authorize('approve', new RemoteConsultation);
+        Gate::authorize('assign', new RemoteConsultation);
         DB::transaction(function () use ($id, $hospitalIds) {
             $c = RemoteConsultation::whereKey($id)->lockForUpdate()->firstOrFail();
             $this->assertEditable($c);
@@ -102,7 +102,7 @@ final class RemoteConsultationAssignmentForStaffAction
 
     public function remove(int $id, int $quoteId): array
     {
-        Gate::authorize('approve', new RemoteConsultation);
+        Gate::authorize('assign', new RemoteConsultation);
         DB::transaction(function () use ($id, $quoteId) {
             $c = RemoteConsultation::whereKey($id)->lockForUpdate()->firstOrFail();
             $this->assertEditable($c);

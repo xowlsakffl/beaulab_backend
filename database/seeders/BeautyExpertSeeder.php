@@ -14,7 +14,7 @@ final class BeautyExpertSeeder extends Seeder
     {
         DevelopmentDataGuard::assertEnabled();
         $fallbackCategoryIds = Category::query()
-            ->where('domain', Category::DOMAIN_BEAUTY)
+            ->where('domain', Category::DOMAIN_BEAUTY_EXPERT)
             ->whereDoesntHave('children')
             ->pluck('id')
             ->all();

@@ -5,6 +5,9 @@ namespace App\Modules\Staff\Http\Controllers\Dashboard;
 use App\Common\Authorization\AccessPermissions;
 use App\Common\Http\Controllers\Controller;
 use App\Common\Http\Responses\ApiResponse;
+use App\Domains\Common\Dashboard\Queries\Staff\DashboardMetricsForStaffQuery;
+use App\Domains\Common\Dashboard\Queries\Staff\DashboardWorkForStaffQuery;
+use App\Modules\Staff\Http\Requests\Dashboard\DashboardForStaffRequest;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -26,8 +29,14 @@ final class DashboardForStaffController extends Controller implements HasMiddlew
      * (Beaulab) Staff 전용 대쉬보드
      */
     public function getDashboardForStaff(
-
+        DashboardForStaffRequest $request,
+        DashboardWorkForStaffQuery $work,
+        DashboardMetricsForStaffQuery $metrics,
     ) {
-        return ApiResponse::success();
+        $filters = $request->validated();
+
+        return ApiResponse::success($filters['section'] === 'work'
+            ? $work->execute($request->user())
+            : $metrics->execute($request->user(), $filters['start_date'], $filters['end_date']));
     }
 }

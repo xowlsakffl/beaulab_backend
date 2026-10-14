@@ -14,12 +14,12 @@ final class CategoryForStaffPolicy
 {
     public function viewAny(AccountStaff $actor): bool
     {
-        return $actor->can(AccessPermissions::COMMON_ACCESS);
+        return $actor->isActive() && ! $actor->trashed();
     }
 
     public function view(AccountStaff $actor, Category $category): bool
     {
-        return $actor->can(AccessPermissions::COMMON_ACCESS);
+        return $this->viewAny($actor);
     }
 
     public function create(AccountStaff $actor): bool

@@ -5,7 +5,6 @@
  * 인증/권한 미들웨어와 컨트롤러 매핑만 두고 비즈니스 로직은 컨트롤러와 Action 계층으로 위임한다.
  */
 
-use App\Common\Authorization\AccessPermissions;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Modules\Staff\Http\Controllers\AccountHospital\HospitalAccountInvitationForStaffController;
 use App\Modules\Staff\Http\Controllers\AccountHospital\HospitalAccountPasswordResetForStaffController;
@@ -17,7 +16,6 @@ use App\Modules\Staff\Http\Controllers\BeautyExpert\BeautyExpertForStaffControll
 use App\Modules\Staff\Http\Controllers\Category\CategoryForStaffController;
 use App\Modules\Staff\Http\Controllers\ContentReport\ContentReportForStaffController;
 use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
-use App\Modules\Staff\Http\Controllers\Faq\FaqForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotConsultationForStaffController;
@@ -57,7 +55,7 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:password-reset-submit');
 });
 
-Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermissions::COMMON_ACCESS])->group(function () {
+Route::middleware(['auth:sanctum', 'actor:staff'])->group(function () {
     Route::prefix('notifications')->name('notifications.')->group(function () {
         $controller = \App\Modules\Staff\Http\Controllers\Notification\NotificationForStaffController::class;
         Route::get('/', [$controller, 'index'])->name('index');
@@ -96,6 +94,7 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         Route::post('/', 'store')->name('store');
         Route::get('/{staff}', 'show')->whereNumber('staff')->name('show');
         Route::put('/{staff}', 'update')->whereNumber('staff')->name('update');
+        Route::patch('/{staff}/status', 'status')->whereNumber('staff')->name('status');
         Route::delete('/{staff}', 'destroy')->whereNumber('staff')->name('destroy');
         Route::get('/{staff}/operation-histories', 'histories')->whereNumber('staff')->name('histories');
     });
@@ -234,8 +233,6 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         ->name('hospitals.processHospitalStatusChangeRequestForStaff');
     Route::match(['post', 'put', 'patch'], 'hospitals/{hospital}', [HospitalForStaffController::class, 'updateHospitalForStaff'])
         ->name('hospitals.updateHospitalForStaff');
-    Route::delete('hospitals/{hospital}', [HospitalForStaffController::class, 'deleteHospitalForStaff'])
-        ->name('hospitals.deleteHospitalForStaff');
 
     Route::get('hospital-wallets/dashboard', [HospitalWalletForStaffController::class, 'getHospitalWalletDashboardForStaff'])
         ->name('hospital-wallets.getHospitalWalletDashboardForStaff');
@@ -274,6 +271,9 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
     Route::get('categories/selector', [CategoryForStaffController::class, 'getCategorySelectorForStaff'])
         ->name('categories.getCategorySelectorForStaff');
     Route::get('categories/management', [\App\Modules\Staff\Http\Controllers\Category\CategoryManagementController::class, 'show'])->name('categories.management.show');
+    Route::get('category-topics/selector', [\App\Modules\Staff\Http\Controllers\Category\CategoryTopicController::class, 'selector'])->name('category-topics.selector');
+    Route::get('category-topics', [\App\Modules\Staff\Http\Controllers\Category\CategoryTopicController::class, 'index'])->name('category-topics.index');
+    Route::post('category-topics', [\App\Modules\Staff\Http\Controllers\Category\CategoryTopicController::class, 'save'])->name('category-topics.save');
     Route::post('categories/management', [\App\Modules\Staff\Http\Controllers\Category\CategoryManagementController::class, 'save'])->name('categories.management.save');
     Route::get('categories', [CategoryForStaffController::class, 'getCategoriesForStaff'])
         ->name('categories.getCategoriesForStaff');
@@ -593,24 +593,6 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
     Route::delete('notices/{notice}', [NoticeForStaffController::class, 'deleteNoticeForStaff'])
         ->name('notices.deleteNoticeForStaff');
 
-    /**
-     * FAQ
-     **/
-    Route::get('faqs', [FaqForStaffController::class, 'getFaqsForStaff'])
-        ->name('faqs.getFaqsForStaff');
-    Route::get('faqs/{faq}', [FaqForStaffController::class, 'getFaqForStaff'])
-        ->name('faqs.getFaqForStaff');
-    Route::post('faqs', [FaqForStaffController::class, 'createFaqForStaff'])
-        ->name('faqs.createFaqForStaff');
-    Route::post('faqs/editor-images', [FaqForStaffController::class, 'uploadEditorImageForStaff'])
-        ->name('faqs.uploadEditorImageForStaff');
-    Route::delete('faqs/editor-images', [FaqForStaffController::class, 'cleanupEditorImagesForStaff'])
-        ->name('faqs.cleanupEditorImagesForStaff');
-    Route::match(['post', 'put', 'patch'], 'faqs/{faq}', [FaqForStaffController::class, 'updateFaqForStaff'])
-        ->name('faqs.updateFaqForStaff');
-    Route::delete('faqs/{faq}', [FaqForStaffController::class, 'deleteFaqForStaff'])
-        ->name('faqs.deleteFaqForStaff');
-
     // 챗봇 실시간 채널 인가. 공용 /broadcasting/auth는 actor:user 전용이라 액터별로 따로 연다.
     Route::post('/broadcasting/auth', static fn (Request $request) => Broadcast::auth($request))
         ->name('broadcasting.auth');
@@ -619,6 +601,8 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
         Route::get('consultations', [HospitalChatBotConsultationForStaffController::class, 'index'])
             ->name('consultations.index');
         // {consultation} 보다 먼저 와야 한다. 뒤에 두면 'export'가 상담 ID로 잡힌다.
+        Route::get('consultations/macros', [\App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotMessageSettingForStaffController::class, 'macros'])
+            ->name('consultations.macros');
         Route::get('consultations/export', [HospitalChatBotConsultationForStaffController::class, 'export'])
             ->name('consultations.export');
         Route::get('consultations/{consultation}', [HospitalChatBotConsultationForStaffController::class, 'show'])
@@ -649,7 +633,7 @@ Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermission
 });
 
 // Internal remote-consultation administration. No User/Hospital write endpoints yet.
-Route::middleware(['auth:sanctum', 'actor:staff', 'permission:'.AccessPermissions::COMMON_ACCESS])->prefix('remote-consultations')->group(function () {
+Route::middleware(['auth:sanctum', 'actor:staff'])->prefix('remote-consultations')->group(function () {
     $controller = \App\Modules\Staff\Http\Controllers\RemoteConsultation\RemoteConsultationForStaffController::class;
     Route::get('/', [$controller, 'index']);
     Route::get('/{consultation}', [$controller, 'show'])->whereNumber('consultation');

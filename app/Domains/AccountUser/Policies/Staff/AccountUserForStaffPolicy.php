@@ -19,6 +19,11 @@ final class AccountUserForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_USER_SHOW);
     }
 
+    public function viewStatistics(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_USER_STATISTICS_SHOW);
+    }
+
     public function view(AccountStaff $actor, AccountUser $user): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_USER_SHOW);

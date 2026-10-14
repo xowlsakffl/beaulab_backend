@@ -15,7 +15,7 @@ final class StaffPermissionSnapshot
         if ($staff->permissions_initialized_at !== null) {
             return;
         }
-        $names = $staff->getAllPermissions()->pluck('name')->all();
+        $names = StaffPermissionCatalog::activeNames($staff->getAllPermissions()->pluck('name')->all());
         // 새 관리 권한은 기존 총괄에만 최초 부여한다. 이후에는 역할로 우회하지 않는다.
         if ($staff->hasRole(AccessRoles::BEAULAB_SUPER_ADMIN)) {
             $names[] = AccessPermissions::BEAULAB_STAFF_PERMISSIONS_MANAGE;

@@ -2,9 +2,20 @@
 
 프론트엔드 연동과 새 API 개발의 공통 계약입니다. 개별 필드·선택값·권한 이름의 최종 기준은 각 Request, DTO, Policy입니다.
 
+## 직원 운영 대시보드
+
+- `GET /api/v1/staff/dashboard`는 정상 직원 세션과 `common.dashboard.show`가 필요하다. `section=work|metrics`를 지정한다. 기존 업무의 조회 권한을 추가로 검사한 뒤 해당 데이터만 반환하며 숨겨진 영역의 개수를 0으로 응답하지 않는다. 변경·읽음 처리·외부 호출은 없다.
+- `work`: `{as_of,reviews,reports,status_requests,consultations}`. 그룹에는 `key/label/pending/reviewing/href/rows`가 있고 행은 최대 8개다. 병의원·의료진·입점신청·이벤트·광고는 PENDING과 REVIEWING, 비대면 상담은 같은 approval_status, 리얼모델은 RECEIVED를 조회한다. 행의 `status`는 해당 도메인의 실제 표시명(신청·검수 등)을 반환한다. `pending`에는 REVIEWING을 포함하지 않는다. 소프트 삭제된 원본은 제외한다.
+- 신고는 신고 접수 건수가 아닌 원본 대상 수다. 후기·토크·평가 및 댓글의 REPORTED/AUTO_BLOCKED, 채팅의 신고가 있고 warning_status=NONE인 대상을 집계한다. 삭제된 원본과 부모가 삭제된 댓글을 제외한다. 신고 조회 권한으로 제한하며 댓글 링크는 기존 신고 목록의 댓글 탭과 ID 검색을 사용한다.
+- 운영상태 변경 요청은 병의원 조회와 상태 변경 요청 조회가 모두 필요하다. PENDING 요청만 반환한다. 상담은 상담 조회 권한이 필요하며 전체 WAITING, 본인 담당 CONNECTED, 본인 진행 상담 중 읽지 않은 HOSPITAL_USER 메시지가 있는 상담 수를 반환한다. 메시지 미리보기는 최대 100자이며 목록은 대기와 본인 진행 상담을 각각 최대 5건씩 반환한다. 다른 직원의 진행 상담은 반환하지 않는다. `rows`에는 대기를 먼저 담고 대기는 요청 오래된 순, 진행 상담은 최근 메시지·연결·요청 시각 순으로 정렬한다. 대기 수에 관계없이 각 상태 탭의 미리보기를 제공하며 전체 건수와 목록 상한은 구분한다.
+- `metrics`: `start_date/end_date`를 YYYY-MM-DD로 모두 입력한다. 한국 시간의 시작일 00:00 이상, 종료일 다음 날 00:00 미만으로 최대 93일이며 현재 시각 이후 데이터는 제외한다. 미래 종료일·역전 구간·잘못된 날짜는 422다. `{as_of,start_date,end_date,dates,metrics,wallet}`를 반환하며 일별 값은 없는 날짜를 0으로 채운다.
+- 이벤트 DB·리얼모델·비대면 지표는 각 조회 권한, 신규 회원은 일반회원 현황 조회 권한, 포인트는 충전금 현황 조회 권한으로 제한한다. 이벤트 DB와 리얼모델의 삭제 건은 제외하고 신규 회원은 기존 현황과 동일하게 탈퇴 회원을 포함한 가입 건수다. 신청은 중복 여부를 포함한 접수 수이며 고유 고객 수가 아니다.
+- 포인트는 COMPLETED operation에 연결된 transaction의 created_at과 PAID/SERVICE ledger entry 기준이다. 유상은 충전·사용·환불, 서비스는 지급·사용·회수를 집계하며 REVERSAL의 CREDIT-DEBIT는 별도 정정 순액으로 표시한다. 예약·실패·입금 대기 금액은 제외하고 통화는 원이 아닌 P다. 거래내역 링크는 내역 조회 권한이 있을 때만 반환한다.
+- Query는 업무별 권한을 확인하기 전에 해당 업무 테이블을 조회하지 않는다. 전체 목록을 메모리로 읽지 않고 DB 집계와 제한된 행 조회를 사용한다. 현재 업무와 기간 집계는 독립 요청이며 요청 사이의 수치는 하나의 트랜잭션 스냅샷을 의미하지 않는다. 운영 규모에서 응답시간·쿼리 실행 계획을 확인한 뒤 필요할 때 집계 캐시를 도입한다.
+
 ## 직원 알림
 
-기본 경로는 `/api/v1/staff/notifications`입니다. 직원 웹 세션·CSRF·`common.access`를 사용하며 항목별 현재 업무 권한으로 수신함을 제한합니다. 다른 직원의 ID를 입력받는 API는 없습니다.
+기본 경로는 `/api/v1/staff/notifications`입니다. 정상 직원의 웹 세션·CSRF를 확인하며 항목별 현재 업무 권한으로 수신함을 제한합니다. 다른 직원의 ID를 입력받는 API는 없습니다.
 
 | 메서드·하위 경로 | 입력 / 응답 data |
 | --- | --- |
@@ -40,16 +51,28 @@
 
 ## 카테고리 관리
 
-- `GET /api/v1/staff/categories/management?domain=...`는 해당 도메인의 전체 트리, 연결 콘텐츠 수, 사용처별 직접 설정과 상위 상태를 반영한 유효 설정, 수정 버전을 반환한다.
-- `POST /api/v1/staff/categories/management`는 조회한 `version`, `domain`, `operation=create|update|delete|reorder|usage|label`을 받는다. 등록·이름 수정·삭제·순서는 `beaulab.category.manage`, 사용처 설정은 `beaulab.category.status_update`가 필요하다. 공통 상태 변경은 기존 수정 Policy에 따라 두 권한이 모두 필요하다. 화면 조회는 둘 중 하나로 가능하다.
-- 이름·코드·부모·그룹은 `categories`, 업무별 표시명(`display_name`)·사용·메뉴 노출·순서는 `category_usages`, 기존 콘텐츠 연결은 `category_assignments`를 유지한다. 의료 분류는 성형·쁘띠·기획전을 구분하며 최대 3단계다. 토크·뷰티·FAQ·병의원 평가·분과와 챗봇 Q&A는 의료 분류와 섞지 않는다.
-- `label`은 `usage/id/display_name`으로 해당 업무의 이름만 바꾼다. 빈 값은 공통 이름을 따른다. selector와 콘텐츠 응답은 업무별 이름·경로를 반환하지만 DB의 공통 이름·ID·경로와 가격 판정은 바꾸지 않는다. 의료 분류의 공통 수정·삭제는 `confirm_global=true`가 필요하다.
-- 병의원 진료과목(`HOSPITAL_SUBJECT`)과 의료진 진료분야(`DOCTOR_SUBJECT`)는 별도 설정이다. 기존 `HOSPITAL_DOCTOR_SUBJECT`를 복사해 시작하며, 구형 계약은 유지하지만 새 화면은 이를 변경하지 않는다. 분과는 `HOSPITAL_DEPARTMENT` 단층 트리이며 `categories.code`와 기존 `hospitals.department` 코드로 연결한다. 코드 변경 및 사용 중인 분과 삭제는 금지하고, 비활성 분과는 새 선택에서 제외하되 기존 병의원의 값을 유지한다.
-- 기존 사용처 행이 없는 하위 분류는 부모의 사용 설정을 상속한다. 신규 분류는 선택한 사용처만 사용하도록 명시적으로 저장한다. 부모 중지·숨김은 하위의 유효 상태에 반영하되 하위의 직접 설정을 덮어쓰지 않는다.
-- 메뉴 노출은 사용 여부와 별개이며 콘텐츠 연결·공개 상태를 변경하지 않는다. selector는 `usage`를 모든 단계에 전달하고, `is_menu_visible=true`를 지정한 조회만 메뉴에서 숨긴 항목을 제외한다. 사용자 앱의 메뉴 UI 연결은 별도 소비자가 이 계약을 사용해야 한다.
-- 순서는 같은 도메인·그룹·부모의 전체 형제 ID로만 변경한다. 부모 이동·병합은 제공하지 않는다. 삭제 시 하위 분류, 다형 연결, 비대면 상담, 노출설정, 상담 단가 참조를 검사한다. 이름·상태·사용처·순서 변경은 기존 운영 이력에 기록한다.
-- 광고 예약 잠금과 분류 잠금, 버전 비교로 관리 화면의 동시 덮어쓰기를 차단한다. 예약·진행 중인 승인 유료 광고가 연결된 분류는 중지·숨김을 거절한다. 광고 승인 및 승인 광고 수정도 잠금 안에서 현재 분류의 사용·노출을 재확인한다.
-- 기존 DB에는 `category_usages.is_menu_visible` (`boolean NOT NULL DEFAULT true`)와 `display_name` (`varchar(120) NULL`)이 필요하다. 생성 마이그레이션에 반영했으며, 기존 DB는 승인된 대상에서 `php artisan category:prepare-management --apply`로 준비한다. 먼저 `storage/app/private/category-management`에 연결 데이터까지 JSON 백업하고 누락 컬럼·분과 7개·병의원/의료진 사용처만 추가한다. 재실행은 기존 설정을 덮어쓰지 않는다. MySQL DDL은 트랜잭션 롤백 대상이 아니므로 실패 시 남은 스키마를 확인하고 재실행한다. `migrate:fresh`, 전체 재시딩·초기화는 하지 않는다.
+- `GET /api/v1/staff/categories/management?domain=...`는 업무별 전체 트리·연결 수·직접 상태·상위 반영 상태·통합 조회 연결·수정 버전을 반환한다.
+- `POST /categories/management`는 `domain/version/operation`을 받는다. 작업은 `create|update|delete|reorder|move`이며 등록·수정·이동·삭제·정렬은 `beaulab.category.manage`, 등록 사용 상태 변경은 `beaulab.category.status_update`가 필요하다. 두 종류를 같이 변경하면 두 권한 모두 필요하다. `is_menu_visible/topic_ids`는 받지 않으며 앱 메뉴 변경은 `/category-topics`에서 처리한다.
+- 분류 ID·이름·부모·순서·상태는 업무별로 독립적이다. `HOSPITAL_MEDICAL`은 이벤트 전용이며 광고·이벤트 노출·상담 단가도 이 ID를 쓴다. 병의원 `HOSPITAL_SUBJECT`, 의료진 `DOCTOR_SUBJECT`, 후기 `HOSPITAL_REVIEW`, 영상 `HOSPITAL_VIDEO`, 뷰티 전문가 `BEAUTY_EXPERT`는 각각 다른 ID를 쓴다.
+- 분과 `HOSPITAL_DEPARTMENT`는 `hospitals.department`와 변경 불가 코드로 연결한다. 토크 `TALK`, 평가 `HOSPITAL_EVALUATION`, 뷰티 `BEAUTY`도 독립적이다. 기존 `category_usages`는 전환 근거로 보존하며 더 이상 업무 설정 저장소로 사용하지 않는다.
+- selector의 `usage`는 업무별 선택 규칙을 지정하는 API 별칭이다. 하위 조회에도 전달한다. 구형 `domain=HOSPITAL_MEDICAL`과 별도 usage 조합은 해당 업무 domain으로 해석하지만, 다른 업무 부모 ID를 넘기면 검증 오류다. 기존 저장 ID는 각 업무에서 반환한 ID로 갱신해야 한다.
+- 일반 등록 selector는 부모 상태를 반영한 등록 가능 항목만 반환한다. 기존 콘텐츠 연결·공개 상태는 바꾸지 않는다. staff selector의 `is_menu_visible`은 구형 계약으로 보존하며 신규 앱 메뉴에는 사용하지 않는다. 단가·노출위치 관리에서는 중지된 분류의 기존 설정도 계속 조회한다.
+- 재정렬은 같은 부모·그룹의 전체 형제 ID를 전송한다. 이동은 같은 업무·그룹에서 최대 3단계, 연결 콘텐츠·가격·예약이 없는 하위 트리만 가능하며 `operation=move`일 때만 `confirm_move=true`가 필요하다. 이동 요청에 `name`을 함께 보내면 도착 위치의 중복 이름과 하위 전체 경로 길이를 최종 이름 기준으로 검사하고 이름·부모·하위 경로·변경 이력을 한 트랜잭션으로 저장한다. 이름을 생략한 기존 이동 요청은 원래 이름을 유지한다. 조회와 다른 변경 작업에는 이동 확인값을 요구하지 않는다. 삭제는 자식·콘텐츠·분과 사용 병의원·비대면 관심부위·노출 예약·단가·직접 연결된 앱 메뉴 참조가 없을 때만 가능하다.
+- 버전 비교·트랜잭션·잠금으로 관리 화면의 동시 덮어쓰기를 차단한다. 구형 업무 카테고리 API의 메뉴 숨김은 예약/진행 중인 승인 유료 광고 참조가 있으면 거절한다. 신규 선택 중지는 기존 광고와 가격을 변경하지 않는다.
+- `GET/POST /api/v1/staff/category-topics`는 앱 메뉴와 표시할 업무 분류를 관리한다. POST는 `version`과 `create|update|delete|reorder`를 받으며 관리 권한이 필요하다. code는 자동 생성 후 고정, 이름·메뉴 공개·순서·`category_ids`는 수정 가능하다. `category_ids` 생략 시 기존 연결을 다시 저장하지 않는다. 응답의 `category_ids`는 기존 직접 연결, `included_category_ids`는 하위를 포함한 유효 연결이다. 연결 분류/콘텐츠가 있으면 삭제할 수 없다.
+- 인증된 직원의 `GET /category-topics/selector`는 콘텐츠 폼용 목록이다. 기획전 이벤트 등록·수정·복제는 선택적인 `topic_ids` 배열(최대 30개)을 받는다. 수정에서 생략하면 기존 연결을 보존한다. 성형·쁘띠는 카테고리 연결을 사용하며 명시적인 이벤트 topic 연결을 남기지 않는다.
+- 전환 실행과 복구 주의사항은 [운영 절차](operations.md#업무별-카테고리-전환)를 따른다.
+
+### 사용자 통합 조회
+
+| API (`/api/v1/user`) | 계약 |
+| --- | --- |
+| `GET /categories` | `domain` 필수. `mode=selection`은 등록 가능 트리, `mode=menu`는 공개 앱 메뉴에 연결된 해당 업무의 분류와 하위 분류 |
+| `GET /discovery-topics` | 공개된 앱 메뉴명·고정 code |
+| `GET /discovery-topics/{code}` | 앱 메뉴에 직접 연결된 분류와 하위 분류의 ID·이름. 비공개 메뉴도 code로 조회 가능 |
+| `GET /discovery-topics/{code}/contents` | `domain=hospitals|doctors|events|reviews|videos|talks|evaluations|beauties|beauty-experts`, `page`, `per_page`(최대 50) |
+
+통합 조회는 동일한 이름을 추측해 합치지 않는다. 직접 연결한 분류 ID와 같은 업무·그룹의 모든 하위 분류 또는 기획전 개별 이벤트 연결을 사용한다. 하위는 조회 시 계산하므로 신규 등록·상위 이동이 자동 반영되며 기존 직접 연결은 보존한다. 콘텐츠 응답은 공개 가능한 항목의 `id/title`과 페이지 정보만 반환하며 상세·미디어 DTO를 대신하지 않는다. 검수·공개·기간·병의원 상태·신고 차단을 적용하고 시크릿 토크는 제외한다. 메뉴 공개 여부는 목록 표시만 결정하며 숨긴 code의 직접 조회를 막지 않는다. 사용자 앱 화면 소비는 해당 앱 구현에서 연결한다.
 
 ## 직원 병의원 목록
 
@@ -70,23 +93,42 @@
 - PUT은 그룹 내 모든 위치의 `prices` 맵, `lock_version`, `current_version_id`(최초 0), 선택적인 `effective_at`(시간대 포함)을 받는다. 미지정 시 즉시 적용한다. DELETE는 같은 버전 정보와 `pending_id`로 아직 적용되지 않은 예약만 취소한다.
 - 위치별 상세 설정 API는 아직 제공하지 않는다. 가격 단위·기존 광고 보존 정책은 [광고 기본 비용](hospital-wallet.md#광고-기본-비용)을 따른다.
 
-## 직원 내 프로필
+## 직원 접속과 내 프로필
 
-- `GET /api/v1/staff/profile`은 `common.profile.show`로 본인 정보와 현재 권한을 조회합니다. 기존 필드에 `phone`, `department`, `job_title`, `version`을 포함합니다. 다른 직원 ID는 입력받지 않습니다.
-- `PATCH|PUT /api/v1/staff/profile`은 `common.profile.update`로 이름·전화번호만 수정합니다. 조회 응답의 `version`은 필수이고 `name/phone`은 변경한 필드만 전달합니다. 전화번호의 공백·괄호·하이픈을 제거한 뒤 직원 등록과 같은 형식을 검사합니다. 직원 ID·이메일·부서·직급·역할·권한·상태 변경은 직원 관리 API를 사용합니다.
-- 저장 시 계정 행을 잠그고 현재 계정 상태·권한·`lock_version`을 재검사합니다. 변경이 있으면 버전을 증가시키며 오래된 요청은 `details.errors.version` 422로 거절합니다. 응답은 `{profile}`입니다. 기존 프로필 수정 소비자는 필수 버전과 수정 허용 필드 변경에 맞춰 함께 배포해야 합니다. 스키마 변경은 없습니다.
-- `PATCH|PUT /api/v1/staff/password`은 같은 수정 권한으로 `current_password`, `password`, `password_confirmation`을 받습니다. 새 비밀번호는 직원 등록과 같은 최소 12자·문자·숫자·최대 72자 조건이며 현재 비밀번호와 달라야 합니다. 현재 비밀번호 확인·저장·기존 Sanctum 토큰 삭제를 한 트랜잭션에서 처리하고 수정 버전을 증가시킵니다. 현재 비밀번호 불일치는 `details.errors.current_password`로 반환합니다.
+- 직원 관리자 접속은 유효한 직원 세션과 정상 계정 상태로 판단합니다. `common.access`, `common.profile.show/update`는 직원 권한 목록·역할 기본값·인증 응답에서 제외하며 DB에 남아 있어도 검사하지 않습니다. 다른 업무의 개별 permission, 본인 여부, 담당자 소유권 검사는 유지합니다. 병의원·뷰티 파트너 guard의 기존 공통 권한 계약은 변경하지 않습니다.
+- `GET /api/v1/staff/profile`은 정상 직원이면 별도 권한 없이 본인 정보와 현재 유효 권한을 조회합니다. 기존 필드에 `phone`, `department`, `job_title`, `version`을 포함합니다. 다른 직원 ID는 입력받지 않습니다.
+- `PATCH|PUT /api/v1/staff/profile`은 본인 이름·전화번호만 수정합니다. 조회 응답의 `version`은 필수이고 `name/phone`은 변경한 필드만 전달합니다. 전화번호의 공백·괄호·하이픈을 제거한 뒤 직원 등록과 같은 형식을 검사합니다. 직원 ID·이메일·부서·직급·역할·권한·상태 변경은 직원 관리 API를 사용합니다.
+- 저장 시 계정 행을 잠그고 현재 계정 상태·본인 여부·`lock_version`을 재검사합니다. 변경이 있으면 버전을 증가시키며 오래된 요청은 `details.errors.version` 422로 거절합니다. 응답은 `{profile}`입니다. 스키마 변경이나 사전 DB 권한 부여는 필요하지 않으며 기존 직원 권한 행의 물리 삭제는 승인된 권한 Seeder 실행 때만 처리합니다.
+- `PATCH|PUT /api/v1/staff/password`은 정상 직원 본인의 `current_password`, `password`, `password_confirmation`을 받으며 별도 수정 권한을 요구하지 않습니다. 새 비밀번호는 직원 등록과 같은 최소 12자·문자·숫자·최대 72자 조건이며 현재 비밀번호와 달라야 합니다. 현재 비밀번호 확인·저장·기존 Sanctum 토큰 삭제를 한 트랜잭션에서 처리하고 수정 버전을 증가시킵니다. 현재 비밀번호 불일치는 `details.errors.current_password`로 반환합니다.
 - 변경 후 기존 웹 세션은 비밀번호 지문 불일치로 다음 인증 요청에서 거절됩니다. 클라이언트는 메모리 세션을 지우고 다른 탭에 인증 변경을 알린 뒤 로그인으로 이동합니다. 실제 비밀번호는 로그·응답에 포함하지 않습니다.
 
 ## 직원 관리
 
-- 기본 경로는 `/api/v1/staff/staffs`입니다. GET 목록, POST 등록, GET/PUT/DELETE `/{staff}`, GET `/options`, PUT `/role-template`, GET `/{staff}/operation-histories`를 제공합니다.
+- 기본 경로는 `/api/v1/staff/staffs`입니다. GET 목록, POST 등록, GET/PUT/DELETE `/{staff}`, PATCH `/{staff}/status`, GET `/options`, PUT `/role-template`, GET `/{staff}/operation-histories`를 제공합니다.
 - 조회·등록·수정·삭제는 기존 `beaulab.staff.*` 권한으로 검사합니다. 역할·개인 권한·역할 템플릿 변경은 추가로 `beaulab.staff.permissions_manage`가 필요하며 자신에게 없는 권한을 부여할 수 없습니다.
 - 역할은 총괄(`beaulab.super_admin`), 매니저(`beaulab.admin`), 사원(`beaulab.staff`), 개발자(`beaulab.dev`)입니다. 등록과 역할 변경 시에만 해당 역할 기본권한을 개인 권한으로 복사합니다. 같은 역할의 개인 권한 변경은 그대로 저장하며, 역할 템플릿 변경은 기존 직원에게 소급하지 않습니다.
 - 전환 완료 직원(`permissions_initialized_at` 존재)의 `can()`과 인증 응답은 개인 권한만 사용합니다. 총괄·개발자도 우회하지 않습니다. 내부 도구 접근은 `beaulab.internal_tool.show`와 기존 도구 허용 설정을 함께 검사합니다.
 - 수정은 응답의 `version`과 `updated_at`을 보내야 합니다. 템플릿 수정은 해당 템플릿 `version` 해시가 필요합니다. 오래된 요청은 422로 거절합니다.
+- 상태 전용 PATCH는 `status=ACTIVE|SUSPENDED|BLOCKED`, `version`, `updated_at`만 저장 입력으로 사용하며 기존 수정 권한을 검사합니다. 정상·정지·차단 버튼의 확인 모달에서 즉시 호출하고, 작성 중인 기본정보·역할·권한은 함께 저장하지 않습니다. 성공 응답은 최신 직원 상세이며 클라이언트는 상태와 수정 버전·시각만 반영하여 초안을 보존합니다. 상태 변경·버전 증가·정지/차단 계정의 토큰 폐기·상태변경 이력을 한 트랜잭션에서 처리하며 동일 상태는 버전과 이력을 늘리지 않습니다. 기존 PUT 전체 저장 계약은 유지합니다.
 - 다른 직원의 비밀번호·이메일 변경과 재활성화는 역할·권한 관리 권한 및 대상의 기존 권한을 모두 보유해야 합니다. 본인 삭제·차단 및 마지막 권한 관리 가능 직원의 접근 제거는 차단합니다. 삭제는 소프트 삭제이며 운영 이력을 남깁니다.
 - 부서·직급은 기존 `department/job_title`, 전화번호는 `phone`입니다. 등록에는 역할만 선택하고 권한표는 수정 화면에서 편집합니다. 관리자 메모·히스토리 조회는 대상 도메인의 기존 조회 권한을 유지합니다.
+- 직원 상세·역할 템플릿 응답과 권한 복사는 현재 `StaffPermissionCatalog`에 정의된 권한만 사용합니다. DB에 폐기된 권한이 남아 있어도 화면에 재노출하거나 역할 변경 시 복사하지 않습니다. 기존 권한 레코드의 물리 정리는 `AuthorizationSeeder`의 폐기 목록으로 관리하며 코드 배포 시 자동으로 Seeder를 실행하지 않습니다.
+- 대행사·FAQ의 API·권한 정의는 제공하지 않습니다. 기존 DB의 폐기 권한은 위 정책으로 관리하며 테이블·콘텐츠·첨부파일을 자동 삭제하지 않습니다. 신규 설치에는 FAQ 테이블·기본 분류를 생성하지 않습니다. 기존 환경의 테이블 정리와 과거 마이그레이션 롤백은 별도 확인이 필요합니다.
+- 동영상 신고 권한은 영상 등록관리의 신고내역·조치 API에 필요하므로 유지합니다. 직원 권한표에서는 숨기지만 기존 개인·역할 기본권한과 API 인가를 임의로 합치거나 삭제하지 않습니다.
+- 병의원 삭제 경로와 `beaulab.hospital.delete` 권한은 제공하지 않습니다. 계정 생성 초대의 `beaulab.hospital_account_invitation.update`는 화면의 발송·재발송에 사용하며 권한표에서는 비밀번호 재설정과 같은 `발송` 열에 표시합니다. 재발송 시 기존 초대는 자동 무효화됩니다. 별도 수동 폐기 API도 같은 권한을 사용하지만 화면에는 폐기 기능이 없습니다. 병의원 정보나 생성된 계정의 수정 권한을 의미하지 않습니다.
+- 충전금 현황 조회·비대면 직접 배정·광고 현황 조회·영상 동의여부 조회·일반회원 현황 조회·기타 노출설정의 기존 권한 이전은 `StaffPermissionSplit::apply()`로 실행합니다. 신규 권한 생성과 기존 개인·역할 기본권한 복사는 하나의 트랜잭션이며, 대상 권한이 이미 있으면 재복사하지 않습니다. 개별 해제한 권한은 재실행으로 복원되지 않습니다. `AuthorizationSeeder`는 일반 권한 생성 전에 이를 호출하지만 기존 DB에서는 전체 Seeder 대신 승인된 대상에서 이 작업만 실행할 수 있습니다. 기존 수정폼의 덮어쓰기를 막기 위해 영향받는 직원의 수정 버전을 증가시키며, 적용 후 권한표·세션을 새로 조회해야 합니다.
+
+## 광고 관리·현황 권한
+
+- 광고 목록·상세·상세 히스토리는 기존 `beaulab.hospital_event_ad.show`, 현황 `GET /api/v1/staff/hospital-event-ads/calendar`는 `beaulab.hospital_event_ad.calendar_show`를 검사합니다. 어느 한쪽 조회 권한으로 다른 화면의 API를 조회할 수 없습니다.
+- 직원 권한표는 광고 관리와 광고 현황을 별도 행으로 표시합니다. 광고 현황에는 조회만 있고, 기존 등록·수정·상태변경 권한은 광고 관리에 남습니다. 광고 등록용 위치·예약 가능 여부 조회는 기존 등록 권한을 유지합니다. 현황만 볼 수 있는 직원에게는 캘린더 내 광고 상세 링크를 표시하지 않습니다.
+- 기존 광고 조회 보유자의 현황 접근은 `StaffPermissionSplit`으로 신규 권한 최초 생성 시 개인·역할 기본권한에 복사하여 보존합니다. 이후 각각 해제할 수 있으며 역할명으로 우회하지 않습니다. 새 스키마는 필요하지 않지만 기존 DB에는 권한 이전을 적용하고 열린 직원 수정폼과 세션을 새로 조회해야 합니다.
+
+## 동영상·회원 메뉴 권한
+
+- 영상 등록관리의 목록·상세는 `beaulab.video.show`, 영상 동의여부 `GET /api/v1/staff/videos/consents`는 `beaulab.video.consent_show`로 분리합니다. 동의여부 조회만으로 영상 상세나 수정에 접근할 수 없습니다.
+- 일반회원 목록·상세·목록 요약은 `beaulab.user.show`, 일반회원 현황 `GET /api/v1/staff/users/statistics/{section}`의 summary/channels/visits는 `beaulab.user.statistics_show`를 검사합니다. 현황 조회는 개별 회원의 상세·상태변경 권한을 포함하지 않습니다.
+- 직원 권한표와 메뉴 접근도 각각 분리하며, 등록·수정·상태변경 등 기존 관리 권한은 원래 메뉴에 남습니다. 신규 조회 권한은 최초 생성 시 기존 동영상·회원 조회 보유자의 개인 권한과 역할 기본값에서 복사합니다.
 
 ## 경로와 응답
 
@@ -133,6 +175,21 @@
 - 생성/상태 변경 API의 HTTP 코드나 빈 값 처리도 기존 클라이언트와 함께 변경합니다.
 
 직원 `GET /api/v1/staff/videos`의 카테고리는 `category_ids` CSV/배열로 다중선택합니다. 선택한 활성 동영상 카테고리 중 하나라도 연결된 영상을 중복 없이 반환하며 최대 100개를 검증합니다. 기존 단일 `category_id`도 입력 별칭으로 지원하고, 미선택/빈 배열은 전체입니다.
+
+## 병의원 챗봇 직원 권한
+
+정상 직원 세션에 더해 다음 개인 권한을 검사합니다. 역할은 최초 기본값일 뿐, 개인에게서 해제한 권한을 다시 허용하지 않습니다.
+
+| 메뉴 | 권한 접두사 | 작업 |
+| --- | --- | --- |
+| 병의원 상담 | `beaulab.hospital_chatbot_consultation` | `show`: 목록·상세·메시지·읽음·내보내기, `process`: 연결·전송·종료 |
+| Q&A 관리 | `beaulab.hospital_chatbot_qna` | `show`, `create`, `update`(순서·공개 포함), `delete` |
+| 상담 운영 관리 | `beaulab.hospital_chatbot_operation` | `show`, `update`(운영시간·안내문구·매크로) |
+
+- 변경 작업에는 같은 메뉴의 조회 권한도 필요합니다. 답변·종료의 담당자 검사와 병의원 소유권 검사는 유지합니다.
+- `GET /api/v1/staff/hospital-chatbot/consultations/macros`는 상담 조회+처리 권한으로 `{macros}`만 반환합니다. 운영설정 권한이나 첫 안내·연결 인사 내용은 제공하지 않습니다.
+- 상담 요청·새 메시지 알림은 조회+처리 권한 보유자에게 전달하며 새 메시지는 현재 담당자에게만 전달합니다. 상담 N 표시와 실시간 구독에는 상담 조회가 필요합니다.
+- `StaffChatbotPermissionBootstrap::apply()`는 신규 권한 최초 생성 시에만 삭제되지 않은 직원과 4개 직원 역할 기본값에 8개를 부여합니다. 재실행으로 회수한 권한을 복원하지 않으며 다른 권한·상담·Q&A 데이터는 바꾸지 않습니다. 직원 수정 버전 증가와 권한 캐시 초기화 후 열린 권한표·세션을 다시 조회합니다.
 
 ## 병의원 챗봇 Q&A API
 
@@ -207,12 +264,13 @@
 
 - 채널은 [routes/channels.php](../routes/channels.php)에 있습니다. `hospital-chatbot.consultation.{consultationId}`는 상담 한 건, `hospital-chatbot.queue`는 상담원 대기 목록입니다.
 - 기본 `withBroadcasting`은 user actor 전용이라 직원·병의원은 각자의 `/api/v1/{staff|hospital}/broadcasting/auth`를 씁니다. 클라이언트는 Echo의 custom authorizer로 그 경로를 지정하고 쿠키·CSRF를 함께 보냅니다.
-- 상담 채널은 그 상담의 병의원 계정과 **모든 직원**이 구독합니다. 상담원은 담당이 아니어도 목록에서 상세로 들어가 볼 수 있어야 합니다. 대기 목록 채널은 직원만입니다.
+- 상담 채널은 해당 병의원 계정과 상담 조회 권한이 있는 정상 직원만 구독합니다. 대기 목록 채널은 상담 조회 권한이 있는 정상 직원만 구독하며 담당 여부는 조회 조건이 아닙니다.
 - 이벤트는 `.hospital-chatbot.message.created`(상담 채널), `.hospital-chatbot.consultation.changed`(상담 채널), `.hospital-chatbot.queue.changed`(목록 채널)입니다.
+- 이벤트 payload에는 `consultation_id`, 메시지 이벤트에는 추가로 `message_id`만 포함합니다. 본문·병의원명·상태는 보내지 않고 API로 다시 인가해 조회합니다. 기존 구독이 남아도 권한 회수 후 새 본문을 받지 못합니다. 직원 웹과 병의원 SDK 어댑터의 무효화 이벤트 처리를 먼저 배포하고 발행 워커도 새 코드로 재시작해야 합니다.
 - 메시지 발행은 저장 커밋 뒤에 Job으로 나갑니다. `broadcast_pending` 표식과 발행을 한 트랜잭션에서 처리하므로 중간에 실패하면 표식이 남고 `hospital-chatbot:dispatch-pending-broadcasts`가 매분 다시 집어 갑니다.
 - 상태 변경 발행 실패 시 전용 큐의 재시도 Job이 현재 상태를 다시 읽어 발행합니다. 메시지 발행 시 목록 변경 이벤트도 발행합니다.
 - 실시간 채널의 인가·구독 성공 중에는 10초 보완 조회를 중지하고, 연결 단절·구독 실패·미설정 시에만 사용합니다. 재연결과 화면 복귀 시 누락분을 조회합니다. 아래쪽 목록을 읽는 중에는 변경 안내를 표시하고 명시적으로 새 목록을 조회합니다.
-- `hospital-chatbot.presence.{hospitalId}`는 병의원별 Presence 채널입니다. 직원은 조회할 수 있고 병의원 계정은 자기 병의원만 참여할 수 있습니다. 멤버 정보는 `actor`만 제공하며 직원의 방송 식별자는 `staff:{id}`로 구분합니다.
+- `hospital-chatbot.presence.{hospitalId}`는 병의원별 Presence 채널입니다. 상담 조회 권한이 있는 정상 직원과 해당 병의원 계정만 참여합니다. 멤버는 `id`와 `actor`만 제공하며 직원 식별자는 `staff:{id}`입니다. 이미 열린 Presence의 강제 종료는 별도 연결 정책이며 본문 전달에는 사용하지 않습니다.
 - 병의원 웹에서 상담 위젯이 열리고 브라우저 탭이 보일 때 참여하며, 닫기·탭 숨김·언마운트 시 나갑니다. 같은 계정의 여러 연결은 Presence 서버가 합산합니다. 직원 화면은 병의원 멤버 존재 시 초록, 마지막 멤버 이탈 후 8초 유예를 거쳐 회색, 연결·인가 미확인 시 점을 숨깁니다.
 - 실행 환경에는 Reverb, `hospital-chatbot` 큐 워커와 양쪽 웹의 `NEXT_PUBLIC_REVERB_*` 설정이 필요합니다. 이 설정이 없으면 온라인 표시는 숨기고 보완 조회로 동작합니다. 재시도까지 실패한 발행은 운영 로그·실패 Job을 확인해야 하며 실시간 전송이 영구 보장되는 것은 아닙니다.
 - 클라이언트는 순번이 아는 값보다 2 이상 앞서면 붙이지 않고 `after_sequence`로 다시 조회합니다. 실시간과 재조회가 같은 메시지를 줘도 순번으로 한 번만 남깁니다.
@@ -274,9 +332,10 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 ## 인증과 권한의 경계
 
 - `auth:sanctum`은 인증, `actor:staff` 등의 미들웨어는 실제 계정 모델의 Actor를 검증합니다. 세션용 transient token의 ability만 믿지 않습니다.
-- Staff는 공통 진입 권한과 작업별 Policy를 통과해야 합니다. User에는 Staff용 Spatie 권한 체계를 그대로 적용하지 않습니다.
+- Staff는 정상 계정 상태와 작업별 권한 검사를 통과해야 합니다. 본인 프로필은 별도 업무 권한 없이 제공하며 User에는 Staff용 Spatie 권한 체계를 그대로 적용하지 않습니다.
 - Spatie guard 이름은 staff/hospital/beauty입니다. 세션 guard 이름과 혼동하지 않습니다.
 - 외부 진입 Action에서 `Gate::authorize(...)`를 호출하고 Policy에서 기능 권한과 대상 접근 조건을 확인합니다.
+- 공통 Policy에서 액터별 Policy로 위임하는 메서드도 실제 Gate 능력과 일치해야 합니다. 충전금 현황의 `viewDashboard`와 일반회원 상태변경의 `updateStatus`는 Staff Policy의 개별 permission으로 위임하며, 역할이나 일반 수정 권한으로 대체하지 않습니다.
 - Hospital/Beauty 계정은 연결된 자기 업체의 리소스만 다룹니다. 요청의 hospital_id/beauty_id를 신뢰하지 않습니다.
 - 조회 권한, 일반 생성·수정 권한, 검수·상태 변경 권한은 별개입니다. 일반 수정 요청에 상태 필드가 섞여 들어오는 경로도 확인합니다.
 - 관리자메모 쓰기는 메모 자체 권한을 사용합니다. 대상 조회·소유권 확인은 유지하지만 대상 도메인의 일반 수정 권한까지 중복 요구하지 않습니다.
@@ -284,7 +343,7 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 권한/역할 목록은 [AccessPermissions](../app/Common/Authorization/AccessPermissions.php), [AccessRoles](../app/Common/Authorization/AccessRoles.php), [AuthorizationSeeder](../database/seeders/AuthorizationSeeder.php)가 기준입니다.
 기본 admin은 일반 생성·수정 중심이고 상태 변경은 super_admin 중심으로 배정됩니다. 실제 API는 역할 문자열 대신 필요한 권한을 검사하며, 환불 즉시 처리 같은 명시적 역할 예외는 해당 도메인 규칙을 따릅니다.
 
-권한 Seeder는 역할의 권한을 동기화하고 캐시를 초기화합니다. 기존 역할의 커스텀 배정을 덮어쓸 수 있고 미사용 권한 행을 모두 삭제하는 도구도 아니므로 운영에서 무조건 재실행하지 않습니다.
+권한 Seeder는 새 직원 역할에 기본권한을 넣고 기존 직원 역할의 커스텀 배정은 유지합니다. 명시된 권한 분리는 최초 생성 시 기존 배정을 복사하며, 파트너 역할은 기본값으로 동기화합니다. 캐시 초기화와 지정된 폐기 권한 삭제도 수행하므로 운영에서 무조건 재실행하지 않습니다.
 프론트 버튼 숨김/비활성화는 편의 UI이며 서버 인가를 대신하지 않습니다.
 
 ## 병의원 계정 생성
@@ -335,31 +394,33 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 
 ## 직원 비대면 상담 API
 
-모든 경로는 `/api/v1/staff` 아래이며 기존 직원 웹 세션·CSRF·`common.access`를 사용합니다.
+모든 경로는 `/api/v1/staff` 아래이며 정상 직원의 기존 웹 세션·CSRF와 아래 비대면 상담 권한을 사용합니다.
 
 | 메서드 | 경로                                        | 용도 / 추가 권한                                            |
 | ------ | ------------------------------------------- | ----------------------------------------------------------- |
 | GET    | `/remote-consultations`                     | 목록 / `beaulab.remote_consultation.show`                   |
 | GET    | `/remote-consultations/{id}`                | 신청·이미지·배정 정보 / 동일 조회 권한                      |
 | GET    | `/remote-consultations/{id}/quotes/{quote}` | 해당 신청에 속한 병의원 답변 / 동일 조회 권한                 |
-| POST   | `/remote-consultations/{id}/approve`        | 신청 승인 (기존 배정 유지) / 조회 + `beaulab.remote_consultation.approve` |
-| PATCH  | `/remote-consultations/{id}/status`         | 검수·반려 (`status`: `REVIEWING`/`REJECTED`) / 조회 + 승인 권한 |
-| GET    | `/remote-consultations/{id}/hospitals`      | 배정 가능 병의원 검색 (`q`, `page`) / 조회 + 승인 권한 |
-| POST   | `/remote-consultations/{id}/quotes`         | 다중 직접 배정 (`hospital_ids`: 최대 6개, 기존 `hospital_id` 단건 호환) / 조회 + 승인 권한 |
-| DELETE | `/remote-consultations/{id}/quotes/{quote}` | 미상담 견적 삭제 / 조회 + 승인 권한 |
+| POST   | `/remote-consultations/{id}/approve`        | 신청 승인 (기존 배정 유지) / 조회 + 상태변경 (`beaulab.remote_consultation.approve`) |
+| PATCH  | `/remote-consultations/{id}/status`         | 검수·반려 (`status`: `REVIEWING`/`REJECTED`) / 조회 + 상태변경 |
+| GET    | `/remote-consultations/{id}/hospitals`      | 배정 가능 병의원 검색 (`q`, `page`) / 조회 + 직접 배정 (`beaulab.remote_consultation.assign`) |
+| POST   | `/remote-consultations/{id}/quotes`         | 다중 직접 배정 (`hospital_ids`: 최대 6개, 기존 `hospital_id` 단건 호환) / 조회 + 직접 배정 |
+| DELETE | `/remote-consultations/{id}/quotes/{quote}` | 미상담 견적 삭제(배정 취소) / 조회 + 직접 배정 |
 
 목록은 `q`(ID·이름·전화번호), `gender`, `approval_status`, `start_date`, `end_date`, `birth_year_from`, `birth_year_to`, `page`로 조회합니다. 날짜 범위는 한국 시간 기준 신청일이며 15건 단위입니다. 목록 응답은 공통 `data: []`, `meta` 페이지 정보 형식, 승인 응답은 갱신된 신청 상세입니다. 잘못된 필터/승인 조건은 422, 권한 없음은 403, 다른 신청의 견적 ID는 404입니다.
 
 회원·병의원용 경로는 제공하지 않습니다. 승인 응답의 `assigned_count`는 배정 건수이며 외부 알림 발송 건수가 아닙니다. 데이터와 후속 입력 검증 계약은 [도메인 규칙](domain-rules.md#비대면-상담-db)을 따릅니다.
 
-## 메인 배너/팝업 노출설정
+## 배너/팝업·기타 노출설정
 
-직원 경로는 `/api/v1/staff/banner-exposures`이며 `beaulab.banner_exposure`의 조회/등록/수정/삭제 권한으로 구분합니다.
+직원 경로는 `/api/v1/staff/banner-exposures`를 공유하지만 메인 팝업·세로배너·가로배너는 `beaulab.banner_exposure`, 상담메모장·검색창은 `beaulab.other_exposure`의 조회/등록/수정/삭제 권한을 각각 검사합니다. 목록·검색·등록·순서는 요청의 게시위치로, 상세·히스토리·수정·공개여부·삭제는 저장된 대상의 게시위치로 판정합니다. 수정으로 게시위치를 옮길 수 없습니다.
+
+기타의 각 권한은 최초 생성 시 배너/팝업의 같은 작업 권한에서 개인·역할 기본값을 복사하며 이후 독립적으로 해제할 수 있습니다. 테이블과 응답 구조는 그대로 유지합니다.
 
 | 메서드 / 하위 경로 | 내용 |
 | --- | --- |
 | `GET /board` | `placement` 필수. `q`, `connection_type`, `start_date`, `end_date`, `page` 선택. 활성 전체 목록, 비활성 15건 페이지, 전체 활성 키, 수량/한도, 등록 가능 여부, 정렬 버전 반환 |
-| `GET /targets` | `target_type`은 CATEGORY/HOSPITAL/EVENT/NOTICE. `q`, `category_id`, `page`로 검색, 20건 페이지 |
+| `GET /targets` | `placement`로 권한 영역 지정. `target_type`은 CATEGORY/HOSPITAL/EVENT/NOTICE. `q`, `category_id`, `page`로 검색, 20건 페이지 |
 | `POST /` | 기획전/페이지 직접 등록. 배너 이미지 필수, PNG/JPG/WEBP 10MB 이하 |
 | `GET /{id}` | 직접 등록 상세 |
 | `PATCH /{id}` | 수정. 파일 포함 시 POST와 `_method=PATCH` 사용, `expected_updated_at` 필수 |
@@ -369,6 +430,8 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 | `GET /{id}/operation-histories` | 공통 운영 이력, `operation_histories_page`로 조회 |
 
 기간/용량/수정 충돌은 422 오류로 반환합니다. 광고는 직접 등록 API의 수정 대상이 아니며 원본 광고 관리에서 처리합니다.
+
+검색의 `placement` 생략은 기존 메인 배너 클라이언트 호환용으로 MAIN_POPUP으로 처리합니다. 기타 조회 권한만 있는 클라이언트는 CONSULT_MEMO 또는 SEARCH를 명시해야 합니다. 잘못된 게시위치는 422, 다른 영역의 접근은 403이며 프론트도 검색·캐시 키에 게시위치를 포함합니다.
 
 등록·수정 시 `start_at`, `end_at`은 필수입니다. 신규 등록 또는 시작 시각 변경 시 과거는 허용하지 않으며, 수정에서 기존 시작 시각을 그대로 유지하는 것은 허용합니다. 종료는 시작 시각 이상이어야 하고 연결 이벤트 기간과 예약 용량 검사를 적용합니다.
 
@@ -389,7 +452,7 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 | `PATCH /{id}/status` | `status=ACTIVE/INACTIVE`, `expected_updated_at` 필수 |
 | `PUT /order` | 위치 조건, `revision`, 현재 전체 활성 `keys` 배열 (`event:ID` / `ad:ID`) |
 
-위치 코드는 `SURGERY_TOP_BANNER`, `SURGERY_HOT_EVENT`, `SURGERY_CATEGORY_BANNER`, `PETIT_TOP_BANNER`, `PETIT_HOT_EVENT`, `PETIT_CATEGORY_BANNER`입니다. 카테고리별 위치만 해당 그룹의 활성 대분류 ID를 받습니다. ID를 생략하면 해당 성형/쁘띠 전체 탭의 독립 노출 위치이며, 개별 카테고리 목록을 합산하는 의미가 아닙니다. 전체 탭의 등록·정렬·공개 전환·사용자 조회에도 동일한 계약을 적용합니다.
+위치 코드는 `SURGERY_TOP_BANNER`, `SURGERY_HOT_EVENT`, `SURGERY_CATEGORY_BANNER`, `PETIT_TOP_BANNER`, `PETIT_HOT_EVENT`, `PETIT_CATEGORY_BANNER`입니다. 카테고리별 위치만 해당 그룹의 이벤트 대분류 ID를 받습니다. 선택 중지된 분류의 기존 예약도 계속 관리합니다. ID를 생략하면 해당 성형/쁘띠 전체 탭의 독립 노출 위치이며, 개별 카테고리 목록을 합산하는 의미가 아닙니다. 전체 탭의 등록·정렬·공개 전환·사용자 조회에도 동일한 계약을 적용합니다.
 날짜는 ISO 8601 입력 후 한국 시간으로 저장합니다. 신규/변경 시작 시각은 과거 불가, 기존 시작 시각 그대로 수정은 허용합니다. 이벤트 기간·중복·예약 용량·동시 수정 위반은 422입니다. 기간 종료는 지정한 초까지 포함합니다.
 사용자 `GET /api/v1/user/event-exposures`는 동일 위치 조건으로 현재 노출 항목의 `source_key/event_id/name/hospital_name/image/click_url`을 순서대로 반환합니다. 앱에서는 `event_id`를 이벤트 상세로 연결하고 클릭 시 `click_url`에 POST합니다. URL은 30분 유효한 상대 서명이며 위치·카테고리·항목을 서명에 포함합니다. `POST /api/v1/user/event-exposures/{placement}/{sourceKey}/click`은 서명과 현재 노출 여부를 검사하고 분당 60회 요청 제한을 적용합니다. 현재 미노출 또는 다른 위치의 항목은 404이며 집계하지 않습니다. 내부 담당자·예약·권한 정보는 사용자 응답에 반환하지 않습니다. 직원 목록은 위치별 `click_count`를 반환하며 기존 `view_count`는 사용하지 않습니다.
 
@@ -408,7 +471,7 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 
 직원 경로는 `/api/v1/staff/review-exposures`이며 `beaulab.review_exposure.show/create/update` 권한을 사용합니다.
 
-- `GET categories`: 기존 후기 usage의 활성 대분류. 페이지 진입 시 조회하고 카테고리 전환마다 재조회하지 않습니다.
+- `GET categories`: 독립 `HOSPITAL_REVIEW` 대분류. 기존 예약을 관리하도록 선택 중지된 항목도 반환합니다. 페이지 진입 시 조회하고 카테고리 전환마다 재조회하지 않습니다.
 - `GET board`, `GET targets`: `placement=SURGERY|PETIT`, 선택적 `category_id`, `q`, `page`. 게시판은 게시기간 겹침 필터 `start_date/end_date`를 추가로 받습니다. 검색은 후기 ID·제목·병의원명이며 목록은 담당자 검색도 지원합니다.
 - `POST /`: `placement`, 선택적 `category_id`, `hospital_review_id`, `start_at`, `end_at`으로 등록합니다. 연결유형이나 이미지 업로드는 받지 않습니다.
 - `GET {reviewExposure}`, `PATCH {reviewExposure}`: 모달 조회·수정. 수정은 `expected_updated_at`을 요구하고 위치는 변경할 수 없습니다.
@@ -420,7 +483,7 @@ Redis 세션/폐기 저장소 오류를 단순 캐시 미스로 취급해 인증
 
 ## 병의원 상담 문구 설정
 
-직원 `GET /api/v1/staff/hospital-chatbot/message-settings`, `PUT` 동일 경로로 전체 공통 문구를 조회·저장합니다. 기존 직원 로그인·공통 접근 검사를 적용하며 운영시간 API와 별도로 저장합니다.
+직원 `GET /api/v1/staff/hospital-chatbot/message-settings`, `PUT` 동일 경로로 전체 공통 문구를 조회·저장합니다. 상담 운영 관리 조회, 저장 시에는 추가 수정 권한을 검사하며 운영시간 API와 별도로 저장합니다.
 
 | 필드 | 계약 |
 | --- | --- |

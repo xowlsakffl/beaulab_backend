@@ -20,6 +20,7 @@ final class CategoryUpdateForStaffQuery
         return Category::query()
             ->domain((string) $category->domain)
             ->where('parent_id', $category->parent_id)
+            ->where('group_code', $category->group_code)
             ->where('name', $name)
             ->whereKeyNot($category->id)
             ->exists();

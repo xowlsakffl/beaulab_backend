@@ -3,7 +3,6 @@
 namespace App\Domains\ConsultationPricing\Queries;
 
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\ConsultationPricing\Support\ConsultationPricingResolver;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use Illuminate\Support\Facades\DB;
@@ -23,15 +22,11 @@ final class HospitalEventPricingQuery
                     ->whereColumn('newer.scope_id', 'v.scope_id')->whereNull('newer.cancelled_at')->where('newer.effective_at', '<=', $at)
                     ->where(fn ($q) => $q->whereColumn('newer.effective_at', '>', 'v.effective_at')->orWhere(fn ($q) => $q->whereColumn('newer.effective_at', 'v.effective_at')->whereColumn('newer.id', '>', 'v.id')));
             })->get(['s.scope_key', 'v.mode', 'v.ranges'])->keyBy('scope_key');
-        $categories = Category::where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->where('status', Category::STATUS_ACTIVE)->get(['id', 'full_path']);
-        $usages = CategoryUsage::whereIn('usage', array_values(ConsultationPricingResolver::USAGES))->where('status', CategoryUsage::STATUS_ACTIVE)->get();
+        $categories = Category::where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->get(['id', 'parent_id', 'depth', 'group_code', 'status']);
+        $rootIds = \App\Domains\Common\Category\Support\CategoryHierarchy::rootIds($categories);
         $groups = [];
-        foreach ($usages as $usage) {
-            $root = $categories->firstWhere('id', $usage->category_id);
-            if (! $root) {
-                continue;
-            }
-            $division = array_search($usage->usage, ConsultationPricingResolver::USAGES, true);
+        foreach ($categories->whereNull('parent_id') as $root) {
+            $division = $root->group_code;
             $version = $versions->get("EVENT:{$division}:{$root->id}");
             if (! $version || $version->mode === 'DEFAULT') {
                 $version = $versions->get("EVENT:{$division}:0");
@@ -40,7 +35,7 @@ final class HospitalEventPricingQuery
             $groupKey = json_encode($ranges, JSON_THROW_ON_ERROR);
             $groups[$groupKey] ??= ['ids' => [], 'ranges' => $ranges];
             foreach ($categories as $category) {
-                if ($category->id === $root->id || str_starts_with((string) $category->full_path, $root->full_path.' > ')) {
+                if (($rootIds[$category->id] ?? null) === $root->id) {
                     $groups[$groupKey]['ids'][] = (int) $category->id;
                 }
             }

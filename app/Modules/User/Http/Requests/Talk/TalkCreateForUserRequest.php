@@ -40,12 +40,11 @@ final class TalkCreateForUserRequest extends FormRequest
             'category_code' => [
                 'required',
                 'string',
-                Rule::in(Talk::categoryCodes()),
                 Rule::exists('categories', 'code')->where(static fn ($query) => $query
                     ->where('domain', Talk::CATEGORY_DOMAIN)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
-            'images' => ['nullable', 'array', 'max:' . Talk::MAX_IMAGE_COUNT],
+            'images' => ['nullable', 'array', 'max:'.Talk::MAX_IMAGE_COUNT],
             'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'poll' => ['nullable', 'array'],
             'poll.allow_multiple' => ['required_with:poll', 'boolean'],

@@ -46,6 +46,7 @@ final class HospitalEventCreateForStaffAction
             $event = $this->query->create($data);
 
             $event->categories()->sync($categorySync['payload']);
+            $this->payloadResolver->syncDiscoveryTopics($event, $categorySync['usage'], $payload['topic_ids'] ?? []);
             $this->payloadResolver->syncDoctorAssignments($event, $doctorAssignments);
             $this->payloadResolver->syncOptions($event, $options);
             $this->beforeAfterPhotosAction->execute($event, $payload);

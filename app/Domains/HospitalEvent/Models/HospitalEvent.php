@@ -190,6 +190,11 @@ final class HospitalEvent extends Model
             ->withTimestamps();
     }
 
+    public function discoveryTopics(): MorphToMany
+    {
+        return $this->morphToMany(\App\Domains\Common\Category\Models\CategoryTopic::class, 'content', 'category_topic_contents', 'content_id', 'topic_id');
+    }
+
     public function thumbnailImage(): MorphOne
     {
         return $this->morphOne(Media::class, 'model')

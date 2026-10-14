@@ -15,7 +15,6 @@ final class CategoryDefinitions
         Category::DOMAIN_HOSPITAL_EVALUATION => 'hospital_evaluation',
         Category::DOMAIN_BEAUTY => 'beauty',
         Category::DOMAIN_TALK => 'talk',
-        Category::DOMAIN_FAQ => 'faq',
     ];
 
     private const HOSPITAL_MEDICAL_USAGES = [

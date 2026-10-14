@@ -84,7 +84,7 @@ final class Media extends Model
     ];
 
     /**
-     * Polymorphic: Hospital, Beauty, Agency 등 어떤 모델에도 붙을 수 있음
+     * Polymorphic: Hospital, Beauty 등 여러 모델에 연결할 수 있음
      * 사용 예
      * $media = Media::find(1);
      * $owner = $media->model; // Hospital 또는 Beauty 모델

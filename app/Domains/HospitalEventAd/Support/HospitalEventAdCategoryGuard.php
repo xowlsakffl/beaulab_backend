@@ -14,7 +14,7 @@ final class HospitalEventAdCategoryGuard
 {
     public function assertAvailable(int $eventId, string $placement, ?int $categoryId): void
     {
-        $categories = Category::query()->domain(Category::DOMAIN_HOSPITAL_MEDICAL)->with('usages')->get();
+        $categories = Category::query()->domain(Category::DOMAIN_HOSPITAL_MEDICAL)->get();
         $resolved = app(CategoryUsageAvailability::class)->resolve($categories);
         $eventCategories = HospitalEvent::findOrFail($eventId)->categories()->get();
         foreach ($eventCategories as $category) {
@@ -36,6 +36,6 @@ final class HospitalEventAdCategoryGuard
 
     private function fail(): never
     {
-        throw new CustomException(ErrorCode::INVALID_REQUEST, '사용 중지되었거나 메뉴에서 숨겨진 카테고리가 있어 광고를 승인할 수 없습니다. 카테고리 설정을 먼저 확인해 주세요.');
+        throw new CustomException(ErrorCode::INVALID_REQUEST, '연결된 카테고리가 없거나 메뉴에서 숨겨져 있어 광고를 승인할 수 없습니다. 카테고리 설정을 먼저 확인해 주세요.');
     }
 }

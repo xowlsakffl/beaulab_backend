@@ -144,7 +144,7 @@ Redis 전체 flush를 일상적인 오류 해결법으로 사용하지 않습니
 
 - 임시 SQLite나 트랜잭션 롤백만으로 검증 환경이 격리되지는 않습니다. 일회성 스크립트도 애플리케이션 부팅 전에 캐시를 `array` 또는 검증 전용 저장소로 지정하고, `permission.cache.store`와 실제 캐시 연결을 확인합니다. 부팅 후 DB 연결만 바꾸면 이미 생성된 캐시 저장소가 기존 DB에 남을 수 있습니다.
 - Spatie 권한 캐시는 DB 롤백과 별개입니다. 임시 권한으로 로컬·공유 캐시를 채우거나 검증용 권한 ID를 실제 계정 권한에 사용하지 않습니다. 검증 후 전체 캐시를 비우는 방식으로 대신하지 않습니다.
-- 로그인 직후에는 정상인데 새로고침 시 403이면 `/profile`의 응답과 `common.access`, `common.profile.show`의 실제 DB 연결 및 권한 캐시를 비교합니다. 불일치가 확인되면 대상 환경의 `php artisan permission:cache-reset`으로 해당 권한 캐시만 무효화하고 재조회합니다. 직원 권한 추가, 역할 우회, 전체 Seeder 재실행으로 해결하지 않습니다.
+- 로그인 직후에는 정상인데 새로고침 시 접속이 거절되면 `/profile` 응답과 계정 상태, 웹 세션 만료·비밀번호 지문·Actor를 확인합니다. 직원 접속과 자기 프로필은 별도 permission을 요구하지 않으므로 폐기된 `common.access`, `common.profile.*` 부여나 전체 Seeder 재실행으로 해결하지 않습니다. 메뉴별 403은 해당 업무 권한과 배포된 프론트·백엔드 계약을 비교합니다.
 
 ## 파일 수명과 비공개 저장
 
@@ -279,40 +279,31 @@ php artisan serve --host=0.0.0.0 --port=8000
 
 이 문서는 구성 안내이며 실제 VPN 설치, 포트 개방, 서버 배포, 환경변수 변경을 수행한 기록은 아니다.
 
-## 기존 DB의 카테고리 중복 방지 제약 적용
+## 업무별 카테고리 전환
 
-신규 DB는 생성 마이그레이션에서 `parent_scope_id = COALESCE(parent_id, 0)` 가상 컬럼과
-`(domain, parent_scope_id, name)` 유니크 인덱스를 만든다. 대분류도 같은 도메인에서 이름이 중복될 수 없다.
-`parent_scope_id`는 내부 제약용이며 API 입력·응답에 노출하지 않는다.
-기존 DB에는 생성 마이그레이션 수정만으로 적용되지 않는다. 아래 절차는 별도 승인 후 실행한다.
+신규 DB는 전체 마이그레이션 이후 개발 데이터 준비 과정에서 `CategoryDefaults`가 분류를 분리한다. 이미 전환한 대응표가 있으면 다시 복제하거나 업무 설정을 덮어쓰지 않는다. 기존 DB에는 전체 Seeder나 migrate:fresh를 사용하지 않는다.
 
-1. 백업과 복구 가능 여부를 확인하고 카테고리 생성·수정을 잠시 중단한다.
-2. 아래 읽기 전용 조회로 중복을 확인한다. 결과가 있으면 참조 관계와 운영 용도를 확인해 병합 방안을 먼저 결정한다. 임의 삭제하지 않는다.
+로컬 전용 `category:split-domains` 명령은 `local / mysql / 127.0.0.1 / beaulab`을 확인하고 다른 대상이면 거부한다. 카테고리 아이콘 파일이 존재하면 파일 수명주기 이전을 별도로 준비하도록 중단한다.
 
-```sql
-SELECT domain, COALESCE(parent_id, 0) AS parent_scope, name,
-       COUNT(*) AS duplicate_count, GROUP_CONCAT(id ORDER BY id) AS category_ids
-FROM categories
-GROUP BY domain, COALESCE(parent_id, 0), name
-HAVING COUNT(*) > 1;
-```
+1. 접속 대상과 관련 쓰기 작업을 확인한다. 별도 임시 MySQL DB에 관련 테이블을 복제해 연결 보존·재실행·도메인 독립성·9개 통합 조회·11개 selector·이벤트 목록/계산 단가 일치를 검증한다.
+2. 검증 전용 실행: `php artisan category:split-domains`. 임시 DB 생성 권한이 없는 로컬 계정은 `--verify-root-socket=/var/run/mysqld/mysqld.sock`을 명시할 수 있다. root 소켓은 임시 검증 DB 생성·복사·삭제에만 사용하고 원본 변경은 앱 DB 계정을 사용한다. 임시 DB는 finally에서 삭제한다.
+3. 승인된 로컬 적용: 같은 명령에 `--apply`를 추가한다. 먼저 `storage/app/private/category-domain-split/*.json`에 원본 행을 저장하고 SHA-256·권한·여유 공간을 확인한다. 이 백업에는 업무 데이터가 포함되므로 외부 공개하거나 커밋하지 않는다.
+4. 생성 마이그레이션의 이름 제약을 준비하고 신규 `2026_10_13_180000_create_category_topics`만 적용한다. 전환은 한 트랜잭션에서 수행하며 검증 이후 원본 변경이 감지되면 중단한다.
+5. 병의원/의료진/후기/영상/전문가 연결 FK와 후기·영상 노출 위치 키만 대응표에 따라 바꾼다. 기존 연결 행 ID·대표 지정·시간, 이벤트 분류 ID, 광고·이벤트 예약·단가, 과거 견적 JSON은 보존 대조한다. 끊어진 연결과 업무별 필터를 다시 확인한다.
 
-3. `SHOW CREATE TABLE categories`로 기존 인덱스 이름과 새 컬럼 미적용 여부를 확인한다. 중복이 없을 때 아래 변경을 적용한다. 테이블 크기와 장기 트랜잭션에 따라 잠금 대기가 발생할 수 있어 작업 시간을 확보한다.
+이름 중복 제약은 `(domain, group_scope_code, parent_scope_id, name)`이다. 두 가상 컬럼은 각각 NULL 그룹을 빈 문자열, NULL 부모를 0으로 정규화한다. 코드 제약은 `(domain, code)`다. 성형·쁘띠처럼 그룹이 다르면 같은 이름을 허용한다.
 
-```sql
-ALTER TABLE categories
-  ADD COLUMN parent_scope_id BIGINT UNSIGNED
-    GENERATED ALWAYS AS (COALESCE(parent_id, 0)) VIRTUAL,
-  DROP INDEX categories_domain_parent_name_unique,
-  ADD UNIQUE INDEX categories_domain_parent_name_unique
-    (domain, parent_scope_id, name);
-```
+MySQL DDL은 트랜잭션으로 되돌릴 수 없다. 실패하면 신규 테이블·가상 컬럼·인덱스와 전환 대응표 상태를 먼저 확인한다. 명령의 JSON 백업은 관련 행 복구용이며 전체 DB/DDL 백업을 대신하지 않는다. 전환 후에는 프론트/백엔드를 함께 배포하고 열린 폼을 다시 조회해야 한다. 코드만 이전 버전으로 되돌리면 독립 ID를 해석하지 못한다. 복구는 쓰기를 중단하고 백업·대응표·전환 이후 변경 내역을 대조한 뒤 별도 승인된 절차로 수행한다. 신규 topic 마이그레이션 rollback은 데이터 전환을 역변환하지 않는다.
 
-4. 중복 조회 결과가 없고 인덱스가 적용됐는지 확인한 뒤 쓰기를 재개한다. 격리 환경에서 대분류 중복 거부, 다른 도메인의 동명 허용, 하위 경로 갱신을 검증한다.
+운영/공유 DB 이관은 이 로컬 명령으로 실행하지 않으며 별도 전체 백업·쓰기 중단·배포/복구 계획이 필요하다.
 
-MySQL DDL은 애플리케이션 트랜잭션으로 되돌릴 수 없다. 복구가 필요한 경우 쓰기를 중단한 상태에서
-기존 `(domain, parent_id, name)` 유니크 인덱스로 교체한 뒤 가상 컬럼을 제거한다.
-이 복구는 대분류 중복 방지까지 해제하므로 단순한 코드 롤백만으로 제거하지 않는다.
+## 병의원 챗봇 권한 적용
+
+- 기존 DB에는 `StaffChatbotPermissionBootstrap::apply()`만 승인된 대상에서 실행합니다. 전체 Seeder·마이그레이션 재실행은 필요하지 않습니다. 신규 설치는 `AuthorizationSeeder`가 호출합니다.
+- 신규 권한이 없을 때 삭제되지 않은 직원과 기존 4개 역할 기본값에 권한 8개를 부여합니다. 직원 상태는 바꾸지 않으며 정지·차단 계정의 접근은 계속 차단됩니다. 이미 있는 권한은 건너뛰므로 이후 해제한 권한은 복원되지 않습니다.
+- 트랜잭션 완료 후 권한 캐시를 비우고, 직원 수정폼·인증 정보를 다시 조회합니다. 영향받는 직원의 `lock_version`이 증가해 오래된 폼의 저장을 차단합니다.
+- 실시간 payload를 식별자 전용으로 전환하기 전에 직원 웹·병의원 SDK 어댑터를 배포합니다. 이어 백엔드와 챗봇 발행·직원 알림 워커를 새 코드로 재시작합니다. 기존 브라우저 탭도 새로고침해야 합니다. 운영 프로세스 재시작과 실제 발행 검증은 별도 승인 대상입니다.
+- 구독 인가는 상담 조회 권한을 검사하고 본문 API도 현재 권한을 확인합니다. 권한 회수 후 이미 열린 연결에 식별자·Presence 이벤트가 남을 수는 있으나 새 본문은 방송하지 않습니다. Presence 강제 퇴장은 별도 확인 대상입니다.
 
 ## 병의원 챗봇 로컬 실시간 실행
 

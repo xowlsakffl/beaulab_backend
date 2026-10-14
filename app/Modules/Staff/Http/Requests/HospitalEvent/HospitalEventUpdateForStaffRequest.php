@@ -13,7 +13,7 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
     {
         $data = $this->all();
 
-        foreach (['category_ids', 'doctor_ids'] as $key) {
+        foreach (['category_ids', 'doctor_ids', 'topic_ids'] as $key) {
             if (array_key_exists($key, $data)) {
                 $data[$key] = $this->normalizeIdList($data[$key]);
             }
@@ -65,6 +65,8 @@ final class HospitalEventUpdateForStaffRequest extends FormRequest
         $allowedTextPattern = '/^[\pL\pN\s\.,\-・_:()\[\]&°+\/。"“”]+$/u';
 
         return [
+            'topic_ids' => ['sometimes', 'array', 'max:30'],
+            'topic_ids.*' => ['integer', 'distinct', 'min:1', Rule::exists('category_topics', 'id')],
             'hospital_id' => ['sometimes', 'integer', Rule::exists('hospitals', 'id')->whereNull('deleted_at')],
             'manager_staff_id' => ['sometimes', 'nullable', 'integer', Rule::exists('account_staffs', 'id')->whereNull('deleted_at')],
             'event_type' => ['sometimes', Rule::in(HospitalEvent::types())],

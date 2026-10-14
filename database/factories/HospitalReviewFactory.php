@@ -117,20 +117,10 @@ final class HospitalReviewFactory extends Factory
 
     private function loadSmallCategoryIdsByDomain(string $domain): array
     {
-        $rootPaths = HospitalReview::categoryRootPathsByDomain()[$domain] ?? [];
-        if ($rootPaths === []) {
-            return [];
-        }
-
         return Category::query()
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->where('domain', Category::DOMAIN_HOSPITAL_REVIEW)
             ->where('status', Category::STATUS_ACTIVE)
-            ->where(function ($query) use ($rootPaths): void {
-                foreach ($rootPaths as $rootPath) {
-                    $query->orWhere('full_path', $rootPath)
-                        ->orWhere('full_path', 'like', $rootPath.' > %');
-                }
-            })
+            ->whereIn('id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids($domain))
             ->whereDoesntHave('children')
             ->pluck('id')
             ->map(static fn (int|string $id): int => (int) $id)

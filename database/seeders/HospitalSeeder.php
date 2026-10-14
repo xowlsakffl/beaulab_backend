@@ -56,10 +56,9 @@ final class HospitalSeeder extends Seeder
     private function attachRandomCategories(iterable $hospitals): void
     {
         $categoryIds = Category::query()
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->whereHas('usages', static fn ($query) => $query
-                ->where('usage', CategoryUsage::USAGE_HOSPITAL_SUBJECT)
-                ->where('status', CategoryUsage::STATUS_ACTIVE))
+            ->where('domain', Category::DOMAIN_HOSPITAL_SUBJECT)
+            ->whereIn('categories.id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids(CategoryUsage::USAGE_HOSPITAL_SUBJECT))
+            ->whereNull('categories.parent_id')
             ->pluck('id')
             ->all();
 

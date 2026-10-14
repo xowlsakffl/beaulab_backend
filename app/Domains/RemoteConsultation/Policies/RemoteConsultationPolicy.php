@@ -22,4 +22,9 @@ final class RemoteConsultationPolicy
     {
         return $this->viewAny($actor) && $actor->can(AccessPermissions::BEAULAB_REMOTE_CONSULTATION_APPROVE);
     }
+
+    public function assign(mixed $actor, RemoteConsultation $consultation): bool
+    {
+        return $this->viewAny($actor) && $actor->can(AccessPermissions::BEAULAB_REMOTE_CONSULTATION_ASSIGN);
+    }
 }

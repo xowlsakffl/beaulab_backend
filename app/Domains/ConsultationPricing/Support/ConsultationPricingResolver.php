@@ -25,10 +25,9 @@ final class ConsultationPricingResolver
 
     public function categories(string $division)
     {
-        $query = Category::query();
-        CategoryUsage::constrainActiveCategoryExists($query, self::USAGES[$division]);
+        $query = Category::query()->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->where('group_code', $division);
 
-        return $query->orderBy('sort_order')->orderBy('id')->get(['id', 'name', 'full_path']);
+        return $query->whereNull('parent_id')->orderBy('sort_order')->orderBy('id')->get(['id', 'name', 'full_path']);
     }
 
     public function table(string $key, ?CarbonInterface $at = null): array
@@ -66,22 +65,13 @@ final class ConsultationPricingResolver
 
     public function event(int $categoryId, int $price, ?CarbonInterface $at = null): array
     {
-        $category = Category::whereKey($categoryId)->where('status', Category::STATUS_ACTIVE)->first();
-        if (! $category) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '단가 계산에 사용할 대표 카테고리를 선택해 주세요.');
+        $categories = Category::where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->get(['id', 'parent_id', 'depth', 'group_code', 'name', 'domain', 'full_path']);
+        $roots = \App\Domains\Common\Category\Support\CategoryHierarchy::rootIds($categories);
+        $root = $categories->firstWhere('id', $roots[$categoryId] ?? null);
+        if (! $root || ! array_key_exists($root->group_code, self::USAGES)) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '단가 계산에 사용할 대표 카테고리를 확인해 주세요.');
         }
-        $matches = [];
-        foreach (array_keys(self::USAGES) as $division) {
-            foreach ($this->categories($division) as $root) {
-                if ($category->id === $root->id || str_starts_with((string) $category->full_path, $root->full_path.' > ')) {
-                    $matches[] = [$division, $root];
-                }
-            }
-        }
-        if (count($matches) !== 1) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '대표 카테고리의 단가 분류를 확인해 주세요.');
-        }
-        [$division, $root] = $matches[0];
+        $division = $root->group_code;
         $table = $this->table("EVENT:{$division}:{$root->id}", $at);
         foreach ($table['ranges'] as $range) {
             if ($range['upper'] === null || $price <= $range['upper']) {

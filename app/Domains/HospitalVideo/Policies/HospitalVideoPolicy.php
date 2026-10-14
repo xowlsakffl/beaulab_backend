@@ -20,6 +20,12 @@ final class HospitalVideoPolicy
         return $this->delegate($actor)->viewAny($actor);
     }
 
+    public function viewConsents(mixed $actor): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalVideoForStaffPolicy::class)->viewConsents($actor);
+    }
+
     public function view(mixed $actor, HospitalVideo $video): bool
     {
         return $this->delegate($actor)->view($actor, $video);

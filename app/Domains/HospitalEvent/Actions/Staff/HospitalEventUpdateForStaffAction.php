@@ -76,6 +76,9 @@ final class HospitalEventUpdateForStaffAction
             if ($categorySync !== null) {
                 $event->categories()->sync($categorySync['payload']);
             }
+            if (array_key_exists('topic_ids', $payload) || $categoryUsage !== CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION) {
+                $this->payloadResolver->syncDiscoveryTopics($event, $categoryUsage, $payload['topic_ids'] ?? []);
+            }
 
             if (array_key_exists('doctor_assignments', $payload) || array_key_exists('doctor_ids', $payload)) {
                 $this->payloadResolver->syncDoctorAssignments(

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Actions\Staff;
 
+use App\Common\Authorization\AccessPermissions as P;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotConsultationForStaffQuery;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotAvailabilityResolver;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotConsultationStatus;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotLog;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotStaffActor;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Log;
@@ -34,6 +37,7 @@ final class HospitalChatBotConsultationExportForStaffAction
     /** @param array<string, mixed> $filters */
     public function execute(array $filters): StreamedResponse
     {
+        HospitalChatBotStaffActor::authorize(P::BEAULAB_CHATBOT_CONSULTATION_SHOW);
         $this->guardPeriod($filters);
 
         $query = $this->query->filtered($filters);

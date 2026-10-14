@@ -3,6 +3,7 @@
 namespace App\Domains\AccountStaff\Queries\Staff\Auth;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
+use App\Domains\AccountStaff\Support\StaffPermissionCatalog;
 
 /**
  * 스태프 권한 정보 조회 Query.
@@ -17,7 +18,7 @@ final class ProfileForStaffQuery
     {
         return [
             'roles' => $staff->getRoleNames()->values()->all(),
-            'permissions' => $staff->getAllPermissions()->pluck('name')->values()->all(),
+            'permissions' => StaffPermissionCatalog::activeNames($staff->getAllPermissions()->pluck('name')->all()),
         ];
     }
 }

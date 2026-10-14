@@ -11,6 +11,21 @@ use App\Domains\HospitalEvent\Models\HospitalEvent;
 
 final class HospitalEventPayloadResolver
 {
+    public function syncDiscoveryTopics(HospitalEvent $event, string $usage, array $ids): void
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        if ($usage !== CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION) {
+            $event->discoveryTopics()->detach();
+
+            return;
+        }
+        if (count($ids) > 30 || \App\Domains\Common\Category\Models\CategoryTopic::whereIn('id', $ids)->count() !== count($ids)) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '표시할 앱 메뉴를 다시 선택해 주세요.');
+        }
+        $event->discoveryTopics()->sync($ids);
+        $event->unsetRelation('discoveryTopics');
+    }
+
     /**
      * @return array<string, mixed>
      */

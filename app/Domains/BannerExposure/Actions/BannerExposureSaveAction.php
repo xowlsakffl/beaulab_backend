@@ -29,7 +29,7 @@ final class BannerExposureSaveAction
 
     public function save(array $payload, ?BannerExposure $banner = null): array
     {
-        $banner ? Gate::authorize('update', $banner) : Gate::authorize('create', BannerExposure::class);
+        $banner ? Gate::authorize('update', $banner) : Gate::authorize('create', [BannerExposure::class, $payload['placement']]);
 
         return DB::transaction(function () use ($payload, $banner): array {
             // 광고 승인과 직접 등록이 같은 예약 잠금을 사용한다. 광고 자체에는 6개 제한을 적용하지 않는다.
@@ -37,6 +37,7 @@ final class BannerExposureSaveAction
             $before = null;
             if ($banner) {
                 $banner = BannerExposure::query()->lockForUpdate()->findOrFail($banner->id);
+                Gate::authorize('update', $banner);
                 $this->assertVersion($banner, $payload);
                 $before = $this->snapshot($banner);
             } else {
@@ -44,7 +45,7 @@ final class BannerExposureSaveAction
                 $banner->created_by_staff_id = auth()->id();
             }
             $creating = ! $banner->exists;
-            $banner->fill(Arr::except($payload, ['banner', 'target_id', 'expected_updated_at']));
+            $banner->fill(Arr::except($payload, ['banner', 'target_id', 'expected_updated_at', ...($creating ? [] : ['placement'])]));
             if (isset($payload['target_type'])) {
                 $banner->hospital_id = $banner->hospital_event_id = $banner->notice_id = null;
                 $column = match ($payload['target_type']) {
@@ -108,6 +109,7 @@ final class BannerExposureSaveAction
         DB::transaction(function () use ($banner, $payload): void {
             $this->booking->lockBookings();
             $banner = BannerExposure::query()->lockForUpdate()->findOrFail($banner->id);
+            Gate::authorize('delete', $banner);
             $this->assertVersion($banner, $payload);
             $this->history->execute(target: $banner, action: 'DELETED', actor: auth()->user());
             $this->media->deleteCollectionMedia($banner, 'banner');
@@ -117,7 +119,7 @@ final class BannerExposureSaveAction
 
     public function reorder(array $payload): void
     {
-        Gate::authorize('update', BannerExposure::class);
+        Gate::authorize('reorder', [BannerExposure::class, $payload['placement']]);
         DB::transaction(function () use ($payload): void {
             $this->booking->lockBookings();
             $placement = $this->query->placement($payload['placement']);

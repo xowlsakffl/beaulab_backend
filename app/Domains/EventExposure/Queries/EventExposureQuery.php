@@ -15,7 +15,7 @@ final class EventExposureQuery
     public function categories()
     {
         return Category::query()->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->whereNull('parent_id')
-            ->whereIn('group_code', ['SURGERY', 'TREATMENT'])->where('status', 'ACTIVE')->orderBy('sort_order')->orderBy('id');
+            ->whereIn('group_code', ['SURGERY', 'TREATMENT'])->orderBy('sort_order')->orderBy('id');
     }
 
     public function scope(string $placement, ?int $categoryId = null): array
@@ -25,14 +25,14 @@ final class EventExposureQuery
         }
         $group = str_starts_with($placement, 'SURGERY_') ? 'SURGERY' : 'TREATMENT';
         if (str_ends_with($placement, 'CATEGORY_BANNER')) {
-            if ($categoryId !== null && ! $this->categories()->whereKey($categoryId)->where('group_code', $group)->exists()) {
-                $this->invalid('category_id', '해당 영역의 활성 대분류를 선택해 주세요.');
+            if ($categoryId !== null && ! Category::where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->whereNull('parent_id')->whereKey($categoryId)->where('group_code', $group)->exists()) {
+                $this->invalid('category_id', '해당 영역의 대분류를 선택해 주세요.');
             }
         } elseif ($categoryId) {
             $this->invalid('category_id', '카테고리별 상단배너에서만 대분류를 지정할 수 있습니다.');
         }
-        $categories = Category::query()->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->where('group_code', $group)->where('status', 'ACTIVE')->get(['id', 'parent_id']);
-        $ids = $categoryId ? [$categoryId] : $this->categories()->where('group_code', $group)->pluck('id')->all();
+        $categories = Category::query()->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->where('group_code', $group)->get(['id', 'parent_id']);
+        $ids = $categoryId ? [$categoryId] : Category::where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->whereNull('parent_id')->where('group_code', $group)->pluck('id')->all();
         do {
             $before = count($ids);
             foreach ($categories as $category) {

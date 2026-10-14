@@ -10,7 +10,6 @@ use App\Domains\Hospital\Actions\Staff\HospitalAllowStatusUpdateForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalCheckBusinessNumberForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalCheckNameForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalCreateForStaffAction;
-use App\Domains\Hospital\Actions\Staff\HospitalDeleteForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalGetForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalListForStaffAction;
 use App\Domains\Hospital\Actions\Staff\HospitalOperationHistoriesForStaffAction;
@@ -180,18 +179,5 @@ final class HospitalForStaffController extends Controller
         HospitalAllowStatusUpdateForStaffAction $action,
     ) {
         return ApiResponse::success($action->execute($request->validated()));
-    }
-
-    /**
-     * DELETE /api/v1/staff/hospitals/{hospital}
-     * (Beaulab) Staff 전용 병의원 삭제
-     */
-    public function deleteHospitalForStaff(
-        Hospital $hospital,
-        HospitalDeleteForStaffAction $action,
-    ) {
-        $result = $action->execute($hospital);
-
-        return ApiResponse::success($result);
     }
 }

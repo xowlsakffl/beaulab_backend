@@ -17,10 +17,9 @@ final class HospitalDoctorSeeder extends Seeder
         $specialistFields = HospitalDoctor::specialistFields();
         $specialistFieldIndex = 0;
         $doctorCategoryIds = Category::query()
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->whereHas('usages', static fn ($query) => $query
-                ->where('usage', CategoryUsage::USAGE_DOCTOR_SUBJECT)
-                ->where('status', CategoryUsage::STATUS_ACTIVE))
+            ->where('domain', Category::DOMAIN_DOCTOR_SUBJECT)
+            ->whereIn('categories.id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids(CategoryUsage::USAGE_DOCTOR_SUBJECT))
+            ->whereNull('categories.parent_id')
             ->pluck('id')
             ->all();
 

@@ -18,7 +18,7 @@ final class HospitalReviewSeeder extends Seeder
     public function run(): void
     {
         DevelopmentDataGuard::assertEnabled();
-        DevelopmentDataGuard::requireCategories(Category::DOMAIN_HOSPITAL_MEDICAL);
+        DevelopmentDataGuard::requireCategories(Category::DOMAIN_HOSPITAL_REVIEW);
         $this->ensureSeedUsers();
         $this->ensureSeedHospitals();
 
@@ -359,17 +359,16 @@ final class HospitalReviewSeeder extends Seeder
     private function categoryIdsByDomain(array $domains): array
     {
         $categories = Category::query()
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->where('domain', Category::DOMAIN_HOSPITAL_REVIEW)
             ->where('status', Category::STATUS_ACTIVE)
             ->whereDoesntHave('children')
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->get(['id', 'full_path']);
+            ->get(['id', 'group_code']);
 
-        $rootPathsByDomain = HospitalReview::categoryRootPathsByDomain();
         $grouped = [];
         foreach ($categories as $category) {
-            $domain = HospitalReview::categoryDomainFromFullPath($category->full_path, $rootPathsByDomain);
+            $domain = HospitalReview::categoryDomainFromGroup($category->group_code);
             if ($domain !== null && in_array($domain, $domains, true)) {
                 $grouped[$domain][] = (int) $category->id;
             }

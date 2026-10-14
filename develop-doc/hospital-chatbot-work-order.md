@@ -103,7 +103,7 @@ app/Domains/HospitalChatBot/
 - 기존 도메인에 있는 `Policies`는 직원 기능 권한 작업 시 내부 담당자가 추가·연결한다. 이번 외주 배치안에는 빈 Policy 폴더나 권한용 우회 코드를 만들지 않는다.
 - 필요한 폴더만 만든다. 모든 기능에 불필요한 Service·Repository·인터페이스를 추가하지 않는다.
 - 병의원 상담 규칙은 해당 도메인에 둔다. `app/Common`이나 `app/Domains/Common`에 옮기는 것으로 공통화하지 않는다.
-- 기존 `Faq`는 채널·카테고리·운영 이력이 있는 별도 기능이다. 질문·답변 필드가 비슷하다는 이유만으로 병의원 상담 Q&A를 합치지 않는다. 실제 운영 규칙이 같을 때만 재사용안을 협의한다.
+- 병의원 상담 Q&A는 챗봇 도메인에서 관리한다. 콘텐츠 형식이 비슷하다는 이유만으로 다른 게시물과 합치지 않는다.
 - 공통 OperationHistory와 인증·예외·미디어 기능은 필요할 때 기존 진입점을 활용한다. 상담 메시지와 운영 변경 이력은 구분한다.
 
 ### 데이터와 API 기준
@@ -336,7 +336,7 @@ SDK에는 API 요청 어댑터, 브라우저에서 접근 가능한 WebSocket �
 ### 백엔드 저장소
 
 - [구조와 개발 기준](architecture.md), [API·인증](api.md), [메시징](messaging.md), [운영 절차](operations.md), [Git 협업](git-workflow.md).
-- Action·Query·DTO 구성: [FaqCreateForStaffAction](../app/Domains/Faq/Actions/Staff/FaqCreateForStaffAction.php), [FaqCreateForStaffQuery](../app/Domains/Faq/Queries/Staff/FaqCreateForStaffQuery.php).
+- Action·Query·DTO 구성: [NoticeCreateForStaffAction](../app/Domains/Notice/Actions/Staff/NoticeCreateForStaffAction.php), [NoticeCreateForStaffQuery](../app/Domains/Notice/Queries/Staff/NoticeCreateForStaffQuery.php).
 - 저장 후 실시간 전달 참고: [ChatMessageSendForUserAction](../app/Domains/Chat/Actions/User/ChatMessageSendForUserAction.php), [BroadcastChatMessageJob](../app/Domains/Chat/Jobs/BroadcastChatMessageJob.php).
 - Actor 경계: [병의원 API 라우트](../app/Modules/Hospital/routes/api_hospital.php), [현재 실시간 채널](../routes/channels.php).
 

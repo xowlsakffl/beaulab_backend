@@ -14,7 +14,7 @@ final class HospitalWalletTopHospitalsForStaffAction
 
     public function execute(array $filters): array
     {
-        Gate::authorize('viewAny', HospitalWallet::class);
+        Gate::authorize('viewDashboard', HospitalWallet::class);
 
         return [
             'items' => $this->query->topHospitals($filters),

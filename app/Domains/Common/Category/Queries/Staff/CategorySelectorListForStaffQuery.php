@@ -38,7 +38,7 @@ final class CategorySelectorListForStaffQuery
 
     private function buildQuery(array $filters): Builder
     {
-        $domain = (string) $filters['domain'];
+        $domain = ! empty($filters['usage']) ? \App\Domains\Common\Category\Models\CategoryUsage::domainFor($filters['usage']) : (string) $filters['domain'];
         $q = $filters['q'] ?? null;
         $usage = $filters['usage'] ?? null;
         $status = $filters['status'] ?? null;
@@ -70,7 +70,6 @@ final class CategorySelectorListForStaffQuery
             if ($isMenuVisible !== null && ! $isMenuVisible) {
                 $builder->whereNotIn('categories.id', app(CategoryUsageAvailability::class)->ids($usage, true));
             }
-            $builder->selectRaw('COALESCE((SELECT cu.sort_order FROM category_usages cu WHERE cu.category_id = categories.id AND cu.usage = ? LIMIT 1), categories.sort_order) as usage_sort_order', [$usage]);
         } elseif ($status === [Category::STATUS_ACTIVE] || $isMenuVisible) {
             $builder->whereIn('categories.id', app(CategoryUsageAvailability::class)->activeIdsForDomain($domain, (bool) $isMenuVisible));
         }
@@ -132,7 +131,7 @@ final class CategorySelectorListForStaffQuery
         }
 
         if ($usage && ! $q && $sort === 'sort_order') {
-            $builder->orderBy('usage_sort_order', $direction);
+            $builder->orderBy('categories.sort_order', $direction);
         } else {
             $builder->orderBy("categories.{$sort}", $direction);
         }

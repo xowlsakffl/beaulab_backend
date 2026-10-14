@@ -6,6 +6,7 @@ use App\Common\Auth\LoginCredentials;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\AccountStaff\Models\AccountStaff;
+use App\Domains\AccountStaff\Support\StaffPermissionCatalog;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -51,7 +52,7 @@ final class LoginForStaffQuery
         return [
             'staff' => $staff,
             'roles' => $staff->getRoleNames()->values()->all(),
-            'permissions' => $staff->getAllPermissions()->pluck('name')->values()->all(),
+            'permissions' => StaffPermissionCatalog::activeNames($staff->getAllPermissions()->pluck('name')->all()),
         ];
     }
 }

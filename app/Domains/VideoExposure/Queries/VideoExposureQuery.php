@@ -3,7 +3,6 @@
 namespace App\Domains\VideoExposure\Queries;
 
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\VideoExposure\Models\VideoExposure;
@@ -15,8 +14,7 @@ final class VideoExposureQuery
 {
     public function categories()
     {
-        $query = Category::query()->whereNull('parent_id')->whereIn('group_code', ['SURGERY', 'TREATMENT']);
-        CategoryUsage::constrainActiveCategoryExists($query, CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY);
+        $query = Category::query()->where('domain', Category::DOMAIN_HOSPITAL_VIDEO)->whereNull('parent_id')->whereIn('group_code', ['SURGERY', 'TREATMENT']);
 
         return $query->orderBy('sort_order')->orderBy('id');
     }
@@ -27,13 +25,13 @@ final class VideoExposureQuery
             throw ValidationException::withMessages(['placement' => '노출 위치를 선택해 주세요.']);
         }
         $group = $placement === 'SURGERY' ? 'SURGERY' : 'TREATMENT';
-        $roots = $this->categories()->where('group_code', $group);
+        $roots = Category::where('domain', Category::DOMAIN_HOSPITAL_VIDEO)->whereNull('parent_id')->where('group_code', $group);
         $rootIds = $roots->pluck('id')->all();
         if ($categoryId !== null && ! in_array($categoryId, $rootIds, true)) {
-            throw ValidationException::withMessages(['category_id' => '해당 동영상 영역의 활성 대분류를 선택해 주세요.']);
+            throw ValidationException::withMessages(['category_id' => '해당 동영상 영역의 대분류를 선택해 주세요.']);
         }
         $ids = $categoryId === null ? $rootIds : [$categoryId];
-        $categories = Category::query()->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)->where('group_code', $group)->where('status', 'ACTIVE')->get(['id', 'parent_id']);
+        $categories = Category::query()->where('domain', Category::DOMAIN_HOSPITAL_VIDEO)->where('group_code', $group)->get(['id', 'parent_id']);
         do {
             $before = count($ids);
             foreach ($categories as $category) {

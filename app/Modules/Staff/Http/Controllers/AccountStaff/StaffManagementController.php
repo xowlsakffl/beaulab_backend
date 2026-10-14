@@ -8,6 +8,7 @@ use App\Domains\AccountStaff\Actions\Staff\StaffManagementAction;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Modules\Staff\Http\Requests\AccountStaff\StaffListRequest;
 use App\Modules\Staff\Http\Requests\AccountStaff\StaffSaveRequest;
+use App\Modules\Staff\Http\Requests\AccountStaff\StaffStatusRequest;
 use App\Modules\Staff\Http\Requests\AccountStaff\StaffTemplateRequest;
 
 final class StaffManagementController extends Controller
@@ -39,6 +40,11 @@ final class StaffManagementController extends Controller
         $action->delete($staff);
 
         return ApiResponse::success(['deleted' => true]);
+    }
+
+    public function status(AccountStaff $staff, StaffStatusRequest $request, StaffManagementAction $action)
+    {
+        return ApiResponse::success($action->updateStatus($staff, $request->validated()));
     }
 
     public function options(StaffManagementAction $action)

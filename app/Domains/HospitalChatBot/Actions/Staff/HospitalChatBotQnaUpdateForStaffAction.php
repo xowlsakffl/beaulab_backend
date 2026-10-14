@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Actions\Staff;
 
+use App\Common\Authorization\AccessPermissions as P;
 use App\Domains\HospitalChatBot\Dto\Staff\HospitalChatBotQnaForStaffDto;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Domains\HospitalChatBot\Queries\HospitalChatBotQnaTreeQuery;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaUpdateForStaffQuery;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotStaffActor;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -18,6 +20,8 @@ final class HospitalChatBotQnaUpdateForStaffAction
 
     public function execute(HospitalChatBotQna $qna, array $payload): array
     {
+        HospitalChatBotStaffActor::authorize(P::BEAULAB_CHATBOT_QNA_SHOW, P::BEAULAB_CHATBOT_QNA_UPDATE);
+
         try {
             return DB::transaction(function () use ($qna, $payload): array {
                 $nodes = $this->tree->all(true);

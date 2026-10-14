@@ -47,7 +47,7 @@ final class HospitalReviewCommentListForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+                    ->where('domain', Category::DOMAIN_HOSPITAL_REVIEW)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'metric_min' => ['nullable', 'integer', 'min:0'],

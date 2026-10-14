@@ -16,7 +16,7 @@ final class HospitalVideoConsentListForStaffAction
 
     public function execute(array $filters): array
     {
-        Gate::authorize('viewAny', HospitalVideo::class);
+        Gate::authorize('viewConsents', HospitalVideo::class);
 
         return PaginatedResponse::fromPaginator(
             $this->query->paginate($filters),

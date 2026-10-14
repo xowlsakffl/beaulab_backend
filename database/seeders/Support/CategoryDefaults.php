@@ -21,14 +21,19 @@ final class CategoryDefaults
 
     public static function seedHospitalCategories(): void
     {
+        if (DB::table('category_domain_mappings')->exists()) {
+            return;
+        }
         DB::transaction(function (): void {
             $tree = CategoryDefinitions::tree(Category::DOMAIN_HOSPITAL_MEDICAL);
+            self::seedBeautyCategories();
 
             self::seedDomainTree(Category::DOMAIN_HOSPITAL_MEDICAL, $tree);
 
             foreach (array_keys(CategoryDefinitions::hospitalMedicalUsages()) as $usage) {
                 self::seedCategoryUsage($usage, CategoryDefinitions::usageItems($usage));
             }
+            app(\App\Domains\Common\Category\Support\CategoryDomainSplit::class)->apply();
         });
     }
 
@@ -58,16 +63,6 @@ final class CategoryDefaults
             self::seedDomainTree(
                 Category::DOMAIN_TALK,
                 CategoryDefinitions::tree(Category::DOMAIN_TALK),
-            );
-        });
-    }
-
-    public static function seedFaqCategories(): void
-    {
-        DB::transaction(function (): void {
-            self::seedDomainTree(
-                Category::DOMAIN_FAQ,
-                CategoryDefinitions::tree(Category::DOMAIN_FAQ),
             );
         });
     }

@@ -74,6 +74,22 @@ final class CategorySelectorListForStaffRequest extends FormRequest
         ];
     }
 
+    public function after(): array
+    {
+        return [function (\Illuminate\Validation\Validator $validator): void {
+            if ($validator->errors()->isNotEmpty() || ! $this->input('usage')) {
+                return;
+            }
+            $owner = CategoryUsage::domainFor($this->input('usage'));
+            if (! in_array($this->input('domain'), [$owner, Category::DOMAIN_HOSPITAL_MEDICAL], true)) {
+                $validator->errors()->add('domain', '사용처에 맞는 업무 분류를 선택해 주세요.');
+            }
+            if ($this->input('parent_id') && ! Category::where('domain', $owner)->whereKey($this->input('parent_id'))->exists()) {
+                $validator->errors()->add('parent_id', '상위 분류가 다른 업무에 속합니다. 목록을 다시 선택해 주세요.');
+            }
+        }];
+    }
+
     public function attributes(): array
     {
         return [

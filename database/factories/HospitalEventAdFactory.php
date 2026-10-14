@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -70,9 +69,8 @@ final class HospitalEventAdFactory extends Factory
         $categoryId = Category::query()
             ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
-            ->whereHas('usages', static fn ($query) => $query
-                ->where('usage', $usage)
-                ->where('status', CategoryUsage::STATUS_ACTIVE))
+            ->whereIn('categories.id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids($usage))
+            ->whereNull('categories.parent_id')
             ->inRandomOrder()
             ->value('id');
 

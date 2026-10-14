@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Common\Authorization\AccessPermissions;
 use App\Common\Authorization\AccessRoles;
+use App\Common\Authorization\StaffChatbotPermissionBootstrap;
+use App\Common\Authorization\StaffPermissionSplit;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -13,13 +15,29 @@ final class AuthorizationSeeder extends Seeder
 {
     private const LEGACY_PERMISSION_NAMES_BY_GUARD = [
         AccessPermissions::GUARD_STAFF => [
+            'common.access',
+            'common.profile.show',
+            'common.profile.update',
             'beaulab.user.status.update',
+            'beaulab.hospital.delete',
+            'beaulab.agency.show',
+            'beaulab.agency.create',
+            'beaulab.agency.update',
+            'beaulab.agency.delete',
+            'beaulab.faq.show',
+            'beaulab.faq.create',
+            'beaulab.faq.update',
+            'beaulab.faq.status_update',
+            'beaulab.faq.delete',
         ],
     ];
 
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        app(StaffPermissionSplit::class)->apply();
+        app(StaffChatbotPermissionBootstrap::class)->apply();
 
         $this->deleteLegacyPermissions();
 

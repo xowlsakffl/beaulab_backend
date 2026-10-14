@@ -6,9 +6,9 @@ use App\Common\Authorization\AccessPermissions;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Category\Models\CategoryUsage;
+use App\Domains\Common\Category\Models\CategoryTopic;
+use App\Domains\Common\Category\Queries\CategoryTreeWriteQuery;
 use App\Domains\Common\Category\Queries\Staff\CategoryDeleteForStaffQuery;
-use App\Domains\Common\Category\Support\CategoryChangeGuard;
 use App\Domains\Common\Category\Support\CategoryUsageAvailability;
 use App\Domains\Common\OperationHistory\Actions\OperationHistoryCreateAction;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
@@ -22,7 +22,7 @@ final class CategoryManagementAction
     public function show(string $domain): array
     {
         $this->authorize();
-        $categories = Category::query()->domain($domain)->with(['usages' => fn ($q) => $q->orderBy('id')])->orderBy('id')->get();
+        $categories = Category::query()->domain($domain)->with('topics')->orderBy('id')->get();
         $resolved = app(CategoryUsageAvailability::class)->resolve($categories);
         $counts = DB::table('category_assignments')->whereIn('category_id', $categories->modelKeys())
             ->selectRaw('category_id, COUNT(*) as total')->groupBy('category_id')->pluck('total', 'category_id');
@@ -34,14 +34,13 @@ final class CategoryManagementAction
             'id' => $category->id, 'parent_id' => $category->parent_id, 'depth' => $category->depth,
             'name' => $category->name, 'code' => $category->code, 'full_path' => $category->full_path,
             'group_code' => $category->group_code, 'sort_order' => $category->sort_order, 'status' => $category->status,
-            'is_menu_visible' => $category->is_menu_visible,
-            'assignment_count' => (int) ($counts[$category->id] ?? 0),
-            ...$resolved[$category->id],
+            'is_menu_visible' => $category->is_menu_visible, 'topic_ids' => $category->topics->modelKeys(),
+            'assignment_count' => (int) ($counts[$category->id] ?? 0), ...$resolved[$category->id],
         ])->all();
 
         return [
-            'version' => hash('sha256', $categories->toJson()), 'rows' => $rows,
-            'usages' => collect(CategoryUsageAvailability::OPTIONS)->except('HOSPITAL_DOCTOR_SUBJECT')->map(fn ($value, $key) => ['value' => $key, ...$value])->values()->all(),
+            'version' => hash('sha256', json_encode($rows)), 'rows' => $rows,
+            'topics' => CategoryTopic::orderBy('sort_order')->orderBy('id')->get()->toArray(),
             'can_manage' => Gate::allows(AccessPermissions::BEAULAB_CATEGORY_MANAGE),
             'can_status' => Gate::allows(AccessPermissions::BEAULAB_CATEGORY_STATUS_UPDATE),
         ];
@@ -52,50 +51,38 @@ final class CategoryManagementAction
         $this->authorize();
 
         return DB::transaction(function () use ($input) {
+            CategoryTopic::orderBy('id')->lockForUpdate()->get();
             app(HospitalEventAdSlotAvailabilityForStaffQuery::class)->lockBookings();
             Category::query()->domain($input['domain'])->orderBy('id')->lockForUpdate()->get();
             $snapshot = $this->show($input['domain']);
             if (! hash_equals($snapshot['version'], $input['version'])) {
-                $this->fail('다른 관리자가 분류를 변경했습니다. 목록을 새로 연 뒤 다시 시도해 주세요.');
+                $this->fail('다른 관리자가 분류를 변경했습니다. 목록을 다시 확인해 주세요.');
             }
             $op = $input['operation'];
-            Gate::authorize($op === 'usage' || ($op === 'update' && isset($input['status']))
-                ? AccessPermissions::BEAULAB_CATEGORY_STATUS_UPDATE : AccessPermissions::BEAULAB_CATEGORY_MANAGE);
+            $statusOnly = $op === 'update' && ! array_intersect(['name', 'parent_id'], array_keys($input));
+            Gate::authorize($statusOnly ? AccessPermissions::BEAULAB_CATEGORY_STATUS_UPDATE : AccessPermissions::BEAULAB_CATEGORY_MANAGE);
+            if (array_key_exists('status', $input)) {
+                Gate::authorize(AccessPermissions::BEAULAB_CATEGORY_STATUS_UPDATE);
+            }
             if ($op === 'create') {
                 $parent = ! empty($input['parent_id']) ? $this->category($input['domain'], $input['parent_id']) : null;
                 $group = $parent?->group_code ?? ($input['group_code'] ?? null);
-                if ($input['domain'] === Category::DOMAIN_HOSPITAL_DEPARTMENT && $parent) {
-                    $this->fail('분과는 하위 분류를 만들 수 없습니다.');
+                $flat = in_array($input['domain'], [Category::DOMAIN_HOSPITAL_DEPARTMENT, Category::DOMAIN_HOSPITAL_SUBJECT,
+                    Category::DOMAIN_DOCTOR_SUBJECT, Category::DOMAIN_TALK, Category::DOMAIN_HOSPITAL_EVALUATION], true);
+                if ($flat && $parent) {
+                    $this->fail('이 업무는 한 단계 분류로 관리합니다.');
                 }
-                if ($input['domain'] === Category::DOMAIN_HOSPITAL_MEDICAL && ! in_array($group, Category::groupCodes(), true)) {
+                if (in_array($input['domain'], Category::medicalDomains(), true) && ! in_array($group, Category::groupCodes(), true)) {
                     $this->fail('성형·쁘띠·기획전 중 분류를 선택해 주세요.');
                 }
-                foreach ($input['usages'] ?? [] as $usage) {
-                    if ($input['domain'] !== Category::DOMAIN_HOSPITAL_MEDICAL || ! in_array($group, CategoryUsageAvailability::OPTIONS[$usage]['groups'] ?? [], true)) {
-                        $this->fail('이 분류에서 사용할 수 없는 사용처입니다.');
-                    }
+                if ($group === 'PROMOTION' && $input['domain'] !== Category::DOMAIN_HOSPITAL_MEDICAL) {
+                    $this->fail('기획전은 이벤트에서 관리합니다.');
                 }
-                $created = app(CategoryCreateForStaffAction::class)->execute([
+                app(CategoryCreateForStaffAction::class)->execute([
                     'domain' => $input['domain'], 'parent_id' => $parent?->id, 'group_code' => $group,
-                    'name' => $input['name'], 'code' => 'CAT_'.Str::upper((string) Str::ulid()),
+                    'name' => $input['name'], 'code' => 'C_'.Str::upper((string) Str::ulid()),
                     'sort_order' => Category::query()->domain($input['domain'])->where('parent_id', $parent?->id)->max('sort_order') + 1,
                 ]);
-                $category = Category::findOrFail($created['category']['id']);
-                foreach (CategoryUsageAvailability::OPTIONS as $usage => $option) {
-                    if ($category->domain !== Category::DOMAIN_HOSPITAL_MEDICAL || ! in_array($group, $option['groups'], true)) {
-                        continue;
-                    }
-                    $enabled = in_array($usage, $input['usages'] ?? [], true);
-                    if ($enabled) {
-                        Gate::authorize(AccessPermissions::BEAULAB_CATEGORY_STATUS_UPDATE);
-                        $parentRow = $parent ? collect($snapshot['rows'])->firstWhere('id', $parent->id) : null;
-                        if ($parent && ! $parentRow['usages'][$usage]['enabled']) {
-                            $this->fail('상위 분류에서 사용하지 않는 사용처는 선택할 수 없습니다.');
-                        }
-                    }
-                    CategoryUsage::create(['category_id' => $category->id, 'usage' => $usage,
-                        'status' => $enabled ? 'ACTIVE' : 'INACTIVE', 'is_menu_visible' => $enabled, 'sort_order' => $category->sort_order]);
-                }
             } elseif ($op === 'reorder') {
                 $ids = array_map('intval', $input['ids']);
                 $categories = Category::query()->domain($input['domain'])->whereIn('id', $ids)->get();
@@ -103,9 +90,8 @@ final class CategoryManagementAction
                     || $categories->pluck('group_code')->unique()->count() !== 1) {
                     $this->fail('같은 상위 분류 안에서만 순서를 변경할 수 있습니다.');
                 }
-                $siblings = Category::query()->domain($input['domain'])->where('parent_id', $categories->first()->parent_id)
+                $expected = Category::query()->domain($input['domain'])->where('parent_id', $categories->first()->parent_id)
                     ->where('group_code', $categories->first()->group_code)->pluck('id')->all();
-                $expected = $siblings;
                 $actual = $ids;
                 sort($expected);
                 sort($actual);
@@ -113,65 +99,32 @@ final class CategoryManagementAction
                     $this->fail('현재 목록 전체 순서를 보내 주세요.');
                 }
                 foreach ($ids as $order => $id) {
-                    $category = $categories->firstWhere('id', $id);
-                    if (! empty($input['usage'])) {
-                        $this->assertUsage($category, $input['usage']);
-                        $resolved = collect($snapshot['rows'])->firstWhere('id', $id)['usages'][$input['usage']];
-                        CategoryUsage::updateOrCreate(['category_id' => $id, 'usage' => $input['usage']], [
-                            'sort_order' => $order + 1, 'status' => $resolved['own_enabled'] ? 'ACTIVE' : 'INACTIVE', 'is_menu_visible' => $resolved['own_visible'],
-                        ]);
-                    } else {
-                        $category->update(['sort_order' => $order + 1]);
-                    }
+                    $categories->firstWhere('id', $id)->update(['sort_order' => $order + 1]);
                 }
-                $this->history($categories->first(), '순서 변경', ['usage' => $input['usage'] ?? null, 'ids' => $ids]);
+                $this->history($categories->first(), '순서 변경', ['ids' => $ids]);
             } else {
                 $category = $this->category($input['domain'], $input['id']);
-                if ($category->domain === Category::DOMAIN_HOSPITAL_MEDICAL && in_array($op, ['update', 'delete'], true) && empty($input['confirm_global'])) {
-                    $this->fail('공통 원본 변경은 연결된 업무와 데이터에 미치는 영향을 확인한 뒤 적용해 주세요.');
-                }
                 if ($op === 'update') {
-                    app(CategoryUpdateForStaffAction::class)->execute($category, array_intersect_key($input, array_flip(['name', 'status'])));
-                } elseif ($op === 'label') {
-                    $this->assertUsage($category, $input['usage']);
-                    $resolved = collect($snapshot['rows'])->firstWhere('id', $category->id)['usages'][$input['usage']];
-                    $label = trim((string) ($input['display_name'] ?? '')) ?: null;
-                    CategoryUsage::updateOrCreate(['category_id' => $category->id, 'usage' => $input['usage']], [
-                        'display_name' => $label,
-                        'status' => $resolved['own_enabled'] ? 'ACTIVE' : 'INACTIVE',
-                        'is_menu_visible' => $resolved['own_visible'], 'sort_order' => $resolved['sort_order'],
-                    ]);
-                    $this->history($category, '업무별 표시명 변경', ['usage' => $input['usage'], 'before' => $resolved['display_name'], 'after' => $label]);
-                } elseif ($op === 'usage') {
-                    $this->assertUsage($category, $input['usage']);
-                    if (! $input['enabled'] || ! $input['visible']) {
-                        if (str_contains($input['usage'], 'EVENT')) {
-                            app(CategoryChangeGuard::class)->assertNoPaidAds($category);
-                        }
+                    if ($statusOnly) {
+                        $before = $category->only(['status']);
+                        $category->update(array_intersect_key($input, array_flip(['status'])));
+                        $this->history($category, '분류 등록 사용 설정', ['before' => $before, 'after' => $category->only(['status'])]);
+                    } else {
+                        app(CategoryUpdateForStaffAction::class)->execute($category, array_intersect_key($input, array_flip(['name', 'status'])));
                     }
-                    $resolved = collect($snapshot['rows'])->firstWhere('id', $category->id)['usages'][$input['usage']];
-                    if ($input['enabled'] && (! $resolved['parent_enabled'] || $category->status !== 'ACTIVE')) {
-                        $this->fail('상위 분류와 현재 분류를 먼저 사용 상태로 변경해 주세요.');
-                    }
-                    CategoryUsage::updateOrCreate(['category_id' => $category->id, 'usage' => $input['usage']], [
-                        'status' => $input['enabled'] ? 'ACTIVE' : 'INACTIVE', 'is_menu_visible' => $input['visible'], 'sort_order' => $resolved['sort_order'],
-                        'display_name' => array_key_exists('display_name', $input) ? (trim((string) $input['display_name']) ?: null) : $resolved['display_name'],
-                    ]);
-                    $this->history($category, '업무별 설정', ['usage' => $input['usage'], 'before' => $resolved, 'enabled' => $input['enabled'], 'visible' => $input['visible'], 'display_name' => $input['display_name'] ?? null]);
+                } elseif ($op === 'move') {
+                    $this->move($category, $input['parent_id'] ?? null, $input['name'] ?? null);
                 } elseif ($op === 'delete') {
                     $query = app(CategoryDeleteForStaffQuery::class);
-                    if ($query->hasChildren($category)) {
-                        $this->fail('하위 분류가 있어 삭제할 수 없습니다.');
-                    }
-                    if ($query->hasAssignments($category)) {
-                        $this->fail('연결된 데이터 또는 가격·노출 설정이 있어 삭제할 수 없습니다. 사용 중지로 변경해 주세요.');
+                    if ($query->hasChildren($category) || $query->hasAssignments($category) || $category->topics()->exists()) {
+                        $this->fail('하위 분류 또는 연결된 데이터·예약·앱 메뉴가 있어 삭제할 수 없습니다.');
                     }
                     $this->history($category, '분류 삭제', ['name' => $category->name, 'code' => $category->code]);
+                    $category->topics()->detach();
                     $category->usages()->delete();
                     app(CategoryDeleteForStaffAction::class)->execute($category);
                 }
             }
-
             CategoryUsageAvailability::forgetRequestCache();
             DB::afterCommit(fn () => \App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache::flush());
 
@@ -179,16 +132,63 @@ final class CategoryManagementAction
         }, 3);
     }
 
+    private function move(Category $category, ?int $parentId, ?string $name = null): void
+    {
+        if ($category->group_code === Category::GROUP_PROMOTION || in_array($category->domain, [Category::DOMAIN_HOSPITAL_DEPARTMENT, Category::DOMAIN_HOSPITAL_SUBJECT, Category::DOMAIN_DOCTOR_SUBJECT, Category::DOMAIN_TALK, Category::DOMAIN_HOSPITAL_EVALUATION], true)) {
+            $this->fail('한 단계 분류는 상위를 변경할 수 없습니다.');
+        }
+        $parent = $parentId ? $this->category($category->domain, $parentId) : null;
+        if ($parent && ($parent->group_code !== $category->group_code || $parent->id === $category->id)) {
+            $this->fail('같은 그룹의 다른 분류를 선택해 주세요.');
+        }
+        $node = $parent;
+        while ($node) {
+            if ($node->id === $category->id) {
+                $this->fail('자신의 하위 분류로 이동할 수 없습니다.');
+            }
+            $node = $node->parent;
+        }
+        $subtree = [$category];
+        for ($i = 0; $i < count($subtree); $i++) {
+            foreach ($subtree[$i]->children as $child) {
+                $subtree[] = $child;
+            }
+        }
+        $delta = ($parent ? $parent->depth + 1 : 1) - $category->depth;
+        foreach ($subtree as $row) {
+            if ($row->depth + $delta > 3) {
+                $this->fail('최대 3단계까지 이동할 수 있습니다.');
+            }
+            if (app(CategoryDeleteForStaffQuery::class)->hasAssignments($row)) {
+                $this->fail('콘텐츠·가격·예약이 연결된 분류는 상위를 바로 바꿀 수 없습니다. 연결 이전을 먼저 확인해 주세요.');
+            }
+        }
+        $name = $name === null ? $category->name : trim($name);
+        if ($name === '' || mb_strlen($name) > 120 || str_contains($name, '>')) {
+            $this->fail('카테고리명은 > 기호 없이 1~120자로 입력해 주세요.');
+        }
+        if (Category::where('domain', $category->domain)->where('group_code', $category->group_code)->where('parent_id', $parent?->id)->where('name', $name)->whereKeyNot($category->id)->exists()) {
+            $this->fail('이동할 위치에 같은 이름이 이미 있습니다.');
+        }
+        $newPath = $parent ? $parent->full_path.' > '.$name : $name;
+        foreach ($subtree as $row) {
+            if (mb_strlen($row->full_path) - mb_strlen($category->full_path) + mb_strlen($newPath) > 255) {
+                $this->fail('이동 후 전체 이름이 255자를 넘습니다.');
+            }
+        }
+        $history = app(CategoryUpdateHistoryRecordAction::class);
+        $before = $history->capture($category);
+        $category->update(['name' => $name, 'parent_id' => $parent?->id, 'full_path' => $newPath]);
+        foreach ($subtree as $row) {
+            $row->update(['depth' => $row->depth + $delta]);
+        }
+        app(CategoryTreeWriteQuery::class)->syncDescendants($category);
+        $history->recordUpdated($category->fresh(['parent', 'iconMedia']), $before);
+    }
+
     private function category(string $domain, int $id): Category
     {
         return Category::query()->domain($domain)->findOrFail($id);
-    }
-
-    private function assertUsage(Category $category, string $usage): void
-    {
-        if ($category->domain !== Category::DOMAIN_HOSPITAL_MEDICAL || ! in_array($category->group_code, CategoryUsageAvailability::OPTIONS[$usage]['groups'] ?? [], true)) {
-            $this->fail('이 분류에서 사용할 수 없는 사용처입니다.');
-        }
     }
 
     private function history(Category $category, string $label, array $metadata): void

@@ -17,6 +17,11 @@ final class PrepareCategoryManagement extends Command
 
     public function handle(): int
     {
+        if (Schema::hasTable('category_domain_mappings') && DB::table('category_domain_mappings')->exists()) {
+            $this->error('업무별 독립 분류로 전환되어 이전 사용처 준비 명령은 실행할 수 없습니다.');
+
+            return self::FAILURE;
+        }
         $this->line('대상: '.config('database.connections.mysql.host').' / '.DB::getDatabaseName());
         if (! $this->option('apply') || DB::getDriverName() !== 'mysql') {
             $this->warn('MySQL 접속 대상과 백업을 확인한 뒤 --apply로 실행하세요.');

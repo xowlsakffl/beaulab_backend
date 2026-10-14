@@ -123,9 +123,8 @@ final class HospitalEventAdCreateForStaffRequest extends FormRequest
             ->whereKey($categoryId)
             ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
-            ->whereHas('usages', static fn ($query) => $query
-                ->where('usage', $usage)
-                ->where('status', CategoryUsage::STATUS_ACTIVE))
+            ->whereIn('categories.id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids($usage))
+            ->whereNull('categories.parent_id')
             ->exists();
     }
 }

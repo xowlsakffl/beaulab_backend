@@ -8,6 +8,12 @@ use App\Domains\HospitalEventAd\Policies\Staff\HospitalEventAdForStaffPolicy;
 
 final class HospitalEventAdPolicy
 {
+    public function viewCalendar(mixed $actor): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalEventAdForStaffPolicy::class)->viewCalendar($actor);
+    }
+
     public function viewAny(mixed $actor): bool
     {
         return $this->delegate($actor)->viewAny($actor);

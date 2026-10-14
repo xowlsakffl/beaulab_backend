@@ -21,6 +21,14 @@ final class CategoryDeleteForStaffQuery
 
     public function hasAssignments(Category $category): bool
     {
+        foreach (['event', 'review', 'video'] as $prefix) {
+            if (DB::table($prefix.'_exposure_positions')->whereIn('key', [
+                'SURGERY:'.$category->id, 'PETIT:'.$category->id,
+                'SURGERY_CATEGORY_BANNER:'.$category->id, 'PETIT_CATEGORY_BANNER:'.$category->id,
+            ])->exists()) {
+                return true;
+            }
+        }
         if ($category->domain === Category::DOMAIN_HOSPITAL_DEPARTMENT && DB::table('hospitals')->where('department', $category->code)->exists()) {
             return true;
         }

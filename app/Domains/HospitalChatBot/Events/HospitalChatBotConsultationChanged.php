@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Events;
 
-use App\Domains\HospitalChatBot\Dto\Hospital\HospitalChatBotConsultationForHospitalDto;
-use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -15,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 /**
  * 상담 상태가 바뀌었다. 상담 당사자(병의원 사용자와 담당 상담원)가 보는 채널로 보낸다.
  *
- * 병의원 사용자도 받는 채널이므로 상담원용 표현이 아니라 병의원용 표현을 싣는다.
+ * 본문 없이 변경 신호만 보내고, 양쪽 화면이 각자의 API 권한으로 다시 조회한다.
  * 상담원 목록 갱신은 HospitalChatBotQueueChanged가 따로 담당한다.
  *
  * 이 이벤트를 놓쳐도 양쪽 화면이 주기적으로 다시 조회하므로 상태는 결국 맞춰진다.
@@ -45,12 +43,6 @@ final class HospitalChatBotConsultationChanged implements ShouldBroadcastNow
     /** @return array<string, mixed> */
     public function broadcastWith(): array
     {
-        $consultation = HospitalChatBotConsultation::query()->find($this->consultationId);
-
-        if ($consultation === null) {
-            return ['consultation_id' => $this->consultationId, 'status' => $this->status];
-        }
-
-        return ['consultation' => HospitalChatBotConsultationForHospitalDto::fromModel($consultation)];
+        return ['consultation_id' => $this->consultationId];
     }
 }

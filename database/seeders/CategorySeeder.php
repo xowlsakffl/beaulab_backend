@@ -14,6 +14,5 @@ final class CategorySeeder extends Seeder
         CategoryDefaults::seedHospitalEvaluationCategories();
         CategoryDefaults::seedBeautyCategories();
         CategoryDefaults::seedTalkCategories();
-        CategoryDefaults::seedFaqCategories();
     }
 }

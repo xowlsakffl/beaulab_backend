@@ -30,7 +30,7 @@ final class CategoryCreateForStaffAction
     public function execute(array $payload): array
     {
         Gate::authorize('create', Category::class);
-        if (array_key_exists('status', $payload)) {
+        if (array_key_exists('status', $payload) || array_key_exists('is_menu_visible', $payload)) {
             Gate::authorize('updateStatus', Category::class);
         }
 
@@ -39,6 +39,7 @@ final class CategoryCreateForStaffAction
 
         try {
             $category = DB::transaction(function () use ($domain, $name, $payload) {
+                \App\Domains\Common\Category\Models\CategoryTopic::orderBy('id')->lockForUpdate()->get();
                 $parent = null;
                 if (! empty($payload['parent_id'])) {
                     $parent = $this->tree->lockPath((int) $payload['parent_id']);
@@ -57,11 +58,20 @@ final class CategoryCreateForStaffAction
                     throw new CustomException(ErrorCode::INVALID_REQUEST, '분과는 단일 분류이며 코드는 30자 이하여야 합니다.');
                 }
                 $groupCode = $this->resolveGroupCode($payload, $parent);
+                if ($parent && (in_array($domain, [Category::DOMAIN_HOSPITAL_DEPARTMENT, Category::DOMAIN_HOSPITAL_SUBJECT, Category::DOMAIN_DOCTOR_SUBJECT, Category::DOMAIN_TALK, Category::DOMAIN_HOSPITAL_EVALUATION], true) || $groupCode === Category::GROUP_PROMOTION)) {
+                    throw new CustomException(ErrorCode::INVALID_REQUEST, '이 업무는 한 단계 분류로 관리합니다.');
+                }
+                if (in_array($domain, Category::medicalDomains(), true) && (! in_array($groupCode, Category::groupCodes(), true) || ($groupCode === Category::GROUP_PROMOTION && $domain !== Category::DOMAIN_HOSPITAL_MEDICAL))) {
+                    throw new CustomException(ErrorCode::INVALID_REQUEST, '업무에 맞는 분류 그룹을 선택해 주세요.');
+                }
                 $fullPath = $parent
                     ? trim((string) ($parent->full_path ?: $parent->name)).' > '.$name
                     : $name;
 
-                $exists = $this->query->existsSiblingName($domain, $parent?->id, $name);
+                $exists = $this->query->existsSiblingName($domain, $parent?->id, $name, $groupCode);
+                if (mb_strlen($fullPath) > 255) {
+                    throw new CustomException(ErrorCode::INVALID_REQUEST, '상위 분류를 포함한 전체 이름은 255자 이하여야 합니다.');
+                }
 
                 if ($exists) {
                     throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 상위 카테고리 아래 동일한 이름이 이미 존재합니다.');
@@ -91,6 +101,10 @@ final class CategoryCreateForStaffAction
 
                 if ($icon) {
                     $this->mediaAttachAction->attachOne($created, $icon, 'icon', 'category', 'icon', true);
+                }
+
+                if ($parent) {
+                    $created->topics()->sync($parent->topics()->pluck('category_topics.id')->all());
                 }
 
                 $created = $created->fresh(['parent', 'iconMedia']);

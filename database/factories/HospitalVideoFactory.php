@@ -99,11 +99,10 @@ final class HospitalVideoFactory extends Factory
     {
         return $this->afterCreating(function (HospitalVideo $video) use ($count): void {
             $categoryIds = Category::query()
-                ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+                ->where('domain', Category::DOMAIN_HOSPITAL_VIDEO)
                 ->where('status', Category::STATUS_ACTIVE)
-                ->whereHas('usages', static fn ($query) => $query
-                    ->where('usage', CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY)
-                    ->where('status', CategoryUsage::STATUS_ACTIVE))
+                ->whereIn('categories.id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids(CategoryUsage::USAGE_HOSPITAL_VIDEO_CATEGORY))
+                ->whereNull('categories.parent_id')
                 ->pluck('id')
                 ->map(static fn (int|string $id): int => (int) $id)
                 ->all();

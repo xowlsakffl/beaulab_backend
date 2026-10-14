@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Actions\Staff;
 
+use App\Common\Authorization\AccessPermissions as P;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\HospitalChatBot\Dto\Staff\HospitalChatBotConsultationForStaffDto;
@@ -18,7 +19,7 @@ final class HospitalChatBotConsultationClaimForStaffAction
     /** @return array<string, mixed> */
     public function execute(int $consultationId): array
     {
-        $staff = HospitalChatBotStaffActor::current();
+        $staff = HospitalChatBotStaffActor::authorize(P::BEAULAB_CHATBOT_CONSULTATION_SHOW, P::BEAULAB_CHATBOT_CONSULTATION_PROCESS);
 
         // 존재하지 않는 상담이면 여기서 404가 난다.
         $this->query->find($consultationId);

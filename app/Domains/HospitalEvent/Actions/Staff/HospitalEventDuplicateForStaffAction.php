@@ -55,6 +55,7 @@ final class HospitalEventDuplicateForStaffAction
             $event = $this->query->create($data);
 
             $event->categories()->sync($categorySync['payload']);
+            $this->payloadResolver->syncDiscoveryTopics($event, $categorySync['usage'], $payload['topic_ids'] ?? $sourceEvent->discoveryTopics()->pluck('category_topics.id')->all());
             $this->payloadResolver->syncDoctorAssignments($event, $doctorAssignments);
             $this->payloadResolver->syncOptions($event, $options);
             $this->copyBeforeAfterPhotos($sourceEvent, $event, $payload);

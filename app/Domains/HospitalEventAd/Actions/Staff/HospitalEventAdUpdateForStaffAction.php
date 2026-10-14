@@ -5,7 +5,6 @@ namespace App\Domains\HospitalEventAd\Actions\Staff;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEventAd\Dto\Staff\HospitalEventAdForStaffDetailDto;
@@ -197,9 +196,8 @@ final class HospitalEventAdUpdateForStaffAction
             ->whereKey($categoryId)
             ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->where('status', Category::STATUS_ACTIVE)
-            ->whereHas('usages', static fn ($query) => $query
-                ->where('usage', $usage)
-                ->where('status', CategoryUsage::STATUS_ACTIVE))
+            ->whereIn('categories.id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids($usage))
+            ->whereNull('categories.parent_id')
             ->exists();
 
         if (! $exists) {

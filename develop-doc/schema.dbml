@@ -8,8 +8,8 @@ Project beaulab_backend {
 }
 
 // Polymorphic conventions
-// media.model_type/model_id -> 파일 소유 모델: hospitals, doctors, reviews, evaluations, events, chats, notices, faqs 등
-// category_assignments.categorizable_type/id -> 카테고리 소유 모델: hospitals, doctors, talks, reviews, evaluations, events, faqs 등
+// media.model_type/model_id -> 파일 소유 모델: hospitals, doctors, reviews, evaluations, events, chats, notices 등
+// category_assignments.categorizable_type/id -> 카테고리 소유 모델: hospitals, doctors, talks, reviews, evaluations, events 등
 // operation_histories.target_type/id, admin_notes.target_type/id -> 운영 대상 모델
 // content_reports.target_type/id, content_report_states.target_type/id -> 신고 대상 모델
 // activity_log.subject_type/id, causer_type/id -> Spatie activitylog polymorphic 참조
@@ -218,10 +218,12 @@ Table cache_locks {
 
 Table categories {
   id bigint [pk, increment, note: '카테고리 고유 ID']
-  domain varchar(40) [note: '카테고리 도메인(HOSPITAL_MEDICAL, HOSPITAL_EVALUATION, TALK, BEAUTY, FAQ)']
+  domain varchar(40) [note: '업무별 독립 도메인. HOSPITAL_MEDICAL은 이벤트 전용']
   parent_id bigint [null, note: '상위 카테고리 ID(대분류는 null)']
   parent_scope_id bigint [note: 'COALESCE(parent_id, 0) 가상 생성 컬럼. 대분류 이름 중복 방지용이며 API에 노출하지 않음']
-  depth tinyint [note: '카테고리 깊이(1:대분류, 2:중분류, 3:소분류, 4:상세분류)']
+  group_code varchar(30) [null]
+  group_scope_code varchar(30) [note: 'NULL 그룹을 빈 문자열로 정규화하는 가상 컬럼']
+  depth tinyint [note: '최대 3단계. 단층 업무는 1만 허용']
   name varchar(120) [note: '카테고리명']
   code varchar(80) [null, note: '카테고리 운영 코드']
   full_path varchar(255) [null, note: '카테고리 전체 경로(예: 눈 > 쌍꺼풀 > 자연유착)']
@@ -232,7 +234,8 @@ Table categories {
   updated_at timestamp
   Note: '도메인별 카테고리 트리와 노출 상태를 관리합니다.'
   indexes {
-    (domain, parent_scope_id, name) [unique, name: 'categories_domain_parent_name_unique']
+    (domain, group_scope_code, parent_scope_id, name) [unique, name: 'categories_domain_parent_name_unique']
+    (domain, code) [unique]
   }
 }
 
@@ -255,7 +258,50 @@ Table category_usages {
   status varchar(20) [default: `'ACTIVE'`, note: '운영 상태(ACTIVE, INACTIVE)']
   created_at timestamp
   updated_at timestamp
-  Note: '같은 카테고리 중 특정 화면/기능에서 사용할 항목을 지정합니다.'
+  is_menu_visible boolean [default: true]
+  display_name varchar(120) [null]
+  Note: '기존 사용처 설정. 업무별 분류 전환 근거로 보존하며 신규 관리 화면에서는 수정하지 않습니다.'
+}
+
+Table category_topics {
+  id bigint [pk, increment]
+  code varchar(80) [unique]
+  name varchar(120)
+  group_code varchar(30) [null]
+  sort_order int [default: 0]
+  is_menu_visible boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table category_topic_links {
+  topic_id bigint
+  category_id bigint
+  indexes {
+    (topic_id, category_id) [pk]
+    (category_id, topic_id)
+  }
+}
+
+Table category_topic_contents {
+  topic_id bigint
+  content_type varchar(191)
+  content_id bigint
+  indexes {
+    (topic_id, content_type, content_id) [pk]
+    (content_type, content_id)
+  }
+  Note: '기획전 이벤트의 종류와 별개인 통합 조회 대상 연결'
+}
+
+Table category_domain_mappings {
+  legacy_id bigint
+  domain varchar(40)
+  category_id bigint [null, unique]
+  indexes {
+    (legacy_id, domain) [pk]
+  }
+  Note: '전환 대응표. 신규 분류 삭제 후에도 대응표를 남겨 재생성하지 않음'
 }
 
 Table chat_messages {
@@ -364,21 +410,6 @@ Table failed_jobs {
   exception longtext [note: '예외 메시지']
   failed_at timestamp [default: `CURRENT_TIMESTAMP`, note: '실패 시간']
   Note: '실패한 Queue Job 기록입니다. Redis/Horizon 런타임에서도 실패 이력은 DB에 저장합니다.'
-}
-
-Table faqs {
-  id bigint [pk, increment, note: '자주 묻는 질문 ID']
-  channel varchar(20) [default: `'ALL'`, note: 'FAQ 채널(ALL, APP_WEB, HOSPITAL, BEAUTY, INTERNAL)']
-  question varchar(255) [note: '질문']
-  content text [note: '에디터 HTML 답변 본문']
-  status varchar(20) [default: `'ACTIVE'`, note: 'FAQ 상태(ACTIVE, INACTIVE)']
-  view_count bigint [default: `0`, note: '조회수']
-  created_by_staff_id bigint [null, note: '등록한 관리자 ID']
-  updated_by_staff_id bigint [null, note: '수정한 관리자 ID']
-  created_at timestamp
-  updated_at timestamp
-  deleted_at timestamp [null, note: '소프트 삭제 일시']
-  Note: 'FAQ 콘텐츠입니다.'
 }
 
 Table hashtaggables {
@@ -1426,7 +1457,6 @@ TableGroup "Content Boards" {
   hospital_evaluations
   likes
   notices
-  faqs
 }
 
 TableGroup "Hospital Events & Customer DB" {
@@ -1509,6 +1539,10 @@ Ref: hashtaggables.hashtag_id > hashtags.id
 Ref: categories.parent_id > categories.id
 Ref: category_assignments.category_id > categories.id
 Ref: category_usages.category_id > categories.id
+Ref: category_topic_links.topic_id > category_topics.id
+Ref: category_topic_links.category_id > categories.id
+Ref: category_topic_contents.topic_id > category_topics.id
+Ref: category_domain_mappings.category_id > categories.id
 Ref: talks.author_id > account_users.id
 Ref: talk_comments.talk_id > talks.id
 Ref: talk_comments.parent_id > talk_comments.id
@@ -1519,8 +1553,6 @@ Ref: talk_comment_mentions.mentioned_by_user_id > account_users.id
 Ref: likes.account_user_id > account_users.id
 Ref: notices.created_by_staff_id > account_staffs.id
 Ref: notices.updated_by_staff_id > account_staffs.id
-Ref: faqs.created_by_staff_id > account_staffs.id
-Ref: faqs.updated_by_staff_id > account_staffs.id
 Ref: hospital_feature_assignments.hospital_id > hospitals.id
 Ref: hospital_feature_assignments.hospital_feature_id > hospital_features.id
 Ref: chats.created_by_user_id > account_users.id

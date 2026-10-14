@@ -26,6 +26,14 @@ final class Category extends Model
 
     public const DOMAIN_HOSPITAL_MEDICAL = 'HOSPITAL_MEDICAL';
 
+    public const DOMAIN_HOSPITAL_SUBJECT = 'HOSPITAL_SUBJECT';
+
+    public const DOMAIN_DOCTOR_SUBJECT = 'DOCTOR_SUBJECT';
+
+    public const DOMAIN_HOSPITAL_REVIEW = 'HOSPITAL_REVIEW';
+
+    public const DOMAIN_HOSPITAL_VIDEO = 'HOSPITAL_VIDEO';
+
     public const DOMAIN_HOSPITAL_DEPARTMENT = 'HOSPITAL_DEPARTMENT';
 
     public const DOMAIN_HOSPITAL_EVALUATION = 'HOSPITAL_EVALUATION';
@@ -34,7 +42,7 @@ final class Category extends Model
 
     public const DOMAIN_BEAUTY = 'BEAUTY';
 
-    public const DOMAIN_FAQ = 'FAQ';
+    public const DOMAIN_BEAUTY_EXPERT = 'BEAUTY_EXPERT';
 
     public const GROUP_SURGERY = 'SURGERY';
 
@@ -48,7 +56,7 @@ final class Category extends Model
 
     protected $table = 'categories';
 
-    protected $hidden = ['parent_scope_id'];
+    protected $hidden = ['parent_scope_id', 'group_scope_code'];
 
     /**
      * @var array<int, string>
@@ -129,11 +137,15 @@ final class Category extends Model
     {
         return [
             self::DOMAIN_HOSPITAL_MEDICAL,
+            self::DOMAIN_HOSPITAL_SUBJECT,
+            self::DOMAIN_DOCTOR_SUBJECT,
+            self::DOMAIN_HOSPITAL_REVIEW,
+            self::DOMAIN_HOSPITAL_VIDEO,
             self::DOMAIN_HOSPITAL_DEPARTMENT,
             self::DOMAIN_HOSPITAL_EVALUATION,
             self::DOMAIN_TALK,
             self::DOMAIN_BEAUTY,
-            self::DOMAIN_FAQ,
+            self::DOMAIN_BEAUTY_EXPERT,
         ];
     }
 
@@ -147,6 +159,17 @@ final class Category extends Model
             self::GROUP_TREATMENT,
             self::GROUP_PROMOTION,
         ];
+    }
+
+    public static function medicalDomains(): array
+    {
+        return [self::DOMAIN_HOSPITAL_MEDICAL, self::DOMAIN_HOSPITAL_SUBJECT, self::DOMAIN_DOCTOR_SUBJECT,
+            self::DOMAIN_HOSPITAL_REVIEW, self::DOMAIN_HOSPITAL_VIDEO];
+    }
+
+    public function topics(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(CategoryTopic::class, 'category_topic_links', 'category_id', 'topic_id');
     }
 
     public function displayNameFor(string $usage): string

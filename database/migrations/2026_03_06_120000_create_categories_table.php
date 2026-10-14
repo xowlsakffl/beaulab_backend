@@ -12,10 +12,10 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id()->comment('카테고리 고유 ID');
 
-            $table->string('domain', 40)->comment('카테고리 도메인(HOSPITAL_MEDICAL, HOSPITAL_DEPARTMENT, HOSPITAL_EVALUATION, TALK, BEAUTY, FAQ)');
+            $table->string('domain', 40)->comment('업무별 독립 분류 도메인(HOSPITAL_MEDICAL은 이벤트 전용)');
             $table->foreignId('parent_id')->nullable()->comment('상위 카테고리 ID(대분류는 null)')->constrained('categories')->restrictOnDelete();
 
-            $table->unsignedTinyInteger('depth')->comment('카테고리 깊이(1:대분류, 2:중분류, 3:소분류, 4:상세분류)');
+            $table->unsignedTinyInteger('depth')->comment('카테고리 깊이(1:대분류, 2:중분류, 3:소분류)');
             $table->string('group_code', 30)->nullable()->comment('카테고리 그룹 코드(SURGERY, TREATMENT 등)');
             $table->string('name', 120)->comment('카테고리명');
             $table->string('code', 80)->nullable()->comment('카테고리 운영 코드');
@@ -29,7 +29,8 @@ return new class extends Migration
 
             $table->unsignedBigInteger('parent_scope_id')->virtualAs('COALESCE(parent_id, 0)')
                 ->comment('대분류의 NULL 상위 ID를 0으로 정규화한 중복 검사 키');
-            $table->unique(['domain', 'parent_scope_id', 'name'], 'categories_domain_parent_name_unique');
+            $table->string('group_scope_code', 30)->virtualAs("COALESCE(group_code, '')");
+            $table->unique(['domain', 'group_scope_code', 'parent_scope_id', 'name'], 'categories_domain_parent_name_unique');
             $table->unique(['domain', 'code'], 'categories_domain_code_unique');
 
             $table->index('parent_id');

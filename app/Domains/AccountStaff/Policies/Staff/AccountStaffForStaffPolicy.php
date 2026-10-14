@@ -34,11 +34,11 @@ final class AccountStaffForStaffPolicy
 
     public function viewProfile(AccountStaff $actor, AccountStaff $staff): bool
     {
-        return $actor->is($staff) && $actor->can(AccessPermissions::COMMON_PROFILE_SHOW);
+        return $actor->is($staff) && $actor->isActive() && ! $actor->trashed();
     }
 
     public function updateProfile(AccountStaff $actor, AccountStaff $staff): bool
     {
-        return $actor->is($staff) && $actor->can(AccessPermissions::COMMON_PROFILE_UPDATE);
+        return $this->viewProfile($actor, $staff);
     }
 }

@@ -17,6 +17,11 @@ final class HospitalVideoForStaffPolicy
         return $actor->can(AccessPermissions::BEAULAB_VIDEO_SHOW);
     }
 
+    public function viewConsents(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_VIDEO_CONSENT_SHOW);
+    }
+
     public function view(AccountStaff $actor, HospitalVideo $video): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_VIDEO_SHOW);

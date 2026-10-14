@@ -30,17 +30,17 @@ final class CategoryUpdateForStaffAction
     public function execute(Category $category, array $payload): array
     {
         Gate::authorize('update', $category);
-        if (array_key_exists('status', $payload)) {
+        if (array_key_exists('status', $payload) || array_key_exists('is_menu_visible', $payload)) {
             Gate::authorize('updateStatus', $category);
         }
 
         try {
             $updated = DB::transaction(function () use ($category, $payload) {
-                if (($payload['status'] ?? null) === Category::STATUS_INACTIVE || (array_key_exists('is_menu_visible', $payload) && ! $payload['is_menu_visible'])) {
+                if (array_key_exists('is_menu_visible', $payload) && ! $payload['is_menu_visible']) {
                     app(\App\Domains\HospitalEventAd\Queries\Staff\HospitalEventAdSlotAvailabilityForStaffQuery::class)->lockBookings();
                 }
                 $category = $this->tree->lockPath((int) $category->getKey());
-                if (($payload['status'] ?? null) === Category::STATUS_INACTIVE || (array_key_exists('is_menu_visible', $payload) && ! $payload['is_menu_visible'])) {
+                if (array_key_exists('is_menu_visible', $payload) && ! $payload['is_menu_visible']) {
                     app(\App\Domains\Common\Category\Support\CategoryChangeGuard::class)->assertNoPaidAds($category);
                 }
                 $parent = $this->query->parent($category);
@@ -57,6 +57,11 @@ final class CategoryUpdateForStaffAction
                 $parentPath = $parent ? trim((string) ($parent->full_path ?: $parent->name)) : null;
                 $newFullPath = $parentPath ? "{$parentPath} > {$name}" : $name;
                 $oldFullPath = (string) ($category->full_path ?: $category->name);
+                $ids = \App\Domains\Common\Category\Support\CategoryHierarchy::descendants($category);
+                $longestPath = Category::whereIn('id', $ids)->get(['full_path'])->max(fn ($row) => mb_strlen($row->full_path ?? ''));
+                if ($longestPath - mb_strlen($oldFullPath) + mb_strlen($newFullPath) > 255) {
+                    throw new CustomException(ErrorCode::INVALID_REQUEST, '하위 분류의 전체 이름이 255자를 넘습니다. 이름을 줄여 주세요.');
+                }
                 $oldGroupCode = $category->group_code !== null ? (string) $category->group_code : null;
                 $groupCode = $this->resolveGroupCode($payload, $parent, $oldGroupCode);
 
@@ -64,8 +69,8 @@ final class CategoryUpdateForStaffAction
                     ? (trim((string) ($payload['code'] ?? '')) ?: null)
                     : $category->code;
 
-                if ($category->domain === Category::DOMAIN_HOSPITAL_DEPARTMENT && $normalizedCode !== $category->code) {
-                    throw new CustomException(ErrorCode::INVALID_REQUEST, '분과 코드는 병의원 연결에 사용하므로 변경할 수 없습니다. 표시 이름을 수정해 주세요.');
+                if ($normalizedCode !== $category->code || $groupCode !== $category->group_code) {
+                    throw new CustomException(ErrorCode::INVALID_REQUEST, '기존 연결에 사용되는 코드와 분류 그룹은 변경할 수 없습니다. 표시 이름을 수정해 주세요.');
                 }
 
                 $before = $this->historyRecordAction->capture($category);

@@ -41,7 +41,7 @@ final class BeautyExpertListForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_BEAUTY)
+                    ->where('domain', Category::DOMAIN_BEAUTY_EXPERT)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'include' => ['nullable', 'array'],
@@ -96,6 +96,7 @@ final class BeautyExpertListForStaffRequest extends FormRequest
             static function ($item): ?string {
                 if (is_string($item)) {
                     $item = trim($item);
+
                     return $item === '' ? null : $item;
                 }
 

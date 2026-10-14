@@ -42,7 +42,7 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
                 'max:80',
                 'distinct:strict',
                 Rule::exists('categories', 'code')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+                    ->where('domain', Category::DOMAIN_HOSPITAL_REVIEW)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'title' => ['required', 'string', 'max:255'],
@@ -126,15 +126,14 @@ final class HospitalReviewCreateForUserRequest extends FormRequest
         }
 
         $categories = Category::query()
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+            ->where('domain', Category::DOMAIN_HOSPITAL_REVIEW)
             ->where('status', Category::STATUS_ACTIVE)
             ->whereIn('code', $codes)
             ->withCount('children')
             ->get();
 
-        $rootPathsByDomain = HospitalReview::categoryRootPathsByDomain();
         $categoryDomains = $categories
-            ->map(static fn (Category $category): ?string => HospitalReview::categoryDomainFromFullPath($category->full_path, $rootPathsByDomain))
+            ->map(static fn (Category $category): ?string => HospitalReview::categoryDomainFromGroup($category->group_code))
             ->values();
 
         if (

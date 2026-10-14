@@ -48,6 +48,8 @@ final readonly class HospitalEventForStaffDetailDto
             'view_count' => (int) $this->event->view_count,
             'consultation_count' => (int) $this->event->consultation_count,
             'categories' => $this->categories(),
+            'topic_ids' => $this->event->discoveryTopics->modelKeys(),
+            'topics' => $this->event->discoveryTopics->map(fn ($topic) => $topic->only(['id', 'code', 'name']))->all(),
             'doctors' => $this->doctors(),
             'options' => $this->options(),
             'thumbnail_image' => $this->thumbnailImage(),

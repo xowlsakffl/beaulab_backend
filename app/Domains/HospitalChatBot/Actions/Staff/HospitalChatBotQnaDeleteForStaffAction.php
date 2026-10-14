@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Actions\Staff;
 
+use App\Common\Authorization\AccessPermissions as P;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotQna;
 use App\Domains\HospitalChatBot\Queries\HospitalChatBotQnaTreeQuery;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotQnaDeleteForStaffQuery;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotStaffActor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -16,6 +18,8 @@ final class HospitalChatBotQnaDeleteForStaffAction
 
     public function execute(HospitalChatBotQna $qna): array
     {
+        HospitalChatBotStaffActor::authorize(P::BEAULAB_CHATBOT_QNA_SHOW, P::BEAULAB_CHATBOT_QNA_DELETE);
+
         DB::transaction(function () use ($qna): void {
             $nodes = $this->tree->all(true);
             $locked = $nodes->firstWhere('id', $qna->id);

@@ -98,6 +98,17 @@ final class CategoryUsage extends Model
         ];
     }
 
+    public static function domainFor(string $usage): string
+    {
+        return match ($usage) {
+            self::USAGE_HOSPITAL_DOCTOR_SUBJECT, self::USAGE_HOSPITAL_SUBJECT => Category::DOMAIN_HOSPITAL_SUBJECT,
+            self::USAGE_DOCTOR_SUBJECT => Category::DOMAIN_DOCTOR_SUBJECT,
+            self::USAGE_HOSPITAL_REVIEW_SURGERY, self::USAGE_HOSPITAL_REVIEW_TREATMENT, 'HOSPITAL_REVIEW' => Category::DOMAIN_HOSPITAL_REVIEW,
+            self::USAGE_HOSPITAL_VIDEO_CATEGORY => Category::DOMAIN_HOSPITAL_VIDEO,
+            default => Category::DOMAIN_HOSPITAL_MEDICAL,
+        };
+    }
+
     public static function eventUsageForGroup(?string $group): ?string
     {
         return match ($group) {
@@ -119,7 +130,7 @@ final class CategoryUsage extends Model
     public static function constrainActiveCategoryExistsAny($query, array $usages, array $existingIds = []): void
     {
         $ids = app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->idsForUsages($usages);
-        $query->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
+        $query->whereIn('categories.domain', array_unique(array_map(self::domainFor(...), $usages)))
             ->whereIn('categories.id', array_values(array_unique([...$ids, ...$existingIds])));
     }
 
@@ -133,28 +144,10 @@ final class CategoryUsage extends Model
             return [];
         }
 
-        $rows = Category::query()
-            ->join('category_usages', 'category_usages.category_id', '=', 'categories.id')
-            ->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->where('categories.status', Category::STATUS_ACTIVE)
-            ->where('category_usages.status', self::STATUS_ACTIVE)
-            ->whereIn('category_usages.usage', array_values($usages))
-            ->orderBy('category_usages.sort_order')
-            ->orderBy('categories.id')
-            ->get([
-                'category_usages.usage',
-                'categories.full_path',
-            ]);
-
         $pathsByUsage = [];
-        foreach ($rows as $row) {
-            $usage = (string) $row->usage;
-            $fullPath = trim((string) $row->full_path);
-            if ($fullPath === '') {
-                continue;
-            }
-
-            $pathsByUsage[$usage][] = $fullPath;
+        foreach ($usages as $usage) {
+            $ids = app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids($usage);
+            $pathsByUsage[$usage] = Category::whereIn('id', $ids)->whereNull('parent_id')->orderBy('sort_order')->pluck('full_path')->all();
         }
 
         return $pathsByUsage;

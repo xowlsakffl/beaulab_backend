@@ -45,7 +45,7 @@ final class StaffManagementAction
     private function templates(): array
     {
         return Role::where('guard_name', 'staff')->whereIn('name', array_keys(StaffPermissionCatalog::ROLES))->with('permissions')->get()->map(function ($role) {
-            $names = $role->permissions->pluck('name')->sort()->values()->all();
+            $names = StaffPermissionCatalog::activeNames($role->permissions->pluck('name')->sort()->values()->all());
 
             return ['role' => $role->name, 'permissions' => $names, 'version' => hash('sha256', json_encode($names))];
         })->all();
@@ -82,14 +82,14 @@ final class StaffManagementAction
             $staff = $target ? $staffs->firstWhere('id', $target->id) : new AccountStaff;
             abort_unless($actor && $staff && ! $staff->trashed(), 404);
             abort_unless($actor->isActive() && $actor->can($target ? P::BEAULAB_STAFF_UPDATE : P::BEAULAB_STAFF_CREATE), 403);
-            if ($target && ((int) $staff->lock_version !== (int) $data['version'] || $staff->updated_at->toISOString() !== \Illuminate\Support\Carbon::parse($data['updated_at'])->toISOString())) {
-                throw ValidationException::withMessages(['updated_at' => '다른 직원이 수정했습니다. 새로고침 후 다시 저장해 주세요.']);
+            if ($target) {
+                $this->assertCurrentVersion($staff, $data);
             }
             $before = $target ? StaffManagementDto::fromModel($staff, true) : [];
             $roleChanged = ! $target || $staff->roles->first()?->name !== $data['role'];
-            $existing = $staff->getAllPermissions()->pluck('name')->sort()->values()->all();
+            $existing = StaffPermissionCatalog::activeNames($staff->getAllPermissions()->pluck('name')->sort()->values()->all());
             $names = $roleChanged
-                ? Role::findByName($data['role'], 'staff')->permissions->pluck('name')->sort()->values()->all()
+                ? StaffPermissionCatalog::activeNames(Role::findByName($data['role'], 'staff')->permissions->pluck('name')->sort()->values()->all())
                 : (isset($data['permissions']) ? collect($data['permissions'])->sort()->values()->all() : $existing);
             if ($roleChanged || $names !== $existing) {
                 abort_unless($actor->can(P::BEAULAB_STAFF_PERMISSIONS_MANAGE), 403, '역할·권한 관리 권한이 필요합니다.');
@@ -131,9 +131,52 @@ final class StaffManagementAction
         });
     }
 
+    private function assertCurrentVersion(AccountStaff $staff, array $data): void
+    {
+        if ((int) $staff->lock_version !== (int) $data['version'] || $staff->updated_at->toISOString() !== \Illuminate\Support\Carbon::parse($data['updated_at'])->toISOString()) {
+            throw ValidationException::withMessages(['updated_at' => '다른 직원이 수정했습니다. 새로고침 후 다시 저장해 주세요.']);
+        }
+    }
+
+    public function updateStatus(AccountStaff $target, array $data): array
+    {
+        Gate::authorize('update', $target);
+
+        return DB::transaction(function () use ($target, $data) {
+            $staffs = $this->lockAccounts();
+            $actor = $staffs->firstWhere('id', auth()->id());
+            $staff = $staffs->firstWhere('id', $target->id);
+            abort_unless($actor?->isActive() && $actor->can(P::BEAULAB_STAFF_UPDATE), 403);
+            abort_unless($staff && ! $staff->trashed(), 404);
+            $this->assertCurrentVersion($staff, $data);
+            $status = $data['status'];
+            if ($staff->status === $status) {
+                return StaffManagementDto::fromModel($staff, true);
+            }
+            if ($actor->is($staff) && $status !== 'ACTIVE') {
+                throw ValidationException::withMessages(['status' => '본인의 접속을 차단할 수 없습니다.']);
+            }
+            $names = StaffPermissionCatalog::activeNames($staff->getAllPermissions()->pluck('name')->all());
+            if ($status === 'ACTIVE' && ! $actor->is($staff)) {
+                abort_unless($actor->can(P::BEAULAB_STAFF_PERMISSIONS_MANAGE), 403, '다른 직원의 로그인 정보 변경에는 역할·권한 관리 권한이 필요합니다.');
+                $this->assertGrantable($names, $actor);
+            }
+            $this->protectLastManager($staffs, $staff, $names, $status);
+            $before = StaffManagementDto::fromModel($staff, true);
+            $staff->forceFill(['status' => $status, 'lock_version' => (int) $staff->lock_version + 1])->save();
+            if ($status !== 'ACTIVE') {
+                $staff->tokens()->delete();
+            }
+            $after = StaffManagementDto::fromModel($staff->fresh(['roles', 'permissions']), true);
+            $this->record($staff, $actor, $before, $after, false, false, OperationHistory::ACTION_STATE_UPDATED);
+
+            return $after;
+        });
+    }
+
     private function protectLastManager($staffs, AccountStaff $target, array $names, string $status): void
     {
-        $required = [P::COMMON_ACCESS, P::BEAULAB_STAFF_SHOW, P::BEAULAB_STAFF_UPDATE, P::BEAULAB_STAFF_PERMISSIONS_MANAGE];
+        $required = [P::BEAULAB_STAFF_SHOW, P::BEAULAB_STAFF_UPDATE, P::BEAULAB_STAFF_PERMISSIONS_MANAGE];
         if ($status === 'ACTIVE' && ! array_diff($required, $names)) {
             return;
         }
@@ -188,7 +231,7 @@ final class StaffManagementAction
         return PaginatedResponse::fromPaginator($staff->operationHistories()->with('actor')->paginate($filters['operation_histories_per_page'] ?? 10, ['*'], 'operation_histories_page', $filters['operation_histories_page'] ?? 1), fn ($history) => OperationHistoryDto::fromModel($history)->toArray());
     }
 
-    private function record(AccountStaff $staff, AccountStaff $actor, array $before, array $after, bool $created, bool $passwordChanged): void
+    private function record(AccountStaff $staff, AccountStaff $actor, array $before, array $after, bool $created, bool $passwordChanged, ?string $action = null): void
     {
         $labels = ['name' => '이름', 'phone' => '전화번호', 'email' => '이메일', 'department' => '부서', 'job_title' => '직급', 'status' => '계정상태', 'role' => '역할', 'permissions' => '권한'];
         $changes = [];
@@ -218,6 +261,6 @@ final class StaffManagementAction
         if ($passwordChanged && ! $created) {
             $changes[] = ['field_key' => 'password', 'field_label' => '비밀번호', 'before_display' => '-', 'after_display' => '변경됨'];
         }
-        $this->history->execute($staff, $created ? OperationHistory::ACTION_CREATED : OperationHistory::ACTION_UPDATED, $actor, changes: $changes);
+        $this->history->execute($staff, $action ?? ($created ? OperationHistory::ACTION_CREATED : OperationHistory::ACTION_UPDATED), $actor, changes: $changes);
     }
 }

@@ -10,7 +10,6 @@ use App\Domains\BeautyExpert\Models\BeautyExpert;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Hashtag\Models\Hashtag;
-use App\Domains\Faq\Models\Faq;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalDoctor\Models\HospitalDoctor;
 use App\Domains\HospitalEntry\Models\HospitalEntry;
@@ -44,8 +43,6 @@ final class OperationHistoryTargetRegistry
 
     public const string ALIAS_HOSPITAL_PROMOTION = 'hospital_promotion';
 
-    public const string ALIAS_FAQ = 'faq';
-
     public const string ALIAS_CATEGORY = 'category';
 
     public const string ALIAS_HASHTAG = 'hashtag';
@@ -78,6 +75,7 @@ final class OperationHistoryTargetRegistry
      * @var array<string, class-string<Model>>
      */
     private const MAP = [
+        'category_topic' => \App\Domains\Common\Category\Models\CategoryTopic::class,
         'harmful_word' => \App\Domains\Common\HarmfulWord\Models\HarmfulWord::class,
         'nickname_word' => \App\Domains\Nickname\Models\NicknameWord::class,
         'account_staff' => \App\Domains\AccountStaff\Models\AccountStaff::class,
@@ -94,7 +92,6 @@ final class OperationHistoryTargetRegistry
         self::ALIAS_HOSPITAL_VIDEO => HospitalVideo::class,
         self::ALIAS_NOTICE => Notice::class,
         self::ALIAS_HOSPITAL_PROMOTION => HospitalPromotion::class,
-        self::ALIAS_FAQ => Faq::class,
         self::ALIAS_CATEGORY => Category::class,
         self::ALIAS_HASHTAG => Hashtag::class,
         self::ALIAS_ACCOUNT_USER => AccountUser::class,

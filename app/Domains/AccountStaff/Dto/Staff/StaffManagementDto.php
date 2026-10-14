@@ -3,6 +3,7 @@
 namespace App\Domains\AccountStaff\Dto\Staff;
 
 use App\Domains\AccountStaff\Models\AccountStaff;
+use App\Domains\AccountStaff\Support\StaffPermissionCatalog;
 
 final class StaffManagementDto
 {
@@ -14,7 +15,7 @@ final class StaffManagementDto
         $data['created_at'] = $staff->created_at?->toISOString();
         $data['updated_at'] = $staff->updated_at?->toISOString();
         if ($detail) {
-            $data['permissions'] = $staff->getAllPermissions()->pluck('name')->sort()->values()->all();
+            $data['permissions'] = StaffPermissionCatalog::activeNames($staff->getAllPermissions()->pluck('name')->sort()->values()->all());
         }
 
         return $data;

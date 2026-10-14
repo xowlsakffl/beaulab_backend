@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 final class CategoryUsageAvailability
 {
     public const OPTIONS = [
-        'HOSPITAL_DOCTOR_SUBJECT' => ['label' => '기존 진료과목 연동', 'groups' => ['SURGERY', 'TREATMENT']],
+        'HOSPITAL_DOCTOR_SUBJECT' => ['label' => '병의원 진료과목 연동', 'groups' => ['SURGERY', 'TREATMENT']],
         'HOSPITAL_SUBJECT' => ['label' => '병의원 · 진료과목', 'groups' => ['SURGERY', 'TREATMENT']],
         'DOCTOR_SUBJECT' => ['label' => '의료진 · 진료분야', 'groups' => ['SURGERY', 'TREATMENT']],
         'HOSPITAL_REVIEW_SURGERY' => ['label' => '후기 · 성형', 'groups' => ['SURGERY']],
@@ -18,8 +18,8 @@ final class CategoryUsageAvailability
         'HOSPITAL_EVENT_TREATMENT' => ['label' => '이벤트 · 쁘띠', 'groups' => ['TREATMENT']],
         'HOSPITAL_EVENT_PROMOTION' => ['label' => '이벤트 · 기획전', 'groups' => ['PROMOTION']],
         'HOSPITAL_VIDEO_CATEGORY' => ['label' => '동영상', 'groups' => ['SURGERY', 'TREATMENT']],
-        'HOSPITAL_EVENT_AD_SURGERY' => ['label' => '광고 · 성형', 'groups' => ['SURGERY']],
-        'HOSPITAL_EVENT_AD_TREATMENT' => ['label' => '광고 · 쁘띠', 'groups' => ['TREATMENT']],
+        'HOSPITAL_EVENT_AD_SURGERY' => ['label' => '이벤트 광고 · 성형', 'groups' => ['SURGERY']],
+        'HOSPITAL_EVENT_AD_TREATMENT' => ['label' => '이벤트 광고 · 쁘띠', 'groups' => ['TREATMENT']],
     ];
 
     public function resolve(Collection $categories): array
@@ -28,30 +28,18 @@ final class CategoryUsageAvailability
         foreach ($categories->sortBy('depth') as $category) {
             $parent = $category->parent_id ? ($result[$category->parent_id] ?? null) : null;
             $active = $category->status === Category::STATUS_ACTIVE && (! $category->parent_id || ($parent['active'] ?? false));
-            $menu = $active && $category->is_menu_visible && (! $category->parent_id || ($parent['menu'] ?? false));
+            $menu = $category->is_menu_visible && (! $category->parent_id || ($parent['menu'] ?? false));
             $usages = [];
             foreach (self::OPTIONS as $usage => $option) {
-                $row = $category->usages->firstWhere('usage', $usage);
-                if ($row === null && in_array($usage, ['HOSPITAL_SUBJECT', 'DOCTOR_SUBJECT'], true)) {
-                    $row = $category->usages->firstWhere('usage', 'HOSPITAL_DOCTOR_SUBJECT');
-                }
-                $eligible = $category->domain === Category::DOMAIN_HOSPITAL_MEDICAL && in_array($category->group_code, $option['groups'], true);
-                $parentUsed = ! $category->parent_id || ($parent['usages'][$usage]['enabled'] ?? false);
-                $parentVisible = ! $category->parent_id || ($parent['usages'][$usage]['visible'] ?? false);
-                $ownUsed = $row ? $row->status === CategoryUsage::STATUS_ACTIVE : (bool) $category->parent_id;
-                $ownVisible = $row?->is_menu_visible ?? true;
-                $enabled = $eligible && $active && $parentUsed && $ownUsed;
-                $visible = $enabled && $menu && $ownVisible && $parentVisible;
-                $name = $row?->display_name ?: $category->name;
-                $path = $parent ? $parent['usages'][$usage]['full_path'].' > '.$name : $name;
+                $eligible = $category->domain === CategoryUsage::domainFor($usage) && in_array($category->group_code, $option['groups'], true);
                 $usages[$usage] = [
-                    'display_name' => $row?->display_name, 'name' => $name, 'full_path' => $path,
-                    'enabled' => $enabled, 'visible' => $visible,
-                    'own_enabled' => $ownUsed, 'own_visible' => $ownVisible,
-                    'parent_enabled' => $parentUsed, 'eligible' => $eligible,
-                    'parent_visible' => $parentVisible,
-                    'sort_order' => $row?->sort_order ?? $category->sort_order,
-                    'inherited' => $row === null && $category->parent_id !== null,
+                    'display_name' => null, 'name' => $category->name, 'full_path' => $category->full_path,
+                    'enabled' => $eligible && $active, 'visible' => $eligible && $menu,
+                    'own_enabled' => $category->status === Category::STATUS_ACTIVE,
+                    'own_visible' => (bool) $category->is_menu_visible,
+                    'parent_enabled' => ! $category->parent_id || ($parent['active'] ?? false),
+                    'parent_visible' => ! $category->parent_id || ($parent['menu'] ?? false),
+                    'eligible' => $eligible, 'sort_order' => $category->sort_order, 'inherited' => false,
                 ];
             }
             $result[$category->id] = ['active' => $active, 'menu' => $menu, 'group_code' => $category->group_code, 'usages' => $usages];
@@ -67,19 +55,18 @@ final class CategoryUsageAvailability
 
     public function presentation(Category $category, string $usage): array
     {
-        $resolved = $this->current(Category::DOMAIN_HOSPITAL_MEDICAL)[$category->id] ?? null;
-        // 콘텐츠 DTO가 그룹 컬럼을 조회하지 않아도 같은 업무의 표시명을 사용한다.
+        $resolved = $this->current(CategoryUsage::domainFor($usage))[$category->id] ?? null;
         if (in_array($usage, ['HOSPITAL_EVENT', 'HOSPITAL_REVIEW', 'HOSPITAL_EVENT_AD'], true)) {
             $usage .= '_'.($resolved['group_code'] ?? $category->group_code);
         }
 
         return $resolved['usages'][$usage]
-            ?? ['name' => (string) $category->name, 'full_path' => (string) ($category->full_path ?: $category->name)];
+            ?? ['name' => (string) $category->name, 'full_path' => (string) ($category->full_path ?: $category->name), 'enabled' => false, 'visible' => false, 'sort_order' => $category->sort_order];
     }
 
     public function searchIds(string $usage, string $query): array
     {
-        return array_keys(array_filter($this->current(Category::DOMAIN_HOSPITAL_MEDICAL),
+        return array_keys(array_filter($this->current(CategoryUsage::domainFor($usage)),
             fn ($row) => mb_stripos($row['usages'][$usage]['full_path'] ?? '', $query) !== false));
     }
 
@@ -90,24 +77,24 @@ final class CategoryUsageAvailability
 
     public function idsForUsages(array $usages, bool $menuOnly = false): array
     {
-        return array_keys(array_filter($this->current(Category::DOMAIN_HOSPITAL_MEDICAL), function ($row) use ($usages, $menuOnly) {
-            foreach ($usages as $usage) {
+        $ids = [];
+        foreach ($usages as $usage) {
+            foreach ($this->current(CategoryUsage::domainFor($usage)) as $id => $row) {
                 if ($row['usages'][$usage][$menuOnly ? 'visible' : 'enabled'] ?? false) {
-                    return true;
+                    $ids[] = $id;
                 }
             }
+        }
 
-            return false;
-        }));
+        return array_values(array_unique($ids));
     }
 
     private function current(string $domain): array
     {
-        // 다중 항목 검증에서 반복되는 트리 조회만 HTTP 요청 수명 안에서 재사용한다.
         $key = self::class.'.'.$domain;
         $attributes = request()->attributes;
         if (! $attributes->has($key)) {
-            $attributes->set($key, $this->resolve(Category::query()->domain($domain)->with('usages')->get()));
+            $attributes->set($key, $this->resolve(Category::query()->domain($domain)->get()));
         }
 
         return $attributes->get($key);

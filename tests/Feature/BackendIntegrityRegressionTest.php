@@ -103,7 +103,7 @@ final class BackendIntegrityRegressionTest extends TestCase
     public function test_database_rejects_duplicate_root_names_but_allows_other_domains(): void
     {
         $this->category('동일 이름');
-        $this->category('동일 이름', ['domain' => Category::DOMAIN_FAQ]);
+        $this->category('동일 이름', ['domain' => Category::DOMAIN_BEAUTY]);
         $this->expectException(UniqueConstraintViolationException::class);
         $this->category('동일 이름');
     }

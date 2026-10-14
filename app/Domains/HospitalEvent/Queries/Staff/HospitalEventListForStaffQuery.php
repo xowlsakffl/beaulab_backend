@@ -380,34 +380,6 @@ final class HospitalEventListForStaffQuery
             return [];
         }
 
-        $selectedCategories = Category::query()
-            ->select(['id', 'domain', 'name', 'full_path'])
-            ->whereIn('id', $selectedCategoryIds)
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->get();
-
-        if ($selectedCategories->isEmpty()) {
-            return [];
-        }
-
-        return Category::query()
-            ->where('domain', Category::DOMAIN_HOSPITAL_MEDICAL)
-            ->where(function ($query) use ($selectedCategories): void {
-                foreach ($selectedCategories as $selectedCategory) {
-                    $pathPrefix = trim((string) ($selectedCategory->full_path ?: $selectedCategory->name));
-
-                    $query->orWhere(function ($nested) use ($selectedCategory, $pathPrefix): void {
-                        $nested->where('id', (int) $selectedCategory->id);
-
-                        if ($pathPrefix !== '') {
-                            $nested->orWhere('full_path', 'like', $pathPrefix.' > %');
-                        }
-                    });
-                }
-            })
-            ->pluck('id')
-            ->map(static fn ($id): int => (int) $id)
-            ->values()
-            ->all();
+        return \App\Domains\Common\Category\Support\CategoryHierarchy::selectedAndDescendants(Category::DOMAIN_HOSPITAL_MEDICAL, $selectedCategoryIds);
     }
 }

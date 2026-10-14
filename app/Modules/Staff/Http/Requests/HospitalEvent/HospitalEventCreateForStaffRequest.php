@@ -15,6 +15,7 @@ final class HospitalEventCreateForStaffRequest extends FormRequest
 
         foreach ([
             'category_ids',
+            'topic_ids',
             'doctor_ids',
         ] as $key) {
             if (array_key_exists($key, $data)) {
@@ -87,6 +88,8 @@ final class HospitalEventCreateForStaffRequest extends FormRequest
         $allowedTextPattern = '/^[\pL\pN\s\.,\-・_:()\[\]&°+\/。"“”]+$/u';
 
         return [
+            'topic_ids' => ['sometimes', 'array', 'max:30'],
+            'topic_ids.*' => ['integer', 'distinct', 'min:1', Rule::exists('category_topics', 'id')],
             'hospital_id' => ['required', 'integer', Rule::exists('hospitals', 'id')->whereNull('deleted_at')],
             'manager_staff_id' => ['nullable', 'integer', Rule::exists('account_staffs', 'id')->whereNull('deleted_at')],
             'event_type' => ['required', Rule::in(HospitalEvent::types())],

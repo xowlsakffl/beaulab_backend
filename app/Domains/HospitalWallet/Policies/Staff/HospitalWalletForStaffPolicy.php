@@ -10,6 +10,11 @@ use App\Domains\HospitalWallet\Models\HospitalWallet;
 
 final class HospitalWalletForStaffPolicy
 {
+    public function viewDashboard(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW);
+    }
+
     public function viewAny(AccountStaff $actor): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW);

@@ -8,6 +8,11 @@ use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 
 final class HospitalEventAdForStaffPolicy
 {
+    public function viewCalendar(AccountStaff $actor): bool
+    {
+        return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVENT_AD_CALENDAR_SHOW);
+    }
+
     public function viewAny(AccountStaff $actor): bool
     {
         return $actor->can(AccessPermissions::BEAULAB_HOSPITAL_EVENT_AD_SHOW);

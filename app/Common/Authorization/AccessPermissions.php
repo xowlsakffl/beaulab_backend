@@ -25,9 +25,27 @@ final class AccessPermissions
 
     public const BEAULAB_INTERNAL_TOOL_SHOW = 'beaulab.internal_tool.show';
 
+    public const BEAULAB_CHATBOT_CONSULTATION_SHOW = 'beaulab.hospital_chatbot_consultation.show';
+
+    public const BEAULAB_CHATBOT_CONSULTATION_PROCESS = 'beaulab.hospital_chatbot_consultation.process';
+
+    public const BEAULAB_CHATBOT_QNA_SHOW = 'beaulab.hospital_chatbot_qna.show';
+
+    public const BEAULAB_CHATBOT_QNA_CREATE = 'beaulab.hospital_chatbot_qna.create';
+
+    public const BEAULAB_CHATBOT_QNA_UPDATE = 'beaulab.hospital_chatbot_qna.update';
+
+    public const BEAULAB_CHATBOT_QNA_DELETE = 'beaulab.hospital_chatbot_qna.delete';
+
+    public const BEAULAB_CHATBOT_OPERATION_SHOW = 'beaulab.hospital_chatbot_operation.show';
+
+    public const BEAULAB_CHATBOT_OPERATION_UPDATE = 'beaulab.hospital_chatbot_operation.update';
+
     public const BEAULAB_REMOTE_CONSULTATION_SHOW = 'beaulab.remote_consultation.show';
 
     public const BEAULAB_REMOTE_CONSULTATION_APPROVE = 'beaulab.remote_consultation.approve';
+
+    public const BEAULAB_REMOTE_CONSULTATION_ASSIGN = 'beaulab.remote_consultation.assign';
 
     // Beaulab
     public const BEAULAB_HOSPITAL_SHOW = 'beaulab.hospital.show';
@@ -44,9 +62,9 @@ final class AccessPermissions
 
     public const BEAULAB_HOSPITAL_STATUS_REQUEST_PROCESS = 'beaulab.hospital_status_request.process';
 
-    public const BEAULAB_HOSPITAL_DELETE = 'beaulab.hospital.delete';
-
     public const BEAULAB_HOSPITAL_WALLET_SHOW = 'beaulab.hospital_wallet.show';
+
+    public const BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW = 'beaulab.hospital_wallet.dashboard_show';
 
     public const BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW = 'beaulab.hospital_wallet.history_show';
 
@@ -84,15 +102,9 @@ final class AccessPermissions
 
     public const BEAULAB_BEAUTY_DELETE = 'beaulab.beauty.delete';
 
-    public const BEAULAB_AGENCY_SHOW = 'beaulab.agency.show';
-
-    public const BEAULAB_AGENCY_CREATE = 'beaulab.agency.create';
-
-    public const BEAULAB_AGENCY_UPDATE = 'beaulab.agency.update';
-
-    public const BEAULAB_AGENCY_DELETE = 'beaulab.agency.delete';
-
     public const BEAULAB_USER_SHOW = 'beaulab.user.show';
+
+    public const BEAULAB_USER_STATISTICS_SHOW = 'beaulab.user.statistics_show';
 
     public const BEAULAB_USER_STATUS_UPDATE = 'beaulab.user.status_update';
 
@@ -130,6 +142,8 @@ final class AccessPermissions
 
     public const BEAULAB_VIDEO_SHOW = 'beaulab.video.show';
 
+    public const BEAULAB_VIDEO_CONSENT_SHOW = 'beaulab.video.consent_show';
+
     public const BEAULAB_VIDEO_CREATE = 'beaulab.video.create';
 
     public const BEAULAB_VIDEO_UPDATE = 'beaulab.video.update';
@@ -149,6 +163,8 @@ final class AccessPermissions
     public const BEAULAB_HOSPITAL_EVENT_DELETE = 'beaulab.hospital_event.delete';
 
     public const BEAULAB_HOSPITAL_EVENT_AD_SHOW = 'beaulab.hospital_event_ad.show';
+
+    public const BEAULAB_HOSPITAL_EVENT_AD_CALENDAR_SHOW = 'beaulab.hospital_event_ad.calendar_show';
 
     public const BEAULAB_HOSPITAL_EVENT_AD_CREATE = 'beaulab.hospital_event_ad.create';
 
@@ -254,6 +270,14 @@ final class AccessPermissions
 
     public const BEAULAB_BANNER_EXPOSURE_DELETE = 'beaulab.banner_exposure.delete';
 
+    public const BEAULAB_OTHER_EXPOSURE_SHOW = 'beaulab.other_exposure.show';
+
+    public const BEAULAB_OTHER_EXPOSURE_CREATE = 'beaulab.other_exposure.create';
+
+    public const BEAULAB_OTHER_EXPOSURE_UPDATE = 'beaulab.other_exposure.update';
+
+    public const BEAULAB_OTHER_EXPOSURE_DELETE = 'beaulab.other_exposure.delete';
+
     public const BEAULAB_NOTICE_CREATE = 'beaulab.notice.create';
 
     public const BEAULAB_NOTICE_UPDATE = 'beaulab.notice.update';
@@ -261,16 +285,6 @@ final class AccessPermissions
     public const BEAULAB_NOTICE_STATUS_UPDATE = 'beaulab.notice.status_update';
 
     public const BEAULAB_NOTICE_DELETE = 'beaulab.notice.delete';
-
-    public const BEAULAB_FAQ_SHOW = 'beaulab.faq.show';
-
-    public const BEAULAB_FAQ_CREATE = 'beaulab.faq.create';
-
-    public const BEAULAB_FAQ_UPDATE = 'beaulab.faq.update';
-
-    public const BEAULAB_FAQ_STATUS_UPDATE = 'beaulab.faq.status_update';
-
-    public const BEAULAB_FAQ_DELETE = 'beaulab.faq.delete';
 
     public const BEAULAB_CATEGORY_MANAGE = 'beaulab.category.manage';
 
@@ -328,7 +342,7 @@ final class AccessPermissions
     {
         return [
             self::GUARD_STAFF => self::unique([
-                ...self::common(),   // staff/partner 공통(관리영역)
+                self::COMMON_DASHBOARD_SHOW,
                 ...self::beaulab(),  // staff 전용
                 ...self::beaulabSuperAdminOnly(), // super admin 전용
             ]),
@@ -361,8 +375,8 @@ final class AccessPermissions
     }
 
     /**
-     * Staff/Partner 공통(관리 영역 공통) 권한
-     * - User(앱)는 여기에 포함하지 않는다.
+     * Partner의 기존 공통 권한 계약. 직원 접속·내 정보는 계정 상태와 본인 여부로 판단한다.
+     * - Staff와 User(앱)는 여기에 포함하지 않는다.
      */
     public static function common(): array
     {
@@ -380,13 +394,14 @@ final class AccessPermissions
     public static function beaulab(): array
     {
         return [
+            ...self::hospitalChatbot(),
             self::BEAULAB_HOSPITAL_SHOW,
             self::BEAULAB_HOSPITAL_CREATE,
             self::BEAULAB_HOSPITAL_UPDATE,
             self::BEAULAB_HOSPITAL_STATUS_REQUEST_SHOW,
             self::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE,
-            self::BEAULAB_HOSPITAL_DELETE,
             self::BEAULAB_HOSPITAL_WALLET_SHOW,
+            self::BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW,
             self::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
             self::BEAULAB_HOSPITAL_WALLET_SERVICE_GRANT,
             self::BEAULAB_HOSPITAL_WALLET_SERVICE_RECLAIM,
@@ -405,12 +420,8 @@ final class AccessPermissions
             self::BEAULAB_BEAUTY_UPDATE,
             self::BEAULAB_BEAUTY_DELETE,
 
-            self::BEAULAB_AGENCY_SHOW,
-            self::BEAULAB_AGENCY_CREATE,
-            self::BEAULAB_AGENCY_UPDATE,
-            self::BEAULAB_AGENCY_DELETE,
-
             self::BEAULAB_USER_SHOW,
+            self::BEAULAB_USER_STATISTICS_SHOW,
 
             self::BEAULAB_DOCTOR_SHOW,
             self::BEAULAB_DOCTOR_CREATE,
@@ -423,6 +434,7 @@ final class AccessPermissions
             self::BEAULAB_EXPERT_DELETE,
 
             self::BEAULAB_VIDEO_SHOW,
+            self::BEAULAB_VIDEO_CONSENT_SHOW,
             self::BEAULAB_VIDEO_CREATE,
             self::BEAULAB_VIDEO_UPDATE,
             self::BEAULAB_VIDEO_DELETE,
@@ -431,6 +443,7 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_EVENT_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_DELETE,
             self::BEAULAB_HOSPITAL_EVENT_AD_SHOW,
+            self::BEAULAB_HOSPITAL_EVENT_AD_CALENDAR_SHOW,
             self::BEAULAB_HOSPITAL_EVENT_AD_CREATE,
             self::BEAULAB_HOSPITAL_EVENT_AD_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_AD_DELETE,
@@ -472,13 +485,13 @@ final class AccessPermissions
             self::BEAULAB_BANNER_EXPOSURE_CREATE,
             self::BEAULAB_BANNER_EXPOSURE_UPDATE,
             self::BEAULAB_BANNER_EXPOSURE_DELETE,
+            self::BEAULAB_OTHER_EXPOSURE_SHOW,
+            self::BEAULAB_OTHER_EXPOSURE_CREATE,
+            self::BEAULAB_OTHER_EXPOSURE_UPDATE,
+            self::BEAULAB_OTHER_EXPOSURE_DELETE,
             self::BEAULAB_NOTICE_CREATE,
             self::BEAULAB_NOTICE_UPDATE,
             self::BEAULAB_NOTICE_DELETE,
-            self::BEAULAB_FAQ_SHOW,
-            self::BEAULAB_FAQ_CREATE,
-            self::BEAULAB_FAQ_UPDATE,
-            self::BEAULAB_FAQ_DELETE,
 
             self::BEAULAB_CATEGORY_MANAGE,
             self::BEAULAB_NICKNAME_SHOW,
@@ -517,6 +530,7 @@ final class AccessPermissions
             self::BEAULAB_HOSPITAL_EVENT_AD_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_EVENT_DB_STATUS_UPDATE,
             self::BEAULAB_REMOTE_CONSULTATION_APPROVE,
+            self::BEAULAB_REMOTE_CONSULTATION_ASSIGN,
             self::BEAULAB_HOSPITAL_EVENT_REAL_MODEL_DB_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_REVIEW_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_EVALUATION_STATUS_UPDATE,
@@ -528,9 +542,25 @@ final class AccessPermissions
             self::BEAULAB_REPORTED_VIDEO_STATUS_UPDATE,
             self::BEAULAB_HOSPITAL_PROMOTION_STATUS_UPDATE,
             self::BEAULAB_NOTICE_STATUS_UPDATE,
-            self::BEAULAB_FAQ_STATUS_UPDATE,
             self::BEAULAB_CATEGORY_STATUS_UPDATE,
             self::BEAULAB_HASHTAG_STATUS_UPDATE,
+        ];
+    }
+
+    /**
+     * Staff - 병의원 챗봇 권한
+     */
+    public static function hospitalChatbot(): array
+    {
+        return [
+            self::BEAULAB_CHATBOT_CONSULTATION_SHOW,
+            self::BEAULAB_CHATBOT_CONSULTATION_PROCESS,
+            self::BEAULAB_CHATBOT_QNA_SHOW,
+            self::BEAULAB_CHATBOT_QNA_CREATE,
+            self::BEAULAB_CHATBOT_QNA_UPDATE,
+            self::BEAULAB_CHATBOT_QNA_DELETE,
+            self::BEAULAB_CHATBOT_OPERATION_SHOW,
+            self::BEAULAB_CHATBOT_OPERATION_UPDATE,
         ];
     }
 

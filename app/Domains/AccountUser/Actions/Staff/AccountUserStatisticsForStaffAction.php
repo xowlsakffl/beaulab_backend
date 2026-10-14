@@ -12,7 +12,7 @@ final class AccountUserStatisticsForStaffAction
 
     public function execute(string $section, string $period = 'daily'): array
     {
-        Gate::authorize('viewAny', AccountUser::class);
+        Gate::authorize('viewStatistics', AccountUser::class);
 
         return match ($section) {
             'summary' => $this->query->summary(),

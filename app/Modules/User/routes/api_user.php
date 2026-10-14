@@ -17,6 +17,13 @@ use App\Modules\User\Http\Middleware\EnsureActiveUser;
 use Illuminate\Support\Facades\Route;
 
 // 앱 사용자 API
+Route::middleware('throttle:120,1')->group(function () {
+    $controller = \App\Modules\User\Http\Controllers\Category\CategoryDiscoveryController::class;
+    Route::get('categories', [$controller, 'categories'])->name('categories.index');
+    Route::get('discovery-topics', [$controller, 'topics'])->name('discovery-topics.index');
+    Route::get('discovery-topics/{code}', [$controller, 'mapping'])->where('code', '[A-Za-z0-9_\\-]+')->name('discovery-topics.mapping');
+    Route::get('discovery-topics/{code}/contents', [$controller, 'contents'])->where('code', '[A-Za-z0-9_\\-]+')->name('discovery-topics.contents');
+});
 
 Route::get('event-exposures', [\App\Modules\User\Http\Controllers\EventExposure\EventExposureForUserController::class, 'index'])
     ->middleware('throttle:120,1')->name('event-exposures.index');

@@ -120,49 +120,13 @@ final class HospitalReview extends Model
         };
     }
 
-    /**
-     * @return array<string, array<int, string>>
-     */
-    public static function categoryRootPathsByDomain(): array
+    public static function categoryDomainFromGroup(?string $group): ?string
     {
-        $usageByDomain = [
-            self::CATEGORY_DOMAIN_SURGERY => CategoryUsage::USAGE_HOSPITAL_REVIEW_SURGERY,
-            self::CATEGORY_DOMAIN_TREATMENT => CategoryUsage::USAGE_HOSPITAL_REVIEW_TREATMENT,
-        ];
-        $pathsByUsage = CategoryUsage::activeCategoryFullPathsByUsage(array_values($usageByDomain));
-
-        $pathsByDomain = [];
-        foreach ($usageByDomain as $domain => $usage) {
-            $pathsByDomain[$domain] = $pathsByUsage[$usage] ?? [];
-        }
-
-        return $pathsByDomain;
-    }
-
-    /**
-     * @param  array<string, array<int, string>>  $rootPathsByDomain
-     */
-    public static function categoryDomainFromFullPath(?string $fullPath, array $rootPathsByDomain): ?string
-    {
-        $path = trim((string) $fullPath);
-        if ($path === '') {
-            return null;
-        }
-
-        foreach ($rootPathsByDomain as $domain => $rootPaths) {
-            foreach ($rootPaths as $rootPath) {
-                $normalizedRootPath = trim($rootPath);
-                if ($normalizedRootPath === '') {
-                    continue;
-                }
-
-                if ($path === $normalizedRootPath || str_starts_with($path, "{$normalizedRootPath} > ")) {
-                    return $domain;
-                }
-            }
-        }
-
-        return null;
+        return match ($group) {
+            Category::GROUP_SURGERY => self::CATEGORY_DOMAIN_SURGERY,
+            Category::GROUP_TREATMENT => self::CATEGORY_DOMAIN_TREATMENT,
+            default => null,
+        };
     }
 
     public function isStatusChangeLocked(): bool

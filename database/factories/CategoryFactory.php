@@ -30,11 +30,4 @@ final class CategoryFactory extends Factory
             'is_menu_visible' => true,
         ];
     }
-
-    public function faq(): static
-    {
-        return $this->state(fn (): array => [
-            'domain' => Category::DOMAIN_FAQ,
-        ]);
-    }
 }

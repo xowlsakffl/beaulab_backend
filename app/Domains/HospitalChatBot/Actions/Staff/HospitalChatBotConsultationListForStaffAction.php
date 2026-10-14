@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Actions\Staff;
 
+use App\Common\Authorization\AccessPermissions as P;
 use App\Common\Support\PaginatedResponse;
 use App\Domains\HospitalChatBot\Dto\Staff\HospitalChatBotConsultationForStaffDto;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
 use App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotConsultationForStaffQuery;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotStaffActor;
 
 final class HospitalChatBotConsultationListForStaffAction
 {
@@ -18,6 +20,8 @@ final class HospitalChatBotConsultationListForStaffAction
     /** @param  array<string, mixed>  $filters */
     public function execute(array $filters): array
     {
+        HospitalChatBotStaffActor::authorize(P::BEAULAB_CHATBOT_CONSULTATION_SHOW);
+
         if ($filters['feed'] ?? false) {
             $paginator = $this->query->feed($filters);
 

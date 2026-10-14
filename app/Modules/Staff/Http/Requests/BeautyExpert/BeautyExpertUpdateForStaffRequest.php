@@ -59,7 +59,7 @@ final class BeautyExpertUpdateForStaffRequest extends FormRequest
                 'integer',
                 'distinct',
                 Rule::exists('categories', 'id')->where(static fn ($query) => $query
-                    ->where('domain', Category::DOMAIN_BEAUTY)
+                    ->where('domain', Category::DOMAIN_BEAUTY_EXPERT)
                     ->where('status', Category::STATUS_ACTIVE)),
             ],
             'status' => ['nullable', 'in:ACTIVE,SUSPENDED,INACTIVE'],

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Events;
 
-use App\Domains\HospitalChatBot\Dto\HospitalChatBotConsultationMessageDto;
-use App\Domains\HospitalChatBot\Queries\HospitalChatBotConsultationMessageQuery;
 use App\Domains\HospitalChatBot\Support\HospitalChatBotChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -40,13 +38,7 @@ final class HospitalChatBotConsultationMessageCreated implements ShouldBroadcast
     /** @return array<string, mixed> */
     public function broadcastWith(): array
     {
-        $message = app(HospitalChatBotConsultationMessageQuery::class)->find($this->messageId);
-
-        // 메시지가 사라졌다면 식별자만 보낸다. 수신 측이 다시 조회하면 된다.
-        if ($message === null) {
-            return ['consultation_id' => $this->consultationId, 'message_id' => $this->messageId];
-        }
-
-        return ['message' => HospitalChatBotConsultationMessageDto::fromModel($message)];
+        // 구독 후 권한이 회수돼도 본문은 새로 인가하는 API를 통해서만 전달한다.
+        return ['consultation_id' => $this->consultationId, 'message_id' => $this->messageId];
     }
 }

@@ -10,6 +10,12 @@ use App\Domains\HospitalWallet\Policies\Staff\HospitalWalletForStaffPolicy;
 
 final class HospitalWalletPolicy
 {
+    public function viewDashboard(mixed $actor): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(HospitalWalletForStaffPolicy::class)->viewDashboard($actor);
+    }
+
     public function viewAny(mixed $actor): bool
     {
         return $this->delegate($actor)->viewAny($actor);

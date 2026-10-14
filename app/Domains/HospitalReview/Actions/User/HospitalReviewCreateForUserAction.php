@@ -112,10 +112,7 @@ final class HospitalReviewCreateForUserAction
      */
     private function resolveCategoryDomain(Collection $categories): string
     {
-        $domain = HospitalReview::categoryDomainFromFullPath(
-            $categories->first()?->full_path,
-            HospitalReview::categoryRootPathsByDomain(),
-        );
+        $domain = HospitalReview::categoryDomainFromGroup($categories->first()?->group_code);
 
         if ($domain === null) {
             throw new CustomException(ErrorCode::INVALID_REQUEST, '후기 카테고리 유형을 확인해 주세요.');

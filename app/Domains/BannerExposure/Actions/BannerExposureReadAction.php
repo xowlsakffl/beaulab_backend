@@ -17,7 +17,7 @@ final class BannerExposureReadAction
 
     public function board(array $filters): array
     {
-        Gate::authorize('viewAny', BannerExposure::class);
+        Gate::authorize('viewAny', [BannerExposure::class, $filters['placement']]);
 
         return DB::transaction(function () use ($filters): array {
             $now = now()->startOfSecond();
@@ -49,7 +49,7 @@ final class BannerExposureReadAction
 
     public function targets(array $filters): array
     {
-        Gate::authorize('viewAny', BannerExposure::class);
+        Gate::authorize('viewAny', [BannerExposure::class, $filters['placement'] ?? 'MAIN_POPUP']);
 
         return app(BannerExposureTargetQuery::class)->options($filters);
     }

@@ -17,11 +17,12 @@ final class CategoryCreateForStaffQuery
             ->find($parentId);
     }
 
-    public function existsSiblingName(string $domain, ?int $parentId, string $name): bool
+    public function existsSiblingName(string $domain, ?int $parentId, string $name, ?string $groupCode = null): bool
     {
         return Category::query()
             ->domain($domain)
             ->where('parent_id', $parentId)
+            ->where('group_code', $groupCode)
             ->where('name', $name)
             ->exists();
     }

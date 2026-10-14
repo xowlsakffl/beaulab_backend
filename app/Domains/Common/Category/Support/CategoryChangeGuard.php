@@ -11,9 +11,10 @@ final class CategoryChangeGuard
 {
     public function assertNoPaidAds(Category $category): void
     {
-        $ids = Category::query()->domain($category->domain)->where('group_code', $category->group_code)
-            ->where(fn ($q) => $q->whereKey($category->id)
-                ->orWhere('full_path', 'like', addcslashes($category->full_path, '%_\\').' > %'))->pluck('id');
+        if ($category->domain !== Category::DOMAIN_HOSPITAL_MEDICAL) {
+            return;
+        }
+        $ids = CategoryHierarchy::descendants($category);
         $exists = HospitalEventAd::query()->where('cost', '>', 0)->where('allow_status', HospitalEventAd::ALLOW_APPROVED)
             ->where('end_at', '>=', now())->where(fn ($q) => $q->whereHas('categories', fn ($c) => $c->whereIn('categories.id', $ids))
             ->orWhereHas('hospitalEvent.categories', fn ($c) => $c->whereIn('categories.id', $ids)))->exists();

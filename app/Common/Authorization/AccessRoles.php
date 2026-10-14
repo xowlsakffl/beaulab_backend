@@ -30,11 +30,6 @@ final class AccessRoles
 
     public const BEAUTY_STAFF = 'beauty.staff';
 
-    // Agency
-    public const AGENCY_OWNER = 'agency.owner';
-
-    public const AGENCY_STAFF = 'agency.staff';
-
     /**
      * guard별 role 목록
      *
@@ -67,7 +62,7 @@ final class AccessRoles
      */
     public static function mapByGuard(): array
     {
-        $staffCommon = AccessPermissions::common();
+        $staffCommon = [AccessPermissions::COMMON_DASHBOARD_SHOW, ...AccessPermissions::hospitalChatbot()];
         $partnerCommon = AccessPermissions::common();
 
         $beaulab = AccessPermissions::beaulab();
@@ -97,13 +92,14 @@ final class AccessRoles
                     AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_ENTRY_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_ACCOUNT_INVITATION_SHOW,
                     AccessPermissions::BEAULAB_BEAUTY_SHOW,
-                    AccessPermissions::BEAULAB_AGENCY_SHOW,
                     AccessPermissions::BEAULAB_USER_SHOW,
+                    AccessPermissions::BEAULAB_USER_STATISTICS_SHOW,
                     AccessPermissions::BEAULAB_DOCTOR_SHOW,
                     AccessPermissions::BEAULAB_EXPERT_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_EVENT_DB_SHOW,
@@ -119,11 +115,11 @@ final class AccessRoles
                     AccessPermissions::BEAULAB_REPORTED_VIDEO_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_PROMOTION_SHOW,
                     AccessPermissions::BEAULAB_BANNER_EXPOSURE_SHOW,
+                    AccessPermissions::BEAULAB_OTHER_EXPOSURE_SHOW,
                     AccessPermissions::BEAULAB_EVENT_EXPOSURE_SHOW,
                     AccessPermissions::BEAULAB_REVIEW_EXPOSURE_SHOW,
                     AccessPermissions::BEAULAB_VIDEO_EXPOSURE_SHOW,
                     AccessPermissions::BEAULAB_NOTICE_SHOW,
-                    AccessPermissions::BEAULAB_FAQ_SHOW,
                 ]),
 
                 // 개발(현재는 staff 동일)
@@ -133,13 +129,14 @@ final class AccessRoles
                     AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_STATUS_REQUEST_CREATE,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW,
+                    AccessPermissions::BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_HISTORY_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_WALLET_NOTICE_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_ENTRY_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_ACCOUNT_INVITATION_SHOW,
                     AccessPermissions::BEAULAB_BEAUTY_SHOW,
-                    AccessPermissions::BEAULAB_AGENCY_SHOW,
                     AccessPermissions::BEAULAB_USER_SHOW,
+                    AccessPermissions::BEAULAB_USER_STATISTICS_SHOW,
                     AccessPermissions::BEAULAB_DOCTOR_SHOW,
                     AccessPermissions::BEAULAB_EXPERT_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_EVENT_DB_SHOW,
@@ -155,11 +152,11 @@ final class AccessRoles
                     AccessPermissions::BEAULAB_REPORTED_VIDEO_SHOW,
                     AccessPermissions::BEAULAB_HOSPITAL_PROMOTION_SHOW,
                     AccessPermissions::BEAULAB_BANNER_EXPOSURE_SHOW,
+                    AccessPermissions::BEAULAB_OTHER_EXPOSURE_SHOW,
                     AccessPermissions::BEAULAB_EVENT_EXPOSURE_SHOW,
                     AccessPermissions::BEAULAB_REVIEW_EXPOSURE_SHOW,
                     AccessPermissions::BEAULAB_VIDEO_EXPOSURE_SHOW,
                     AccessPermissions::BEAULAB_NOTICE_SHOW,
-                    AccessPermissions::BEAULAB_FAQ_SHOW,
                 ]),
             ],
 

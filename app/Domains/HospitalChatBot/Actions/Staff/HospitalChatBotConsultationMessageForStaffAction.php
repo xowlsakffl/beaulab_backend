@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domains\HospitalChatBot\Actions\Staff;
 
+use App\Common\Authorization\AccessPermissions as P;
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
 use App\Domains\HospitalChatBot\Actions\Common\HospitalChatBotConsultationMessageListAction;
@@ -15,7 +16,7 @@ use App\Domains\HospitalChatBot\Support\HospitalChatBotStaffActor;
 /**
  * 상담원의 메시지 조회·전송.
  *
- * 조회는 상담원 누구나 할 수 있다. 전송은 담당 상담원만 가능하다(PRD 11.4-5).
+ * 조회·상담 처리 권한을 구분하며, 전송은 담당 상담원만 가능하다.
  */
 final class HospitalChatBotConsultationMessageForStaffAction
 {
@@ -28,6 +29,7 @@ final class HospitalChatBotConsultationMessageForStaffAction
     /** @return array{items: list<array<string, mixed>>, last_sequence: int} */
     public function index(int $consultationId, ?int $afterSequence, int $limit, ?int $beforeSequence = null): array
     {
+        HospitalChatBotStaffActor::authorize(P::BEAULAB_CHATBOT_CONSULTATION_SHOW);
         $this->query->find($consultationId);
 
         return $this->list->execute($consultationId, $afterSequence, $limit, $beforeSequence);
@@ -36,7 +38,7 @@ final class HospitalChatBotConsultationMessageForStaffAction
     /** @return array<string, mixed> */
     public function store(int $consultationId, string $content, ?string $clientMessageId): array
     {
-        $staff = HospitalChatBotStaffActor::current();
+        $staff = HospitalChatBotStaffActor::authorize(P::BEAULAB_CHATBOT_CONSULTATION_SHOW, P::BEAULAB_CHATBOT_CONSULTATION_PROCESS);
         $consultation = $this->query->find($consultationId);
 
         if ((int) $consultation->assigned_staff_id !== (int) $staff->id) {

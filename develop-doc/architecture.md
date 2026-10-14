@@ -49,7 +49,7 @@ Queries에는 기존 저장 메서드도 있으므로 폴더명만으로 읽기 
 | 계정·직원 권한   | [AccountStaff](../app/Domains/AccountStaff), [AccountUser](../app/Domains/AccountUser), [AccountHospital](../app/Domains/AccountHospital), [AccountBeauty](../app/Domains/AccountBeauty)                          |
 | 병의원·뷰티·입점 | [Hospital](../app/Domains/Hospital), [HospitalDoctor](../app/Domains/HospitalDoctor), [HospitalEntry](../app/Domains/HospitalEntry), [Beauty](../app/Domains/Beauty), [BeautyExpert](../app/Domains/BeautyExpert) |
 | 이벤트·광고·영상 | [HospitalEvent](../app/Domains/HospitalEvent), [HospitalEventAd](../app/Domains/HospitalEventAd), [HospitalVideo](../app/Domains/HospitalVideo)                                                                   |
-| 게시물           | [Talk](../app/Domains/Talk), [HospitalReview](../app/Domains/HospitalReview), [HospitalEvaluation](../app/Domains/HospitalEvaluation), [Notice](../app/Domains/Notice), [Faq](../app/Domains/Faq)                 |
+| 게시물           | [Talk](../app/Domains/Talk), [HospitalReview](../app/Domains/HospitalReview), [HospitalEvaluation](../app/Domains/HospitalEvaluation), [Notice](../app/Domains/Notice)                 |
 | 금액·대화        | [HospitalWallet](../app/Domains/HospitalWallet), [Chat](../app/Domains/Chat), [HospitalChatBot](../app/Domains/HospitalChatBot)                                                                                    |
 | 공통 업무        | [Category, Media, AdminNote, OperationHistory, ContentReport, Notification, Sms 등](../app/Domains/Common)                                                                                                        |
 
@@ -69,7 +69,7 @@ API가 아직 없는 업무도 있습니다. Hospital Module에는 현재 병의
 - **기존 테이블은 바꾸지 않았습니다.** 새 테이블 8개는 전부 `hospital_chatbot_` 접두사이고, `hospitals`·`account_hospitals`·`account_staffs`는 FK로 참조만 합니다. 병의원명·요청자명·상담원명은 요청 시점 값을 스냅샷 컬럼에 복사하므로 계정을 지워도 상담 기록이 남습니다.
 - **실시간 전달:** 메시지 5초·목록 10초 폴링을 기본으로 하고 Reverb 구독을 함께 지원합니다. 종료된 직원 상담창은 폴링을 중단합니다. `NEXT_PUBLIC_REVERB_APP_KEY` 설정과 실제 Reverb·채널 인증 동작을 배포 환경에서 함께 확인해야 하며, 코드 구현만으로 운영 발행을 보장하지 않습니다.
 - **상시 프로세스:** 기존 Reverb와 Scheduler를 사용하고, Horizon에 `hospital-chatbot` 큐를 소비하는 전용 `supervisor-hospital-chatbot`을 둡니다. local은 최대 1개, production은 최대 2개 워커이며 일반 사용자 `chat` 큐와 구분합니다. 대기 만료·미발행 재처리는 매분, 지표 기록은 5분마다 실행합니다. 배포 시 설정 캐시를 갱신하고 기존 프로세스 관리자가 Horizon을 다시 띄우도록 `php artisan horizon:terminate`를 실행해야 새 supervisor가 적용됩니다. 이 작업은 배포 승인 후 수행하며, 롤백 시에도 큐에 남은 메시지 발행 작업을 소비할 워커를 유지해야 합니다.
-- **인증·권한은 기존 것을 그대로 씁니다.** Sanctum 쿠키 세션이고 새 권한을 만들지 않았습니다(`common.access`).
+- **기존 인증·개인 권한을 사용합니다.** Sanctum 쿠키 세션·정상 상태와 상담/Q&A/상담 운영관리의 독립 권한 8개를 검사합니다. 답변·종료는 담당자 검사도 유지합니다. 실시간 이벤트는 식별자만 보내며 본문 조회 때 권한을 다시 확인합니다. 상세 권한은 [API 문서](api.md#병의원-챗봇-직원-권한)를 따릅니다.
 
 ### 테이블
 

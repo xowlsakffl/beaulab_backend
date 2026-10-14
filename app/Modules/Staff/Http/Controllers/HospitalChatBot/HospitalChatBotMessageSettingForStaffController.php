@@ -11,6 +11,11 @@ use App\Modules\Staff\Http\Requests\HospitalChatBot\HospitalChatBotMessageSettin
 
 final class HospitalChatBotMessageSettingForStaffController extends Controller
 {
+    public function macros(HospitalChatBotMessageSettingForStaffAction $action)
+    {
+        return ApiResponse::success($action->macros());
+    }
+
     public function show(HospitalChatBotMessageSettingForStaffAction $action)
     {
         return ApiResponse::success($action->show());

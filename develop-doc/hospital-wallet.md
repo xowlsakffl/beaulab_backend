@@ -125,6 +125,9 @@ VAT = 공급가액의 10%를 반올림
 
 실제 경로·검색 필드는 [Staff 라우트](../app/Modules/Staff/routes/api_staff.php)와 [Queries](../app/Domains/HospitalWallet/Queries)를 확인합니다.
 
+- 충전금 현황(집계·상위 병의원)은 `beaulab.hospital_wallet.dashboard_show`, 내역은 `history_show`, 병의원 충전금 관리는 `show`로 각각 조회를 구분합니다. 하나의 조회 권한이 다른 메뉴의 조회 권한을 대신하지 않습니다.
+- 권한표에는 현황·내역·관리를 별도 행으로 표시합니다. 환불 서류 조회·환불 처리는 내역 행에, 서비스 지급·회수·환불 신청·충전 안내 조회·발송은 관리 행에 둡니다. 환불 처리 권한은 기존과 같이 관리 화면의 즉시 환불에도 사용하며 중복 체크박스를 만들지 않습니다.
+
 - 내역 type_group은 CHARGE/USAGE/REFUND/SERVICE/ALL이며 기본은 CHARGE입니다.
 - ALL에서 검색어와 hospital_id가 모두 없으면 대량 USAGE를 제외합니다. 누락 버그로 보고 무조건 포함시키지 않습니다.
 - 통합 검색은 병의원명·담당 관리자이며 작업 ID는 검색 대상이 아닙니다.

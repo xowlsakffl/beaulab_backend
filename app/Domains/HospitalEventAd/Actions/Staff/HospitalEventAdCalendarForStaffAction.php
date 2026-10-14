@@ -17,7 +17,7 @@ final class HospitalEventAdCalendarForStaffAction
 
     public function execute(array $filters): array
     {
-        Gate::authorize('viewAny', HospitalEventAd::class);
+        Gate::authorize('viewCalendar', HospitalEventAd::class);
 
         $month = Carbon::createFromFormat('Y-m', (string) $filters['month'], config('app.timezone'))->startOfMonth();
         $this->assertVisibleMonth($month);

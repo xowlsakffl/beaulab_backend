@@ -1,15 +1,17 @@
 <?php
 
+use App\Common\Authorization\AccessPermissions as P;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Models\ChatParticipant;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
+use App\Domains\HospitalChatBot\Support\HospitalChatBotStaffActor;
 use Illuminate\Support\Facades\Broadcast;
 
 // 병의원마다 분리해 다른 병의원의 온라인 정보를 병의원 계정에 공개하지 않는다.
 Broadcast::channel('hospital-chatbot.presence.{hospitalId}', function ($account, int $hospitalId): array|false {
-    if ($account instanceof AccountStaff) {
+    if (HospitalChatBotStaffActor::allows($account, P::BEAULAB_CHATBOT_CONSULTATION_SHOW)) {
         return ['id' => 'staff:'.$account->id, 'actor' => 'staff'];
     }
     if ($account instanceof AccountHospital && (int) $account->hospital_id === $hospitalId) {
@@ -53,7 +55,8 @@ Broadcast::channel('chat.{chatId}', function ($account, int $chatId): bool {
 Broadcast::channel('hospital-chatbot.consultation.{consultationId}', function ($account, int $consultationId): bool {
     if ($account instanceof AccountStaff) {
         // 상담원은 아직 담당이 아니어도 목록에서 상세로 들어가 볼 수 있어야 한다.
-        return HospitalChatBotConsultation::query()->whereKey($consultationId)->exists();
+        return HospitalChatBotStaffActor::allows($account, P::BEAULAB_CHATBOT_CONSULTATION_SHOW)
+            && HospitalChatBotConsultation::query()->whereKey($consultationId)->exists();
     }
 
     if ($account instanceof AccountHospital) {
@@ -70,5 +73,5 @@ Broadcast::channel('hospital-chatbot.consultation.{consultationId}', function ($
 
 /** 챗봇 대기 목록 채널. 병의원명·요청자가 흐르므로 상담원만 구독한다. */
 Broadcast::channel('hospital-chatbot.queue', function ($account): bool {
-    return $account instanceof AccountStaff;
+    return HospitalChatBotStaffActor::allows($account, P::BEAULAB_CHATBOT_CONSULTATION_SHOW);
 });

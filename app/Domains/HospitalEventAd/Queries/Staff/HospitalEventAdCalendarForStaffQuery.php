@@ -3,7 +3,6 @@
 namespace App\Domains\HospitalEventAd\Queries\Staff;
 
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\HospitalEventAd\Models\HospitalEventAd;
 use App\Domains\HospitalEventAd\Support\HospitalEventAdCalendarCache;
 use App\Domains\HospitalEventAd\Support\HospitalEventAdSalesDeadline;
@@ -241,13 +240,11 @@ final class HospitalEventAdCalendarForStaffQuery
                 'categories.name',
                 'categories.full_path',
             ])
-            ->join('category_usages', 'category_usages.category_id', '=', 'categories.id')
-            ->where('category_usages.usage', $usage)
-            ->where('category_usages.status', CategoryUsage::STATUS_ACTIVE)
+            ->whereIn('categories.id', app(\App\Domains\Common\Category\Support\CategoryUsageAvailability::class)->ids($usage))
             ->where('categories.domain', Category::DOMAIN_HOSPITAL_MEDICAL)
             ->whereNull('categories.parent_id')
             ->where('categories.status', Category::STATUS_ACTIVE)
-            ->orderBy('category_usages.sort_order')
+            ->orderBy('categories.sort_order')
             ->orderBy('categories.id')
             ->get()
             ->map(

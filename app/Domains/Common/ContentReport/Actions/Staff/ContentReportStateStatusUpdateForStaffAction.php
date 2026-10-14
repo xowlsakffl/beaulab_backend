@@ -4,6 +4,7 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
+use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\ContentReport\Queries\Staff\ContentReportStateStatusUpdateForStaffQuery;
@@ -223,6 +224,15 @@ final class ContentReportStateStatusUpdateForStaffAction
 
     private function reportStatusDisplayLabel(Model $target, string $status): string
     {
+        if ($target instanceof ChatMessage) {
+            return match ($status) {
+                ContentReportState::STATUS_ADMIN_HIDDEN => '신고',
+                ContentReportState::STATUS_NORMAL_VISIBLE,
+                ContentReportState::STATUS_REEXPOSED => '무시',
+                default => ContentReportState::statusLabels()[$status] ?? $status,
+            };
+        }
+
         if ($target instanceof HospitalVideo) {
             return match ($status) {
                 ContentReportState::STATUS_NONE => '-',

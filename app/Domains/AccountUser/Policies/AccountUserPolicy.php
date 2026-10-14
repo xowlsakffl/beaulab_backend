@@ -20,6 +20,12 @@ final class AccountUserPolicy
         return $this->delegate($actor)->viewAny($actor);
     }
 
+    public function viewStatistics(mixed $actor): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(AccountUserForStaffPolicy::class)->viewStatistics($actor);
+    }
+
     public function view(mixed $actor, AccountUser $user): bool
     {
         return $this->delegate($actor)->view($actor, $user);
@@ -28,6 +34,12 @@ final class AccountUserPolicy
     public function update(mixed $actor, AccountUser $user): bool
     {
         return $this->delegate($actor)->update($actor, $user);
+    }
+
+    public function updateStatus(mixed $actor, AccountUser $user): bool
+    {
+        return $actor instanceof AccountStaff
+            && app(AccountUserForStaffPolicy::class)->updateStatus($actor, $user);
     }
 
     public function delete(mixed $actor, AccountUser $user): bool
@@ -39,13 +51,29 @@ final class AccountUserPolicy
     {
         return match (true) {
             $actor instanceof AccountStaff => app(AccountUserForStaffPolicy::class),
-            //$actor instanceof AccountPartner => app(AccountUserForPartnerPolicy::class),
+            // $actor instanceof AccountPartner => app(AccountUserForPartnerPolicy::class),
             $actor instanceof AccountUser => app(AccountUserForUserPolicy::class),
-            default => new class {
-                public function viewAny(mixed $actor): bool { return false; }
-                public function view(mixed $actor, AccountUser $user): bool { return false; }
-                public function update(mixed $actor, AccountUser $user): bool { return false; }
-                public function delete(mixed $actor, AccountUser $user): bool { return false; }
+            default => new class
+            {
+                public function viewAny(mixed $actor): bool
+                {
+                    return false;
+                }
+
+                public function view(mixed $actor, AccountUser $user): bool
+                {
+                    return false;
+                }
+
+                public function update(mixed $actor, AccountUser $user): bool
+                {
+                    return false;
+                }
+
+                public function delete(mixed $actor, AccountUser $user): bool
+                {
+                    return false;
+                }
             },
         };
     }

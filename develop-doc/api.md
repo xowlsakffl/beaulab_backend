@@ -260,6 +260,18 @@
 - 열은 상담 ID, 병의원, 요청자, 담당 상담원, 요청·연결·종료 시각, 대기 시간(초), 상담 시간(초), 상태, 종료 사유, 상담 전 질문, 요청 화면입니다. 상태와 사유는 코드가 아니라 한국어입니다. 파일은 화면 없이 혼자 읽힙니다.
 - 스트림이 시작된 뒤의 예외는 되돌릴 수 없으므로, 로그를 남기고 파일 끝에 잘렸다는 행을 붙입니다.
 
+## 병의원 챗봇 이용 이벤트·대시보드 API
+
+이용 이벤트 수집과 내부 대시보드 집계입니다. 상세 정의는 [대시보드 PRD](hospital-chatbot-dashboard-prd.md)를 따릅니다.
+
+- `POST /api/v1/hospital/hospital-chatbot/events` — 병의원 액터. 본문은 이벤트 **배열**(1~20건)입니다. 한 건이어도 배열입니다. 항목은 `event_type`(`WIDGET_OPENED` | `QNA_VIEWED`), `qna_id`(`QNA_VIEWED`면 필수, 소프트 삭제된 Q&A 허용), `source_page_path`(선택, 255자). 병의원·계정은 세션에서, 시각은 서버에서 정하며 본문의 그 값은 무시합니다. 성공은 `202 { accepted: n }`. 실패는 `422`(검증), `429`(계정당 분당 120회 호출 초과), `401`(세션 없음)/`403`(병의원 액터 아님). 빈 배열·빈 본문도 `422`이고, 20건을 넘는 묶음은 Q&A 존재 조회 없이 바로 거절합니다. 분류(살아 있는 활성 자식이 있는 노드) 클릭은 받되 세지 않으므로 `accepted`가 보낸 건수보다 작을 수 있습니다. 호스트는 응답을 기다리지 않고 실패를 무시합니다. 수집이 죽어도 챗봇은 평소처럼 동작해야 합니다.
+- 상담 요청은 이벤트로 보내지 않습니다. 상담 테이블의 행이 그 사실이고, 깔때기의 마지막 단계는 거기서 셉니다.
+- 원본 이벤트는 `hospital-chatbot:prune-events`가 매일 03:50에 보관 기간(`HOSPITAL_CHATBOT_EVENTS_RETENTION_DAYS`, 기본 180일)이 지난 행을 1만 건 단위로 지웁니다. 보관 일수가 숫자가 아니거나 1 미만이면 아무것도 지우지 않고 실패합니다.
+- `GET /api/v1/staff/hospital-chatbot/dashboard?from=Y-m-d&to=Y-m-d` — 정상 직원 액터, `beaulab.hospital_chatbot_consultation.show`. Action에서 권한을 검사한 뒤 집계합니다. 기간을 비우면 최근 30일, 최대 366일, `from ≤ to`. 위반은 `422`. **한 번의 호출로 화면 전체**를 돌려줍니다: `period`, `summary`(요청·연결·대기 초과·사용자 취소·진행 중 건수, 직전 같은 길이 기간 요청 수, 대기·첫 응답·상담 시간의 중앙값·P90·표본 수), `live`(지금 대기 중 건수·최장 대기 초, 기간 무관), `funnel`(수집 시작일, 열람·질문 클릭·요청 수), `daily`(날짜마다 한 줄, 빈 날 0, `ended`/`timed_out`/`user_canceled`/`active`는 서로 겹치지 않고 합이 요청 수), `heatmap`(ISO 요일×시, 0인 칸 생략), `top_context_qnas`(상담을 유발한 질문 10개, `deleted` 표시), `requested_without_context`, `top_viewed_qnas`(많이 본 질문 10개), `top_hospitals`(요청 상위 5개 병의원, 요청·연결·열람·질문 클릭).
+- 모집단은 전부 **기간 내 `requested_at`인 상담**입니다. 종료 시각으로 자르지 않습니다. 그래야 카드끼리 분모가 같습니다.
+- 첫 응답 시간은 연결 시 자동으로 들어가는 인사(`client_message_id`가 `greeting:`으로 시작하는 AGENT 메시지)를 빼고 **상담원이 직접 친 첫 메시지**까지입니다. 빼지 않으면 전부 0초입니다.
+- `funnel.collected_since`는 첫 이벤트 시각입니다. `to`보다 뒤면 그 기간의 이용 지표는 수집 전이라 화면이 `수집 시작 전`으로 표시하고, `from`과 `to` 사이면 값을 보이되 `N일부터 수집`을 붙입니다. 이벤트가 하나도 없으면 `null`입니다.
+
 ## 병의원 챗봇 실시간
 
 - 채널은 [routes/channels.php](../routes/channels.php)에 있습니다. `hospital-chatbot.consultation.{consultationId}`는 상담 한 건, `hospital-chatbot.queue`는 상담원 대기 목록입니다.

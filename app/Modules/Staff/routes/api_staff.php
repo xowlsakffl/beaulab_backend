@@ -19,6 +19,7 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotConsultationForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotDashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotOperatingHoursForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
@@ -598,6 +599,9 @@ Route::middleware(['auth:sanctum', 'actor:staff'])->group(function () {
         ->name('broadcasting.auth');
 
     Route::prefix('hospital-chatbot')->name('hospital-chatbot.')->group(function () {
+        // 대시보드. 상담 지표와 이용 지표를 한 응답에 담는다.
+        Route::get('dashboard', [HospitalChatBotDashboardForStaffController::class, 'show'])
+            ->name('dashboard.show');
         Route::get('consultations', [HospitalChatBotConsultationForStaffController::class, 'index'])
             ->name('consultations.index');
         // {consultation} 보다 먼저 와야 한다. 뒤에 두면 'export'가 상담 ID로 잡힌다.

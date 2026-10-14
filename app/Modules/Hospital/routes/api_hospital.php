@@ -11,6 +11,7 @@ use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountInvitationForHospi
 use App\Modules\Hospital\Http\Controllers\Auth\HospitalAccountPasswordResetForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotAvailabilityForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotConsultationForHospitalController;
+use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotEventForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalPromotion\HospitalPromotionForHospitalController;
 use App\Modules\Hospital\Http\Controllers\HospitalVideo\HospitalVideoForHospitalController;
@@ -87,6 +88,10 @@ Route::middleware(['auth:sanctum', 'actor:hospital'])->group(function () {
         ->whereNumber('consultation')
         ->middleware('throttle:hospital-chatbot-message')
         ->name('hospital-chatbot.consultations.messages.store');
+    // 챗봇 이용 이벤트(열람·질문 클릭). 대시보드 집계용이고 실패해도 챗봇 동작과 무관하다.
+    Route::post('/hospital-chatbot/events', [HospitalChatBotEventForHospitalController::class, 'store'])
+        ->middleware('throttle:hospital-chatbot-event')
+        ->name('hospital-chatbot.events.store');
 
     /**
      * 동영상 공개여부 변경

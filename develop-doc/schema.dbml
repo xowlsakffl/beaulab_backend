@@ -1851,6 +1851,25 @@ Table hospital_chatbot_consultation_status_histories {
   Note: '상태 전이 이력입니다. 전이와 같은 트랜잭션에서 남기며 created_at 없이 occurred_at만 둡니다.'
 }
 
+Table hospital_chatbot_events {
+  id bigint [pk, increment]
+  event_type varchar(30) [note: 'WIDGET_OPENED, QNA_VIEWED']
+  hospital_id bigint [note: '세션의 병의원. 본문 값이 아니라 인증 계정에서 정한다']
+  account_hospital_id bigint [null, note: '세션의 병의원 계정. 감사용']
+  qna_id bigint [null, note: 'QNA_VIEWED일 때 본 Q&A. 삭제돼도 유지']
+  source_page_path varchar(255) [null, note: '이벤트 당시 호스트 화면 경로']
+  occurred_at timestamp [note: '서버 수신 시각']
+
+  indexes {
+    occurred_at
+    (event_type, occurred_at)
+    (qna_id, occurred_at)
+    (hospital_id, occurred_at)
+  }
+
+  Note: '병의원 사용자의 챗봇 이용 이벤트입니다. 대시보드 집계에만 쓰며 180일 뒤 지웁니다. 상담 요청은 여기 넣지 않고 상담 테이블에서 셉니다. Q&A에는 FK를 걸지 않습니다(소프트 삭제라 행이 남고, 하드 삭제를 막지 않기 위해).'
+}
+
 Ref: hospital_chatbot_qna_folders.parent_id > hospital_chatbot_qna_folders.id
 Ref: hospital_chatbot_qna_folders.created_by_staff_id > account_staffs.id
 Ref: hospital_chatbot_qna_folders.updated_by_staff_id > account_staffs.id
@@ -1865,4 +1884,7 @@ Ref: hospital_chatbot_consultations.requested_by_account_hospital_id > account_h
 Ref: hospital_chatbot_consultations.assigned_staff_id > account_staffs.id
 Ref: hospital_chatbot_consultations.context_qna_id > hospital_chatbot_qnas.id
 Ref: hospital_chatbot_consultation_messages.consultation_id > hospital_chatbot_consultations.id
+Ref: hospital_chatbot_events.hospital_id > hospitals.id
+Ref: hospital_chatbot_events.account_hospital_id > account_hospitals.id
+Ref: hospital_chatbot_events.qna_id > hospital_chatbot_qnas.id
 Ref: hospital_chatbot_consultation_status_histories.consultation_id > hospital_chatbot_consultations.id

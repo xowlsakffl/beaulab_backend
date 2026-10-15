@@ -35,8 +35,10 @@ final class DashboardForStaffController extends Controller implements HasMiddlew
     ) {
         $filters = $request->validated();
 
-        return ApiResponse::success($filters['section'] === 'work'
-            ? $work->execute($request->user())
-            : $metrics->execute($request->user(), $filters['start_date'], $filters['end_date']));
+        return ApiResponse::success(match ($filters['section']) {
+            'work' => $work->execute($request->user()),
+            'wallet' => $metrics->executeMonthlyWallet($request->user()),
+            'metrics' => $metrics->execute($request->user(), $filters['start_date'], $filters['end_date'], (bool) ($filters['include_wallet'] ?? true)),
+        });
     }
 }

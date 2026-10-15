@@ -43,6 +43,7 @@ final class HospitalCreateForStaffAction
             $this->syncCategories($hospital, $filters['category_ids'] ?? []);
             $this->syncFeatures($hospital, $filters['feature_ids'] ?? []);
             $this->historyRecordAction->recordCreated($hospital);
+            app(\App\Domains\Common\Notification\Support\StaffReviewNotification::class)->changed('staff.hospital.requested', $hospital, null, (string) $hospital->allow_status);
 
             return $hospital->fresh();
         });

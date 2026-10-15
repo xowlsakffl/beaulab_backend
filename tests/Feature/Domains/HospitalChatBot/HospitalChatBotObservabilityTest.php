@@ -24,7 +24,7 @@ use Spatie\Permission\Models\Permission;
 
 final class HospitalChatBotObservabilityTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, \Tests\Support\WithHospitalDepartment;
 
     public function createApplication(): Application
     {
@@ -297,7 +297,9 @@ final class HospitalChatBotObservabilityTest extends TestCase
             'Origin' => $origin,
         ]);
         $csrf = $this->getJson("/api/v1/{$actor}/auth/csrf")->assertOk();
-        $this->withCookie("beaulab_{$actor}_session", $csrf->getCookie("beaulab_{$actor}_session")->getValue());
+        if ($cookie = $csrf->getCookie("beaulab_{$actor}_session")) {
+            $this->withCookie("beaulab_{$actor}_session", $cookie->getValue());
+        }
         $this->withHeader('X-CSRF-TOKEN', $csrf->json('data.csrf_token'));
         $this->app['auth']->forgetGuards();
 
@@ -320,7 +322,9 @@ final class HospitalChatBotObservabilityTest extends TestCase
     private function staff(): AccountStaff
     {
         $staff = AccountStaff::factory()->create();
-        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::COMMON_ACCESS, 'staff'));
+        foreach ([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE] as $permission) {
+            $staff->givePermissionTo(Permission::findOrCreate($permission, 'staff'));
+        }
         $staff->forceFill(['password' => 'password1234'])->save();
 
         return $staff;

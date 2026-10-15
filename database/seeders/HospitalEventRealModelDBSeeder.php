@@ -13,39 +13,28 @@ final class HospitalEventRealModelDBSeeder extends Seeder
     public function run(): void
     {
         DevelopmentDataGuard::assertEnabled();
-        $userIds = AccountUser::where('status', AccountUser::STATUS_ACTIVE)->pluck('id');
-        if ($userIds->isEmpty()) {
-            throw new \LogicException('활성 샘플 회원을 먼저 생성해 주세요.');
+        if (HospitalEventRealModelDB::withTrashed()->exists()) {
+            throw new \LogicException('리얼모델 시나리오는 빈 신청 테이블에서만 생성합니다.');
         }
-        $eventIds = HospitalEvent::query()
-            ->pluck('id')
-            ->map(static fn (int|string $id): int => (int) $id)
-            ->values();
-
-        if ($eventIds->isEmpty()) {
-            $this->call(HospitalEventSeeder::class);
-
-            $eventIds = HospitalEvent::query()
-                ->pluck('id')
-                ->map(static fn (int|string $id): int => (int) $id)
-                ->values();
+        $users = AccountUser::where('status', 'ACTIVE')->where('created_at', '<', now()->subDays(120))->get();
+        $events = HospitalEvent::whereHas('categories', fn ($q) => $q->where('code', 'HP_REAL_MODEL'))
+            ->where('allow_status', 'APPROVED')->get()->filter(fn ($event) => $event->isApplicationOpen())->values();
+        if ($users->isEmpty() || $events->isEmpty()) {
+            throw new \LogicException('기존 활성 회원과 신청 가능한 리얼모델 이벤트가 필요합니다.');
         }
-
-        if ($eventIds->isEmpty()) {
-            $this->command?->warn('리얼모델 DB 시드 생성을 건너뜁니다: 병의원 이벤트가 없습니다.');
-
-            return;
-        }
-
-        foreach ($eventIds as $index => $eventId) {
-            $applicationCount = ($index % 4) + 1;
-
-            for ($offset = 0; $offset < $applicationCount; $offset++) {
-                HospitalEventRealModelDB::factory()
-                    ->forEvent($eventId)
-                    ->withSeedMedia(random_int(1, 5))
-                    ->create(['account_user_id' => fn () => $userIds->random()]);
+        for ($index = 0; $index < 90; $index++) {
+            $user = $users[$index % $users->count()];
+            $factory = HospitalEventRealModelDB::factory()->forEvent($events[$index % $events->count()]);
+            if ($index % 5 !== 0) {
+                $factory = $factory->withSeedMedia($index === 1 ? 10 : $index % 4 + 1);
             }
+            $at = now()->subDays($index % 60)->subHours(3);
+            $factory->create([
+                'account_user_id' => $user->id, 'name' => $user->name, 'phone' => $user->phone,
+                'status' => HospitalEventRealModelDB::statuses()[$index % 3],
+                'instagram_url' => null, 'blog_url' => null,
+                'created_at' => $at, 'updated_at' => $at->copy()->addMinute(),
+            ]);
         }
     }
 }

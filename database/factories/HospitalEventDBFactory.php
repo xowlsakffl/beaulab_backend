@@ -32,7 +32,7 @@ final class HospitalEventDBFactory extends Factory
             'hospital_id' => fn (array $attributes) => HospitalEvent::findOrFail($attributes['hospital_event_id'])->hospital_id,
             'hospital_doctor_id' => null,
             'name' => fake('ko_KR')->name(),
-            'phone' => $this->faker->numerify('010-####-####'),
+            'phone' => $this->faker->numerify('010-0000-####'),
             'contact_method' => $this->faker->randomElement(HospitalEventDB::contactMethods()),
             'preferred_time' => $this->faker->randomElement(HospitalEventDB::preferredTimes()),
             'event_price' => fn (array $attributes) => HospitalEvent::findOrFail($attributes['hospital_event_id'])->event_price,

@@ -22,6 +22,11 @@ final class DemoSeeder extends Seeder
         try {
             DB::transaction(function (): void {
                 DevelopmentDataGuard::assertDemoEmpty();
+                if (strlen((string) config('seeding.staff.password')) < 12) {
+                    throw new \LogicException('전체 데모에는 12자 이상의 SEED_STAFF_PASSWORD가 필요합니다.');
+                }
+                fake()->seed(config('seeding.development.seed'));
+                fake('ko_KR')->seed(config('seeding.development.seed'));
                 $this->call([
                     HospitalEntrySeeder::class,
                     HospitalSeeder::class,
@@ -37,7 +42,23 @@ final class DemoSeeder extends Seeder
                     HospitalEventDBSeeder::class,
                     HospitalEventRealModelDBSeeder::class,
                     HospitalWalletSeeder::class,
+                    RemoteConsultationDevelopmentSeeder::class,
+                    ReportedContentDevelopmentSeeder::class,
+                    BannerExposureDevelopmentSeeder::class,
+                    HospitalEventAdDevelopmentSeeder::class,
+                    ContentExposureDevelopmentSeeder::class,
+                    OperationSettingsDevelopmentSeeder::class,
+                    HospitalChatBotQnaSeeder::class,
+                    HospitalChatBotConsultationSeeder::class,
+                    HospitalChatBotStatisticsDevelopmentSeeder::class,
+                    AccountUserStatisticsDevelopmentSeeder::class,
                 ]);
+                config(['seeding.development.completing_demo' => true]);
+                try {
+                    $this->call(DevelopmentScenarioCompletionSeeder::class);
+                } finally {
+                    config(['seeding.development.completing_demo' => false]);
+                }
             });
         } finally {
             DB::selectOne('SELECT RELEASE_LOCK(?)', [$lock]);

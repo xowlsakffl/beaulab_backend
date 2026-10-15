@@ -98,19 +98,23 @@ final class HospitalReviewSeeder extends Seeder
         string $factoryState,
     ): Collection {
         $reviews = collect();
+        $authors = AccountUser::whereIn('id', $authorIds)->get()->keyBy('id');
 
         for ($index = 0; $index < $count; $index++) {
             $domain = array_rand($categoryIdsByDomain);
             $hospitalId = $hospitalIds[array_rand($hospitalIds)];
+            $authorId = $authorIds[array_rand($authorIds)];
+            $createdAt = now()->subDays(90)->max($authors[$authorId]->created_at->copy()->addMinute());
 
             $review = HospitalReview::factory()
                 ->{$factoryState}()
-                ->withSeedMedia(random_int(1, 3), random_int(1, 3))
+                ->withSeedMedia(fake()->numberBetween(1, 3), fake()->numberBetween(1, 3))
                 ->create([
-                    'author_id' => $authorIds[array_rand($authorIds)],
+                    'author_id' => $authorId,
                     'hospital_id' => $hospitalId,
                     'doctor_id' => $this->randomDoctorId($hospitalId),
                     'category_domain' => $domain,
+                    'created_at' => $createdAt,
                 ]);
 
             $this->syncCategories($review, $categoryIdsByDomain[$domain]);
@@ -129,7 +133,7 @@ final class HospitalReviewSeeder extends Seeder
     {
         foreach ($reviews as $review) {
             $topLevelComments = HospitalReviewComment::factory()
-                ->count(random_int(0, 8))
+                ->count(fake()->numberBetween(0, 8))
                 ->active()
                 ->topLevel()
                 ->create([
@@ -139,7 +143,7 @@ final class HospitalReviewSeeder extends Seeder
 
             foreach ($topLevelComments as $comment) {
                 HospitalReviewComment::factory()
-                    ->count(random_int(0, 2))
+                    ->count(fake()->numberBetween(0, 2))
                     ->active()
                     ->replyTo($comment)
                     ->create([
@@ -167,7 +171,7 @@ final class HospitalReviewSeeder extends Seeder
             return;
         }
 
-        $mentionCount = random_int(0, 5);
+        $mentionCount = fake()->numberBetween(0, 5);
         if ($mentionCount === 0) {
             return;
         }
@@ -227,12 +231,12 @@ final class HospitalReviewSeeder extends Seeder
         ];
 
         foreach ($samples as $sample) {
-            if (random_int(1, 100) > $sample['chance']) {
+            if (fake()->numberBetween(1, 100) > $sample['chance']) {
                 continue;
             }
 
             $parent = null;
-            if (random_int(1, 100) <= 55) {
+            if (fake()->numberBetween(1, 100) <= 55) {
                 if ($parentComments === []) {
                     $parentComments[] = HospitalReviewComment::factory()
                         ->active()
@@ -252,7 +256,7 @@ final class HospitalReviewSeeder extends Seeder
                 ? $factory->replyTo($parent)
                 : $factory->topLevel();
 
-            $factory->count(random_int(1, 2))->create([
+            $factory->count(fake()->numberBetween(1, 2))->create([
                 'hospital_review_id' => $review->id,
                 'author_id' => fn () => $authorIds[array_rand($authorIds)],
                 'content' => fn () => $sample['prefix'].' 회복 과정도 함께 공유해 주세요.',
@@ -267,7 +271,7 @@ final class HospitalReviewSeeder extends Seeder
     {
         $selectedIds = collect($categoryIds)
             ->shuffle()
-            ->take(random_int(1, min(3, count($categoryIds))))
+            ->take(fake()->numberBetween(1, min(3, count($categoryIds))))
             ->values();
 
         $review->categories()->sync(

@@ -8,7 +8,6 @@ use App\Common\Authorization\AccessPermissions as P;
 use App\Domains\AccountHospital\Models\AccountHospital;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Common\Category\Models\Category;
-use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\OperationHistory\Models\OperationHistory;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\RemoteConsultation\Actions\RemoteConsultationAssignOnSubmissionAction;
@@ -21,7 +20,16 @@ use Spatie\Permission\Models\Permission;
 
 final class RemoteConsultationFlowTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, \Tests\Support\WithHospitalDepartment;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $scope = \Illuminate\Support\Facades\DB::table('consultation_pricing_scopes')->insertGetId(['scope_key' => 'REMOTE']);
+        \App\Domains\ConsultationPricing\Models\ConsultationPricingVersion::create([
+            'scope_id' => $scope, 'mode' => 'CUSTOM', 'fixed_price' => 10000, 'effective_at' => now()->subDay(),
+        ]);
+    }
 
     public function createApplication(): Application
     {
@@ -248,13 +256,13 @@ final class RemoteConsultationFlowTest extends TestCase
 
     private function category(string $name): Category
     {
-        $c = Category::factory()->create(['name' => $name]);
-        CategoryUsage::create(['category_id' => $c->id, 'usage' => CategoryUsage::USAGE_HOSPITAL_DOCTOR_SUBJECT, 'sort_order' => 1, 'status' => 'ACTIVE']);
+        $c = Category::factory()->create(['name' => $name, 'domain' => Category::DOMAIN_HOSPITAL_SUBJECT, 'group_code' => 'SURGERY', 'depth' => 1]);
+        \App\Domains\Common\Category\Support\CategoryUsageAvailability::forgetRequestCache();
 
         return $c;
     }
 
-    public function test_pending_priority_and_navigation_badge_follow_application_status(): void
+    public function test_pending_priority_does_not_create_personal_notifications(): void
     {
         $category = $this->category('눈');
         $pending = $this->consultation([$category]);
@@ -271,7 +279,7 @@ final class RemoteConsultationFlowTest extends TestCase
         $this->getJson('/api/v1/staff/remote-consultations?sort=id&direction=desc')->assertOk()
             ->assertJsonPath('data.0.id', $approved->id);
         $badges = $this->getJson('/api/v1/staff/navigation-badges')->assertOk()->json('data.badges');
-        self::assertSame(['count' => 1, 'has_new' => true], $badges['/customer-db-manage/consultations']);
+        self::assertSame(['count' => 0, 'has_new' => false], $badges['/customer-db-manage/consultations']);
         $this->patchJson("/api/v1/staff/remote-consultations/{$pending->id}/status", ['status' => 'REVIEWING'])->assertOk();
         $badges = $this->getJson('/api/v1/staff/navigation-badges')->assertOk()->json('data.badges');
         self::assertSame(['count' => 0, 'has_new' => false], $badges['/customer-db-manage/consultations']);
@@ -282,6 +290,7 @@ final class RemoteConsultationFlowTest extends TestCase
         $h = Hospital::factory()->active()->create(['allow_status' => Hospital::ALLOW_APPROVED]);
         $h->categories()->attach($category->id);
         AccountHospital::factory()->forHospital($h)->active()->create();
+        \App\Domains\HospitalWallet\Models\HospitalWallet::create(['hospital_id' => $h->id, 'paid_balance' => 100000, 'service_balance' => 0]);
 
         return $h;
     }
@@ -321,6 +330,7 @@ final class RemoteConsultationFlowTest extends TestCase
         $permissions = [P::COMMON_ACCESS, P::BEAULAB_REMOTE_CONSULTATION_SHOW];
         if ($approve) {
             $permissions[] = P::BEAULAB_REMOTE_CONSULTATION_APPROVE;
+            $permissions[] = P::BEAULAB_REMOTE_CONSULTATION_ASSIGN;
         }
         foreach ($permissions as $permission) {
             $staff->givePermissionTo(Permission::findOrCreate($permission, 'staff'));
@@ -328,7 +338,9 @@ final class RemoteConsultationFlowTest extends TestCase
         $this->app['auth']->forgetGuards();
         $this->withCredentials()->withHeaders(['X-Beaulab-Client' => 'web', 'Origin' => 'http://localhost:3000']);
         $r = $this->getJson('/api/v1/staff/auth/csrf')->assertOk();
-        $this->withCookie('beaulab_staff_session', $r->getCookie('beaulab_staff_session')->getValue());
+        if ($cookie = $r->getCookie('beaulab_staff_session')) {
+            $this->withCookie('beaulab_staff_session', $cookie->getValue());
+        }
         $this->withHeader('X-CSRF-TOKEN', $r->json('data.csrf_token'));
         $this->app['auth']->forgetGuards();
         $r = $this->postJson('/api/v1/staff/auth/login', ['nickname' => $staff->nickname, 'password' => 'password1234'])->assertOk();

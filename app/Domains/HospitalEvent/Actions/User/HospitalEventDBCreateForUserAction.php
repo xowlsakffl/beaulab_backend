@@ -9,6 +9,7 @@ use App\Domains\Common\Notification\Actions\StaffNotificationPublisher;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
 use App\Domains\HospitalEvent\Models\HospitalEventDB;
 use App\Domains\HospitalEvent\Queries\User\HospitalEventDBCreateForUserQuery;
+use App\Domains\HospitalEvent\Support\HospitalEventApplicationGuard;
 use Illuminate\Support\Facades\DB;
 
 final class HospitalEventDBCreateForUserAction
@@ -16,21 +17,13 @@ final class HospitalEventDBCreateForUserAction
     public function __construct(
         private readonly HospitalEventDBCreateForUserQuery $query,
         private readonly StaffNotificationPublisher $notifications,
+        private readonly HospitalEventApplicationGuard $applicationGuard,
     ) {}
 
     public function execute(AccountUser $user, HospitalEvent $event, array $payload): array
     {
-        $this->assertEventCanBeApplied($event);
-
-        if (! empty($payload['hospital_doctor_id'])) {
-            if (! $this->query->doctorBelongsToEvent($event, (int) $payload['hospital_doctor_id'])) {
-                throw new CustomException(ErrorCode::INVALID_REQUEST, '선택한 의료진이 이벤트에 등록되어 있지 않습니다.');
-            }
-        }
-
         DB::transaction(function () use ($user, $event, $payload): void {
-            $event = HospitalEvent::query()->whereKey($event->id)->lockForUpdate()->firstOrFail();
-            $this->assertEventCanBeApplied($event);
+            $event = $this->applicationGuard->lockOpenEvent((int) $event->id);
             if (! empty($payload['hospital_doctor_id'])
                 && ! $this->query->doctorBelongsToEvent($event, (int) $payload['hospital_doctor_id'])) {
                 throw new CustomException(ErrorCode::INVALID_REQUEST, '선택한 의료진이 이벤트에 등록되어 있지 않습니다.');
@@ -80,12 +73,5 @@ final class HospitalEventDBCreateForUserAction
         return [
             'message' => '신청이 완료되었습니다.',
         ];
-    }
-
-    private function assertEventCanBeApplied(HospitalEvent $event): void
-    {
-        if (! $event->isApplicationOpen()) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '신청 가능한 이벤트가 아닙니다.');
-        }
     }
 }

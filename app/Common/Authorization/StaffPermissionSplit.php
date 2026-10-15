@@ -11,6 +11,7 @@ use Spatie\Permission\PermissionRegistrar;
 final class StaffPermissionSplit
 {
     private const SPLITS = [
+        AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW => AccessPermissions::BEAULAB_CHATBOT_STATISTICS_SHOW,
         AccessPermissions::BEAULAB_HOSPITAL_WALLET_SHOW => AccessPermissions::BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW,
         AccessPermissions::BEAULAB_REMOTE_CONSULTATION_APPROVE => AccessPermissions::BEAULAB_REMOTE_CONSULTATION_ASSIGN,
         AccessPermissions::BEAULAB_HOSPITAL_EVENT_AD_SHOW => AccessPermissions::BEAULAB_HOSPITAL_EVENT_AD_CALENDAR_SHOW,

@@ -32,6 +32,11 @@ final class TalkPollVoteForUserAction
             ->all();
 
         $poll = DB::transaction(function () use ($user, $talk, $optionIds): TalkPoll {
+            $talk = Talk::query()->whereKey($talk->id)->lockForUpdate()->first();
+            if ($talk === null || $talk->status !== Talk::STATUS_ACTIVE) {
+                throw new CustomException(ErrorCode::INVALID_REQUEST, '투표할 수 없는 토크입니다.');
+            }
+
             $poll = TalkPoll::query()
                 ->where('talk_id', (int) $talk->id)
                 ->lockForUpdate()

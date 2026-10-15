@@ -21,7 +21,7 @@ final class HospitalEntryFactory extends Factory
 
         return [
             'hospital_name' => $hospitalName,
-            'hospital_phone' => $this->faker->randomElement(['02', '031', '032', '051', '053']).'-'.$this->faker->numerify('####').'-'.$this->faker->numerify('####'),
+            'hospital_phone' => $this->faker->numerify('02-0000-####'),
             'address' => $this->faker->randomElement($this->addresses()),
             'address_detail' => $this->faker->randomElement(['2층', '3층', '4층', '5층', '6층 전체', '본관 2층', null]),
             'business_number' => $this->faker->unique()->numerify('##########'),
@@ -29,7 +29,7 @@ final class HospitalEntryFactory extends Factory
             'license_number' => $hasLicense ? $this->faker->unique()->numerify('#######') : null,
             'applicant_name' => $this->faker->randomElement($this->personNames()),
             'applicant_position' => $this->faker->randomElement(['대표원장', '원무팀장', '행정팀장', '마케팅팀장', '실장', '운영담당자']),
-            'applicant_phone' => $this->faker->numerify('010-####-####'),
+            'applicant_phone' => $this->faker->numerify('010-0000-####'),
             'applicant_email' => $this->faker->unique()->safeEmail(),
             'allow_status' => $this->faker->randomElement(HospitalEntry::allowStatuses()),
             'created_at' => $this->faker->dateTimeBetween('-45 days', 'now'),

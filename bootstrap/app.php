@@ -106,6 +106,18 @@ return Application::configure(basePath: dirname(__DIR__))
     */
     ->withExceptions(function (Exceptions $exceptions): void {
 
+        $exceptions->report(function (QueryException $exception): void {
+            // QueryException 메시지는 바인딩 값을 포함하므로 예외 원문을 기록하지 않는다.
+            \Illuminate\Support\Facades\Log::error('데이터베이스 처리 실패', [
+                'exception_class' => $exception::class,
+                'sql_state' => $exception->errorInfo[0] ?? null,
+                'driver_code' => $exception->errorInfo[1] ?? null,
+                'connection' => $exception->getConnectionName(),
+                'trace' => array_slice(array_map(static fn (array $frame): array => array_intersect_key($frame, array_flip(['file', 'line', 'class', 'function'])),
+                    $exception->getTrace()), 0, 12),
+            ]);
+        })->stop();
+
         // API-only면 항상 JSON (web 남기면 api/*로 좁혀도 됨)
         $shouldRenderJson = static fn (Request $request): bool => $request->is('api/*') || $request->expectsJson();
 
@@ -180,11 +192,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // DB
             if ($e instanceof QueryException) {
-                $details = config('app.debug')
-                    ? ['sql' => $e->getSql(), 'bindings' => $e->getBindings()]
-                    : null;
-
-                return ApiResponse::errorCode(ErrorCode::DB_ERROR, details: $details);
+                return ApiResponse::errorCode(ErrorCode::DB_ERROR);
             }
 
             // 업로드 용량 초과 (php.ini post_max_size)

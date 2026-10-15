@@ -22,7 +22,7 @@ use Spatie\Permission\Models\Role;
 
 final class HospitalAccountEmailVerificationFlowTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, \Tests\Support\WithHospitalDepartment;
 
     public function createApplication(): Application
     {

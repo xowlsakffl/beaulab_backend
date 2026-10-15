@@ -19,7 +19,7 @@ use Spatie\Permission\Models\Permission;
 
 final class HospitalChatBotQnaFlowTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, \Tests\Support\WithHospitalDepartment;
 
     public function createApplication(): Application
     {
@@ -42,7 +42,9 @@ final class HospitalChatBotQnaFlowTest extends TestCase
     public function test_legacy_folder_input_is_rejected_instead_of_silently_ignored(): void
     {
         $staff = AccountStaff::factory()->create();
-        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::COMMON_ACCESS, 'staff'));
+        foreach ([AccessPermissions::BEAULAB_CHATBOT_QNA_SHOW, AccessPermissions::BEAULAB_CHATBOT_QNA_CREATE, AccessPermissions::BEAULAB_CHATBOT_QNA_UPDATE, AccessPermissions::BEAULAB_CHATBOT_QNA_DELETE] as $permission) {
+            $staff->givePermissionTo(Permission::findOrCreate($permission, 'staff'));
+        }
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
             'folder_id' => 1, 'question' => '이전 폴더 등록',
@@ -61,7 +63,9 @@ final class HospitalChatBotQnaFlowTest extends TestCase
     public function test_staff_manages_qnas_and_hospital_only_receives_active_plain_text_fields(): void
     {
         $staff = AccountStaff::factory()->create();
-        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::COMMON_ACCESS, 'staff'));
+        foreach ([AccessPermissions::BEAULAB_CHATBOT_QNA_SHOW, AccessPermissions::BEAULAB_CHATBOT_QNA_CREATE, AccessPermissions::BEAULAB_CHATBOT_QNA_UPDATE, AccessPermissions::BEAULAB_CHATBOT_QNA_DELETE] as $permission) {
+            $staff->givePermissionTo(Permission::findOrCreate($permission, 'staff'));
+        }
         $this->login('staff', $staff, 'http://localhost:3000');
 
         $created = $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
@@ -155,7 +159,9 @@ final class HospitalChatBotQnaFlowTest extends TestCase
     public function test_tree_enforces_depth_cycles_duplicates_and_child_deletion(): void
     {
         $staff = AccountStaff::factory()->create();
-        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::COMMON_ACCESS, 'staff'));
+        foreach ([AccessPermissions::BEAULAB_CHATBOT_QNA_SHOW, AccessPermissions::BEAULAB_CHATBOT_QNA_CREATE, AccessPermissions::BEAULAB_CHATBOT_QNA_UPDATE, AccessPermissions::BEAULAB_CHATBOT_QNA_DELETE] as $permission) {
+            $staff->givePermissionTo(Permission::findOrCreate($permission, 'staff'));
+        }
         $this->login('staff', $staff, 'http://localhost:3000');
         $create = fn (string $question, ?int $parent = null) => $this->postJson('/api/v1/staff/hospital-chatbot/qnas', [
             'question' => $question, 'parent_id' => $parent, 'answer' => '',
@@ -198,6 +204,10 @@ final class HospitalChatBotQnaFlowTest extends TestCase
 
     public function test_hospital_excludes_descendants_of_hidden_nodes(): void
     {
+        $staff = AccountStaff::factory()->create();
+        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::BEAULAB_CHATBOT_QNA_CREATE, 'staff'));
+        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::BEAULAB_CHATBOT_QNA_SHOW, 'staff'));
+        $this->actingAs($staff, 'staff');
         $create = app(\App\Domains\HospitalChatBot\Actions\Staff\HospitalChatBotQnaCreateForStaffAction::class);
         $root = $create->execute(['question' => '의료진', 'status' => 'INACTIVE']);
         $child = $create->execute(['question' => '프로필 변경', 'parent_id' => $root['id']]);
@@ -230,7 +240,9 @@ final class HospitalChatBotQnaFlowTest extends TestCase
             'Origin' => $origin,
         ]);
         $csrf = $this->getJson("/api/v1/{$actor}/auth/csrf")->assertOk();
-        $this->withCookie("beaulab_{$actor}_session", $csrf->getCookie("beaulab_{$actor}_session")->getValue());
+        if ($cookie = $csrf->getCookie("beaulab_{$actor}_session")) {
+            $this->withCookie("beaulab_{$actor}_session", $cookie->getValue());
+        }
         $this->withHeader('X-CSRF-TOKEN', $csrf->json('data.csrf_token'));
         $this->app['auth']->forgetGuards();
 

@@ -97,7 +97,7 @@ final class HospitalEvaluationSeeder extends Seeder
 
             $factory = HospitalEvaluation::factory()
                 ->{$factoryState}()
-                ->withSeedMedia(random_int(1, 3), $withReceiptImages);
+                ->withSeedMedia(fake()->numberBetween(1, 3), $withReceiptImages);
 
             if ($receiptState !== null) {
                 $factory = $factory->{$receiptState}();

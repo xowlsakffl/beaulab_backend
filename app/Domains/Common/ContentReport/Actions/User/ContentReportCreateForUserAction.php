@@ -158,6 +158,7 @@ final class ContentReportCreateForUserAction
             }
 
             $state->save();
+            app(\App\Domains\Common\ContentReport\Support\ContentReportNotification::class)->requested($state, (int) $report->id);
         }, 3);
 
         ContentReportSummaryCache::forgetForTarget($target);

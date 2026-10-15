@@ -30,8 +30,8 @@ final class BeautyFactory extends Factory
             'latitude' => $this->faker->optional(0.8)->latitude(33.0, 38.6),
             'longitude' => $this->faker->optional(0.8)->longitude(124.5, 132.0),
 
-            'tel' => $this->faker->optional(0.9)->phoneNumber(),
-            'email' => $this->faker->optional(0.7)->companyEmail(),
+            'tel' => $this->faker->optional(0.9)->numerify('010-0000-####'),
+            'email' => $this->faker->optional(0.7)->safeEmail(),
 
             'consulting_hours' => $this->faker->optional(0.6)->randomElement(['평일 오전 10시부터 오후 7시까지 상담 가능합니다.']),
             'direction' => $this->faker->optional(0.6)->randomElement(['건물 지하 주차장을 이용해 주세요.']),

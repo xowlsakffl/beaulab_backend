@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 /**
- * 이용 이벤트 수집(대시보드 PRD §10, §15.1).
+ * 이용 이벤트 수집(통계 PRD §10, §15.1).
  */
 final class HospitalChatBotEventFlowTest extends TestCase
 {
@@ -299,7 +299,9 @@ final class HospitalChatBotEventFlowTest extends TestCase
             'Origin' => $origin,
         ]);
         $csrf = $this->getJson("/api/v1/{$actor}/auth/csrf")->assertOk();
-        $this->withCookie("beaulab_{$actor}_session", $csrf->getCookie("beaulab_{$actor}_session")->getValue());
+        if ($cookie = $csrf->getCookie("beaulab_{$actor}_session")) {
+            $this->withCookie("beaulab_{$actor}_session", $cookie->getValue());
+        }
         $this->withHeader('X-CSRF-TOKEN', $csrf->json('data.csrf_token'));
         $this->app['auth']->forgetGuards();
 

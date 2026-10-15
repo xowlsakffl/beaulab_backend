@@ -18,7 +18,8 @@ final class DashboardForStaffRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'section' => ['required', 'in:work,metrics'],
+            'section' => ['required', 'in:work,metrics,wallet'],
+            'include_wallet' => ['sometimes', 'boolean'],
             'start_date' => ['required_if:section,metrics', 'date_format:Y-m-d'],
             'end_date' => ['required_if:section,metrics', 'date_format:Y-m-d', 'after_or_equal:start_date', 'before_or_equal:'.now('Asia/Seoul')->toDateString()],
         ];

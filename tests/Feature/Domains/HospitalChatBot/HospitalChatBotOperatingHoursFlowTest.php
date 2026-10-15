@@ -17,7 +17,7 @@ use Spatie\Permission\Models\Permission;
 
 final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, \Tests\Support\WithHospitalDepartment;
 
     public function createApplication(): Application
     {
@@ -32,7 +32,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_saving_replaces_closure_dates_and_allows_re_adding_a_removed_date(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
 
         $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $this->payload([
             ['date' => '2026-01-01', 'reason' => '신정'],
@@ -76,7 +76,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_closure_range_is_saved_as_one_record_and_rejects_overlap(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
         $payload = $this->payload();
         $payload['closure_dates'] = [['date' => '2026-10-15', 'end_date' => '2026-10-16', 'reason' => '휴무']];
         $this->putJson('/api/v1/staff/hospital-chatbot/operating-hours', $payload)->assertOk()
@@ -92,7 +92,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_saving_lunch_and_public_holidays_and_rejecting_invalid_values(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
         $payload = $this->payload();
         $payload['public_holiday_codes'] = ['CHUSEOK', 'HANGUL_DAY'];
         $payload['break_starts_at'] = '12:00';
@@ -123,7 +123,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_saving_rejects_an_open_day_without_a_valid_time_range(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
 
         $payload = $this->payload();
         $payload['weekly_schedule'][0]['opens_at'] = '18:00';
@@ -143,7 +143,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_schedule_without_any_open_day_reports_no_next_open_at(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
 
         $payload = $this->payload();
         $payload['weekly_schedule'] = array_map(
@@ -161,7 +161,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_force_close_switch_overrides_the_weekly_schedule(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
 
         $payload = $this->payload();
         $payload['is_force_closed'] = true;
@@ -193,7 +193,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_message_settings_save_independently_and_only_welcome_is_exposed_to_hospital(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
         $endpoint = '/api/v1/staff/hospital-chatbot/message-settings';
         $this->getJson($endpoint)->assertOk()->assertJsonPath('data.macros.0.shortcut', '확인');
         $values = ['welcome_message' => '병의원 상담에 오신 것을 환영합니다.', 'connection_message' => '{상담원명} 상담사입니다.', 'macros' => [['shortcut' => '안내', 'content' => '안내해 드리겠습니다.']]];
@@ -211,7 +211,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_invalid_macros_do_not_replace_saved_settings(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
         $values = \App\Domains\HospitalChatBot\Models\HospitalChatBotMessageSetting::defaults();
         $values['macros'] = [['shortcut' => '확인', 'content' => '확인합니다.'], ['shortcut' => '확인', 'content' => '중복입니다.']];
         $this->putJson('/api/v1/staff/hospital-chatbot/message-settings', $values)->assertStatus(422);
@@ -226,7 +226,7 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
 
     public function test_partial_message_settings_preserve_the_other_menu_and_allow_clearing_macros(): void
     {
-        $this->loginStaff($this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]));
+        $this->loginStaff($this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]));
         $endpoint = '/api/v1/staff/hospital-chatbot/message-settings';
         $this->putJson($endpoint, ['welcome_message' => '새 안내', 'connection_message' => '새 연결 인사'])
             ->assertOk()->assertJsonPath('data.macros.0.shortcut', '확인');
@@ -260,7 +260,9 @@ final class HospitalChatBotOperatingHoursFlowTest extends TestCase
             'Origin' => $origin,
         ]);
         $response = $this->getJson("/api/v1/{$actor}/auth/csrf")->assertOk();
-        $this->withCookie("beaulab_{$actor}_session", $response->getCookie("beaulab_{$actor}_session")->getValue());
+        if ($cookie = $response->getCookie("beaulab_{$actor}_session")) {
+            $this->withCookie("beaulab_{$actor}_session", $cookie->getValue());
+        }
         $this->withHeader('X-CSRF-TOKEN', $response->json('data.csrf_token'));
         $this->app['auth']->forgetGuards();
     }

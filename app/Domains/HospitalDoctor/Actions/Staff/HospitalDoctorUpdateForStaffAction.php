@@ -32,6 +32,7 @@ final class HospitalDoctorUpdateForStaffAction
         $doctor = DB::transaction(function () use ($doctor, $payload) {
             $doctor = HospitalDoctor::query()->lockForUpdate()->findOrFail($doctor->getKey());
             $beforeHistory = $this->historyRecordAction->capture($doctor);
+            $beforeAllowStatus = (string) $doctor->allow_status;
             $historyReason = $this->historyReason($doctor, $payload);
             $updated = $this->query->update($doctor, $payload);
             $this->replaceMedia($updated, $payload);
@@ -39,6 +40,7 @@ final class HospitalDoctorUpdateForStaffAction
                 $this->syncCategories($updated, $payload['category_ids']);
             }
             $this->historyRecordAction->recordUpdated($updated, $beforeHistory, $historyReason);
+            app(\App\Domains\Common\Notification\Support\StaffReviewNotification::class)->changed('staff.doctor.requested', $updated, $beforeAllowStatus, (string) $updated->allow_status);
 
             return $updated->fresh();
         });

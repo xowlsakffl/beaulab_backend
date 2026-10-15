@@ -68,6 +68,8 @@ final class HospitalChatBotConsultationMessageQuery
 
             $existing = $this->findByClientMessageId($consultationId, $senderType, $senderId, $clientMessageId);
             if ($existing !== null) {
+                $this->assertSameContent($existing, $content);
+
                 return ['message' => $existing, 'created' => false];
             }
 
@@ -98,7 +100,8 @@ final class HospitalChatBotConsultationMessageQuery
                     Log::error('챗봇 메시지 저장 실패', [
                         'event' => HospitalChatBotLog::MESSAGE_STORE_FAILED,
                         'exception' => $exception::class,
-                        'reason' => $exception->getMessage(),
+                        'sql_state' => $exception->errorInfo[0] ?? null,
+                        'driver_code' => $exception->errorInfo[1] ?? null,
                         'consultation_id' => $consultationId,
                         'sequence' => $sequence,
                         'sender_type' => $senderType,
@@ -106,6 +109,8 @@ final class HospitalChatBotConsultationMessageQuery
 
                     throw $exception;
                 }
+
+                $this->assertSameContent($concurrent, $content);
 
                 return ['message' => $concurrent, 'created' => false];
             }
@@ -184,6 +189,13 @@ final class HospitalChatBotConsultationMessageQuery
             ->where('sender_id', $senderId)
             ->where('client_message_id', $clientMessageId)
             ->first();
+    }
+
+    private function assertSameContent(HospitalChatBotConsultationMessage $message, string $content): void
+    {
+        if ((string) $message->content !== $content) {
+            throw new CustomException(ErrorCode::INVALID_REQUEST, '같은 메시지 요청 ID로 다른 내용을 전송할 수 없습니다.');
+        }
     }
 
     private function isUniqueViolation(QueryException $exception): bool

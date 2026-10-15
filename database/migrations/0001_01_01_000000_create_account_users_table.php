@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('status')->default('ACTIVE')->comment('계정 상태(ACTIVE, SUSPENDED, BLOCKED, WITHDRAWN)');
             $table->unsignedInteger('warning_count')->default(0)->comment('신고 처리 경고 누적 횟수');
             $table->timestamp('blocked_at')->nullable()->comment('차단 처리 시각');
+            $table->boolean('blocked_by_warning')->default(false)->comment('경고 누적에 의한 자동 차단 여부');
             $table->string('withdrawal_reason', 500)->nullable()->comment('탈퇴 사유');
             $table->boolean('comment_notification_enabled')->default(true)->comment('댓글 알림 동의 여부');
             $table->boolean('note_notification_enabled')->default(true)->comment('쪽지 알림 동의 여부');

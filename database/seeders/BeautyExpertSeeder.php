@@ -20,19 +20,16 @@ final class BeautyExpertSeeder extends Seeder
             ->all();
 
         Beauty::query()
-            ->with('categories:id')
             ->get()
             ->each(function (Beauty $beauty) use ($fallbackCategoryIds): void {
                 $experts = BeautyExpert::factory()
-                    ->count(random_int(2, 5))
+                    ->count(fake()->numberBetween(2, 5))
                     ->forBeauty($beauty)
                     ->withSeedMedia()
                     ->create();
 
-                $availableCategoryIds = $beauty->categories->pluck('id')->map(static fn ($id): int => (int) $id)->all();
-                if ($availableCategoryIds === []) {
-                    $availableCategoryIds = $fallbackCategoryIds;
-                }
+                // 전문가 분류는 뷰티 매장의 분류와 이름이 같아도 별도 ID를 사용한다.
+                $availableCategoryIds = $fallbackCategoryIds;
 
                 if ($availableCategoryIds === []) {
                     return;
@@ -43,7 +40,7 @@ final class BeautyExpertSeeder extends Seeder
                 $maxAssignCount = min(2, $maxAvailable);
 
                 foreach ($experts as $expert) {
-                    $assignCount = random_int($minAssignCount, $maxAssignCount);
+                    $assignCount = fake()->numberBetween($minAssignCount, $maxAssignCount);
                     $selectedCategoryIds = collect($availableCategoryIds)
                         ->shuffle()
                         ->take($assignCount)

@@ -11,11 +11,12 @@ final class AccountUserStatusUpdateForStaffQuery
     public function update(AccountUser $user, string $status): AccountUser
     {
         $user->status = $status;
+        $user->blocked_by_warning = false;
         $user->blocked_at = $status === AccountUser::STATUS_BLOCKED
             ? ($user->blocked_at ?? now())
             : null;
 
-        if ($user->isDirty(['status', 'blocked_at'])) {
+        if ($user->isDirty(['status', 'blocked_at', 'blocked_by_warning'])) {
             $user->save();
         }
 

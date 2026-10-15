@@ -22,6 +22,10 @@ final class StaffChatbotPermissionBootstrap
             $changed = false;
 
             foreach (AccessPermissions::hospitalChatbot() as $name) {
+                // 통계는 상담 조회 보유자만 최초 복사한다. 전체 직원 부여 대상이 아니다.
+                if ($name === AccessPermissions::BEAULAB_CHATBOT_STATISTICS_SHOW) {
+                    continue;
+                }
                 // 최초 도입 때만 기존 접근을 보존한다. 재실행으로 개별 해제를 되돌리지 않는다.
                 if (Permission::where('guard_name', AccessPermissions::GUARD_STAFF)->where('name', $name)->exists()) {
                     $result[$name] = ['created' => false];

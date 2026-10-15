@@ -17,7 +17,7 @@ use Spatie\Permission\Models\Permission;
 
 final class HospitalChatBotConsultationRecordFlowTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, \Tests\Support\WithHospitalDepartment;
 
     public function createApplication(): Application
     {
@@ -201,6 +201,31 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
         self::assertSame($tricky, $row[2]);
     }
 
+    public function test_export_neutralizes_formula_prefixes_in_user_supplied_text(): void
+    {
+        $this->loginStaff();
+        $this->consultation([
+            'hospital_name_snapshot' => '=1+1',
+            'requester_name_snapshot' => '+123',
+            'assigned_staff_name_snapshot' => '-123',
+            'context_qna_question_snapshot' => '@SUM(1)',
+            'source_page_path' => "\t=1+1",
+        ]);
+        $today = now()->format('Y-m-d');
+        $csv = $this->get("/api/v1/staff/hospital-chatbot/consultations/export?status=ENDED&from={$today}&to={$today}")->assertOk()->streamedContent();
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, $csv);
+        rewind($stream);
+        fgetcsv($stream, escape: '');
+        $row = fgetcsv($stream, escape: '');
+        fclose($stream);
+        self::assertSame("'=1+1", $row[1]);
+        self::assertSame("'+123", $row[2]);
+        self::assertSame("'-123", $row[3]);
+        self::assertSame("'@SUM(1)", $row[11]);
+        self::assertSame("'\t=1+1", $row[12]);
+    }
+
     public function test_export_matches_the_screen_for_waiting_rows_and_blank_snapshots(): void
     {
         $this->loginStaff();
@@ -297,7 +322,8 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
         require base_path('routes/channels.php');
         $callback = \Illuminate\Support\Facades\Broadcast::getChannels()['hospital-chatbot.presence.{hospitalId}'];
         $hospital = AccountHospital::factory()->make(['id' => 7, 'hospital_id' => 123]);
-        $staff = AccountStaff::factory()->make(['id' => 123]);
+        $staff = AccountStaff::factory()->create(['id' => 123]);
+        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, 'staff'));
         self::assertSame(['id' => 'hospital:7', 'actor' => 'hospital'], $callback($hospital, 123));
         self::assertFalse($callback($hospital, 124));
         self::assertSame(['id' => 'staff:123', 'actor' => 'staff'], $callback($staff, 123));
@@ -375,14 +401,18 @@ final class HospitalChatBotConsultationRecordFlowTest extends TestCase
     private function loginStaff(): AccountStaff
     {
         $staff = AccountStaff::factory()->create();
-        $staff->givePermissionTo(Permission::findOrCreate(AccessPermissions::COMMON_ACCESS, 'staff'));
+        foreach ([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS] as $permission) {
+            $staff->givePermissionTo(Permission::findOrCreate($permission, 'staff'));
+        }
         $staff->forceFill(['password' => 'password1234'])->save();
         $this->staffId = (int) $staff->id;
 
         $this->app['auth']->forgetGuards();
         $this->withCredentials()->withHeaders(['X-Beaulab-Client' => 'web', 'Origin' => 'http://localhost:3000']);
         $csrf = $this->getJson('/api/v1/staff/auth/csrf')->assertOk();
-        $this->withCookie('beaulab_staff_session', $csrf->getCookie('beaulab_staff_session')->getValue());
+        if ($cookie = $csrf->getCookie('beaulab_staff_session')) {
+            $this->withCookie('beaulab_staff_session', $cookie->getValue());
+        }
         $this->withHeader('X-CSRF-TOKEN', $csrf->json('data.csrf_token'));
         $this->app['auth']->forgetGuards();
 

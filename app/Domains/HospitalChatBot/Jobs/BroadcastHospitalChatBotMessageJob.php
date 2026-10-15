@@ -76,7 +76,7 @@ final class BroadcastHospitalChatBotMessageJob implements ShouldQueue
         Log::error('챗봇 메시지 발행 실패', [
             'event' => HospitalChatBotLog::BROADCAST_FAILED,
             'exception' => $exception ? $exception::class : null,
-            'reason' => $exception?->getMessage(),
+            'exception_code' => $exception?->getCode(),
             'message_id' => $this->messageId,
             'tries' => $this->tries,
         ]);

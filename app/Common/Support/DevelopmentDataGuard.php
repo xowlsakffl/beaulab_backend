@@ -37,6 +37,9 @@ final class DevelopmentDataGuard
         if (config('sms.enabled') || config('push.enabled')) {
             throw new LogicException('개발 데이터 작업 전에 SMS_ENABLED와 PUSH_ENABLED를 꺼 주세요.');
         }
+        if (! in_array(config('mail.default'), ['log', 'array'], true)) {
+            throw new LogicException('개발 데이터 작업에는 MAIL_MAILER=log 또는 array가 필요합니다.');
+        }
     }
 
     public static function assertDemoEmpty(): void
@@ -46,6 +49,13 @@ final class DevelopmentDataGuard
             'beauties', 'beauty_experts', 'account_hospitals', 'account_beauties',
             'account_users', 'talks', 'hospital_reviews', 'hospital_evaluations',
             'hospital_events', 'hospital_wallets', 'remote_consultations',
+            'hospital_event_dbs', 'hospital_event_real_model_dbs', 'hospital_event_ads',
+            'hospital_wallet_operations', 'hospital_status_change_requests',
+            'notices', 'hospital_promotions', 'harmful_words',
+            'banner_exposures', 'event_exposures', 'review_exposures', 'video_exposures',
+            'hospital_chatbot_qnas', 'hospital_chatbot_consultations', 'hospital_chatbot_events',
+            'chats', 'site_visit_sessions', 'notification_inboxes',
+            'admin_notes', 'operation_histories', 'media',
         ] as $table) {
             if (DB::table($table)->exists()) {
                 throw new LogicException("전체 데모는 빈 업무 DB에서만 생성합니다({$table}). 기존 데이터는 변경하지 않았습니다.");

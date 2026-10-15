@@ -33,8 +33,8 @@ final class HospitalReviewFactory extends Factory
             'status' => HospitalReview::STATUS_ACTIVE,
             'view_count' => $this->faker->numberBetween(0, 20000),
             'comment_count' => 0,
-            'like_count' => $this->faker->numberBetween(0, 500),
-            'save_count' => $this->faker->numberBetween(0, 500),
+            'like_count' => 0,
+            'save_count' => 0,
         ];
     }
 

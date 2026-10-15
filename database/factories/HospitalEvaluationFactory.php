@@ -25,7 +25,7 @@ final class HospitalEvaluationFactory extends Factory
             'hospital_id' => Hospital::factory()->active()->approved(),
             'doctor_id' => null,
             'content' => $this->faker->randomElement(['예약 시간에 방문해 상담받았습니다. 직원 안내가 친절했고 진료 과정에 대한 설명을 충분히 들었습니다.', '시설이 깔끔하고 상담 내용과 예상 비용을 자세히 안내받았습니다.']),
-            'phone' => $this->faker->phoneNumber(),
+            'phone' => $this->faker->numerify('010-0000-####'),
             'author_ip' => $this->faker->ipv4(),
             'cost' => $this->faker->numberBetween(20, 1500),
             'rating_staff_kindness' => $this->faker->numberBetween(1, 5),

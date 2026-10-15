@@ -23,6 +23,13 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \App\Domains\Common\Category\Models\Category::create(['domain' => 'HOSPITAL_DEPARTMENT', 'depth' => 1,
+            'code' => 'PLASTIC_SURGERY', 'name' => '성형외과', 'full_path' => '성형외과', 'status' => 'ACTIVE']);
+    }
+
     public function createApplication(): Application
     {
         $app = parent::createApplication();
@@ -34,7 +41,7 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
         return $app;
     }
 
-    public function test_navigation_badge_tracks_waiting_and_own_unread_hospital_messages(): void
+    public function test_navigation_badge_tracks_personal_notifications_and_conversation_read(): void
     {
         Bus::fake();
         [$staff, $account, $id] = $this->connectedConsultation();
@@ -43,14 +50,34 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
         self::assertFalse($badge()['has_new']);
         $this->login('hospital', $account, 'http://localhost:3002');
         $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$id}/messages", ['content' => '확인 부탁드립니다.'])->assertOk();
+        foreach (\Illuminate\Support\Facades\DB::table('staff_notification_outbox')->whereNull('processed_at')->pluck('id') as $outboxId) {
+            app(\App\Domains\Common\Notification\Actions\StaffNotificationOutboxAction::class)->process((int) $outboxId);
+        }
         $this->login('staff', $staff, 'http://localhost:3000');
         self::assertSame(['count' => 1, 'has_new' => true], $badge());
-        $other = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $this->getJson('/api/v1/staff/notifications/unread-count')->assertOk()->assertJsonPath('data.unread_count', 1);
+        $targets = [['target_type' => 'hospital_chatbot_consultation', 'target_id' => $id]];
+        $batch = fn () => $this->postJson('/api/v1/staff/notifications/unread-targets', ['targets' => $targets])->assertOk()->json('data.targets.0.unread_count');
+        self::assertSame(1, $batch());
+        $notifications = app(\App\Domains\Common\Notification\Actions\StaffNotificationForStaffAction::class);
+        $snapshot = $notifications->unread($staff, $targets[0]);
+        self::assertSame(0, $notifications->readAll($staff, $snapshot['read_all_token'])['updated_count']);
+        self::assertSame(1, $batch());
+        $other = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         self::assertSame(0, app(\App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotConsultationReadForStaffQuery::class)->attentionCount($other->id));
-        app(\App\Domains\HospitalChatBot\Queries\Staff\HospitalChatBotConsultationReadForStaffQuery::class)->mark($id, $staff->id, 2);
+        self::assertSame(0, $notifications->unreadTargets($other, $targets)['targets'][0]['unread_count']);
+        HospitalChatBotConsultation::query()->whereKey($id)->update(['assigned_staff_id' => $other->id]);
+        self::assertSame(0, $batch());
+        HospitalChatBotConsultation::query()->whereKey($id)->update(['assigned_staff_id' => $staff->id]);
+        self::assertSame(1, $batch());
+        $version = (int) \Illuminate\Support\Facades\DB::table('staff_notification_states')->where('staff_id', $staff->id)->value('version');
+        $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$id}/read", ['sequence' => 2])->assertOk();
         self::assertFalse($badge()['has_new']);
+        self::assertSame(0, $batch());
+        self::assertSame($version + 1, (int) \Illuminate\Support\Facades\DB::table('staff_notification_states')->where('staff_id', $staff->id)->value('version'));
         HospitalChatBotConsultation::query()->whereKey($id)->update(['status' => 'WAITING', 'assigned_staff_id' => null]);
-        self::assertTrue($badge()['has_new']);
+        // 업무가 대기 상태여도 새 알림을 받지 않았다면 메뉴 숫자를 만들지 않는다.
+        self::assertFalse($badge()['has_new']);
         HospitalChatBotConsultation::query()->whereKey($id)->update(['status' => 'CANCELED']);
         self::assertFalse($badge()['has_new']);
     }
@@ -114,8 +141,41 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
 
         self::assertSame($first, $second);
         self::assertSame(2, HospitalChatBotConsultationMessage::query()->count());
-        // 재시도는 다시 발행하지 않는다.
-        Bus::assertDispatchedTimes(BroadcastHospitalChatBotMessageJob::class, 2);
+        // 워커가 아직 전달하지 않았다면 재시도도 복구 기회가 된다.
+        Bus::assertDispatchedTimes(BroadcastHospitalChatBotMessageJob::class, 3);
+        HospitalChatBotConsultationMessage::whereKey($first)->update(['broadcast_pending' => false]);
+        $this->postJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages", $payload)->assertOk();
+        Bus::assertDispatchedTimes(BroadcastHospitalChatBotMessageJob::class, 3);
+    }
+
+    public function test_reusing_a_message_key_with_different_content_is_rejected(): void
+    {
+        Bus::fake();
+        [, $account, $id] = $this->connectedConsultation();
+        $this->login('hospital', $account, 'http://localhost:3002');
+        $url = "/api/v1/hospital/hospital-chatbot/consultations/{$id}/messages";
+        $this->postJson($url, ['content' => '첫 내용', 'client_message_id' => 'same-key'])->assertOk();
+        $this->postJson($url, ['content' => '다른 내용', 'client_message_id' => 'same-key'])
+            ->assertStatus(422)->assertJsonPath('error.code', 'INVALID_REQUEST');
+        self::assertSame(1, HospitalChatBotConsultationMessage::where('client_message_id', 'same-key')->count());
+    }
+
+    public function test_queue_failure_does_not_turn_a_saved_message_into_an_api_failure(): void
+    {
+        Bus::fake();
+        [, $account, $id] = $this->connectedConsultation();
+        $this->login('hospital', $account, 'http://localhost:3002');
+        $dispatcher = Bus::getFacadeRoot();
+        Bus::shouldReceive('dispatch')->andThrow(new \RuntimeException('격리된 큐 장애'));
+        $url = "/api/v1/hospital/hospital-chatbot/consultations/{$id}/messages";
+        $payload = ['content' => '저장 후 재전달', 'client_message_id' => 'queue-failure'];
+        $messageId = $this->postJson($url, $payload)->assertOk()->json('data.id');
+        self::assertTrue(HospitalChatBotConsultationMessage::findOrFail($messageId)->broadcast_pending);
+        Bus::swap($dispatcher);
+        Bus::fake();
+        self::assertSame($messageId, $this->postJson($url, $payload)->assertOk()->json('data.id'));
+        self::assertSame(1, HospitalChatBotConsultationMessage::where('client_message_id', 'queue-failure')->count());
+        Bus::assertDispatched(BroadcastHospitalChatBotMessageJob::class);
     }
 
     public function test_connection_uses_saved_greeting_and_retry_does_not_duplicate_it(): void
@@ -138,7 +198,7 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
     {
         Bus::fake();
 
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -166,6 +226,11 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
             ->assertStatus(409)
             ->assertJsonPath('error.code', 'CONSULTATION_NOT_ACTIVE');
 
+        $this->getJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages")
+            ->assertOk()->assertJsonCount(1, 'data');
+        $this->login('hospital', $this->hospitalAccount(), 'http://localhost:3002');
+        $this->getJson("/api/v1/hospital/hospital-chatbot/consultations/{$consultationId}/messages")->assertNotFound();
+
         self::assertSame(1, HospitalChatBotConsultationMessage::query()->count());
     }
 
@@ -175,7 +240,7 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
 
         [, $account, $consultationId] = $this->connectedConsultation();
 
-        $other = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $other = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $other, 'http://localhost:3000');
         $this->postJson("/api/v1/staff/hospital-chatbot/consultations/{$consultationId}/messages", [
             'content' => '담당이 아닌 상담원',
@@ -360,7 +425,7 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
     /** @return array{0: AccountStaff, 1: AccountHospital, 2: int} */
     private function connectedConsultation(): array
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -402,7 +467,9 @@ final class HospitalChatBotConsultationMessageFlowTest extends TestCase
         $this->app['auth']->forgetGuards();
         $this->withCredentials()->withHeaders(['X-Beaulab-Client' => 'web', 'Origin' => $origin]);
         $csrf = $this->getJson("/api/v1/{$actor}/auth/csrf")->assertOk();
-        $this->withCookie("beaulab_{$actor}_session", $csrf->getCookie("beaulab_{$actor}_session")->getValue());
+        if ($cookie = $csrf->getCookie("beaulab_{$actor}_session")) {
+            $this->withCookie("beaulab_{$actor}_session", $cookie->getValue());
+        }
         $this->withHeader('X-CSRF-TOKEN', $csrf->json('data.csrf_token'));
         $this->app['auth']->forgetGuards();
 

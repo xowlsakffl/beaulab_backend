@@ -25,9 +25,9 @@ final class HospitalDoctorSeeder extends Seeder
 
         Hospital::query()
             ->get()
-            ->each(function (Hospital $hospital) use ($doctorCategoryIds, $specialistFields, &$specialistFieldIndex): void {
+            ->each(function (Hospital $hospital, int $hospitalIndex) use ($doctorCategoryIds, $specialistFields, &$specialistFieldIndex): void {
                 $doctors = collect();
-                $doctorCount = random_int(2, 5);
+                $doctorCount = $hospitalIndex === 0 ? 7 : 5;
 
                 for ($index = 0; $index < $doctorCount; $index++) {
                     $specialistField = $specialistFields[$specialistFieldIndex % count($specialistFields)];
@@ -38,7 +38,13 @@ final class HospitalDoctorSeeder extends Seeder
                             ->forHospital($hospital)
                             ->specialistField($specialistField)
                             ->withSeedMedia()
-                            ->create()
+                            ->create([
+                                'status' => match ($index) {
+                                    4 => 'SUSPENDED', 6 => 'INACTIVE', default => 'ACTIVE'
+                                },
+                                'allow_status' => ['APPROVED', 'PENDING', 'REVIEWING', 'REJECTED', 'APPROVED', 'NOT_APPLIED', 'APPROVED'][$index],
+                                'created_at' => now()->subMonths(13),
+                            ])
                     );
                 }
 
@@ -51,7 +57,7 @@ final class HospitalDoctorSeeder extends Seeder
                 $maxAssignCount = min(2, $maxAvailable);
 
                 foreach ($doctors as $doctor) {
-                    $assignCount = random_int($minAssignCount, $maxAssignCount);
+                    $assignCount = fake()->numberBetween($minAssignCount, $maxAssignCount);
                     $selectedCategoryIds = collect($doctorCategoryIds)
                         ->shuffle()
                         ->take($assignCount)

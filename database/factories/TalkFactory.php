@@ -27,8 +27,8 @@ final class TalkFactory extends Factory
             'pinned_order' => $this->faker->numberBetween(0, 20),
             'view_count' => $this->faker->numberBetween(0, 5000),
             'comment_count' => 0,
-            'like_count' => $this->faker->numberBetween(0, 300),
-            'save_count' => $this->faker->numberBetween(0, 300),
+            'like_count' => 0,
+            'save_count' => 0,
         ];
     }
 

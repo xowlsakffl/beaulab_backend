@@ -24,7 +24,7 @@ final class AccountUserStatisticsDevelopmentSeeder extends Seeder
             $inserted = 0;
             for ($day = $start; $day <= $now; $day = $day->addDay()) {
                 $date = $day->toDateString();
-                $dailyCount = 80 + (int) sprintf('%u', crc32($date)) % 140 + $day->month * 8;
+                $dailyCount = 12 + (int) sprintf('%u', crc32($date)) % 24 + $day->month;
                 if ($day->isWeekend()) {
                     $dailyCount = (int) round($dailyCount * 0.65);
                 }

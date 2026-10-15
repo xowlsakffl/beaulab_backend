@@ -1,31 +1,21 @@
 # 뷰랩 백엔드
 
-성형·뷰티 플랫폼의 Laravel API 서버입니다. 내부 운영자, 병의원, 뷰티 업체, 일반 사용자의 API와 인증 경계를 분리하고, 업무 데이터와 공통 운영 기능을 관리합니다.
+병의원·회원·콘텐츠·상담·광고·포인트·직원 운영을 담당하는 Laravel API입니다. 서비스 공통 업무 기준서는 이 저장소에서 관리합니다.
 
-## 처음 시작한다면
+- [시스템 기준서](docs/README.md), [시스템 개요](docs/overview.md), [기능 지도](docs/feature-map.md)
+- [백엔드 구조](docs/technical/architecture.md), [API와 보안](docs/technical/api-security.md)
+- [로컬 실행](docs/operations/local-development.md), [개발 데이터](docs/operations/development-data.md)
+- [작업 규칙](docs/working-rules.md), [AGENTS](AGENTS.md)
+- [프론트 저장소](https://github.com/beaulab/beaulab_new_frontend)
 
-[개발 시작 안내](develop-doc/README.md)에서 환경 설정과 실행 순서를 확인하세요.
-프론트엔드 연동 담당자는 [API·인증](develop-doc/api.md)을 먼저 읽으면 됩니다.
+## 구성
 
-| 문서                                            | 확인할 내용                                              |
-| ----------------------------------------------- | -------------------------------------------------------- |
-| [구조와 개발 기준](develop-doc/architecture.md) | 폴더 역할, 도메인 위치, 변경·검증 방법                   |
-| [API·인증](develop-doc/api.md)                  | 응답, 페이지네이션, 웹 세션, 권한, 병의원 계정 생성·재설정 |
-| [도메인 규칙](develop-doc/domain-rules.md)      | 검수·노출 상태, 카테고리, 이벤트, 신고, 운영 히스토리    |
-| [충전금](develop-doc/hospital-wallet.md)        | 원장, 가용 잔액, 환불, 멱등성, 현황 집계                 |
-| [메시징](develop-doc/messaging.md)              | 채팅, 인앱 알림, Push, SMS와 재시도                      |
-| [운영 절차](develop-doc/operations.md)          | 큐, 스케줄러, 로그, 배포, 민감 파일 이전                 |
+PHP 8.3 이상, Laravel 12, MySQL 8, Redis를 사용합니다. 직원·병의원·일반회원·뷰티 API를 주체별로 구분하고 도메인별 Action·Query·Policy·Model에 업무를 배치합니다. 큐·스케줄러·실시간 서버는 HTTP 서버와 별도입니다.
 
-## 구현 범위
+의존성은 [composer.json](composer.json)과 잠금 파일, 스키마는 [마이그레이션](database/migrations), API 진입은 [routes/api.php](routes/api.php)가 기준입니다. 자동 API 문서는 내부 도구 접근 제한을 따릅니다.
 
-- 내부 운영: 계정·병의원·뷰티·의료진·입점신청, 이벤트·광고·영상, 게시물·신고, 충전금, 공지 관리.
-- 일반 사용자: 계정, 커뮤니티·후기·평가, 이벤트 상담신청, 사용자 간 채팅·차단·신고, 알림.
-- 병의원 관리자: 계정 생성·이메일 인증·로그인·비밀번호 재설정, 계정 조회·메모, 영상의 병의원 상태 변경.
-- 뷰티 관리자: 인증·계정 정보·비밀번호·메모. 전체 파트너 업무 API가 구현된 것은 아닙니다.
+## 실행 안전
 
-실제 제공 여부는 [Actor별 라우트](app/Modules)에서 확인합니다. 기획 화면, 모델 또는 빈 도메인 폴더가 있다는 이유로 API가 완성됐다고 판단하지 않습니다.
+기존 환경에서는 `composer setup`을 일반 실행 명령으로 쓰지 않습니다. 키 생성·마이그레이션이 포함됩니다. DB 변경·시드·큐·외부 발송·배포는 대상과 부작용을 확인한 뒤 실행합니다.
 
-## 관련 저장소
-
-- 백엔드 원격 저장소: `https://github.com/beaulab/beaulab_new_dev.git`
-- 프론트엔드 원격 저장소: `https://github.com/beaulab/beaulab_new_frontend.git`
+현재 구현과 미연결 기능·운영 미검증 사항은 기준서에 구분합니다. 문서 설명이 운영 배포 완료를 뜻하지 않습니다.

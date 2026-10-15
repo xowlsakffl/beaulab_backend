@@ -18,6 +18,7 @@ use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalEvaluation\Models\HospitalEvaluation;
 use App\Domains\HospitalReview\Models\HospitalReview;
 use App\Domains\HospitalReview\Models\HospitalReviewComment;
+use App\Domains\HospitalVideo\Models\HospitalVideo;
 use App\Domains\Talk\Models\Talk;
 use App\Domains\Talk\Models\TalkComment;
 use Carbon\CarbonInterface;
@@ -93,6 +94,15 @@ final class ReportedContentDevelopmentSeeder extends Seeder
                 'content' => self::PREFIX.$statusLabel.' 화면 확인용 내용입니다. 실제 신고가 아닌 합성 데이터입니다.',
                 'created_at' => now()->subDays(2), 'updated_at' => now()->subHours(2),
             ];
+            $videoTitle = self::PREFIX.'동영상 '.$statusLabel;
+            if ($status !== ContentReportState::STATUS_AUTO_BLOCKED && ! HospitalVideo::withTrashed()->where('title', $videoTitle)->exists()) {
+                $video = HospitalVideo::factory()->forHospital($hospital)->withSeedCategories()->withSeedMedia()->create([
+                    'title' => $videoTitle, 'hospital_status' => 'PUBLIC',
+                    'admin_status' => $hidden ? 'FORCED_STOPPED' : 'NORMAL',
+                    'created_at' => now()->subDays(2), 'updated_at' => now()->subHours(2),
+                ]);
+                $this->report($video, $status, $count, $reporters, $staff, ContentReportState::WARNING_STATUS_NONE);
+            }
 
             foreach ($reviewCategories as $domain => $categoryId) {
                 $label = $domain === HospitalReview::CATEGORY_DOMAIN_SURGERY ? '성형후기' : '쁘띠후기';
@@ -176,7 +186,7 @@ final class ReportedContentDevelopmentSeeder extends Seeder
         $lastAt = now()->subMinutes(5);
         $firstAt = $lastAt->copy()->subMinutes($count - 1);
         $authorId = $target->getAttribute('author_id') ?? $target->getAttribute('sender_user_id');
-        $snapshot = $target->getAttribute('content') ?? $target->getAttribute('body');
+        $snapshot = $target->getAttribute('content') ?? $target->getAttribute('body') ?? $target->getAttribute('title');
         foreach (array_slice($reporters, 0, $count) as $index => $reporter) {
             $at = $firstAt->copy()->addMinutes($index);
             $attributes = [
@@ -224,7 +234,8 @@ final class ReportedContentDevelopmentSeeder extends Seeder
             $author->save();
         }
         $this->history($target, $staff, OperationHistory::ACTION_CREATED, $target->created_at, null, null);
-        $this->history($target, $staff, OperationHistory::ACTION_UPDATED, $firstAt->copy()->subMinute(), $target instanceof ChatMessage ? 'body' : 'content', $snapshot);
+        $field = $target instanceof ChatMessage ? 'body' : ($target instanceof HospitalVideo ? 'title' : 'content');
+        $this->history($target, $staff, OperationHistory::ACTION_UPDATED, $firstAt->copy()->subMinute(), $field, $snapshot);
         if ($processed || $status === ContentReportState::STATUS_AUTO_BLOCKED) {
             $this->history($target, $staff, OperationHistory::ACTION_STATE_UPDATED,
                 $status === ContentReportState::STATUS_AUTO_BLOCKED ? $lastAt : $processedAt,
@@ -238,7 +249,7 @@ final class ReportedContentDevelopmentSeeder extends Seeder
 
     private function history(Model $target, AccountStaff $staff, string $action, CarbonInterface $at, ?string $field, mixed $after, bool $system = false): void
     {
-        $isUser = $action !== OperationHistory::ACTION_STATE_UPDATED;
+        $isUser = $action !== OperationHistory::ACTION_STATE_UPDATED && ! $target instanceof HospitalVideo;
         $history = OperationHistory::query()->create([
             'target_type' => $target::class, 'target_id' => $target->getKey(),
             'actor_type' => $system ? null : ($isUser ? AccountUser::class : AccountStaff::class),

@@ -28,9 +28,11 @@ final class HospitalEntryUpdateForStaffAction
         $updated = DB::transaction(function () use ($entry, $payload): HospitalEntry {
             $entry = HospitalEntry::query()->lockForUpdate()->findOrFail($entry->getKey());
             $beforeHistory = $this->historyRecordAction->capture($entry);
+            $beforeAllowStatus = (string) $entry->allow_status;
             $updated = $this->query->update($entry, $payload);
             $this->replaceMedia($updated, $payload);
             $this->historyRecordAction->recordUpdated($updated, $beforeHistory);
+            app(\App\Domains\Common\Notification\Support\StaffReviewNotification::class)->changed('staff.hospital_entry.requested', $updated, $beforeAllowStatus, (string) $updated->allow_status);
 
             return $updated->fresh();
         });

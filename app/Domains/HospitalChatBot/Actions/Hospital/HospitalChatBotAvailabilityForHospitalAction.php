@@ -43,7 +43,7 @@ final class HospitalChatBotAvailabilityForHospitalAction
             Log::error('챗봇 운영시간 계산 실패', [
                 'event' => HospitalChatBotLog::OPERATING_HOURS_FAILED,
                 'exception' => $exception::class,
-                'reason' => $exception->getMessage(),
+                'exception_code' => $exception->getCode(),
             ]);
 
             return [

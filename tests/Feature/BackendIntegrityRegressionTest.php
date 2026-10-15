@@ -68,35 +68,40 @@ final class BackendIntegrityRegressionTest extends TestCase
         $leaf = $this->category('마지막', ['parent_id' => $child->id, 'depth' => 3, 'full_path' => '분류%_ > 하위 > 마지막', 'group_code' => 'SURGERY']);
         $other = $this->category('분류다른');
         $unrelated = $this->category('별개', ['parent_id' => $other->id, 'depth' => 2, 'full_path' => '분류다른 > 별개']);
-        app(CategoryUpdateForStaffAction::class)->execute($root, ['name' => '가격$1', 'group_code' => 'TREATMENT']);
+        app(CategoryUpdateForStaffAction::class)->execute($root, ['name' => '가격$1']);
         self::assertSame('가격$1 > 하위', $child->fresh()->full_path);
         self::assertSame('가격$1 > 하위 > 마지막', $leaf->fresh()->full_path);
-        self::assertSame('TREATMENT', $leaf->fresh()->group_code);
+        self::assertSame('SURGERY', $leaf->fresh()->group_code);
         self::assertSame('분류다른 > 별개', $unrelated->fresh()->full_path);
         self::assertNull($unrelated->fresh()->group_code);
     }
 
-    public function test_explicit_null_clears_category_code_and_group(): void
+    public function test_existing_category_code_and_group_cannot_be_cleared(): void
     {
         $category = $this->category('분류', ['code' => 'original', 'group_code' => 'SURGERY']);
         $request = CategoryUpdateForStaffRequest::create('/', 'PATCH', ['code' => null, 'group_code' => null]);
         $request->setContainer($this->app)->setRedirector($this->app['redirect']);
         $request->validateResolved();
-        app(CategoryUpdateForStaffAction::class)->execute($category, $request->validated());
-        self::assertNull($category->fresh()->code);
-        self::assertNull($category->fresh()->group_code);
+        try {
+            app(CategoryUpdateForStaffAction::class)->execute($category, $request->validated());
+            self::fail('기존 연결 식별자를 변경할 수 없어야 합니다.');
+        } catch (CustomException $exception) {
+            self::assertStringContainsString('변경할 수 없습니다', $exception->getMessage());
+        }
+        self::assertSame('original', $category->fresh()->code);
+        self::assertSame('SURGERY', $category->fresh()->group_code);
         self::assertSame('분류', $category->fresh()->name);
     }
 
     public function test_new_child_inherits_updated_parent_path_and_group(): void
     {
-        $root = $this->category('기존 분류', ['group_code' => 'SURGERY']);
-        app(CategoryUpdateForStaffAction::class)->execute($root, ['name' => '변경 분류', 'group_code' => 'TREATMENT']);
+        $root = $this->category('기존 분류', ['domain' => Category::DOMAIN_HOSPITAL_MEDICAL, 'group_code' => 'SURGERY']);
+        app(CategoryUpdateForStaffAction::class)->execute($root, ['name' => '변경 분류']);
         $result = app(CategoryCreateForStaffAction::class)->execute([
-            'domain' => Category::DOMAIN_TALK, 'parent_id' => $root->id, 'name' => '하위 분류',
+            'domain' => Category::DOMAIN_HOSPITAL_MEDICAL, 'parent_id' => $root->id, 'name' => '하위 분류',
         ]);
         self::assertSame('변경 분류 > 하위 분류', $result['category']['full_path']);
-        self::assertSame('TREATMENT', $result['category']['group_code']);
+        self::assertSame('SURGERY', $result['category']['group_code']);
         self::assertArrayNotHasKey('parent_scope_id', $result['category']);
     }
 

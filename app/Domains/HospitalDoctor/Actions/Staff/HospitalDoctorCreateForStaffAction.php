@@ -36,6 +36,7 @@ final class HospitalDoctorCreateForStaffAction
             $this->mediaAttachAction->attachOne($doctor, $payload['specialist_certificate_image'] ?? null, 'specialist_certificate_image', 'doctor', 'specialist-certificate-image');
             $this->syncCategories($doctor, $payload['category_ids'] ?? []);
             $this->historyRecordAction->recordCreated($doctor);
+            app(\App\Domains\Common\Notification\Support\StaffReviewNotification::class)->changed('staff.doctor.requested', $doctor, null, (string) $doctor->allow_status);
 
             return $doctor->fresh();
         });

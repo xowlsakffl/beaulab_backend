@@ -48,7 +48,7 @@ final class BeautySeeder extends Seeder
         $maxAssignCount = min(4, $maxAvailable);
 
         foreach ($beauties as $beauty) {
-            $assignCount = random_int($minAssignCount, $maxAssignCount);
+            $assignCount = fake()->numberBetween($minAssignCount, $maxAssignCount);
             $selectedCategoryIds = collect($categoryIds)
                 ->shuffle()
                 ->take($assignCount)

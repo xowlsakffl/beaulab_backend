@@ -40,10 +40,10 @@ final class HospitalFactory extends Factory
             'latitude' => $this->faker->latitude(33.0, 38.6),
             'longitude' => $this->faker->longitude(124.5, 132.0),
 
-            'tel' => $this->faker->phoneNumber(),
-            'ad_reception_phone_1' => $this->faker->numerify('010-####-####'),
-            'ad_reception_phone_2' => $this->faker->optional(0.5)->numerify('010-####-####'),
-            'ad_reception_phone_3' => $this->faker->optional(0.3)->numerify('010-####-####'),
+            'tel' => $this->faker->numerify('010-0000-####'),
+            'ad_reception_phone_1' => $this->faker->numerify('010-0000-####'),
+            'ad_reception_phone_2' => $this->faker->optional(0.5)->numerify('010-0000-####'),
+            'ad_reception_phone_3' => $this->faker->optional(0.3)->numerify('010-0000-####'),
 
             'consulting_hours' => $this->faker->optional(0.6)->randomElement(['평일 오전 10시부터 오후 7시까지 상담 가능합니다.', '토요일은 오후 3시까지 상담 가능합니다.']),
             'operation_hours' => $this->defaultOperationHours(),
@@ -131,7 +131,7 @@ final class HospitalFactory extends Factory
                 'settlement_bank_name' => $this->faker->randomElement(['국민은행', '신한은행', '우리은행', '하나은행']),
                 'settlement_account_number' => $this->faker->numerify('###-######-#####'),
                 'settlement_account_holder' => fake('ko_KR')->name(),
-                'tax_invoice_email' => $this->faker->companyEmail(),
+                'tax_invoice_email' => $this->faker->safeEmail(),
                 'issued_at' => $this->faker->date(),
                 'status' => HospitalBusinessRegistration::STATUS_ACTIVE,
             ]);

@@ -51,6 +51,8 @@ final class BannerExposureDevelopmentSeeder extends Seeder
                         'event_start_at' => $week->copy()->subMonth(), 'event_end_at' => $week->copy()->addMonths(3),
                     ]);
                     $event->categories()->sync([$category->id => ['is_primary' => true]]);
+                    $price = app(\App\Domains\ConsultationPricing\Support\ConsultationPricingResolver::class)->forEvent($event)['price'];
+                    $event->forceFill(['base_consultation_price' => $price, 'consultation_price' => $price])->save();
                     $this->image($event, HospitalEvent::COLLECTION_THUMBNAIL_IMAGE);
                 }
                 if ($event->trashed()) {

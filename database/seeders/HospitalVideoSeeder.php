@@ -28,19 +28,23 @@ final class HospitalVideoSeeder extends Seeder
         }
 
         foreach ($hospitals as $hospitalIndex => $hospital) {
-            $videoCount = ($hospitalIndex % 3) + 1;
+            $videoCount = 4;
 
             for ($index = 0; $index < $videoCount; $index++) {
                 $factory = HospitalVideo::factory()
                     ->forHospital($hospital)
-                    ->withSeedCategories(random_int(1, 3))
+                    ->withSeedCategories(fake()->numberBetween(1, 3))
                     ->withSeedMedia();
 
                 if (($hospitalIndex + $index) % 2 === 0) {
                     $factory = $factory->active()->approved();
                 }
 
-                $factory->create();
+                $factory->create([
+                    'hospital_status' => $index === 2 ? 'PRIVATE' : 'PUBLIC',
+                    'admin_status' => $index === 3 ? 'FORCED_STOPPED' : 'NORMAL',
+                    'created_at' => now()->subDays(90),
+                ]);
             }
         }
     }

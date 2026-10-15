@@ -31,6 +31,7 @@ final class RemoteConsultationStatusForStaffAction
             }
             $before = $c->approval_status;
             $c->update(['approval_status' => $status]);
+            app(\App\Domains\Common\Notification\Actions\StaffNotificationPublisher::class)->invalidateTarget('remote_consultation', (int) $c->id);
             $labels = ['PENDING' => '신청', 'REVIEWING' => '검수', 'REJECTED' => '반려'];
             app(OperationHistoryCreateAction::class)->execute(
                 target: $c, action: OperationHistory::ACTION_STATE_UPDATED, actor: auth()->user(),

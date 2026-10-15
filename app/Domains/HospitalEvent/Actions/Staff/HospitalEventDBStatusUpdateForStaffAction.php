@@ -42,6 +42,8 @@ final class HospitalEventDBStatusUpdateForStaffAction
             $updatedCount = $this->query->updateStatus($existingIds, $values);
 
             foreach ($eventDBs as $eventDB) {
+                app(\App\Domains\Common\Notification\Actions\StaffNotificationPublisher::class)
+                    ->invalidateTarget('hospital_event_db', (int) $eventDB->id);
                 $this->historyRecordAction->recordStatusUpdated(
                     $eventDB,
                     (string) $eventDB->status,

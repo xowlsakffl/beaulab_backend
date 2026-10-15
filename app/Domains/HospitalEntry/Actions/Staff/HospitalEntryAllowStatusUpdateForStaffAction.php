@@ -39,6 +39,7 @@ final class HospitalEntryAllowStatusUpdateForStaffAction
                 if ($beforeStatus === $allowStatus) {
                     continue;
                 }
+                app(\App\Domains\Common\Notification\Support\StaffReviewNotification::class)->changed('staff.hospital_entry.requested', $entry, $beforeStatus, $allowStatus);
 
                 $this->historyRecordAction->recordAllowStatusUpdated(
                     $entry,

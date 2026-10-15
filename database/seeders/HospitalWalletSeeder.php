@@ -8,7 +8,6 @@ use App\Common\Support\DevelopmentDataGuard;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalWallet\Models\HospitalWallet;
-use App\Domains\HospitalWallet\Models\HospitalWalletOperation;
 use Database\Factories\HospitalWalletOperationFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -19,141 +18,50 @@ final class HospitalWalletSeeder extends Seeder
     public function run(): void
     {
         DevelopmentDataGuard::assertEnabled();
-        if (! app()->environment(['local', 'testing'])) {
-            throw new \LogicException('충전금 데모 데이터는 local/testing 환경에서만 생성할 수 있습니다.');
-        }
+        $staff = AccountStaff::where('nickname', 'test_super_admin')->firstOrFail();
+        Hospital::orderBy('id')->get()->each(function (Hospital $hospital, int $index) use ($staff): void {
+            DB::transaction(function () use ($hospital, $index, $staff): void {
+                $wallet = $hospital->wallet()->first() ?? HospitalWallet::factory()->forHospital($hospital)->create();
+                if ($wallet->operations()->exists()) {
+                    return;
+                }
+                if ($wallet->paid_balance || $wallet->service_balance || $wallet->reserved_paid_balance) {
+                    throw new \LogicException('원장이 없는 잔액을 샘플 거래와 혼합하지 않습니다.');
+                }
+                // 승인된 병의원 중 무거래·잔액 부족 사례를 각각 남긴다.
+                if ($index === 12) {
+                    return;
+                }
+                if ($index === 13) {
+                    $this->create(HospitalWalletOperationFactory::new()->chargeCompleted($wallet, 5000), now()->subDays(3), '개발용 소액 충전');
 
-        $staff = AccountStaff::query()->orderBy('id')->first();
-
-        Hospital::query()
-            ->orderBy('id')
-            ->each(function (Hospital $hospital) use ($staff): void {
-                DB::transaction(function () use ($hospital, $staff): void {
-                    $wallet = $hospital->wallet()->first()
-                        ?? HospitalWallet::factory()->forHospital($hospital)->create();
-
-                    if ($wallet->operations()->exists()) {
-                        return;
-                    }
-
-                    $this->seedOperations($wallet, $staff);
-                });
+                    return;
+                }
+                for ($month = 5; $month >= 0; $month--) {
+                    $at = now()->subMonthsNoOverflow($month)->subHours(8);
+                    $amount = 500000 + $index * 10000 + (5 - $month) * 25000;
+                    $this->create(HospitalWalletOperationFactory::new()->chargeCompleted($wallet, $amount), $at, '개발용 충전 완료');
+                    $this->create(HospitalWalletOperationFactory::new()->serviceGrant($wallet, 180000)->performedBy($staff), $at->copy()->addMinute(), '개발용 서비스 포인트 적립');
+                    $this->create(HospitalWalletOperationFactory::new()->serviceReclaim($wallet, 20000)->performedBy($staff), $at->copy()->addMinutes(2), '개발용 서비스 포인트 회수');
+                    $this->create(HospitalWalletOperationFactory::new()->usage($wallet, 220000, '개발용 과거 소진'), $at->copy()->addMinutes(3), '서비스 포인트 우선 소진 사례');
+                    $this->create(HospitalWalletOperationFactory::new()->refundCompleted($wallet, 20000)->performedBy($staff), $at->copy()->addMinutes(4), '개발용 완료 환불');
+                }
+                $this->create(HospitalWalletOperationFactory::new()->serviceGrant($wallet, 100000)->performedBy($staff), now()->subHours(7), '비대면 답변용 서비스 포인트');
+                $this->create(HospitalWalletOperationFactory::new()->chargePending($wallet, 100000), now()->subHours(2), '개발용 입금 대기', 'PENDING');
+                $this->create(HospitalWalletOperationFactory::new()->chargeCanceled($wallet, 50000), now()->subHour(), '개발용 입금 취소', 'CANCELED');
+                $this->create(HospitalWalletOperationFactory::new()->chargePending($wallet, 30000)->state(['status' => 'FAILED', 'failed_at' => now()->subMinutes(50)]), now()->subMinutes(50), '개발용 결제 실패', 'FAILED');
+                $this->create(HospitalWalletOperationFactory::new()->refundRejected($wallet, 10000)->performedBy($staff)->withRefundSeedMedia(), now()->subMinutes(45), '개발용 서류 미비 반려', 'REJECTED');
+                $this->create(HospitalWalletOperationFactory::new()->refundPending($wallet, 10000)->requestedBy($staff)->withRefundSeedMedia(), now()->subMinutes(40), '개발용 승인 대기 환불', 'PENDING');
             });
+        });
     }
 
-    private function seedOperations(HospitalWallet $wallet, ?AccountStaff $staff): void
+    private function create(HospitalWalletOperationFactory $factory, Carbon $at, string $reason, string $status = 'COMPLETED'): void
     {
-        $occurredAt = now()->subDays(random_int(30, 90))->startOfDay()->addHours(10);
-        $paidCharge = random_int(100, 500) * 10000;
-        $serviceGrant = random_int(10, 50) * 10000;
-
-        $this->create(
-            HospitalWalletOperationFactory::new()->chargeCompleted($wallet, $paidCharge),
-            $occurredAt,
-            '가상계좌 입금 완료',
-        );
-
-        $occurredAt = $occurredAt->copy()->addDays(random_int(1, 5));
-        $this->create(
-            HospitalWalletOperationFactory::new()->serviceGrant($wallet, $serviceGrant),
-            $occurredAt,
-            '프로모션 서비스 포인트 지급',
-            $staff,
-        );
-
-        $occurredAt = $occurredAt->copy()->addDays(random_int(1, 7));
-        $usageAmount = min(random_int(10, 100) * 10000, $wallet->refresh()->availableTotalBalance());
-        $this->create(
-            HospitalWalletOperationFactory::new()->usage($wallet, $usageAmount, '이벤트 DB 확인'),
-            $occurredAt,
-            '이벤트 DB 확인',
-        );
-
-        if ((int) $wallet->refresh()->service_balance >= 20000 && random_int(0, 1) === 1) {
-            $occurredAt = $occurredAt->copy()->addDays(random_int(1, 5));
-            $reclaimAmount = min(random_int(1, 5) * 10000, (int) $wallet->service_balance);
-
-            $this->create(
-                HospitalWalletOperationFactory::new()->serviceReclaim($wallet, $reclaimAmount),
-                $occurredAt,
-                '미사용 서비스 포인트 회수',
-                $staff,
-            );
-        }
-
-        $pendingAt = now()->subHours(2);
-        $this->create(
-            HospitalWalletOperationFactory::new()->chargePending($wallet, random_int(10, 100) * 10000),
-            $pendingAt,
-            '가상계좌 입금 대기',
-            status: HospitalWalletOperation::STATUS_PENDING,
-        );
-
-        if (random_int(0, 2) === 0) {
-            $canceledAt = $pendingAt->copy()->addHour();
-            $this->create(
-                HospitalWalletOperationFactory::new()->chargeCanceled($wallet, random_int(10, 100) * 10000),
-                $canceledAt,
-                '입금 전 충전 요청 취소',
-                status: HospitalWalletOperation::STATUS_CANCELED,
-            );
-        }
-
-        $wallet->refresh();
-        if ($wallet->availablePaidBalance() >= 30000) {
-            $refundAt = $pendingAt->copy()->addMinutes(90);
-            $refundAmount = min(random_int(1, 3) * 10000, $wallet->availablePaidBalance());
-            $refundStatus = collect([
-                HospitalWalletOperation::STATUS_PENDING,
-                HospitalWalletOperation::STATUS_COMPLETED,
-                HospitalWalletOperation::STATUS_REJECTED,
-            ])->random();
-            $refundFactory = (match ($refundStatus) {
-                HospitalWalletOperation::STATUS_COMPLETED => HospitalWalletOperationFactory::new()
-                    ->refundCompleted($wallet, $refundAmount),
-                HospitalWalletOperation::STATUS_REJECTED => HospitalWalletOperationFactory::new()
-                    ->refundRejected($wallet, $refundAmount),
-                default => HospitalWalletOperationFactory::new()->refundPending($wallet, $refundAmount),
-            })->withRefundSeedMedia();
-            $refundActor = $staff;
-            if ($refundStatus === HospitalWalletOperation::STATUS_PENDING && $staff instanceof AccountStaff) {
-                $refundFactory = $refundFactory->requestedBy($staff);
-                $refundActor = null;
-            }
-
-            $this->create(
-                $refundFactory,
-                $refundAt,
-                '병의원 요청에 따른 충전금 환불',
-                $refundActor,
-                $refundStatus,
-            );
-        }
-    }
-
-    private function create(
-        HospitalWalletOperationFactory $factory,
-        Carbon $occurredAt,
-        string $reason,
-        ?AccountStaff $staff = null,
-        string $status = HospitalWalletOperation::STATUS_COMPLETED,
-    ): void {
-        if ($staff instanceof AccountStaff) {
-            $factory = $factory->performedBy($staff);
-        }
-
-        $timestamps = match ($status) {
-            HospitalWalletOperation::STATUS_COMPLETED => ['processed_at' => $occurredAt],
-            HospitalWalletOperation::STATUS_REJECTED => ['processed_at' => $occurredAt],
-            HospitalWalletOperation::STATUS_CANCELED => ['canceled_at' => $occurredAt],
-            default => [],
-        };
-
         $factory->create([
-            'reason' => $reason,
-            'created_at' => $occurredAt,
-            'updated_at' => $occurredAt,
-            ...$timestamps,
+            'reason' => $reason, 'created_at' => $at, 'updated_at' => $at,
+            'processed_at' => in_array($status, ['COMPLETED', 'REJECTED'], true) ? $at : null,
+            'canceled_at' => $status === 'CANCELED' ? $at : null,
         ]);
     }
 }

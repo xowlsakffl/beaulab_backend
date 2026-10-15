@@ -15,6 +15,7 @@ final class StaffPermissionCatalog
     ];
 
     private const MENUS = [
+        'hospital_chatbot_statistics' => ['챗봇', '챗봇 통계'],
         'hospital_chatbot_consultation' => ['챗봇', '상담'],
         'hospital_chatbot_qna' => ['챗봇', 'Q&A 관리'],
         'hospital_chatbot_operation' => ['챗봇', '상담 운영관리'],

@@ -108,7 +108,7 @@ final class HospitalChatBotConsultationExportForStaffAction
                 Log::error('챗봇 상담 기록 내보내기 중단', [
                     'event' => HospitalChatBotLog::EXPORT_FAILED,
                     'exception' => $exception::class,
-                    'reason' => $exception->getMessage(),
+                    'exception_code' => $exception->getCode(),
                     'written_rows' => $written,
                     'expected_rows' => $total,
                 ]);
@@ -181,6 +181,12 @@ final class HospitalChatBotConsultationExportForStaffAction
      */
     private static function writeRow($output, array $values): void
     {
+        $values = array_map(static function (string $value): string {
+            // 공백·제어문자로 수식 접두사를 숨기는 경우도 텍스트로 내보낸다.
+            return preg_match('/^[\x00-\x20]*[=+@\-]/u', $value) === 1
+                || preg_match('/^[\t\r\n]/', $value) === 1 ? "'".$value : $value;
+        }, $values);
+
         fputcsv($output, $values, ',', '"', '');
     }
 

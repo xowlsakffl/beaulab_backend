@@ -66,6 +66,22 @@ final class StartActorWebSession
                 ValidateWebCsrfToken::class,
                 ValidateWebSession::class,
             ])->then($next);
+            $cookieName = 'beaulab_'.$actor->value.'_session';
+            $issuesCookie = $request->is('api/v1/*/auth/csrf', 'api/v1/*/auth/login', 'api/v1/*/auth/logout')
+                && $request->cookie($cookieName) !== $request->session()->getId();
+            foreach ($response->headers->getCookies() as $cookie) {
+                if ($cookie->getName() !== $cookieName) {
+                    continue;
+                }
+
+                // 늦게 도착한 일반 응답이 새 로그인 쿠키를 이전 세션으로 되돌리지 않는다.
+                if (! $issuesCookie) {
+                    $response->headers->removeCookie($cookieName, $cookie->getPath(), $cookie->getDomain());
+                } elseif ($policy['persistent'] && ($expiresAt = $request->session()->get(ActorAuthentication::SESSION_KEY.'.expires_at'))) {
+                    // 쿠키는 절대 만료까지만 유지하고 유휴 만료는 서버에서 계속 검사한다.
+                    $response->headers->setCookie($cookie->withExpires((int) $expiresAt));
+                }
+            }
             $response->headers->set('Cache-Control', 'private, no-store');
             $response->headers->set('Vary', 'Origin, Cookie', false);
 

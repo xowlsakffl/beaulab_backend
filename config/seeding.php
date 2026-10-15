@@ -4,6 +4,7 @@ return [
     'development' => [
         'enabled' => env('DEVELOPMENT_SEED_ENABLED', false),
         'database' => env('DEVELOPMENT_SEED_DATABASE', ''),
+        'seed' => (int) env('DEVELOPMENT_SEED_RANDOM_SEED', 20261015),
     ],
     'frontend' => [
         'enabled' => env('FRONTEND_SEED_ENABLED', false),

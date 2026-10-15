@@ -14,43 +14,35 @@ final class HospitalSeeder extends Seeder
     public function run(): void
     {
         DevelopmentDataGuard::assertEnabled();
-        $approvedHospitals = Hospital::factory()
-            ->count(12)
-            ->approved()
-            ->active()
-            ->withBusinessRegistration()
-            ->withAccountHospital()
-            ->withSeedMedia()
-            ->create();
-        $approvedHospitals = $approvedHospitals->concat(
-            Hospital::factory()
-                ->count(3)
-                ->notApplied()
-                ->active()
-                ->withBusinessRegistration()
-                ->withSeedMedia()
-                ->create()
-        );
-        $this->attachRandomCategories($approvedHospitals);
-        $this->attachRandomFeatures($approvedHospitals);
-
-        $mixedHospitals = Hospital::factory()
-            ->count(8)
-            ->withBusinessRegistration()
-            ->withAccountHospital()
-            ->withSeedMedia()
-            ->create();
-        $mixedHospitals = $mixedHospitals->concat(
-            Hospital::factory()
-                ->count(2)
-                ->notApplied()
-                ->active()
-                ->withBusinessRegistration()
-                ->withSeedMedia()
-                ->create()
-        );
-        $this->attachRandomCategories($mixedHospitals);
-        $this->attachRandomFeatures($mixedHospitals);
+        $departments = Hospital::activeDepartments();
+        for ($index = 0; $index < 25; $index++) {
+            $allow = $index < 16 ? Hospital::ALLOW_APPROVED : [
+                Hospital::ALLOW_NOT_APPLIED, Hospital::ALLOW_PENDING,
+                Hospital::ALLOW_REVIEWING, Hospital::ALLOW_REJECTED,
+            ][($index - 16) % 4];
+            $factory = Hospital::factory()->active()->withBusinessRegistration();
+            if ($allow !== Hospital::ALLOW_NOT_APPLIED) {
+                $factory = $factory->withAccountHospital();
+            }
+            if ($index !== 24) {
+                $factory = $factory->withSeedMedia($index % 5 + 1);
+            }
+            $hospital = $factory->create([
+                'name' => sprintf('테스트 %s %02d의원', ['새봄', '온유', '다온', '하루', '바른'][$index % 5], $index + 1),
+                'department' => $departments[$index % count($departments)],
+                'allow_status' => $allow,
+                'status' => match ($index) {
+                    14 => Hospital::STATUS_SUSPENDED,
+                    15 => Hospital::STATUS_WITHDRAWN,
+                    default => Hospital::STATUS_ACTIVE,
+                },
+                'created_at' => now()->subMonths(14)->addDays($index),
+                'updated_at' => now()->subMinutes($index + 1),
+                'video_consented_at' => $index % 3 === 0 ? null : now()->subDays(30 + $index),
+            ]);
+            $this->attachRandomCategories([$hospital]);
+            $this->attachRandomFeatures([$hospital]);
+        }
     }
 
     private function attachRandomCategories(iterable $hospitals): void
@@ -71,7 +63,7 @@ final class HospitalSeeder extends Seeder
         $maxAssignCount = min(5, $maxAvailable);
 
         foreach ($hospitals as $hospital) {
-            $assignCount = random_int($minAssignCount, $maxAssignCount);
+            $assignCount = fake()->numberBetween($minAssignCount, $maxAssignCount);
             $selectedCategoryIds = collect($categoryIds)
                 ->shuffle()
                 ->take($assignCount)
@@ -104,7 +96,7 @@ final class HospitalSeeder extends Seeder
         $maxAssignCount = min(6, $maxAvailable);
 
         foreach ($hospitals as $hospital) {
-            $assignCount = random_int($minAssignCount, $maxAssignCount);
+            $assignCount = fake()->numberBetween($minAssignCount, $maxAssignCount);
             $selectedFeatureIds = collect($featureIds)
                 ->shuffle()
                 ->take($assignCount)

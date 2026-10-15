@@ -26,6 +26,11 @@ final class NotificationForStaffController extends Controller
         return ApiResponse::success($action->read($request->user(), $notification, (int) $request->validated('expected_event_count'), $messageId === null ? null : (int) $messageId));
     }
 
+    public function unreadTargets(NotificationForStaffRequest $request, StaffNotificationForStaffAction $action)
+    {
+        return ApiResponse::success($action->unreadTargets($request->user(), $request->validated('targets')));
+    }
+
     public function readAll(NotificationForStaffRequest $request, StaffNotificationForStaffAction $action)
     {
         return ApiResponse::success($action->readAll($request->user(), $request->validated('read_all_token')));

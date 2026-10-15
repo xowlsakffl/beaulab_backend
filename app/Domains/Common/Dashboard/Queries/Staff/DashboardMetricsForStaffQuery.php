@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 final class DashboardMetricsForStaffQuery
 {
-    public function execute(AccountStaff $actor, string $startDate, string $endDate): array
+    public function execute(AccountStaff $actor, string $startDate, string $endDate, bool $includeWallet = true): array
     {
         $start = CarbonImmutable::parse($startDate, 'Asia/Seoul')->startOfDay();
         $end = CarbonImmutable::parse($endDate, 'Asia/Seoul')->addDay()->startOfDay();
@@ -51,7 +51,28 @@ final class DashboardMetricsForStaffQuery
         return [
             'as_of' => $now->toIso8601String(), 'start_date' => $startDate, 'end_date' => $endDate,
             'dates' => $dates, 'metrics' => $metrics,
-            'wallet' => $actor->can(P::BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW) ? $this->wallet($actor, $from, $to, $startDate, $endDate) : null,
+            'wallet' => $includeWallet && $actor->can(P::BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW) ? $this->wallet($actor, $from, $to, $startDate, $endDate) : null,
+        ];
+    }
+
+    public function executeMonthlyWallet(AccountStaff $actor): array
+    {
+        $now = CarbonImmutable::now('Asia/Seoul');
+        $start = $now->startOfMonth();
+
+        return [
+            'as_of' => $now->toIso8601String(),
+            'start_date' => $start->toDateString(),
+            'end_date' => $now->toDateString(),
+            'wallet' => $actor->can(P::BEAULAB_HOSPITAL_WALLET_DASHBOARD_SHOW)
+                ? $this->wallet(
+                    $actor,
+                    $start->setTimezone(config('app.timezone'))->toDateTimeString(),
+                    $now->setTimezone(config('app.timezone'))->toDateTimeString(),
+                    $start->toDateString(),
+                    $now->toDateString(),
+                )
+                : null,
         ];
     }
 

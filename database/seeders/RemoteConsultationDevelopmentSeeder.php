@@ -3,10 +3,14 @@
 namespace Database\Seeders;
 
 use App\Common\Support\DevelopmentDataGuard;
+use App\Domains\AccountHospital\Models\AccountHospital;
+use App\Domains\AccountStaff\Models\AccountStaff;
+use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Common\Category\Models\Category;
 use App\Domains\Common\Category\Models\CategoryUsage;
 use App\Domains\Common\Media\Actions\MediaAttachDeleteAction;
 use App\Domains\HospitalEvent\Models\HospitalEvent;
+use App\Domains\RemoteConsultation\Actions\RemoteConsultationAnswerForHospitalAction;
 use App\Domains\RemoteConsultation\Actions\RemoteConsultationAssignOnSubmissionAction;
 use App\Domains\RemoteConsultation\Models\RemoteConsultation;
 use App\Domains\RemoteConsultation\Queries\RemoteConsultationMatchingQuery;
@@ -14,7 +18,7 @@ use Database\Factories\Support\SeedMediaFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-/** Explicit opt-in fixtures. Never called from DatabaseSeeder. */
+/** 전체 데모 또는 명시적으로 실행한 로컬 샘플에만 사용한다. */
 final class RemoteConsultationDevelopmentSeeder extends Seeder
 {
     public function run(): void
@@ -42,39 +46,40 @@ final class RemoteConsultationDevelopmentSeeder extends Seeder
 
         $created = 0;
         $skipped = 0;
-        $backfilled = 0;
-        for ($index = 1; $index <= 24; $index++) {
+        $users = AccountUser::where('status', 'ACTIVE')->where('created_at', '<', now()->subDays(120))->get();
+        $staff = AccountStaff::where('status', 'ACTIVE')->orderBy('id')->firstOrFail();
+        if ($users->isEmpty()) {
+            throw new \LogicException('기존 활성 개발 회원이 필요합니다.');
+        }
+        for ($index = 1; $index <= 60; $index++) {
             $name = sprintf('[개발용] 상담회원 %02d', $index);
             $existing = RemoteConsultation::where('name', $name)->first();
             if ($existing) {
-                if ($existing->approval_status === 'PENDING' && ! $existing->quotes()->exists()) {
-                    app(RemoteConsultationAssignOnSubmissionAction::class)->execute($existing->id);
-                    $backfilled++;
-                }
                 $skipped++;
-                $this->seedRecommendations($existing);
 
                 continue;
             }
 
-            // Use existing eligible hospitals only; do not modify accounts, permissions or send notifications.
+            // 기존 배정 가능 병의원만 사용하며 계정·권한이나 외부 알림은 변경하지 않는다.
             $reference = $hospitals[($index - 1) % $hospitals->count()];
             $selectedCategories = $reference->categories->take($index % 2 + 1);
             $eligible = $matching->eligible($selectedCategories->modelKeys())->orderBy('id')->limit(6)->get();
             $assigned = $eligible;
-            $approved = $index > 12;
-            $submittedAt = now()->subDays(($index - 1) % 14)->subMinutes($index * 2);
+            $approved = $index % 4 === 0;
+            $submittedAt = now()->subDays($index - 1)->subMinutes($index * 2);
             $approvedAt = $submittedAt->copy()->addMinute();
 
-            DB::transaction(function () use ($index, $name, $selectedCategories, $assigned, $approved, $submittedAt, $approvedAt): void {
+            DB::transaction(function () use ($index, $name, $selectedCategories, $assigned, $approved, $submittedAt, $approvedAt, $users, $staff): void {
+                $user = $users[($index - 1) % $users->count()];
                 $requested = $index % 3 === 0 ? $assigned->take(1)->modelKeys() : [];
                 $consultation = RemoteConsultation::create([
                     'name' => $name,
-                    'birth_date' => sprintf('%04d-%02d-15', 1980 + $index, ($index - 1) % 12 + 1),
+                    'account_user_id' => $user->id,
+                    'birth_date' => sprintf('%04d-%02d-15', 1975 + $index % 30, ($index - 1) % 12 + 1),
                     'gender' => $index % 2 === 0 ? 'MALE' : 'FEMALE',
-                    'phone' => '010-0000-0000',
+                    'phone' => $user->phone,
                     'surgery_timing' => ['WITHIN_1_MONTH', 'WITHIN_2_MONTHS', 'WITHIN_3_MONTHS', 'WITHIN_4_MONTHS', 'WITHIN_6_MONTHS', 'UNDECIDED'][($index - 1) % 6],
-                    'height_cm' => $index % 4 === 0 ? null : 155 + $index,
+                    'height_cm' => $index % 4 === 0 ? null : 155 + $index % 30,
                     'budget_amount' => $index % 4 === 0 ? null : 1000000 + $index * 100000,
                     'special_conditions' => $index % 3 === 0 ? [] : ($index % 2 === 0 ? ['FUNCTIONAL_ISSUE'] : ['REVISION', 'RECENT_SURGERY']),
                     'desired_style' => $index % 4 === 0 ? null : "자연스러운 스타일을 원합니다. 실제 신청이 아닌 화면 검증용 데이터입니다.\n회복 기간과 일상 복귀 시점을 함께 안내해 주세요.",
@@ -90,7 +95,7 @@ final class RemoteConsultationDevelopmentSeeder extends Seeder
                 }
 
                 $mediaAction = app(MediaAttachDeleteAction::class);
-                $slots = $index % 4 === 0 ? ['FRONT', 'SIDE', 'ANGLE_45', 'OTHER'] : ['FRONT'];
+                $slots = $index % 5 === 0 ? [] : ($index % 4 === 0 ? ['FRONT', 'SIDE', 'ANGLE_45', 'OTHER'] : ['FRONT']);
                 foreach ($slots as $sort => $slot) {
                     $media = $mediaAction->attachOne($consultation, SeedMediaFactory::image('remote-consultation'), 'member_images', 'remote-consultations', 'member-images', $sort === 0, $sort);
                     $media->update(['metadata' => array_merge($media->metadata ?? [], ['slot' => $slot])]);
@@ -101,28 +106,28 @@ final class RemoteConsultationDevelopmentSeeder extends Seeder
 
                 app(RemoteConsultationAssignOnSubmissionAction::class)->execute($consultation->id);
                 if (! $approved) {
+                    $consultation->update(['approval_status' => ['PENDING', 'PENDING', 'REVIEWING', 'REJECTED'][$index % 4]]);
+
                     return;
                 }
-                $consultation->update(['approval_status' => 'APPROVED', 'approved_at' => $approvedAt]);
+                $consultation->update(['approval_status' => 'APPROVED', 'approved_at' => $approvedAt, 'approved_by_staff_id' => $staff->id]);
                 foreach ($consultation->quotes()->get() as $offset => $quote) {
                     $answered = ($index + $offset) % 3 !== 0;
-                    $matched = $quote->matched_categories;
-                    $quote->update([
-                        'status' => $answered ? 'ANSWERED' : 'WAITING',
-                        'quoted_categories' => $answered ? $matched : null,
-                        'answer' => $answered ? "희망 스타일을 확인했습니다. 화면 검증용 가상 상담 안내입니다.\n예상 회복 기간은 1~2주이며, 세부 비용은 방문 상담 후 달라질 수 있습니다." : null,
-                        'total_amount' => $answered ? 1500000 + ($index + $offset) * 100000 : null,
-                        'recommended_events' => [],
-                        'answered_at' => $answered ? $approvedAt->copy()->addMinute() : null,
-                        'updated_at' => $answered ? $approvedAt->copy()->addMinute() : $approvedAt,
-                    ]);
+                    if ($answered) {
+                        $actor = AccountHospital::where('hospital_id', $quote->hospital_id)->where('status', 'ACTIVE')->firstOrFail();
+                        app(RemoteConsultationAnswerForHospitalAction::class)->execute($actor, $quote->id, [
+                            'answer' => "희망 스타일을 확인했습니다. 개발용 가상 답변입니다.\n비용과 방문 가능 일정을 안내드립니다.",
+                            'total_amount' => 1500000 + ($index + $offset) * 100000,
+                        ]);
+                        $quote->update(['quoted_categories' => $quote->matched_categories]);
+                    }
                 }
                 $this->seedRecommendations($consultation);
             });
             $created++;
         }
 
-        $this->command?->info("비대면 상담 시드: 신규 {$created}건, 기존 {$skipped}건 유지, 대기 신청 배정 {$backfilled}건 보완. 메시지와 알림은 발송하지 않았습니다.");
+        $this->command?->info("비대면 상담 시드: 신규 {$created}건, 기존 {$skipped}건 유지. 답변은 실제 소진 원장과 연결했습니다. 외부 발송은 없습니다.");
     }
 
     private function seedRecommendations(RemoteConsultation $consultation): void
@@ -131,7 +136,7 @@ final class RemoteConsultationDevelopmentSeeder extends Seeder
             if ($quote->recommended_events) {
                 continue;
             }
-            $events = HospitalEvent::where('hospital_id', $quote->hospital_id)->with('thumbnailImage')->orderBy('id')->limit(3)->get();
+            $events = HospitalEvent::where('hospital_id', $quote->hospital_id)->with('thumbnailImage')->orderBy('id')->get()->filter(fn ($event) => $event->isApplicationOpen())->take(3);
             $quote->update(['recommended_events' => $events->map(fn ($event) => [
                 'id' => $event->id, 'title' => $event->name, 'price' => $event->event_price,
                 'image_url' => $event->thumbnailImage?->publicUrl() ?? url('/test.png'),

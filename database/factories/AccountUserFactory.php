@@ -17,9 +17,9 @@ final class AccountUserFactory extends Factory
     {
         return [
             'name' => fake('ko_KR')->name(),
-            'nickname' => $this->faker->unique()->userName(),
+            'nickname' => $this->faker->unique()->numerify('테스트회원########'),
             'email' => $this->faker->unique()->safeEmail(),
-            'phone' => $this->faker->phoneNumber(),
+            'phone' => $this->faker->numerify('010-0000-####'),
             'signup_channel' => $this->faker->randomElement(AccountUser::signupChannels()),
 
             'password' => Hash::make('password'),
@@ -29,8 +29,8 @@ final class AccountUserFactory extends Factory
             'email_verified_at' => now(),
 
             'last_login_at' => null,
-            'last_accessed_at' => $this->faker->optional(0.75)->dateTimeBetween('-45 days', 'now'),
-            'last_access_ip' => $this->faker->optional(0.75)->ipv4(),
+            'last_accessed_at' => null,
+            'last_access_ip' => null,
         ];
     }
 

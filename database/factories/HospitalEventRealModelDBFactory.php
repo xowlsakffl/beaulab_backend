@@ -28,7 +28,7 @@ final class HospitalEventRealModelDBFactory extends Factory
             'name' => fake('ko_KR')->name(),
             'gender' => $this->faker->randomElement(HospitalEventRealModelDB::genders()),
             'birth_date' => $this->faker->dateTimeBetween('-45 years', '-19 years')->format('Y-m-d'),
-            'phone' => $this->faker->numerify('010-####-####'),
+            'phone' => $this->faker->numerify('010-0000-####'),
             'height_cm' => $this->faker->numberBetween(145, 190),
             'weight_kg' => $this->faker->numberBetween(40, 95),
             'surgery_period' => $this->faker->randomElement(HospitalEventRealModelDB::surgeryPeriods()),

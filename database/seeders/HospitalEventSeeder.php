@@ -28,7 +28,7 @@ final class HospitalEventSeeder extends Seeder
         }
 
         foreach ($hospitalIds as $hospitalIndex => $hospitalId) {
-            $eventCount = $hospitalIndex < 3 ? 6 : 3;
+            $eventCount = $hospitalIndex < 3 ? 18 : 3;
 
             for ($index = 0; $index < $eventCount; $index++) {
                 $usages = CategoryUsage::hospitalEventUsages();
@@ -38,9 +38,13 @@ final class HospitalEventSeeder extends Seeder
                     $usage = array_key_first($categoryIdsByUsage);
                 }
 
-                $event = $this->createEvent($hospitalId, $usage, $index);
+                $event = $this->createEvent($hospitalId, $usage, intdiv($index, 3));
                 $this->syncCategories($event, $categoryIdsByUsage[$usage], $usage);
                 $this->syncDoctors($event, $hospitalId);
+                $category = $event->categories()->wherePivot('is_primary', true)->firstOrFail();
+                $price = app(\App\Domains\ConsultationPricing\Support\ConsultationPricingResolver::class)->forEvent($event)['price'];
+                $event->forceFill(['name' => mb_substr($category->name, 0, 12).' 상담 이벤트',
+                    'base_consultation_price' => $price, 'consultation_price' => $price])->save();
             }
         }
     }
@@ -80,21 +84,29 @@ final class HospitalEventSeeder extends Seeder
             ->forHospital($hospitalId)
             ->withSeedMedia();
 
-        $isTextType = $index % 3 === 0;
+        $isTextType = $index % 2 === 0;
         $factory = $isTextType ? $factory->textType() : $factory->imageType();
         $factory = match (true) {
-            $index % 6 === 0 => $factory->rejected(),
-            $index % 5 === 0 => $factory->pending(),
-            $index % 3 === 0 => $factory->reviewing(),
+            $index === 3 => $factory->rejected(),
+            $index === 4 => $factory->pending(),
+            $index === 5 => $factory->reviewing(),
             default => $factory->approved(),
         };
-        $factory = $index % 4 === 0 ? $factory->forcedStopped() : $factory->active();
+        $factory = $index === 3 ? $factory->forcedStopped() : $factory->active();
 
         if (! $isTextType && $usage === CategoryUsage::USAGE_HOSPITAL_EVENT_TREATMENT && $index % 2 === 1) {
-            $factory = $factory->withOptions(random_int(2, 4));
+            $factory = $factory->withOptions(fake()->numberBetween(2, 4));
         }
 
-        return $factory->create();
+        return $factory->create([
+            'created_at' => now()->subMonths(12),
+            'updated_at' => now()->subDays(3),
+            'is_event_period_unlimited' => $index === 0,
+            'event_start_at' => $index === 1 ? now()->addDays(3) : now()->subMonths(11),
+            'event_end_at' => match ($index) {
+                0 => null, 2 => now()->subDays(2), default => now()->addDays(30)
+            },
+        ]);
     }
 
     /**
@@ -147,8 +159,11 @@ final class HospitalEventSeeder extends Seeder
         $maxCount = $usage === CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION ? 1 : HospitalEvent::MAX_CATEGORY_COUNT;
         $selectedIds = collect($categoryIds)
             ->shuffle()
-            ->take(random_int(1, min($maxCount, count($categoryIds))))
+            ->take(fake()->numberBetween(1, min($maxCount, count($categoryIds))))
             ->values();
+        if ($usage === CategoryUsage::USAGE_HOSPITAL_EVENT_PROMOTION) {
+            $selectedIds = collect([$categoryIds[($event->hospital_id - 1) % count($categoryIds)]]);
+        }
 
         $event->categories()->sync(
             $selectedIds
@@ -184,7 +199,7 @@ final class HospitalEventSeeder extends Seeder
         $event->doctors()->sync(
             $doctorIds
                 ->shuffle()
-                ->take(random_int(1, min(3, $doctorIds->count())))
+                ->take(fake()->numberBetween(1, min(3, $doctorIds->count())))
                 ->values()
                 ->mapWithKeys(static fn (int $doctorId, int $index): array => [
                     $doctorId => [

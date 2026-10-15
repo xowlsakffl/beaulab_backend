@@ -4,9 +4,9 @@ namespace App\Domains\Common\ContentReport\Actions\Staff;
 
 use App\Common\Exceptions\CustomException;
 use App\Common\Exceptions\ErrorCode;
-use App\Domains\AccountUser\Models\AccountUser;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\Cache\Support\StaffSummaryCache;
+use App\Domains\Common\ContentReport\Actions\ContentReportUserWarningAction;
 use App\Domains\Common\ContentReport\Dto\Staff\ContentReportStateForStaffDto;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
 use App\Domains\Common\ContentReport\Queries\Staff\ContentReportStateStatusUpdateForStaffQuery;
@@ -73,6 +73,7 @@ final class ContentReportProcessForStaffAction
 
             $state->processed_by = $actor instanceof Model ? (int) $actor->getKey() : null;
             $state->save();
+            app(\App\Domains\Common\ContentReport\Support\ContentReportNotification::class)->changed($state);
 
             $changes = $changesBuilder->toArray();
             if ($changes !== []) {
@@ -300,78 +301,12 @@ final class ContentReportProcessForStaffAction
 
     private function applyUserWarning(int $authorId, array &$metadata): void
     {
-        $author = AccountUser::query()
-            ->whereKey($authorId)
-            ->lockForUpdate()
-            ->first();
-
-        if (! $author instanceof AccountUser) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '작성자 정보를 찾을 수 없습니다.');
-        }
-
-        $beforeWarningCount = (int) $author->warning_count;
-        $afterWarningCount = $beforeWarningCount + 1;
-        $beforeAccountStatus = (string) $author->status;
-        $accountBlocked = false;
-
-        $author->warning_count = $afterWarningCount;
-
-        if (
-            $afterWarningCount >= AccountUser::WARNING_BLOCK_THRESHOLD
-            && $author->status !== AccountUser::STATUS_BLOCKED
-            && $author->status !== AccountUser::STATUS_WITHDRAWN
-        ) {
-            $author->status = AccountUser::STATUS_BLOCKED;
-            $author->blocked_at ??= now();
-            $accountBlocked = true;
-        }
-
-        $author->save();
-
-        $metadata['account_user_id'] = (int) $author->id;
-        $metadata['warning_count_before'] = $beforeWarningCount;
-        $metadata['warning_count_after'] = $afterWarningCount;
-        $metadata['account_status_before'] = $beforeAccountStatus;
-        $metadata['account_status_after'] = (string) $author->status;
-        $metadata['account_blocked'] = $accountBlocked;
+        $metadata = array_merge($metadata, app(ContentReportUserWarningAction::class)->execute($authorId, true));
     }
 
     private function removeUserWarning(int $authorId, array &$metadata): void
     {
-        $author = AccountUser::query()
-            ->whereKey($authorId)
-            ->lockForUpdate()
-            ->first();
-
-        if (! $author instanceof AccountUser) {
-            throw new CustomException(ErrorCode::INVALID_REQUEST, '작성자 정보를 찾을 수 없습니다.');
-        }
-
-        $beforeWarningCount = (int) $author->warning_count;
-        $afterWarningCount = max(0, $beforeWarningCount - 1);
-        $beforeAccountStatus = (string) $author->status;
-        $accountUnblocked = false;
-
-        $author->warning_count = $afterWarningCount;
-
-        if (
-            $beforeAccountStatus === AccountUser::STATUS_BLOCKED
-            && $beforeWarningCount >= AccountUser::WARNING_BLOCK_THRESHOLD
-            && $afterWarningCount < AccountUser::WARNING_BLOCK_THRESHOLD
-        ) {
-            $author->status = AccountUser::STATUS_ACTIVE;
-            $author->blocked_at = null;
-            $accountUnblocked = true;
-        }
-
-        $author->save();
-
-        $metadata['account_user_id'] = (int) $author->id;
-        $metadata['warning_count_before'] = $beforeWarningCount;
-        $metadata['warning_count_after'] = $afterWarningCount;
-        $metadata['account_status_before'] = $beforeAccountStatus;
-        $metadata['account_status_after'] = (string) $author->status;
-        $metadata['account_unblocked'] = $accountUnblocked;
+        $metadata = array_merge($metadata, app(ContentReportUserWarningAction::class)->execute($authorId, false));
     }
 
     private function normalizeReason(mixed $reason): ?string

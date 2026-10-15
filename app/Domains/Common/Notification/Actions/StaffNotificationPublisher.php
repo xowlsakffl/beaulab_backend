@@ -70,6 +70,22 @@ final class StaffNotificationPublisher
             throw new \InvalidArgumentException('지원하지 않는 직원 알림 대상입니다.');
         }
         DB::transaction(function () use ($targetType, $targetId): void {
+            $resolvedPayload = DB::raw("JSON_SET(IF(JSON_TYPE(payload) = 'OBJECT', payload, JSON_OBJECT()), '$.resolved_at', UTC_TIMESTAMP(6))");
+            // 처리 완료와 읽음은 별개다. 재신청 때 이전 미확인 알림이 되살아나지 않도록 종료만 기록한다.
+            foreach ($this->registry->definitions() as $type => $definition) {
+                if ($definition['target_type'] !== $targetType || $definition['pending'] === []) {
+                    continue;
+                }
+                $target = $this->registry->target($type, $targetId);
+                if ($target && in_array($target->getAttribute($definition['status']), $definition['pending'], true)) {
+                    continue;
+                }
+                NotificationInbox::query()->where('recipient_type', NotificationInbox::RECIPIENT_STAFF)
+                    ->where('event_type', $type)->where('target_id', $targetId)->whereNull('payload->resolved_at')
+                    ->update(['payload' => $resolvedPayload, 'open_aggregation_key' => null]);
+                DB::table('staff_notification_outbox')->where('event_type', $type)->where('target_id', $targetId)->whereNull('processed_at')
+                    ->update(['payload' => $resolvedPayload]);
+            }
             $recipients = NotificationInbox::query()->where('recipient_type', NotificationInbox::RECIPIENT_STAFF)
                 ->where('target_type', $targetType)->where('target_id', $targetId)->pluck('recipient_id')->all();
             // 아직 알림함에 반영되지 않은 이벤트의 수신자도 상태 재조회 대상이다.

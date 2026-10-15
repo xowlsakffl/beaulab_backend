@@ -304,7 +304,7 @@ final class HospitalChatBotConsultationTransition
                 'consultation_id' => $consultationId,
                 'status' => $status,
                 'exception' => $exception::class,
-                'reason' => $exception->getMessage(),
+                'exception_code' => $exception->getCode(),
             ]);
             try {
                 \App\Domains\HospitalChatBot\Jobs\RetryHospitalChatBotStateBroadcastJob::dispatch($consultationId);

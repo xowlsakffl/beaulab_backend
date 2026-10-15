@@ -24,7 +24,7 @@ final class HospitalEventFactory extends Factory
         $isUnlimited = $this->faker->boolean(45);
         $startAt = $this->faker->dateTimeBetween('-15 days', '+15 days');
 
-        $consultationPrice = $baseConsultationPrice + ($this->faker->boolean(25) ? $this->faker->randomElement([2500, 5000, 10000]) : 0);
+        $consultationPrice = $baseConsultationPrice;
 
         return [
             'hospital_id' => Hospital::factory()->active()->approved(),

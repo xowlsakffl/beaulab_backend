@@ -38,7 +38,7 @@ final class TalkSeeder extends Seeder
         $normalTalks = Talk::factory()
             ->count(160)
             ->active()
-            ->withSeedMedia(random_int(1, Talk::MAX_IMAGE_COUNT))
+            ->withSeedMedia(fake()->numberBetween(1, Talk::MAX_IMAGE_COUNT))
             ->create(['author_id' => fn () => $authorIds[array_rand($authorIds)]]);
         $talks = $normalTalks;
 
@@ -89,7 +89,7 @@ final class TalkSeeder extends Seeder
     private function seedComments(iterable $talks, array $authorIds, Collection $usersById): void
     {
         foreach ($talks as $talk) {
-            $topLevelCount = random_int(0, 12);
+            $topLevelCount = fake()->numberBetween(0, 12);
 
             $topLevelComments = TalkComment::factory()
                 ->count($topLevelCount)
@@ -101,7 +101,7 @@ final class TalkSeeder extends Seeder
                 ]);
 
             foreach ($topLevelComments as $comment) {
-                $replyCount = random_int(0, 2);
+                $replyCount = fake()->numberBetween(0, 2);
                 if ($replyCount === 0) {
                     continue;
                 }
@@ -134,7 +134,7 @@ final class TalkSeeder extends Seeder
             return;
         }
 
-        $mentionCount = random_int(0, 5);
+        $mentionCount = fake()->numberBetween(0, 5);
         if ($mentionCount === 0) {
             return;
         }

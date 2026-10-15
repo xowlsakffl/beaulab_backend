@@ -259,12 +259,17 @@ final class HospitalWalletOperationFactory extends Factory
             'rejection_reason' => $operation->status === HospitalWalletOperation::STATUS_REJECTED
                 ? '환불 서류 확인이 필요합니다.'
                 : null,
+            'created_at' => $operation->created_at,
+            'updated_at' => $operation->updated_at,
         ]);
     }
 
     private function reservePendingRefund(HospitalWalletOperation $operation): void
     {
         $wallet = HospitalWallet::query()->findOrFail($operation->hospital_wallet_id);
+        if ((int) $operation->amount > $wallet->availablePaidBalance()) {
+            throw new InvalidArgumentException('환불 예약액이 사용 가능한 유상 잔액을 초과합니다.');
+        }
         $wallet->increment('reserved_paid_balance', (int) $operation->amount);
     }
 
@@ -285,6 +290,9 @@ final class HospitalWalletOperationFactory extends Factory
             $reservedPaidBefore,
             $serviceBefore,
         );
+        if ($paidAfter < $reservedPaidAfter || $serviceAfter < 0) {
+            throw new InvalidArgumentException('완료 업무가 사용 가능한 충전금 잔액을 초과합니다.');
+        }
 
         $transaction = $operation->transaction()->make([
             'hospital_wallet_id' => $wallet->getKey(),

@@ -18,7 +18,7 @@ use Spatie\Permission\Models\Permission;
 
 final class HospitalChatBotConsultationFlowTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, \Tests\Support\WithHospitalDepartment;
 
     public function createApplication(): Application
     {
@@ -33,7 +33,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_request_connect_and_end_walks_the_full_status_history(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -98,8 +98,8 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_only_one_agent_can_claim_a_waiting_consultation(): void
     {
-        $first = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
-        $second = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $first = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
+        $second = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
 
         $this->login('staff', $first, 'http://localhost:3000');
         $this->openOperatingHours();
@@ -134,8 +134,8 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_ending_checks_the_assignment_inside_the_update_not_on_a_stale_read(): void
     {
-        $owner = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
-        $other = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $owner = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
+        $other = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
 
         $this->login('staff', $owner, 'http://localhost:3000');
         $this->openOperatingHours();
@@ -172,7 +172,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_an_empty_status_filter_still_hides_finished_consultations(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -202,7 +202,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_user_can_cancel_while_waiting_but_not_after_an_agent_connects(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -235,7 +235,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_hospital_user_can_end_their_own_connected_consultation(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -283,7 +283,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_hospital_user_cannot_end_another_hospitals_consultation(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -309,7 +309,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_requesting_outside_operating_hours_is_rejected(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours(open: false);
 
@@ -325,7 +325,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_waiting_consultations_expire_after_the_configured_timeout(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -360,7 +360,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_each_hospital_keeps_its_own_active_consultation(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -384,7 +384,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_the_qna_the_user_was_reading_reaches_the_agent_and_survives_edits(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -422,7 +422,7 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
 
     public function test_a_consultation_opens_even_when_the_context_qna_is_missing(): void
     {
-        $staff = $this->staffWithPermissions([AccessPermissions::COMMON_ACCESS]);
+        $staff = $this->staffWithPermissions([AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS, AccessPermissions::BEAULAB_CHATBOT_OPERATION_SHOW, AccessPermissions::BEAULAB_CHATBOT_OPERATION_UPDATE]);
         $this->login('staff', $staff, 'http://localhost:3000');
         $this->openOperatingHours();
 
@@ -466,7 +466,9 @@ final class HospitalChatBotConsultationFlowTest extends TestCase
             'Origin' => $origin,
         ]);
         $csrf = $this->getJson("/api/v1/{$actor}/auth/csrf")->assertOk();
-        $this->withCookie("beaulab_{$actor}_session", $csrf->getCookie("beaulab_{$actor}_session")->getValue());
+        if ($cookie = $csrf->getCookie("beaulab_{$actor}_session")) {
+            $this->withCookie("beaulab_{$actor}_session", $cookie->getValue());
+        }
         $this->withHeader('X-CSRF-TOKEN', $csrf->json('data.csrf_token'));
         $this->app['auth']->forgetGuards();
 

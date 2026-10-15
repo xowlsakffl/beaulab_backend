@@ -8,6 +8,8 @@ use App\Common\Authorization\AccessPermissions as P;
 use App\Domains\AccountStaff\Models\AccountStaff;
 use App\Domains\Chat\Models\ChatMessage;
 use App\Domains\Common\ContentReport\Models\ContentReportState;
+use App\Domains\Common\ContentReport\Support\ContentReportTargetRegistry;
+use App\Domains\Common\Notification\Support\StaffNotificationTypeRegistry;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\Hospital\Models\HospitalStatusChangeRequest;
 use App\Domains\HospitalChatBot\Models\HospitalChatBotConsultation;
@@ -40,6 +42,7 @@ final class DashboardWorkForStaffQuery
 
     private function reviews(AccountStaff $actor): array
     {
+        $notificationTypes = collect(app(StaffNotificationTypeRegistry::class)->definitions())->pluck('target_type', 'model');
         $sources = [
             ['hospitals', '병의원', P::BEAULAB_HOSPITAL_SHOW, Hospital::class, 'allow_status', 'PENDING', 'name', '/hospital-manage/hospitals'],
             ['doctors', '의료진', P::BEAULAB_DOCTOR_SHOW, HospitalDoctor::class, 'allow_status', 'PENDING', 'name', '/hospital-manage/doctors'],
@@ -66,6 +69,7 @@ final class DashboardWorkForStaffQuery
                 'href' => $path.'?'.http_build_query([$key === 'models' ? 'statuses' : $column => $key === 'models' ? $pending : $pending.',REVIEWING']),
                 'rows' => $rows->map(fn ($row) => [
                     'key' => $key.':'.$row->id, 'id' => $row->id, 'label' => $label,
+                    'notification_target' => ['target_type' => $notificationTypes[$model], 'target_id' => (int) $row->id],
                     'title' => ($title ? $row->{$title} : $row->hospitalEvent?->name) ?: $label.' #'.$row->id,
                     'status' => match ($key) {
                         'models' => HospitalEventRealModelDB::statusLabel($row->{$column}),
@@ -119,6 +123,7 @@ final class DashboardWorkForStaffQuery
                 'key' => $key, 'label' => $label, 'pending' => $count, 'reviewing' => 0, 'href' => $listHref,
                 'rows' => (clone $query)->with('target:id,'.$textColumn)->oldest('first_reported_at')->orderBy('id')->limit(8)->get()->map(fn ($row) => [
                     'key' => 'report:'.$row->id, 'id' => $row->target_id, 'label' => $label,
+                    'notification_target' => ['target_type' => 'report:'.ContentReportTargetRegistry::aliasForModel($model), 'target_id' => (int) $row->target_id],
                     'title' => Str::limit(strip_tags((string) ($row->target?->{$textColumn} ?: $label.' #'.$row->target_id)), 100),
                     'status' => $row->report_status === ContentReportState::STATUS_AUTO_BLOCKED ? '자동차단' : '신고접수',
                     'created_at' => $row->first_reported_at?->toIso8601String(),
@@ -142,6 +147,7 @@ final class DashboardWorkForStaffQuery
             'href' => '/hospital-manage/hospitals',
             'rows' => (clone $query)->with('hospital:id,name')->oldest('created_at')->orderBy('id')->limit(8)->get()->map(fn ($row) => [
                 'key' => 'status:'.$row->id, 'id' => $row->id, 'label' => '운영상태 변경',
+                'notification_target' => ['target_type' => 'hospital_status_change_request', 'target_id' => (int) $row->id],
                 'title' => $row->hospital->name,
                 'status' => $row->target_status === Hospital::STATUS_ACTIVE ? '운영재개 요청' : '운영중지 요청',
                 'created_at' => $row->created_at?->toIso8601String(), 'href' => '/hospital-manage/hospitals/'.$row->hospital_id,

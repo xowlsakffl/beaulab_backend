@@ -39,6 +39,7 @@ final class ValidateWebSession
             } elseif (! ($request->isMethod('GET') && $request->is('api/v1/staff/notifications', 'api/v1/staff/notifications/unread-count')) && ! $request->is(
                 'api/v1/*/auth/csrf', 'api/v1/*/auth/session',
                 'api/v1/staff/navigation-badges', 'api/v1/user/notifications/unread-count',
+                'api/v1/staff/notifications/unread-targets',
                 'api/v1/staff/broadcasting/auth',
             )) {
                 $state['idle_expires_at'] = min($state['expires_at'], $now + max(1, $actor->policy()['idle_minutes']) * 60);

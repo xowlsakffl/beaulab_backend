@@ -14,6 +14,7 @@
     </testsuites>
     <php>
         <env name="APP_ENV" value="testing" force="true"/>
+        <env name="BCRYPT_ROUNDS" value="4" force="true"/>
         <env name="APP_KEY" value="0123456789abcdef0123456789abcdef" force="true"/>
         <env name="DB_CONNECTION" value="mysql" force="true"/>
         <env name="DB_URL" value="" force="true"/>

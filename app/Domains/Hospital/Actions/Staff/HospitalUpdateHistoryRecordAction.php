@@ -62,6 +62,15 @@ final class HospitalUpdateHistoryRecordAction
         $actor = auth()->user();
 
         foreach (OperationHistoryChangeSetBuilder::groupedFromSnapshots($before, $this->snapshot($hospital), ['allow_status', 'status']) as $action => $changes) {
+            // 변경 판정에는 원본을 쓰되 이력에는 마스킹된 값만 저장한다.
+            foreach ($changes as &$change) {
+                if ($change['field_key'] === 'settlement_account') {
+                    $change['before_value'] = $change['before_display'];
+                    $change['after_value'] = $change['after_display'];
+                }
+            }
+            unset($change);
+
             $this->historyCreateAction->execute(
                 target: $hospital,
                 action: $action,
@@ -219,9 +228,20 @@ final class HospitalUpdateHistoryRecordAction
 
         return OperationHistoryDisplayValue::lines([
             $businessRegistration->settlement_bank_name,
-            $businessRegistration->settlement_account_number,
+            $this->maskedAccountNumber($businessRegistration->settlement_account_number),
             $businessRegistration->settlement_account_holder,
         ]);
+    }
+
+    private function maskedAccountNumber(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $digits = preg_replace('/\D/', '', $value);
+
+        return strlen($digits) <= 4 ? '****' : '****'.substr($digits, -4);
     }
 
     private function operationHoursLabel(mixed $operationHours): ?string

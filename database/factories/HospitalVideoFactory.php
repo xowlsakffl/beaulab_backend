@@ -40,7 +40,7 @@ final class HospitalVideoFactory extends Factory
             'hospital_status' => $this->faker->randomElement(HospitalVideo::hospitalStatuses()),
             'admin_status' => $this->faker->randomElement(HospitalVideo::adminStatuses()),
             'view_count' => $this->faker->numberBetween(0, 50000),
-            'like_count' => $this->faker->numberBetween(0, 3000),
+            'like_count' => 0,
         ];
     }
 

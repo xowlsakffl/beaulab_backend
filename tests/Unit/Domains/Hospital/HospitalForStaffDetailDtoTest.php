@@ -7,10 +7,18 @@ namespace Tests\Unit\Domains\Hospital;
 use App\Domains\Hospital\Dto\Staff\HospitalForStaffDetailDto;
 use App\Domains\Hospital\Models\Hospital;
 use App\Domains\HospitalWallet\Models\HospitalWallet;
-use PHPUnit\Framework\TestCase;
+use Illuminate\Foundation\Testing\TestCase;
 
 final class HospitalForStaffDetailDtoTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        request()->attributes->set(\App\Domains\Common\Category\Support\HospitalDepartment::class, collect([
+            new \App\Domains\Common\Category\Models\Category(['code' => Hospital::DEPARTMENT_OTHER, 'name' => '기타', 'status' => 'ACTIVE']),
+        ]));
+    }
+
     public function test_it_exposes_available_wallet_balances_when_wallet_is_loaded(): void
     {
         $hospital = $this->hospital();

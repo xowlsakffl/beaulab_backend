@@ -69,6 +69,10 @@ final class StaffNotificationOutboxAction
     private function deliver(object $outbox, int $staffId): void
     {
         DB::transaction(function () use ($outbox, $staffId): void {
+            // 업무 상태 변경과 같은 대상→직원 순서로 잠가 처리 완료와 지연 전달의 역전을 막는다.
+            $target = $outbox->event_type === StaffNotificationTypeRegistry::INVALIDATED ? null
+                : $this->registry->target($outbox->event_type, (int) $outbox->target_id, true);
+            $currentPayload = DB::table('staff_notification_outbox')->where('id', $outbox->id)->value('payload');
             // 직원 단위 잠금으로 집계·읽음·스냅샷의 순서를 고정한다.
             StaffNotificationState::lock($staffId);
             if (DB::table('staff_notification_receipts')->where('outbox_id', $outbox->id)->where('staff_id', $staffId)->exists()) {
@@ -90,7 +94,6 @@ final class StaffNotificationOutboxAction
             if (! $this->registry->allows($staff, $outbox->event_type)) {
                 return;
             }
-            $target = $this->registry->target($outbox->event_type, (int) $outbox->target_id);
             $isMessage = $outbox->event_type === StaffNotificationTypeRegistry::MESSAGE;
             if (! $target || ($isMessage && (int) $target->assigned_staff_id !== $staffId)) {
                 return;
@@ -100,7 +103,10 @@ final class StaffNotificationOutboxAction
             if (! ($preference?->in_app ?? $this->registry->defaultEnabled($outbox->event_type))) {
                 return;
             }
-            $payload = json_decode($outbox->payload, true, 512, JSON_THROW_ON_ERROR);
+            $payload = json_decode($currentPayload, true, 512, JSON_THROW_ON_ERROR);
+            if (isset($payload['resolved_at'])) {
+                return;
+            }
             $messageId = $isMessage ? (int) $payload['message_id'] : null;
             if ($isMessage) {
                 $message = HospitalChatBotConsultationMessage::query()->whereKey($messageId)->where('consultation_id', $outbox->target_id)->first(['id', 'sequence']);
@@ -119,13 +125,14 @@ final class StaffNotificationOutboxAction
                 }
             }
 
-            $group = $isMessage ? 'staff:consultation:'.$outbox->target_id : null;
+            $group = $isMessage ? 'staff:consultation:'.$outbox->target_id
+                : (str_starts_with($outbox->event_type, 'staff.report_') ? $outbox->event_type.':'.$outbox->target_id : null);
             $inbox = $group ? NotificationInbox::query()->where('recipient_type', NotificationInbox::RECIPIENT_STAFF)
                 ->where('recipient_id', $staffId)->where('open_aggregation_key', $group)->lockForUpdate()->first() : null;
             $payload['last_receipt_id'] = $receiptId;
             if ($inbox) {
                 // 큐 역전 시 최신 메시지와 표시 메타데이터는 뒤로 가지 않는다.
-                if ((int) ($inbox->payload['message_id'] ?? 0) > $messageId) {
+                if ($isMessage && (int) ($inbox->payload['message_id'] ?? 0) > $messageId) {
                     $payload = $inbox->payload;
                     $payload['last_receipt_id'] = $receiptId;
                 }

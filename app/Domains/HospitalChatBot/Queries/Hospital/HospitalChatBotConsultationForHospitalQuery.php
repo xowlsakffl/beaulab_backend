@@ -139,7 +139,6 @@ final class HospitalChatBotConsultationForHospitalQuery
             'hospital_id' => $hospitalId,
             'account_hospital_id' => (int) $account->id,
             'context_qna_id' => $context['id'],
-            'source_page_path' => $sourcePagePath,
         ]);
 
         return $consultation->fresh(['assignedStaff:id,name']) ?? $consultation;

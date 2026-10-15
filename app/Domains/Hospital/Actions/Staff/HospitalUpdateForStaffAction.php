@@ -38,6 +38,7 @@ final class HospitalUpdateForStaffAction
         $updated = DB::transaction(function () use ($hospital, $payload) {
             $hospital = Hospital::query()->lockForUpdate()->findOrFail($hospital->getKey());
             $beforeHistory = $this->historyRecordAction->capture($hospital);
+            $beforeAllowStatus = (string) $hospital->allow_status;
             $updatedHospital = $this->query->update($hospital, $payload);
             \App\Domains\Hospital\Support\HospitalReviewRequirements::assertReceptionPhone($updatedHospital, (string) $updatedHospital->allow_status);
 
@@ -50,6 +51,7 @@ final class HospitalUpdateForStaffAction
                 $this->syncFeatures($updatedHospital, $payload['feature_ids']);
             }
             $this->historyRecordAction->recordUpdated($updatedHospital, $beforeHistory);
+            app(\App\Domains\Common\Notification\Support\StaffReviewNotification::class)->changed('staff.hospital.requested', $updatedHospital, $beforeAllowStatus, (string) $updatedHospital->allow_status);
 
             return $updatedHospital->fresh();
         });

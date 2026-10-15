@@ -57,6 +57,7 @@ final class ContentReportStateStatusUpdateForStaffAction
 
             $state->processed_by = $actor instanceof Model ? (int) $actor->getKey() : null;
             $state->save();
+            app(\App\Domains\Common\ContentReport\Support\ContentReportNotification::class)->changed($state);
 
             $this->recordHistory(
                 target: $target,

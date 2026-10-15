@@ -57,6 +57,7 @@ final class StaffNotificationForStaffAction
                 'items' => $this->registry->items($rows),
                 'next_cursor' => $next,
                 'unread_count' => $this->count($staff),
+                'menu_badges' => $this->registry->badgeCounts($staff),
                 'read_all_token' => $this->encode($staff, 'read_all_token', $snapshot),
                 'types' => $this->preferences($staff)['preferences'],
             ];
@@ -70,6 +71,7 @@ final class StaffNotificationForStaffAction
 
             return [
                 'unread_count' => $this->count($staff),
+                'menu_badges' => $this->registry->badgeCounts($staff),
                 'read_all_token' => $this->encode($staff, 'read_all_token', $this->snapshot($staff, $this->filters($input))),
             ];
         });
@@ -89,6 +91,11 @@ final class StaffNotificationForStaffAction
 
             return ['notification' => $this->registry->items(collect([$inbox]))[0], 'changed' => $changed, 'unread_count' => $this->count($staff)];
         }, 3);
+    }
+
+    public function unreadTargets(AccountStaff $staff, array $targets): array
+    {
+        return ['targets' => $this->registry->unreadTargetCounts($staff, $targets)];
     }
 
     public function readAll(AccountStaff $staff, string $token): array
@@ -155,7 +162,7 @@ final class StaffNotificationForStaffAction
 
     private function count(AccountStaff $staff): int
     {
-        return $this->registry->visibleQuery($staff)->whereNull('read_at')->count();
+        return $this->registry->unreadQuery($staff)->count();
     }
 
     private function filtered(AccountStaff $staff, array $snapshot): Builder
@@ -167,7 +174,16 @@ final class StaffNotificationForStaffAction
             ->groupBy('notification_inbox_id')
             ->selectRaw('notification_inbox_id, MAX(id) AS receipt_id, MAX(created_at) AS occurred_at');
 
-        return $this->registry->visibleQuery($staff)
+        $query = $filters['unread_only'] ? $this->registry->unreadQuery($staff) : $this->registry->visibleQuery($staff);
+        if (! empty($filters['target_type']) && ! empty($filters['target_id'])) {
+            $this->registry->constrainTarget($query, $filters['target_type'], (int) $filters['target_id']);
+        }
+        if (! empty($filters['menu_path'])) {
+            $types = array_values(array_filter($this->registry->allowedTypes($staff), fn (string $type): bool => $this->registry->menuPath($type) === $filters['menu_path']));
+            $query->whereIn('event_type', $types);
+        }
+
+        return $query
             ->leftJoinSub($activity, 'notification_activity', 'notification_activity.notification_inbox_id', '=', 'notification_inboxes.id')
             ->select('notification_inboxes.*')->selectRaw('COALESCE(notification_activity.receipt_id, 0) AS activity_id')
             ->where('notification_inboxes.id', '<=', $snapshot['inbox_id'])
@@ -184,6 +200,9 @@ final class StaffNotificationForStaffAction
             'event_type' => $input['event_type'] ?? null,
             'start_date' => $input['start_date'] ?? null,
             'end_date' => $input['end_date'] ?? null,
+            'menu_path' => $input['menu_path'] ?? null,
+            'target_type' => $input['target_type'] ?? null,
+            'target_id' => isset($input['target_id']) ? (int) $input['target_id'] : null,
         ];
     }
 

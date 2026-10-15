@@ -19,9 +19,9 @@ use App\Modules\Staff\Http\Controllers\Dashboard\DashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\Hashtag\HashtagForStaffController;
 use App\Modules\Staff\Http\Controllers\Hospital\HospitalForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotConsultationForStaffController;
-use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotDashboardForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotOperatingHoursForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotQnaForStaffController;
+use App\Modules\Staff\Http\Controllers\HospitalChatBot\HospitalChatBotStatisticsForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalDoctor\HospitalDoctorForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEntry\HospitalEntryForStaffController;
 use App\Modules\Staff\Http\Controllers\HospitalEvaluation\HospitalEvaluationForStaffController;
@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum', 'actor:staff'])->group(function () {
         $controller = \App\Modules\Staff\Http\Controllers\Notification\NotificationForStaffController::class;
         Route::get('/', [$controller, 'index'])->name('index');
         Route::get('unread-count', [$controller, 'unreadCount'])->name('unread-count');
+        Route::post('unread-targets', [$controller, 'unreadTargets'])->name('unread-targets');
         Route::get('preferences', [$controller, 'preferences'])->name('preferences');
         Route::put('preferences', [$controller, 'updatePreferences'])->name('preferences.update');
         Route::post('read-all', [$controller, 'readAll'])->name('read-all');
@@ -599,9 +600,11 @@ Route::middleware(['auth:sanctum', 'actor:staff'])->group(function () {
         ->name('broadcasting.auth');
 
     Route::prefix('hospital-chatbot')->name('hospital-chatbot.')->group(function () {
-        // 대시보드. 상담 지표와 이용 지표를 한 응답에 담는다.
-        Route::get('dashboard', [HospitalChatBotDashboardForStaffController::class, 'show'])
-            ->name('dashboard.show');
+        // 상담 지표와 이용 지표를 한 응답에 담는다.
+        Route::get('statistics', [HospitalChatBotStatisticsForStaffController::class, 'show'])
+            ->name('statistics.show');
+        Route::get('statistics/live', [HospitalChatBotStatisticsForStaffController::class, 'live'])
+            ->name('statistics.live');
         Route::get('consultations', [HospitalChatBotConsultationForStaffController::class, 'index'])
             ->name('consultations.index');
         // {consultation} 보다 먼저 와야 한다. 뒤에 두면 'export'가 상담 ID로 잡힌다.

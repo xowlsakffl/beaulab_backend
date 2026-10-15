@@ -23,7 +23,7 @@ final class AccountStaffSeeder extends Seeder
         if (! filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 12) {
             throw new \LogicException('초기 직원 이메일과 12자 이상의 비밀번호가 필요합니다.');
         }
-        $withTestAccounts = app()->environment('local') && config('seeding.development.enabled');
+        $withTestAccounts = app()->environment(['local', 'testing']) && config('seeding.development.enabled');
         if ($withTestAccounts) {
             DevelopmentDataGuard::assertEnabled();
         }
@@ -56,7 +56,7 @@ final class AccountStaffSeeder extends Seeder
     private function createIfMissing(array $identity, string $password, string $role): void
     {
         // 기존 계정의 비밀번호·상태·권한은 시더 재실행으로 복구하지 않는다.
-        if (AccountStaff::where('email', $identity['email'])->orWhere('nickname', $identity['nickname'])->exists()) {
+        if (AccountStaff::withTrashed()->where('email', $identity['email'])->orWhere('nickname', $identity['nickname'])->exists()) {
             $this->command?->warn('기존 직원 계정은 변경하지 않았습니다: '.$identity['nickname']);
 
             return;
@@ -64,6 +64,7 @@ final class AccountStaffSeeder extends Seeder
         $staff = AccountStaff::create([
             ...$identity, 'password' => Hash::make($password),
             'status' => AccountStaff::STATUS_ACTIVE, 'email_verified_at' => now(),
+            'created_at' => config('seeding.development.enabled') ? now()->subMonths(15) : now(),
         ]);
         $staff->syncRoles([$role]);
         $staff->syncPermissions(\Spatie\Permission\Models\Role::findByName($role, 'staff')->permissions);

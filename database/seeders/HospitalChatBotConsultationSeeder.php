@@ -27,7 +27,8 @@ final class HospitalChatBotConsultationSeeder extends Seeder
 
         $created = 0;
         DB::transaction(function () use (&$created): void {
-            $staff = AccountStaff::query()->where('status', 'ACTIVE')->orderBy('id')->get();
+            $staff = AccountStaff::query()->where('status', 'ACTIVE')->orderByRaw("nickname = 'test_super_admin' DESC")->orderBy('id')->get()
+                ->filter(fn ($staff) => $staff->can(\App\Common\Authorization\AccessPermissions::BEAULAB_CHATBOT_CONSULTATION_PROCESS))->values();
             $hospitals = Hospital::query()->where('status', Hospital::STATUS_ACTIVE)
                 ->where('allow_status', Hospital::ALLOW_APPROVED)
                 ->whereHas('accountHospital', fn ($q) => $q->where('status', 'ACTIVE'))

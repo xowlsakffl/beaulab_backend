@@ -25,6 +25,8 @@ final class AccessPermissions
 
     public const BEAULAB_INTERNAL_TOOL_SHOW = 'beaulab.internal_tool.show';
 
+    public const BEAULAB_CHATBOT_STATISTICS_SHOW = 'beaulab.hospital_chatbot_statistics.show';
+
     public const BEAULAB_CHATBOT_CONSULTATION_SHOW = 'beaulab.hospital_chatbot_consultation.show';
 
     public const BEAULAB_CHATBOT_CONSULTATION_PROCESS = 'beaulab.hospital_chatbot_consultation.process';
@@ -553,6 +555,7 @@ final class AccessPermissions
     public static function hospitalChatbot(): array
     {
         return [
+            self::BEAULAB_CHATBOT_STATISTICS_SHOW,
             self::BEAULAB_CHATBOT_CONSULTATION_SHOW,
             self::BEAULAB_CHATBOT_CONSULTATION_PROCESS,
             self::BEAULAB_CHATBOT_QNA_SHOW,
